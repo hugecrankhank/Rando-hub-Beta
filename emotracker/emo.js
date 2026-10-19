@@ -865,6 +865,11 @@
     }).then(function () {
       codeCache.clear();
       applyPatches();
+      // Rando Hub's starting settings: item placement Advanced (the
+      // randomizer's default), or whatever the app says (?placement=basic)
+      var pl = (params.get('placement') || 'advanced').toLowerCase();
+      var ipm = findItem('item_placement_mode');
+      if (ipm && ipm.stages) ipm.stages.some(function (st, i) { if (st.codes.has('item_placement_' + pl)) { ipm.CurrentStage = i; return true; } return false; });
       snapshotDefaults();
       var b = bridge(), g = b && b.ready() ? romHash(b) : null;
       if (g) { Emo.game = g; rememberGame(g); }

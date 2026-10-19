@@ -30,6 +30,8 @@ played again later.
   - **Dungeons panel** under the items: chests left per dungeon (click to count down),
     small keys and big keys.
   - **Ganon's Tower**: chests opened (of 26) and which chest had the big key.
+  - Item placement (the tracker's logic setting) starts on **Advanced**, the
+    randomizer's default, and follows the Randomizer bar's Item placement.
 - Also in this beta: Crowd Control+ 1.8.0 (checks and bosses on the subathon clock)
   and 1.9.0 (GT big key guessing game).
 
