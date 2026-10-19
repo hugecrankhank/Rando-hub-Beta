@@ -392,11 +392,94 @@
     return best;
   }
 
+  // Map pins at the spot in the game itself. The pack placed its pins by eye on
+  // a small map; on the sharp map drawn from the game they were off by a little.
+  // These are the game's own positions, read from the ROM (doors and cave
+  // entrances, the holes you drop into, items and people on each screen),
+  // in the pack's map units (2007 per world = 4096 game pixels). Keyed by the
+  // pack's original spot, so a pin the pack moves later is left alone.
+  var PIN_FIX = {
+    alttpr_emosaru: {
+      "Lumberjack Cave|lightworld|633,117": [600, 145],
+      "Blind's House|lightworld|307,840": [337, 841],
+      "The Well|lightworld|47,833": [43, 851],
+      "Bottle Vendor|lightworld|190,933": [192, 929],
+      "Chicken House|lightworld|197,1066": [196, 1084],
+      "Tavern|lightworld|320,1145": [321, 1147],
+      "Sick Kid|lightworld|314,1060": [314, 1076],
+      "Magic Bat|lightworld|650,1127": [647, 1125],
+      "Library|lightworld|313,1310": [314, 1319],
+      "Castle Secret Entrance|lightworld|1196,834": [1196, 835],
+      "Link's House|lightworld|1097,1366": [1098, 1382],
+      "Pyramid Ledge|darkworld|1164,922": [1164, 898],
+      "Fat Fairy|darkworld|940,976": [941, 974],
+      "Haunted Grove|darkworld|620,1371": [615, 1376],
+      "Hype Cave|darkworld|1200,1560": [1200, 1562],
+      "Bombos Tablet|lightworld|440,1845": [435, 1846],
+      "Bombos Tablet|darkworld|440,1845": [435, 1846],
+      "Witch's Hut|lightworld|1607,670": [1607, 668],
+      "Waterfall Fairy|lightworld|1806,286": [1811, 268],
+      "Sahasrala's Hut|lightworld|1625,900": [1631, 911],
+      "Bonk Rocks|lightworld|777,590": [784, 590],
+      "King's Tomb|lightworld|1207,598": [1207, 598],
+      "Graveyard Ledge|lightworld|1132,549": [1145, 551],
+      "Desert Ledge|lightworld|40,1835": [51, 1838],
+      "Aginah's Cave|lightworld|400,1655": [400, 1656],
+      "C-Shaped House|darkworld|414,969": [416, 966],
+      "Treasure Game|darkworld|100,936": [102, 935],
+      "Bombable Shack|darkworld|219,1171": [220, 1170],
+      "Dwarven Smiths|lightworld|616,1054": [612, 1068],
+      "Dwarven Smiths|darkworld|295,1325": [302, 1329],
+      "Purple Chest|lightworld|680,1805": [686, 1799],
+      "Purple Chest|darkworld|601,1050": [608, 1047],
+      "Hammer Pegs|darkworld|636,1214": [635, 1217],
+      "Bumper Cave|darkworld|687,340": [694, 318],
+      "Dam|lightworld|942,1880": [941, 1876],
+      "Mini Moldorm Cave|lightworld|1309,1887": [1309, 1884],
+      "Ice Rod Cave|lightworld|1795,1547": [1795, 1546],
+      "Lake Hylia Island|lightworld|1450,1666": [1454, 1658],
+      "Lake Hylia Island|darkworld|1450,1666": [1454, 1658],
+      "Mire Shack|darkworld|77,1600": [78, 1609],
+      "Checkerboard Cave|lightworld|354,1560": [353, 1562],
+      "Old Man|lightworld|816,378": [815, 378],
+      "Ether Tablet|lightworld|844,38": [843, 35],
+      "Spike Cave|darkworld|1151,294": [1152, 292],
+      "Spiral Cave|lightworld|1598,180": [1599, 182],
+      "Paradox Cave|lightworld|1731,434": [1733, 433],
+      "Paradox Cave|lightworld|1714,293": [1717, 292],
+      "Super-Bunny Cave|darkworld|1695,290": [1693, 292],
+      "Hookshot Cave|darkworld|1670,126": [1670, 135],
+      "Floating Island|lightworld|1627,40": [1627, 27],
+      "Floating Island|darkworld|1627,40": [1627, 27],
+      "Hyrule Castle & Sanctuary|lightworld|1003,906": [1004, 880],
+      "Hyrule Castle & Sanctuary|lightworld|925,536": [925, 535],
+      "Agahnim|lightworld|1003,807": [1004, 802],
+      "Eastern Palace|lightworld|1925,791": [1929, 778],
+      "Desert Palace|lightworld|146,1584": [149, 1601],
+      "Palace of Darkness|darkworld|1924,800": [1929, 786],
+      "Swamp Palace|darkworld|940,1880": [941, 1876],
+      "Skull Woods|darkworld|79,121": [78, 104],
+      "Thieves Town|darkworld|251,971": [251, 974],
+      "Ice Palace|darkworld|1600,1735": [1599, 1735],
+      "Misery Mire|darkworld|150,1670": [149, 1617],
+      "Tower of Hera|lightworld|1126,68": [1129, 65],
+      "Turtle Rock|darkworld|1890,144": [1889, 159],
+      "Mimic Cave|lightworld|1694,190": [1693, 182],
+      "Mimic Cave|darkworld|1693,205": [1693, 182],
+      "Ganon's Tower|darkworld|1126,68": [1129, 33],
+      "Link's House|darkworld|1097,1366": [1098, 1382],
+      "Old Man|darkworld|816,378": [815, 378],
+    },
+  };
   function Location(d, parent) {
     this.def = d; this.Name = d.name || ''; this.ShortName = d.short_name || '';
     this.Parent = parent || null; this.color = d.color || null;
     this.rules = parseRules(d.access_rules);
-    this.mapLocations = (d.map_locations || []).map(function (m) { return { map: m.map, x: m.x, y: m.y, size: m.size, vis: parseRules(m.visibility_rules) }; });
+    var fix = PIN_FIX[PACK] || {}, nm = this.Name;
+    this.mapLocations = (d.map_locations || []).map(function (m) {
+      var f = fix[nm + '|' + m.map + '|' + m.x + ',' + m.y];
+      return { map: m.map, x: f ? f[0] : m.x, y: f ? f[1] : m.y, size: m.size, vis: parseRules(m.visibility_rules) };
+    });
     this.Sections = []; this.Children = [];
     this.base = A.Normal; this.level = A.Normal;
     this.ModifiedByUser = false;
