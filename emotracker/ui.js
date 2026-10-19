@@ -57,6 +57,11 @@
 
   var itemViews = [];
   function itemView(it, w, h, badgeSize) {
+    // Item size (the menu's "Items"): the pack's sizes times E.itemScale,
+    // whole pixels so the pixel art stays sharp
+    var k = E.itemScale || 1;
+    w = Math.round(w * k); h = Math.round(h * k);
+    if (badgeSize) badgeSize = Math.round(badgeSize * Math.min(k, 1.5));
     var v = el('div', 'it');
     v.style.width = w + 'px'; v.style.height = h + 'px';
     if (!it) { v.classList.add('blank'); return v; }

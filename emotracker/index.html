@@ -140,6 +140,7 @@
 <div id="bar">
   <label title="Which of the pack's trackers to use">Tracker <select id="variant"></select></label>
   <label title="How the tracker is laid out">View <select id="view"></select></label>
+  <label title="How big the item icons are">Items <select id="isize"><option value="auto">Auto</option><option value="1">Small</option><option value="1.5">Medium</option><option value="2">Large</option></select></label>
   <span title="Autotracking: reads the game as you play"><span id="dot"></span> <span id="stat">Waiting for the game</span></span>
   <span class="sp"></span>
   <button id="b-reset" type="button" title="Clear everything you've marked for this tracker">Reset</button>
@@ -178,11 +179,19 @@
     if (!E.layouts[v]) v = E.layouts.tracker_default ? 'tracker_default' : Object.keys(E.layouts)[0];
     return v;
   }
-  var current = null;
+  var current = null, curScale = null;
+  var SIZE_KEY = 'rhb-emo-isize', isize = 'auto';
+  try { isize = localStorage.getItem(SIZE_KEY) || 'auto'; } catch (e) {}
+  function pickScale() {
+    if (isize !== 'auto') return +isize || 1;
+    var w = $('root').clientWidth, h = $('root').clientHeight;
+    // bigger icons when there's room: 48 px on a wide window, 32 on a narrow one
+    return w >= 1050 && h >= 600 ? 1.5 : 1;
+  }
   function draw(force) {
-    var k = pickLayout();
-    if (k === current && !force) return;
-    current = k;
+    var k = pickLayout(), sc = pickScale();
+    if (k === current && sc === curScale && !force) return;
+    current = k; curScale = sc; E.itemScale = sc;
     E.render($('root'), k);
   }
 
@@ -211,6 +220,12 @@
     try { localStorage.setItem('rhb-emo-variant', this.value); } catch (e) {}
     params.set('variant', this.value);
     location.search = params.toString();
+  });
+  $('isize').value = isize;
+  $('isize').addEventListener('change', function () {
+    isize = this.value;
+    try { localStorage.setItem(SIZE_KEY, isize); } catch (e) {}
+    draw(true);
   });
   $('view').addEventListener('change', function () {
     view = this.value;
