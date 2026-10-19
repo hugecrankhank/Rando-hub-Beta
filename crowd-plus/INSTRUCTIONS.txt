@@ -348,6 +348,21 @@ Crowd effects menu.
 4 = 14,400, 0.5 = 1,800. The clock is saved, so if you close Crowd
 Control+ it comes back paused at the same time.
 
+CHECKS AND BOSSES ON THE CLOCK (Subathon tab, "Progress on the clock")
+  Turn it on to have your progress change the clock, for example take
+  1 minute off for every check and 5 minutes off for every boss beaten
+  (or choose "adds time" instead). Click Save.
+  - It counts from when Crowd Control+ first sees the game, so loading
+    a game you're halfway through doesn't take hours off at once. A new
+    seed starts counting again from there.
+  - Bosses: the 10 dungeon bosses, Agahnim and Agahnim 2. A boss beaten
+    on a boss detour doesn't count (the detour is undone afterwards).
+  - Each change shows on the clock overlay (red for time off, with what
+    it was for, like "-5m · beat Armos Knights") and in the Recent list.
+    Bosses can also pop a "BOSS DEFEATED!" alert.
+  - Test 7 checks / Test a boss try it without playing.
+  Crowd effects has to be on in the game (that's how the counts arrive).
+
 
 =========================================================================
 PART 9 - PRACTICE MODE (NO TIKTOK)
@@ -617,6 +632,18 @@ PREDICTIONS
   "Will he beat this dungeon without dying?" Chat types !yes or !no
   before it locks. When it's over, press "It happened" or "It didn't";
   the people who called it get a shout-out on stream. Just for fun.
+
+GT BIG KEY (Live games tab)
+  "Which Ganon's Tower chest has the big key?" Press Start guessing;
+  chat types !gt 1 to !gt 26 (one guess each; a new one replaces the
+  old). Guesses close when you open the first GT chest (or press Close
+  guesses). The game counts the GT chests you open; when the big key
+  turns up, that chest's number wins: exact guesses, or the closest if
+  nobody's exact. Add the "GT big key" overlay to show the guesses and
+  the winners. Needs Crowd effects on in the game. Bob's Torch isn't
+  counted (26 chests). Not for seeds with shuffled big keys (keysanity).
+  If the game couldn't count it (the game was loaded with the key
+  already found), type the chest number and press Set.
 
 Votes and predictions only count chat messages that are exactly the
 number or word (1, !vote 2, !yes ...), so normal chat isn't affected.

@@ -1,0 +1,68 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>GT big key</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="/studio/overlay.css">
+<style>
+  /* 620 x 300. Which Ganon's Tower chest has the big key? */
+  body { padding: calc(10px * var(--scale)); }
+  .card { width: calc(580px * var(--scale)); padding: calc(14px * var(--scale)) calc(16px * var(--scale)); display: none; }
+  .card.on { display: block; animation: pop .45s cubic-bezier(.2, 1.4, .4, 1); }
+  @keyframes pop { from { opacity: 0; transform: translateY(calc(-14px * var(--scale))); } }
+  .head { display: flex; align-items: center; gap: calc(10px * var(--scale)); font-size: calc(11px * var(--scale)); color: #ffd166; }
+  .q { font: 800 calc(22px * var(--scale))/1.25 var(--sans); margin: calc(8px * var(--scale)) 0 calc(10px * var(--scale)); }
+  .how { font: 600 calc(14px * var(--scale)) var(--sans); color: #c9c0e6; }
+  .how b { color: #fff; }
+  .row { display: flex; gap: calc(14px * var(--scale)); align-items: stretch; margin-top: calc(10px * var(--scale)); }
+  .big { flex: none; min-width: calc(130px * var(--scale)); text-align: center; border-radius: calc(10px * var(--scale)); padding: calc(8px * var(--scale));
+    background: rgba(0,0,0,.35); border: calc(2px * var(--scale)) solid rgba(255,255,255,.15); }
+  .big .n { font: 800 calc(30px * var(--scale)) var(--sans); }
+  .big .l { font: 600 calc(11px * var(--scale)) var(--sans); color: #c9c0e6; }
+  .big.key { border-color: #ffd166; background: rgba(255,209,102,.2); }
+  .bars { flex: 1; display: flex; align-items: flex-end; gap: calc(2px * var(--scale)); height: calc(70px * var(--scale)); }
+  .bar { flex: 1; background: rgba(255,255,255,.18); border-radius: calc(2px * var(--scale)) calc(2px * var(--scale)) 0 0; position: relative; min-height: calc(2px * var(--scale)); }
+  .bar.open { background: rgba(255,255,255,.07); }
+  .bar.win { background: #ffd166; }
+  .bar span { position: absolute; bottom: calc(-14px * var(--scale)); left: 50%; transform: translateX(-50%); font: 600 calc(9px * var(--scale)) var(--sans); color: #c9c0e6; }
+  .foot { font: 600 calc(13px * var(--scale)) var(--sans); color: #e9e4f7; margin-top: calc(18px * var(--scale)); min-height: 1.2em; }
+  .foot b { color: #ffd166; }
+</style></head>
+<body>
+<div class="card box" id="card"><div class="head pix">🔑 GT BIG KEY<span id="state" style="margin-left:auto"></span></div>
+<div class="q shadow">Which Ganon's Tower chest has the big key?</div>
+<div class="how" id="how"></div>
+<div class="row"><div class="big" id="opened"><div class="n" id="op-n">0</div><div class="l">chests opened</div></div><div class="bars" id="bars"></div></div>
+<div class="foot" id="foot"></div></div>
+<div class="offline-note">Waiting for the Crowd Control+ bridge…</div>
+<script src="/studio/common.js"></script>
+<script>
+const $ = (i) => document.getElementById(i); let G = null, live = {}, shown = null;
+function paint() {
+  if (!G) { $('card').classList.remove('on'); shown = null; return; }
+  if (shown !== G.id) { shown = G.id; $('card').classList.remove('on'); void $('card').offsetWidth; $('card').classList.add('on'); }
+  const R = G.result;
+  $('how').innerHTML = R ? 'The big key was in chest <b>#' + R.at + '</b>!' : G.open ? 'Type <b>' + CC.esc(G.command) + ' 1</b> to <b>' + CC.esc(G.command) + ' 26</b> · ' + CC.num(G.guesses) + ' guesses' : 'Guesses are in (' + CC.num(G.guesses) + '). Here we go…';
+  $('state').textContent = R ? 'FOUND!' : G.open ? 'GUESS NOW' : 'LOCKED';
+  const opened = R ? R.at : (live.opened != null ? live.opened : G.opened || 0);
+  $('op-n').textContent = R ? '#' + R.at : opened;
+  $('opened').querySelector('.l').textContent = R ? 'had the big key' : 'chests opened';
+  $('opened').classList.toggle('key', !!R);
+  const counts = G.counts || {}, max = Math.max(1, ...Object.values(counts));
+  let h = '';
+  for (let n = 1; n <= 26; n++) {
+    const c = counts[n] || 0, cls = R && n === R.at ? ' win' : !R && n <= opened ? ' open' : '';
+    h += '<div class="bar' + cls + '" style="height:' + Math.max(3, Math.round(c / max * 100)) + '%" title="#' + n + ': ' + c + '">' + (n % 5 === 0 || n === 1 ? '<span>' + n + '</span>' : '') + '</div>';
+  }
+  $('bars').innerHTML = h;
+  if (R) {
+    const w = R.winners || [], show = w.slice(0, (CC.state && CC.state.settings.gtGuess && CC.state.settings.gtGuess.winnersShown) || 12);
+    $('foot').innerHTML = w.length ? '<b>' + (R.exact ? 'Called it:' : 'Closest (' + R.off + ' off):') + '</b> ' + show.map(CC.esc).join(', ') + (w.length > show.length ? ' +' + (w.length - show.length) + ' more' : '') : 'Nobody guessed!';
+  } else $('foot').textContent = '';
+}
+CC.on('state', (d) => {
+  G = d.live && d.live.gtguess; live = (d.live && d.live.gt) || {};
+  if (!G && CC.q.get('preview') === '1') { G = { id: 1, open: true, guesses: 31, command: '!gt', counts: { 3: 2, 7: 4, 9: 6, 12: 3, 14: 5, 18: 2, 20: 4, 24: 1 }, result: null }; live = { opened: 4 }; }
+  paint();
+});
+CC.on('live', (d) => { if ('gtguess' in d) G = d.gtguess; if (d.gt) live = d.gt; if ('gtguess' in d || d.gt) paint(); });
+</script>
+</body></html>

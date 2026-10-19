@@ -71,6 +71,8 @@
         if ('poll' in d) L.poll = d.poll;
         if ('battle' in d) L.battle = d.battle;
         if ('predict' in d) L.predict = d.predict;
+        if ('gtguess' in d) L.gtguess = d.gtguess;
+        if (d.gt) L.gt = d.gt;
         if (d.run) L.run = d.run;
         if (d.combo) L.combo = Object.assign(L.combo || {}, d.combo);
         if (d.clip) L.clips = (L.clips || []).concat(d.clip).slice(-200);

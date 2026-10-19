@@ -15,6 +15,50 @@ played again later.
   keysanity), or pick one in its own menu. Marks are kept per game.
 - Desktop layout: "⧉ EmoTracker" opens it in its own window.
 - The beta keeps its own saves and tracker choice, apart from the main app.
+- EmoTracker additions:
+  - **Bombs logic for today's randomizer:** the pack (2019) assumed bombs are always on
+    hand. Now the spots behind bombable walls need bombs (Chicken House, Brewery,
+    Aginah's Cave, Kakariko Well and Blind's Hut top chests, Hype Cave, Mini Moldorm
+    Cave, Ice Rod Cave), or bombs or boots (Sahasrahla's back room, Race Game), as in
+    Hutch's tracker. Running out of bombs turns them red again.
+  - **Point at a square** to see its checks (tap on touch screens); the card stays while
+    you use it. Click a chest to mark it.
+  - **Mark which item is at a location:** right click a square, or hold it on a phone or
+    tablet (also the + on each check in the card). The item shows on the square.
+  - **Map key** (what each color means), and **counters** from the game: checks,
+    deaths, bonks.
+  - **Dungeons panel** under the items: chests left per dungeon (click to count down),
+    small keys and big keys.
+  - **Ganon's Tower**: chests opened (of 26) and which chest had the big key.
+- Also in this beta: Crowd Control+ 1.8.0 (checks and bosses on the subathon clock)
+  and 1.9.0 (GT big key guessing game).
+
+## 1.9.0 (2026-10-19)
+
+Crowd Control+:
+- **GT big key guessing game** (Live games tab): chat guesses which Ganon's Tower chest
+  has the big key (`!gt 1`–`!gt 26`, one guess each). The game counts the GT chests
+  opened (26 chests, not Bob's Torch; the same flags Hutch's tracker reads) and reports
+  the count when the big key arrives, so exact guesses win, or the closest. Guesses
+  close at the first GT chest (or by hand); the number can be set by hand if the game
+  couldn't count it. New "GT big key" overlay (guesses per chest, chests opened,
+  winners) and an optional "BIG KEY FOUND!" alert. Test button.
+
+## 1.8.0 (2026-10-19)
+
+Crowd Control+:
+- **Checks and bosses on the subathon clock** (Subathon tab → Progress on the clock):
+  each new check and each boss beaten takes time off the clock (or adds time), e.g.
+  1 minute per check and 5 minutes per boss. Counts from when Crowd Control+ first
+  sees the game, so a game picked up halfway doesn't take hours off at once; a new
+  seed starts over; boss detours don't count. The clock overlay shows each change
+  (red for time off, with the reason) and bosses can pop a "BOSS DEFEATED!" alert.
+  Test buttons for both.
+- The game now reports which bosses are beaten (the 10 dungeon bosses, Agahnim,
+  Agahnim 2) along with the other run stats.
+- Fix: boss detours used the wrong bit for "boss beaten" (now the room flag's 0x08,
+  the same bit the trackers read). "Random boss" now really skips beaten bosses,
+  and a detour to a beaten boss brings him back for the fight.
 
 ## 1.7.1 (2026-10-19)
 

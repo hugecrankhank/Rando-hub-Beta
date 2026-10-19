@@ -129,6 +129,7 @@
   Item.prototype.provides = function (c) { return 0; };
   Item.prototype.left = function () {}; Item.prototype.right = function () {};
   Item.prototype.icon = function () { return null; };
+  Item.prototype.activeIcon = function () { return this.icon(); };
   Item.prototype.saveState = function () { return null; };
   Item.prototype.loadState = function () {};
   Item.prototype.advanceToCode = function () {};
@@ -149,6 +150,7 @@
     it.loop = !!d.loop;
     prop(it, 'Active', function () { return on; }, function (v) { v = !!v; if (v !== on) { on = v; changed(); } });
     it.icon = function () { return on ? it.on_ : it.off_; };
+    it.activeIcon = function () { return it.on_; };
     it.provides = function (c) { return on && it.codes.has(c) ? 1 : 0; };
     it.left = function () { it.Active = it.loop ? !on : true; };
     it.right = function () { it.Active = it.loop ? !on : false; };
@@ -177,6 +179,7 @@
     it.canProvide = function (c) { return stages.some(function (s) { return s.codes.has(c); }); };
     it.provides = function (c) { return stages[cur] && stages[cur].codes.has(c) ? 1 : 0; };
     it.icon = function () { return stages[cur] ? stages[cur].img : null; };
+    it.activeIcon = function () { var s = stages[Math.max(cur, allowDisabled ? 1 : 0)] || stages[stages.length - 1]; return s ? s.img : null; };
     it.left = function () { var n = cur + 1; if (loop) n %= stages.length; if (n < stages.length) it.CurrentStage = n; };
     it.right = function () { var n = cur - 1; if (loop) n = (n + stages.length) % stages.length; if (n >= 0) it.CurrentStage = n; };
     it.advanceToCode = function (code) {
@@ -208,6 +211,7 @@
     it.canProvide = function (c) { return stages.some(function (s) { return s.codes.has(c); }); };
     it.provides = function (c) { return on && stages[cur] && stages[cur].codes.has(c) ? 1 : 0; };
     it.icon = function () { var s = stages[cur]; return s ? (on ? s.img : s.dis) : null; };
+    it.activeIcon = function () { var s = stages[cur]; return s ? s.img : null; };
     it.advance = function () { if (stages.length) it.CurrentStage = (cur + 1) % stages.length; };
     it.left = function () { if (!swap) it.Active = !on; else it.advance(); };
     it.right = function () { if (swap) it.Active = !on; else it.advance(); };
@@ -232,6 +236,7 @@
     prop(it, 'MinCount', function () { return min; }, function (v) { min = Number(v); changed(); });
     it.provides = function (c) { var a = Math.max(0, acquired - consumed); return a > 0 && it.codes.has(c) ? a : 0; };
     it.icon = function () { return Math.max(0, acquired - consumed) === 0 ? (acquired > 0 ? full : empty) : full; };
+    it.activeIcon = function () { return full; };
     it.badgeOf = function () {
       var a = Math.max(0, acquired - consumed);
       if (!a) return null;
@@ -362,7 +367,10 @@
       if (v !== avail) { avail = v; changed(); }
     });
     this.level = A.None; this.visible = true;
+    // the item you've marked as being here (right click / long press on the map)
+    this.captured = null;
   }
+  Section.prototype.capture = function (code) { this.captured = code || null; changed(); };
   Section.prototype.hosted = function () { return this.hostedCode ? findItem(this.hostedCode) : null; };
   Section.prototype.unclaimed = function () {
     if (this.AvailableChestCount > 0) return true;
@@ -464,6 +472,41 @@
       Emo.locByName[loc.Name.toLowerCase()] = loc;
       if (p) p.Children.push(loc);
       addLocations(d.children, loc);
+    });
+  }
+
+  // Rando Hub's corrections to a pack's logic, for today's randomizer. The
+  // official ALTTPR pack (2019) assumes bombs are always on hand; now bombs
+  // can run out, so the spots behind a bombable wall need bombs (or a dash
+  // with the boots where that works), the same as Hutch's tracker.
+  // Each entry: "@Location/Section": [ codes, any one of which is needed ].
+  var PATCHES = {
+    alttpr_emosaru: {
+      '@Chicken House/Bombable Wall': ['bombs'],
+      '@Bombable Shack/Downstairs': ['bombs'],
+      "@Aginah's Cave/Cave": ['bombs'],
+      "@Sahasrala's Hut/Back Room": ['bombs', 'boots'],
+      '@The Well/Bombable Wall': ['bombs'],
+      "@Blind's House/Bombable Wall": ['bombs'],
+      '@Hype Cave/Cave': ['bombs'],
+      '@Mini Moldorm Cave/Cave': ['bombs'],
+      '@Ice Rod Cave/Cave': ['bombs'],
+      '@Race Game/Take This Trash': ['bombs', 'boots'],
+    },
+  };
+  function applyPatches() {
+    var P = PATCHES[PACK];
+    if (!P) return;
+    Object.keys(P).forEach(function (code) {
+      var sec = findCode(code);
+      if (!(sec instanceof Section)) { Emo.log.push('patch: no ' + code); return; }
+      var need = P[code].map(function (c) { return { sb: false, glitch: false, n: 1, code: c }; });
+      var base = sec.rules.length ? sec.rules : [{ inspect: false, codes: [] }];
+      var out = [];
+      base.forEach(function (r) {
+        need.forEach(function (c) { out.push({ inspect: r.inspect, codes: r.codes.concat([c]) }); });
+      });
+      sec.rules = out;
     });
   }
 
@@ -614,6 +657,35 @@
     watches.push(w);
     return w.name;
   }
+  // ── run counters and the GT big key ───────────────────────────────────────
+  // Checks, deaths and bonks are the randomizer's own counters in save RAM
+  // (z3randomizer: $7EF423 items found, $7EF449 deaths, $7EF420 bonks).
+  // Ganon's Tower: chests opened (26, not Bob's Torch; the same room flags as
+  // Hutch's tracker) and, for the "which chest has the big key?" game, how
+  // many were open when the big key turned up (that chest included). Only
+  // counted if the key was seen missing first and arrived inside GT.
+  var GT_CHESTS = [[0x118, 0x20], [0x118, 0x40], [0x11a, 0x10], [0x13a, 0x10], [0x13a, 0x20], [0x13a, 0x40], [0x13a, 0x80],
+    [0x0f6, 0x10], [0x0f6, 0x20], [0x0f6, 0x40], [0x0f6, 0x80], [0x116, 0x10], [0x0fa, 0x10], [0x0f8, 0x10], [0x0f8, 0x20],
+    [0x0f8, 0x40], [0x0f8, 0x80], [0x118, 0x80], [0x118, 0x10], [0x038, 0x20], [0x038, 0x40], [0x038, 0x10], [0x07a, 0x10],
+    [0x07a, 0x20], [0x07a, 0x40], [0x09a, 0x10]];
+  var gt = { armed: false, at: null };
+  Emo.stats = null;
+  var statT = 0;
+  function readStats() {
+    var b = readMem(0x7EF000, 0x500), m = readMem(0x7E0010, 1), pal = readMem(0x7E040C, 1);
+    if (!b || !m) return;
+    if (m[0] < 0x06 || m[0] === 0x14) return;           // title, file select, attract: not in a game
+    var opened = 0;
+    GT_CHESTS.forEach(function (c) { if (b[c[0]] & c[1]) opened++; });
+    var found = !!(b[0x366] & 0x04);
+    if (!found) { if (!gt.armed || gt.at !== null) { gt.armed = true; gt.at = null; save(); } }
+    else if (gt.armed && gt.at === null) { gt.at = pal && pal[0] === 0x1A ? opened : -1; save(); }
+    var st = { checks: b[0x423] | (b[0x424] << 8), deaths: b[0x449], bonks: b[0x420], gtOpened: opened, gtFound: found,
+      gtAt: gt.at === null || gt.at < 0 ? null : gt.at };
+    var sig = JSON.stringify(st);
+    if (sig !== JSON.stringify(Emo.stats)) { Emo.stats = st; if (Emo.onStats) Emo.onStats(st); }
+  }
+
   Emo.autotrack = true;
   Emo.connected = false;
   function tick() {
@@ -623,8 +695,10 @@
       if (live) { var g = romHash(b); if (g) setGame(g); watches.forEach(function (w) { w.dirty = true; }); }
       if (Emo.onStatus) Emo.onStatus(live);
     }
-    if (!live || !Emo.autotrack || !L) return;
+    if (!live || !L) return;
     var now = Date.now();
+    if (now - statT > 500) { statT = now; try { readStats(); } catch (e) {} }
+    if (!Emo.autotrack) return;
     watches.slice().forEach(function (w) {
       if (!w.dirty && now - w.last < w.period) return;
       var bytes = readMem(w.addr, w.len);
@@ -673,9 +747,10 @@
     Emo.items.forEach(function (it, i) { if (defaults.items[i]) it.loadState(defaults.items[i]); });
     Emo.locations.forEach(function (l, i) {
       l.ModifiedByUser = false;
-      l.Sections.forEach(function (s, j) { s.AvailableChestCount = defaults.sections[i][j]; });
+      l.Sections.forEach(function (s, j) { s.AvailableChestCount = defaults.sections[i][j]; s.captured = null; });
     });
     Emo.pinned = [];
+    gt.armed = false; gt.at = null;
   }
   function rememberGame(g) {
     var list = [];
@@ -707,10 +782,14 @@
   var loaded = false;
   function save() {
     if (!loaded) return;
-    var s = { v: 1, items: {}, sections: {}, modified: [], pinned: Emo.pinned.map(function (l) { return l.Name; }) };
+    var s = { v: 1, items: {}, sections: {}, captured: {}, modified: [], pinned: Emo.pinned.map(function (l) { return l.Name; }),
+      gt: { armed: gt.armed, at: gt.at } };
     Emo.items.forEach(function (it, i) { var st = it.saveState(); if (st) s.items[i + ':' + it.Name] = st; });
     Emo.locations.forEach(function (l) {
-      l.Sections.forEach(function (sec) { if (sec.AvailableChestCount !== sec.ChestCount) s.sections[l.Name + '/' + sec.Name] = sec.AvailableChestCount; });
+      l.Sections.forEach(function (sec) {
+        if (sec.AvailableChestCount !== sec.ChestCount) s.sections[l.Name + '/' + sec.Name] = sec.AvailableChestCount;
+        if (sec.captured) s.captured[l.Name + '/' + sec.Name] = sec.captured;
+      });
       if (l.ModifiedByUser) s.modified.push(l.Name);
     });
     try { localStorage.setItem(key(), JSON.stringify(s)); } catch (e) {}
@@ -725,6 +804,11 @@
         var i = k.indexOf('/'), loc = Emo.locByName[k.slice(0, i).toLowerCase()], sec = loc && loc.findSection(k.slice(i + 1));
         if (sec) sec.AvailableChestCount = s.sections[k];
       });
+      Object.keys(s.captured || {}).forEach(function (k) {
+        var i = k.indexOf('/'), loc = Emo.locByName[k.slice(0, i).toLowerCase()], sec = loc && loc.findSection(k.slice(i + 1));
+        if (sec) sec.captured = s.captured[k];
+      });
+      if (s.gt) { gt.armed = !!s.gt.armed; gt.at = s.gt.at == null ? null : s.gt.at; }
       (s.modified || []).forEach(function (n) { var l = Emo.locByName[n.toLowerCase()]; if (l) l.ModifiedByUser = true; });
       Emo.pinned = (s.pinned || []).map(function (n) { return Emo.locByName[n.toLowerCase()]; }).filter(Boolean);
     });
@@ -780,6 +864,7 @@
       return next();
     }).then(function () {
       codeCache.clear();
+      applyPatches();
       snapshotDefaults();
       var b = bridge(), g = b && b.ready() ? romHash(b) : null;
       if (g) { Emo.game = g; rememberGame(g); }

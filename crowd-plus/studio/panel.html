@@ -291,6 +291,20 @@
       <div id="tm-log" class="muted" style="font-size:12.5px"></div>
     </div>
   </div>
+  <h2>CHECKS AND BOSSES ON THE CLOCK</h2>
+  <div class="grid g2">
+    <div class="card">
+      <h3>Progress on the clock</h3>
+      <p class="hint">Every new check and every boss beaten changes the subathon clock. Counts from when the bridge first sees the game (a game picked up halfway doesn't take hours off at once). Boss detours don't count.</p>
+      <label class="check"><input type="checkbox" data-s="runClock.enabled"> On</label>
+      <label class="row"><span>Each</span><select data-s="runClock.mode"><option value="remove">takes time off</option><option value="add">adds time</option></select></label>
+      <label class="row"><span>Per check</span><input type="number" min="0" data-s="runClock.checkSeconds"> seconds</label>
+      <label class="row"><span>Per boss beaten</span><input type="number" min="0" data-s="runClock.bossSeconds"> seconds</label>
+      <label class="check"><input type="checkbox" data-s="runClock.alert"> Show a "BOSS DEFEATED!" alert</label>
+      <div class="savebar" style="position:static;padding-top:6px"><button class="primary" data-save-settings>Save</button><span class="dirty" data-dirty></span></div>
+      <div class="row"><button class="small" id="rc-test-check">Test 7 checks</button><button class="small" id="rc-test-boss">Test a boss</button></div>
+    </div>
+  </div>
 </section>
 
 <!-- LIVE GAMES -->
@@ -362,6 +376,19 @@
     </div>
     <div class="card"><h3>Now</h3><div id="pd-now" class="muted">No prediction running.</div></div>
   </div>
+  <h2>GT BIG KEY</h2>
+  <div class="grid g2">
+    <div class="card">
+      <p class="hint">Which Ganon's Tower chest has the big key? Chat types <span class="kbd" id="gt-cmd-show">!gt 9</span> (1 to 26: GT's 26 chests, not Bob's Torch). The game counts the GT chests you open; when the big key turns up, that chest's number wins. Exact guesses win, or the closest if nobody's exact. Needs Crowd effects on in the game. Not for shuffled big keys (keysanity).</p>
+      <label class="row"><span>Chat command</span><input data-s="gtGuess.command" style="width:110px"></label>
+      <label class="check"><input type="checkbox" data-s="gtGuess.lockOnFirstChest"> Close guesses when the first GT chest is opened</label>
+      <label class="check"><input type="checkbox" data-s="gtGuess.alert"> Show a "BIG KEY FOUND!" alert</label>
+      <div class="row"><button class="primary" id="gt-start">Start guessing</button><button id="gt-lock">Close guesses</button><button class="danger" id="gt-cancel">Cancel</button></div>
+      <div class="row"><span class="muted">If the game couldn't count it: the big key was chest #</span><input id="gt-at" type="number" min="1" max="26" style="width:70px"><button id="gt-set">Set</button></div>
+      <div class="row"><button class="small" id="gt-test">Test (5 fake guesses, key in chest #9)</button></div>
+    </div>
+    <div class="card"><h3>Now</h3><div id="gt-now" class="muted">Not running.</div></div>
+  </div>
   <div class="savebar"><button class="primary" data-save-settings>Save settings</button><span class="dirty" data-dirty></span></div>
 </section>
 
@@ -382,6 +409,7 @@
       <label class="row"><span>Move this goal</span><select data-s="deathTax.goalId" id="dt-goal"></select> by <input type="number" data-s="deathTax.goalAmount" style="width:80px"></label>
       <label class="check"><input type="checkbox" data-s="deathTax.alert"> Show a "DEATH TAX" alert</label>
       <div class="row"><button class="small" id="dt-test">Test a death</button></div>
+      <p class="hint">Checks and bosses can change the subathon clock too: <b>Subathon</b> tab.</p>
     </div>
   </div>
 
@@ -503,7 +531,7 @@ CC.on('tick', (d) => {
   chips(CC.state); if (S) paintConn(); const n = d.overlays || 0; $('chip-ov').className = 'chip ' + (n ? 'ok' : ''); $('chip-ov').lastElementChild.textContent = n + ' overlay' + (n === 1 ? '' : 's') + ' on stream'; paintClock(); });
 
 // ── dashboard ──
-const ICON = { gift: '🎁', like: '❤', follow: '➕', share: '↗', chat: '💬', death: '☠', music: '♪', detour: '⚔', 'detour-end': '⚔', 'detour-rescue': '🛟' };
+const ICON = { gift: '🎁', like: '❤', follow: '➕', share: '↗', chat: '💬', death: '☠', music: '♪', detour: '⚔', 'detour-end': '⚔', 'detour-rescue': '🛟', boss: '🏆', gtkey: '🔑' };
 function paintStats() {
   const s = S.stats;
   $('stats').innerHTML = [['Coins', s.coins], ['Gifts', s.gifts], ['Likes', s.likes], ['Follows', s.follows], ['Shares', s.shares], ['Chat', s.chats]]
@@ -519,11 +547,13 @@ function evRow(e) {
   else if (e.type === 'follow') what += 'followed';
   else if (e.type === 'share') what += 'shared the LIVE';
   else if (e.type === 'chat') what += '<span class="muted">' + esc(e.text) + '</span>' + (e.command ? ' <span class="pill">command</span>' : '') + (e.speak ? ' <span class="pill">read aloud</span>' : '') +
-    (e.vote ? ' <span class="pill">voted ' + e.vote + '</span>' : '') + (e.predict ? ' <span class="pill">' + esc(e.predict) + '</span>' : '') + (e.team ? ' <span class="pill">joined ' + esc(e.team) + '</span>' : '') + (e.clipped ? ' <span class="pill">clip marked</span>' : '');
+    (e.vote ? ' <span class="pill">voted ' + e.vote + '</span>' : '') + (e.predict ? ' <span class="pill">' + esc(e.predict) + '</span>' : '') + (e.gtguess ? ' <span class="pill">GT guess #' + e.gtguess + '</span>' : '') + (e.team ? ' <span class="pill">joined ' + esc(e.team) + '</span>' : '') + (e.clipped ? ' <span class="pill">clip marked</span>' : '');
   else if (e.type === 'death') what = '<b>Link</b> died (death #' + (e.deaths || '?') + ')' + (e.text ? ' <span class="muted">' + esc(e.text) + '</span>' : '');
   else if (e.type === 'music') what = '<b>Music</b> <span class="muted">now ' + esc(e.text) + '</span>';
   else if (e.type === 'detour') what = '<b>' + esc(CC.name(e)) + '</b> sent Link to fight ' + esc(e.text);
   else if (e.type === 'detour-end') what = '<b>Boss detour</b> ' + esc(e.text) + ': ' + esc(e.result) + (e.bonus ? ' <span class="muted">(bonus: ' + esc(e.bonus) + ')</span>' : '');
+  else if (e.type === 'gtkey') what = '<b>' + esc(e.text) + '</b>' + (e.bonus ? ' <span class="muted">' + esc(e.bonus) + '</span>' : '');
+  else if (e.type === 'boss') what = '<b>Link</b> beat ' + esc(e.text) + (e.bonus ? ' <span class="muted">(' + esc(e.bonus) + ')</span>' : '');
   else if (e.type === 'detour-rescue') what = '<b>' + esc(CC.name(e)) + '</b> rescued Link from the boss';
   if (e.welcome) what += ' <span class="pill">regular · stream #' + e.welcome.streams + '</span>';
   if (e.test) what += '<span class="tag">test</span>';
@@ -577,7 +607,7 @@ document.addEventListener('change', (ev) => { if (ev.target.type === 'checkbox' 
 $('tts-banned').oninput = () => { draft.tts.bannedWords = $('tts-banned').value.split('\n').map((x) => x.trim()).filter(Boolean); markS(); };
 function markS() { sDirty = true; document.querySelectorAll('[data-dirty]').forEach((x) => x.textContent = 'Unsaved changes'); }
 document.querySelectorAll('[data-save-settings]').forEach((b) => b.onclick = async () => {
-  const keys = ['alerts', 'leaderboard', 'feed', 'tts', 'commands', 'votes', 'battle', 'mystery', 'combo', 'deathTax', 'predict', 'clips', 'hallOfFame', 'welcome', 'detour'];
+  const keys = ['alerts', 'leaderboard', 'feed', 'tts', 'commands', 'votes', 'battle', 'mystery', 'combo', 'deathTax', 'runClock', 'predict', 'gtGuess', 'clips', 'hallOfFame', 'welcome', 'detour'];
   await call('settings', { settings: Object.fromEntries(keys.map((k) => [k, draft[k]])) }, 'Saved');
   sDirty = false; document.querySelectorAll('[data-dirty]').forEach((x) => x.textContent = '');
 });
@@ -739,6 +769,7 @@ const OVS = [
   ['mystery', 'Mystery box', 'The slot machine.', '700 x 260'],
   ['combo', 'Combo meter', 'The gift combo while it lasts.', '360 x 200'],
   ['predict', 'Prediction', 'The question, the votes, and who called it.', '620 x 300'],
+  ['gtkey', 'GT big key', 'Which Ganon\'s Tower chest has the big key: the guesses, the chests opened, and who called it.', '620 x 300'],
   ['halloffame', 'Hall of fame', 'All-time top gifters.', '420 x 420'],
   ['welcome', 'Welcome back', 'Pops up when a regular shows up.', '520 x 140'],
   ['alerts', 'Gift alerts', 'Pops up with the viewer, the gift and what it did in the game, with a sound. Bigger donations get bigger alerts.', '1920 x 1080 (full screen, it centers itself)'],
@@ -850,6 +881,20 @@ $('pd-lock').onclick = () => call('predict-lock', {});
 $('pd-yes').onclick = () => call('predict-resolve', { result: 0 });
 $('pd-no').onclick = () => call('predict-resolve', { result: 1 });
 $('pd-cancel').onclick = () => call('predict-cancel', {}, 'Prediction cancelled');
+$('gt-start').onclick = () => call('gt-start', {}, 'GT guessing open');
+$('gt-lock').onclick = () => call('gt-lock', {}, 'Guesses closed');
+$('gt-cancel').onclick = () => call('gt-cancel', {}, 'Cancelled');
+$('gt-set').onclick = () => { const n = +$('gt-at').value; if (n >= 1 && n <= 26) call('gt-resolve', { at: n }, 'Set'); };
+$('gt-test').onclick = () => call('gt-test', {}, 'Test running');
+function paintGtNow(G, live) {
+  const L = live || {};
+  const opened = '<p class="hint">GT chests opened: <b>' + (L.opened || 0) + '</b> / 26' + (L.found ? ' · big key found' + (L.at != null ? ' in chest #' + L.at : '') : '') + '</p>';
+  if (!G) { $('gt-now').innerHTML = '<span class="muted">Not running.</span>' + opened; return; }
+  const top = Object.entries(G.counts || {}).sort((a, b) => b[1] - a[1] || a[0] - b[0]).slice(0, 8).map(([n, c]) => '<span class="pill">#' + n + ' × ' + c + '</span>').join(' ');
+  let h = '<span class="pill">' + (G.result ? 'done' : G.open ? 'open: chat types ' + esc(G.command) + ' 1-26' : 'guesses closed') + '</span> <b>' + G.guesses + '</b> guesses<div style="margin:6px 0">' + (top || '<span class="muted">No guesses yet.</span>') + '</div>';
+  if (G.result) h += '<p><b>Big key: chest #' + G.result.at + '</b>. ' + (G.result.winners.length ? (G.result.exact ? 'Called it: ' : 'Closest (' + G.result.off + ' off): ') + G.result.winners.map(esc).join(', ') : 'Nobody guessed.') + '</p>';
+  $('gt-now').innerHTML = h + opened;
+}
 function paintPredNow(P) {
   if (!P) { $('pd-now').innerHTML = '<span class="muted">No prediction running.</span>'; return; }
   $('pd-now').innerHTML = '<b>' + esc(P.question) + '</b> <span class="pill">' + (P.result >= 0 ? 'answered: ' + esc(P.labels[P.result]) : P.locked ? 'locked' : Math.max(0, Math.ceil((P.locksAt - Date.now()) / 1000)) + 's to vote') + '</span>' +
@@ -866,6 +911,8 @@ function paintRunNow(r) {
 }
 $('run-test').onclick = () => call('run-test', {});
 $('dt-test').onclick = () => call('death-test', {}, 'Test death sent');
+$('rc-test-check').onclick = () => call('run-test', {}, '7 test checks sent');
+$('rc-test-boss').onclick = () => call('boss-test', {}, 'Test boss sent');
 const fmtElapsed = (s) => Math.floor(s / 3600) + ':' + String(Math.floor(s / 60) % 60).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
 const CLIP_ICON = { detour: '⚔', gift: '🎁', seed: '🎲', death: '☠', vote: '🗳', battle: '⚔', combo: '🔥', predict: '🔮', chat: '💬', manual: '📌' };
 function paintClips() {
@@ -890,7 +937,7 @@ function paintFame() {
 }
 $('hf-reset').onclick = () => { if (confirm('Reset the all-time hall of fame? This can\'t be undone.')) call('fame-reset', {}, 'Hall of fame reset'); };
 $('wb-test').onclick = () => call('welcome-test', { user: $('t-user').value || 'RegularViewer' });
-function paintLive() { const L = S.live || {}; paintPollNow(L.poll); paintBattleNow(L.battle); paintPredNow(L.predict); paintRunNow(L.run); paintClips(); paintFame(); }
+function paintLive() { const L = S.live || {}; paintPollNow(L.poll); paintBattleNow(L.battle); paintPredNow(L.predict); paintGtNow(L.gtguess, L.gt); paintRunNow(L.run); paintClips(); paintFame(); }
 setInterval(() => { if (S && S.live) { paintPollNow(S.live.poll); paintPredNow(S.live.predict); } }, 1000);
 CC.on('live', (d) => {
   if (!S || !S.live) return;

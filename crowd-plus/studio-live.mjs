@@ -9,6 +9,8 @@
  *   run stats       deaths, checks, place, seed and music from the game
  *   death tax       a death adds subathon time and/or moves a goal
  *   predictions     "Will he beat this dungeon without dying?" !yes / !no
+ *   GT big key      chat guesses which Ganon's Tower chest has the big key
+ *                   (!gt 9); the game says which it was
  *   clip markers    big moments time-stamped for editing later (+ !clip)
  *   hall of fame    all-time top gifters across streams
  *   welcome back    a pop-up when a regular shows up again
@@ -29,7 +31,11 @@ export const LIVE_DEFAULTS = {
     'tiny', 'crt', 'speed_up', 'slow_mo', 'freeze', 'fairy', 'pink_link', 'sprite_roll', 'music_roulette'] },
   combo: { enabled: true, windowSeconds: 8, bonusAt: 10, bonusEffect: 'mystery_box' },
   deathTax: { enabled: true, timerSeconds: 300, goalId: '', goalAmount: 0, alert: true },
+  // progress changes the subathon clock: each new check and each boss beaten
+  // takes time off (mode 'remove') or puts it on ('add')
+  runClock: { enabled: false, mode: 'remove', checkSeconds: 60, bossSeconds: 300, alert: true },
   predict: { seconds: 60, winnersShown: 12 },
+  gtGuess: { command: '!gt', lockOnFirstChest: true, winnersShown: 12, alert: true },
   clips: { minCoins: 500, deaths: true, seeds: true, chatClip: true, chatCooldown: 30 },
   hallOfFame: { title: 'HALL OF FAME', size: 5 },
   welcome: { enabled: true, minStreams: 3, title: 'WELCOME BACK' },
@@ -59,11 +65,13 @@ export function createLive(ctx) {
   let clips = readJson(CLIPS_FILE, []);        // { id, at, elapsed, label, kind }
 
   // ── run stats from the game ────────────────────────────────────────────
-  let runStats = { deaths: 0, checks: 0, bonks: 0, place: '', seed: '', music: '', hearts: 0, at: 0 };
+  let runStats = { deaths: 0, checks: 0, bonks: 0, place: '', seed: '', music: '', hearts: 0, bosses: [], at: 0 };
   function onGame(m) {
     if (m.type === 'run') {
       runStats = { deaths: +m.deaths || 0, checks: +m.checks || 0, bonks: +m.bonks || 0, place: clean(m.place, 40), seed: clean(m.seed, 80),
-        music: clean(m.music, 80), hearts: +m.hearts || 0, at: Date.now() };
+        music: clean(m.music, 80), hearts: +m.hearts || 0, bosses: Array.isArray(m.bosses) ? m.bosses.map((b) => clean(b, 20)).slice(0, 20) : [], at: Date.now() };
+      onProgress(runStats);
+      if (m.gt && typeof m.gt === 'object') onGt(m.gt);
       send('run', { run: runStats });
     } else if (m.type === 'death') {
       runStats.deaths = +m.deaths || runStats.deaths + 1;
@@ -82,7 +90,7 @@ export function createLive(ctx) {
           const eff = r === 'won' ? D.winEffect : D.surviveEffect, secs = Math.round(+(r === 'won' ? D.winTimerSeconds : D.surviveTimerSeconds) || 0);
           if (eff) { setTimeout(() => ctx.fire(eff, r === 'won' ? 'Boss beaten' : 'Survived', 'Detour bonus'), 1500); bonus = ctx.effectName(eff); }
           const tv = ctx.timerView();
-          if (secs && tv.active && !tv.ended) { ctx.timerApi('add', secs); bonus += (bonus ? ' + ' : '') + `${fmtShort(secs)} on the clock`; }
+          if (secs && tv.active && !tv.ended) { ctx.timerApi('add', secs, 'boss detour bonus'); bonus += (bonus ? ' + ' : '') + `${fmtShort(secs)} on the clock`; }
         }
         const title = { won: 'BOSS DEFEATED!', survived: 'SURVIVED THE DETOUR!', ko: 'KNOCKED OUT!', escaped: 'ESCAPED!', lost: 'DETOUR OVER' }[r] || 'DETOUR OVER';
         ctx.record({ type: 'detour-end', user: 'Link', text: clean(m.boss, 40), result: r, bonus,
@@ -104,7 +112,7 @@ export function createLive(ctx) {
     if (T.enabled) {
       const secs = Math.round(+T.timerSeconds || 0);
       const tv = ctx.timerView();
-      if (secs && tv.active && !tv.ended) { ctx.timerApi('add', secs); taxed = `+${fmtShort(secs)} on the clock`; }
+      if (secs && tv.active && !tv.ended) { ctx.timerApi('add', secs, 'death tax'); taxed = `+${fmtShort(secs)} on the clock`; }
       const g = (S().goals || []).find((x) => x.id === T.goalId);
       if (g && +T.goalAmount) { g.current = Math.max(0, (+g.current || 0) + +T.goalAmount); ctx.saveSettings(); taxed += (taxed ? ', ' : '') + `${g.label} +${T.goalAmount}`; }
     }
@@ -112,6 +120,43 @@ export function createLive(ctx) {
     if (S().clips.deaths) addClip(`Death #${runStats.deaths}`, 'death');
     send('run', { run: runStats });
   }
+  // ── progress on the subathon clock ─────────────────────────────────────
+  // The first numbers seen for a game (the bridge just started, or another
+  // seed) are only a starting point: a game picked up halfway doesn't take
+  // hours off at once. After that, each new check and each newly beaten boss
+  // counts. A big jump in one go (a different save loaded) is a new starting
+  // point too.
+  const BOSS_NAMES = { armos: 'Armos Knights', lanmolas: 'Lanmolas', moldorm: 'Moldorm', helmasaur: 'Helmasaur King', arrghus: 'Arrghus',
+    mothula: 'Mothula', blind: 'Blind', kholdstare: 'Kholdstare', vitreous: 'Vitreous', trinexx: 'Trinexx', aga1: 'Agahnim', aga2: 'Agahnim 2' };
+  let base = null;   // { seed, checks, bosses: Set }
+  function onProgress(r) {
+    const C = S().runClock;
+    if (!base || base.seed !== r.seed || r.checks < base.checks || r.checks - base.checks > 25) {
+      base = { seed: r.seed, checks: r.checks, bosses: new Set(r.bosses) };
+      return;
+    }
+    const newChecks = r.checks - base.checks;
+    const newBosses = r.bosses.filter((b) => !base.bosses.has(b));
+    base.checks = r.checks;
+    newBosses.forEach((b) => base.bosses.add(b));
+    if (newBosses.length > 3) return;                     // a different save, not a fight
+    if (!C.enabled) return;
+    const tv = ctx.timerView();
+    if (!tv.active || tv.ended) return;
+    const sign = C.mode === 'add' ? 1 : -1;
+    if (newChecks > 0 && +C.checkSeconds > 0) {
+      const secs = Math.round(+C.checkSeconds) * newChecks;
+      ctx.timerApi('add', sign * secs, newChecks === 1 ? `check #${r.checks}` : `${newChecks} checks`);
+    }
+    for (const b of newBosses) {
+      const secs = Math.round(+C.bossSeconds || 0), nm = BOSS_NAMES[b] || b;
+      if (secs > 0) ctx.timerApi('add', sign * secs, `beat ${nm}`);
+      ctx.record({ type: 'boss', user: 'Link', text: nm, bonus: secs > 0 ? `${sign < 0 ? '−' : '+'}${fmtShort(secs)} on the clock` : '',
+        alert: C.alert ? { tier: 'big', title: 'BOSS DEFEATED!' } : undefined });
+      if (S().clips.deaths) addClip(`Beat ${nm}`, 'boss');
+    }
+  }
+
   const fmtShort = (s) => s < 60 ? s + 's' : s < 3600 ? Math.floor(s / 60) + 'm' + (s % 60 ? ' ' + (s % 60) + 's' : '') : Math.floor(s / 3600) + 'h ' + Math.floor(s / 60) % 60 + 'm';
 
   // ── chat votes ─────────────────────────────────────────────────────────
@@ -233,6 +278,67 @@ export function createLive(ctx) {
     clearTimeout(comboT); comboT = setTimeout(() => { combo.n = 0; send('combo', { combo: { n: 0, at, endsAt: 0 } }); }, win + 50);
   }
 
+  // ── GT big key: which Ganon's Tower chest has it? ──────────────────────
+  // Chat guesses a chest number (!gt 9, 1-26: GT's 26 chests, not Bob's
+  // Torch). The game counts the GT chests opened and reports the count at the
+  // moment the big key arrived (that chest included). Exact guesses win; if
+  // nobody's exact, the closest do. Guesses close when the first GT chest is
+  // opened (or by hand).
+  let gtg = null;           // { id, open, guesses: Map(user → { n, nick }), opened0, opened, result }
+  let gtLive = { opened: 0, total: 26, found: false, at: null };
+  function gtView() {
+    if (!gtg) return null;
+    const counts = {};
+    for (const g of gtg.guesses.values()) counts[g.n] = (counts[g.n] || 0) + 1;
+    return { id: gtg.id, open: gtg.open, total: gtLive.total || 26, opened: gtLive.opened, guesses: gtg.guesses.size, counts,
+      command: S().gtGuess.command || '!gt', result: gtg.result };
+  }
+  const gtSend = () => send('gtguess', { gtguess: gtView(), gt: gtLive });
+  function gtStart() {
+    gtg = { id: Date.now(), open: true, guesses: new Map(), opened0: gtLive.opened, result: null };
+    log(`GT big key guessing open (${S().gtGuess.command || '!gt'} 1-26)`);
+    gtSend();
+  }
+  function gtLock() { if (gtg && gtg.open) { gtg.open = false; log(`GT big key guesses closed (${gtg.guesses.size})`); gtSend(); } }
+  function gtResolve(at, how) {
+    if (!gtg || gtg.result) return;
+    at = Math.round(+at);
+    if (!(at >= 1 && at <= 26)) return;
+    gtg.open = false;
+    const all = [...gtg.guesses.entries()].map(([u, g]) => ({ user: u, nick: g.nick, n: g.n, off: Math.abs(g.n - at) }));
+    const best = all.length ? Math.min(...all.map((g) => g.off)) : null;
+    const winners = all.filter((g) => g.off === best).map((g) => g.nick || g.user);
+    gtg.result = { at, exact: best === 0, off: best, winners, how: how || 'game' };
+    const W = S().gtGuess;
+    const txt = winners.length ? (best === 0 ? 'called it: ' : `closest (${best} off): `) + winners.slice(0, 5).join(', ') + (winners.length > 5 ? ` +${winners.length - 5}` : '') : 'nobody guessed';
+    log(`GT big key was chest #${at}: ${txt}`);
+    ctx.record({ type: 'gtkey', user: 'Link', text: `GT big key: chest #${at}`, bonus: txt,
+      alert: W.alert ? { tier: 'big', title: 'BIG KEY FOUND!' } : undefined });
+    addClip(`GT big key in chest #${at} (${txt})`, 'gtkey');
+    gtSend();
+  }
+  function onGt(g) {
+    const prev = JSON.stringify(gtLive), prevOpened = gtLive.opened;
+    gtLive = { opened: Math.max(0, Math.min(26, +g.opened || 0)), total: 26, found: !!g.found, at: g.at == null ? null : +g.at };
+    if (JSON.stringify(gtLive) !== prev) send('gt', { gt: gtLive });
+    if (!gtg) return;
+    if (gtg.open && S().gtGuess.lockOnFirstChest && gtLive.opened > gtg.opened0) gtLock();
+    if (gtLive.found && gtLive.at != null && !gtg.result) gtResolve(gtLive.at, 'game');
+    else if (gtLive.opened !== prevOpened) gtSend();
+  }
+  function gtChat(e, t) {
+    if (!gtg || !gtg.open) return;
+    const cmd = String(S().gtGuess.command || '!gt').toLowerCase().trim();
+    const esc = cmd.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const m = t.match(new RegExp('^' + esc + '\\s*#?(\\d{1,2})$'));
+    if (!m) return;
+    const n = +m[1];
+    if (n < 1 || n > 26) return;
+    gtg.guesses.set(e.user, { n, nick: e.nickname || '' });
+    e.gtguess = n;
+    gtSend();
+  }
+
   // ── predictions ────────────────────────────────────────────────────────
   let pred = null, predT = null;
   function predView() {
@@ -311,6 +417,7 @@ export function createLive(ctx) {
       // votes: "1".."4" or "!vote 2"
       const v = t.match(/^(?:!vote\s*)?([1-4])$/);
       if (v && poll && !poll.done) { if (votePoll(e.user, +v[1] - 1)) e.vote = +v[1]; }
+      gtChat(e, t);
       // predictions
       if (pred && !pred.locked) { const i = pred.words.indexOf(t); if (i >= 0) { pred.votes.set(e.user, i); e.predict = pred.labels[i]; send('predict', { predict: predView() }); } }
       // team battle
@@ -338,6 +445,17 @@ export function createLive(ctx) {
       case 'battle-cancel': clearTimeout(battleT); battle = null; send('battle', { battle: null }); return true;
       case 'battle-add': if (battle && !battle.done) { const t = a.team ? 1 : 0; battle.scores[t] += Math.round(+a.amount || 0); send('battle', { battle: battleView() }); if (battle.target && battle.scores[t] >= battle.target) endBattle(t); } return true;
       case 'mystery': mystery(a.user || 'Streamer', 'Mystery box'); return true;
+      case 'gt-start': gtStart(); return true;
+      case 'gt-lock': gtLock(); return true;
+      case 'gt-resolve': gtResolve(a.at, 'by hand'); return true;
+      case 'gt-cancel': gtg = null; gtSend(); return true;
+      case 'gt-test': {
+        if (!gtg) gtStart();
+        ['Alpha', 'Bravo', 'Charlie', 'Delta', 'Echo'].forEach((u, i) => { if (gtg.open) { gtg.guesses.set('test_' + u, { n: [3, 9, 9, 14, 20][i], nick: u }); } });
+        gtSend();
+        setTimeout(() => gtResolve(9, 'test'), 2500);
+        return true;
+      }
       case 'predict-start': startPred(a); return true;
       case 'predict-lock': lockPred(); return true;
       case 'predict-resolve': resolvePred(a.result ? 1 : 0); return true;
@@ -348,14 +466,28 @@ export function createLive(ctx) {
       case 'fame-reset': fame = {}; writeLater(FAME_FILE, fame); send('fame', { fame: [] }); return true;
       case 'fame-remove': delete fame[a.user]; writeLater(FAME_FILE, fame); send('fame', { fame: famous(20) }); return true;
       case 'death-test': runStats.deaths++; onDeath(); return true;
-      case 'run-test': onGame({ type: 'run', deaths: runStats.deaths, checks: runStats.checks + 7, bonks: runStats.bonks, place: DUNGEON_ORDER[Math.floor(Math.random() * DUNGEON_ORDER.length)], seed: runStats.seed || 'ALttPR - TestSeed', music: runStats.music, hearts: Math.max(3, runStats.hearts) }); return true;
+      case 'run-test': {
+        const seed = runStats.seed || 'ALttPR - TestSeed';
+        // the first test only sets the starting point (like a real game does)
+        if (!base || base.seed !== seed) onGame({ type: 'run', deaths: runStats.deaths, checks: runStats.checks, bonks: runStats.bonks, place: runStats.place, seed, music: runStats.music, hearts: Math.max(3, runStats.hearts), bosses: runStats.bosses });
+        onGame({ type: 'run', deaths: runStats.deaths, checks: runStats.checks + 7, bonks: runStats.bonks, place: DUNGEON_ORDER[Math.floor(Math.random() * DUNGEON_ORDER.length)], seed, music: runStats.music, hearts: Math.max(3, runStats.hearts), bosses: runStats.bosses });
+        return true;
+      }
+      case 'boss-test': {
+        const seed = runStats.seed || 'ALttPR - TestSeed';
+        if (!base || base.seed !== seed) onGame({ type: 'run', ...runStats, seed });
+        const left = Object.keys(BOSS_NAMES).filter((b) => !runStats.bosses.includes(b));
+        if (!left.length) return true;
+        onGame({ type: 'run', ...runStats, seed, bosses: [...runStats.bosses, left[0]] });
+        return true;
+      }
       case 'welcome-test': ctx.record({ type: 'chat', user: a.user || 'RegularViewer', text: 'hey!', welcome: { streams: 12, title: S().welcome.title || 'WELCOME BACK' }, test: true }); return true;
       default: return false;
     }
   }
 
   function snapshot() {
-    return { poll: pollView(), battle: battleView(), combo: { n: combo.n, at: S().combo.bonusAt, best: combo.best }, predict: predView(), run: runStats,
+    return { poll: pollView(), battle: battleView(), combo: { n: combo.n, at: S().combo.bonusAt, best: combo.best }, predict: predView(), gtguess: gtView(), gt: gtLive, run: runStats,
       clips: clips.slice(-200), fame: famous(20), viewersKnown: Object.keys(viewers).length };
   }
 
