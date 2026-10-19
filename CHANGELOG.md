@@ -36,6 +36,11 @@ played again later.
     shows as a dot. Entering a dungeon switches to its map, leaving switches back.
     Zoom with the wheel or a pinch, drag to move, double-click/double-tap to fit. Kept
     per game in the browser.
+  - **Map pins where they really are:** 69 of the pack's map pins moved onto the spot in
+    the game itself (the door, cave mouth, hole, or the item/person on the screen), read
+    from the ROM. They were placed by eye on a small map and showed slightly off on the
+    sharp map drawn from the game. Spots that aren't one place (Lost Woods, the race,
+    digging spots, Spectacle Rock's cave + top, Zora, the bridge, …) stay where they were.
   - **Test: warp to a dungeon** (emulator menu ⋯ → Game): pick a dungeon from the list
     and Warp drops Link in at its entrance. The game is saved in memory first, so
     "Back to before the warp" undoes it.
