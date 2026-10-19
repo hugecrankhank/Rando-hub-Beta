@@ -30,6 +30,10 @@ seed starts clean.
 - **Maps drawn from the game** (`romap.js`): the formats and tileset tables follow
   **zelda3** by snesrev, MIT License. No map pictures are shipped for this: they're
   drawn in the browser from the ROM being played.
+- **Dungeon maps** (`dungeons.js`, `dgworker.js`): floors come from the game's own
+  pause-map tables; floor names, boss rooms and the RAM/VRAM layout follow **zelda3**
+  (MIT). Full maps are built by the game's own code in a hidden copy of the emulator;
+  nothing is shipped.
 - **fengari-web** (Lua 5.3 in JavaScript) by Benoit Giannangeli and Daurnimator,
   MIT License (`LICENSE-fengari-web.txt`).
 

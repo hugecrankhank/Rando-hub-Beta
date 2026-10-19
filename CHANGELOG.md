@@ -36,6 +36,17 @@ played again later.
     shows as a dot. Entering a dungeon switches to its map, leaving switches back.
     Zoom with the wheel or a pinch, drag to move, double-click/double-tap to fit. Kept
     per game in the browser.
+  - **Dungeon maps, three kinds** (Dungeons menu in the tracker's bar):
+    - *Explore (fog of war)*: as above, now by floor (B1, 1F, 2F…) and cropped to what
+      you've seen.
+    - *Map (like the game)*: each floor as a grid of rooms, like the pause map. Rooms
+      you've been in are filled in; with the dungeon's map the rest show as outlines;
+      with its compass the boss room gets a skull. Works on phones.
+    - *Full (every room)*, desktop only, with a warning first: every room of the
+      dungeon drawn whole up front, for players new to rando (finding the way to each
+      check, and pots in pot shuffle). A hidden copy of the emulator builds the rooms
+      with the game's own code the first time you open each dungeon (a few seconds),
+      and the pictures are kept per game. Your own game isn't touched.
   - **Phone map fixes:** the maps drawn from the game are now 64 screen-sized pictures
     per world instead of one huge one (iPhone Safari wouldn't draw the big one, so the
     map showed black), and touch zoom forgets fingers lifted off the map (a leftover
