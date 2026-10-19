@@ -89,6 +89,24 @@
   .map svg { display: block; width: 100%; height: 100%; }
   .map image { image-rendering: pixelated; }
   .map .pin { cursor: pointer; }
+  /* World / dungeon buttons and the dungeon map */
+  .l-mapwrap { display: flex; flex-direction: column; width: 100%; height: 100%; min-width: 0; min-height: 0; }
+  .l-mapwrap > .l-maps { flex: 1 1 auto; height: auto; }
+  .dg-bar { flex: none; display: flex; gap: 2px; padding: 2px; overflow-x: auto; background: #111; scrollbar-width: none; }
+  .dg-bar::-webkit-scrollbar { display: none; }
+  .dg-btn { flex: none; background: #222; color: #9aa; border: 1px solid #333; border-radius: 4px; padding: 2px 6px;
+    font: 600 11px/1.3 system-ui, sans-serif; cursor: pointer; }
+  .dg-btn.seen { color: #ddd; }
+  .dg-btn.here { box-shadow: inset 0 -2px #ffd166; }
+  .dg-btn.on { background: #3e4b57; color: #fff; border-color: #6b7c8c; }
+  .dg-view { flex: 1 1 auto; position: relative; overflow: hidden; background: #0a0a0a; min-height: 0; cursor: grab; }
+  .dg-inner { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+  .dg-room { position: absolute; width: 512px; height: 512px; }
+  .dg-inner.sharp .dg-room { image-rendering: pixelated; }
+  .dg-link { position: absolute; width: 18px; height: 18px; border-radius: 50%; background: #3fd25b; border: 3px solid #fff;
+    box-shadow: 0 0 10px #3fd25b; pointer-events: none; }
+  .dg-note { position: absolute; left: 12px; right: 12px; top: 40%; text-align: center; color: #888; }
+  body.phone .dg-btn { padding: 4px 8px; font-size: 12px; }
   /* the squares and item marks keep their size when zoomed in */
   .map .pin, .map image.cap { transform-box: fill-box; transform-origin: center; transform: scale(calc(1 / var(--z, 1))); }
   .map .grid line { stroke: rgba(0, 0, 0, .55); stroke-width: 1px; vector-effect: non-scaling-stroke; }
@@ -180,6 +198,7 @@
 <script src="fengari-web.js"></script>
 <script src="emo.js"></script>
 <script src="romap.js"></script>
+<script src="dungeons.js"></script>
 <script src="ui.js"></script>
 <script>
 (function () {

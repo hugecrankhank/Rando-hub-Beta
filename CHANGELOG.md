@@ -30,6 +30,12 @@ played again later.
   - **Dungeons panel** under the items: chests left per dungeon (click to count down),
     small keys and big keys.
   - **Ganon's Tower**: chests opened (of 26) and which chest had the big key.
+  - **Dungeon maps (Explore / fog of war):** World and a button per dungeon above the
+    maps. Each dungeon room is captured from the game's picture as you walk through it
+    and laid out where the game keeps it, so the dungeon fills in as you explore; Link
+    shows as a dot. Entering a dungeon switches to its map, leaving switches back.
+    Zoom with the wheel or a pinch, drag to move, double-click/double-tap to fit. Kept
+    per game in the browser.
   - **Phone map fixes:** the maps drawn from the game are now 64 screen-sized pictures
     per world instead of one huge one (iPhone Safari wouldn't draw the big one, so the
     map showed black), and touch zoom forgets fingers lifted off the map (a leftover
