@@ -105,7 +105,16 @@
   .dg-inner.sharp .dg-room { image-rendering: pixelated; }
   .dg-link { position: absolute; width: 18px; height: 18px; border-radius: 50%; background: #3fd25b; border: 3px solid #fff;
     box-shadow: 0 0 10px #3fd25b; pointer-events: none; }
-  .dg-note { position: absolute; left: 12px; right: 12px; top: 40%; text-align: center; color: #888; }
+  .dg-note { position: absolute; left: 12px; right: 12px; top: 40%; text-align: center; color: #888; pointer-events: none; }
+  .dg-note.top { top: 6px; color: #cbd; text-shadow: 0 1px 2px #000; }
+  .dg-floor { position: absolute; height: 220px; line-height: 220px; font: bold 150px/220px system-ui, sans-serif; color: #c9d3dd; white-space: nowrap; }
+  .dg-cell { position: absolute; width: 512px; height: 512px; box-sizing: border-box; border: 18px solid transparent; border-radius: 28px;
+    display: flex; align-items: center; justify-content: center; }
+  .dg-cell.known { background: #18263a; border-color: #34506f; }
+  .dg-cell.seen { background: #2f6aa8; border-color: #cfe4ff; }
+  .dg-cell.here { box-shadow: 0 0 0 26px #ffd166; }
+  .dg-skull { display: none; font-size: 300px; line-height: 1; color: #fff; text-shadow: 0 0 30px #a00; }
+  .dg-cell.boss .dg-skull { display: block; }
   body.phone .dg-btn { padding: 4px 8px; font-size: 12px; }
   /* the squares and item marks keep their size when zoomed in */
   .map .pin, .map image.cap { transform-box: fill-box; transform-origin: center; transform: scale(calc(1 / var(--z, 1))); }
@@ -183,6 +192,7 @@
   <label title="How the tracker is laid out">View <select id="view"></select></label>
   <label title="Map: the game's screens as a grid"><input type="checkbox" id="o-grid"> Grid</label>
   <label title="Draw the maps from the game itself (sharp, and the seed's own map). Off: the pack's pictures."><input type="checkbox" id="o-rommap"> Game maps</label>
+  <label title="How dungeon maps are shown">Dungeons <select id="dgmode"></select></label>
   <label title="How big the item icons are">Items <select id="isize"><option value="auto">Auto</option><option value="1">Small</option><option value="1.5">Medium</option><option value="2">Large</option></select></label>
   <span title="Autotracking: reads the game as you play"><span id="dot"></span> <span id="stat">Waiting for the game</span></span>
   <span class="sp"></span>
@@ -256,6 +266,7 @@
     if (phone && E.maps.length) { k = '__phone_' + phone; sc = 1; }
     else if (phone) { k = '__phone_items'; sc = 1; }
     document.body.classList.toggle('phone', !!phone);
+    try { dgModes(); } catch (e) {}
     document.body.classList.toggle('phone-items', !!phone && k === '__phone_items');
     if (k === current && sc === curScale && !force) { fitItems(); return; }
     current = k; curScale = sc; E.itemScale = sc;
@@ -317,6 +328,29 @@
     document.body.classList.toggle('no-grid', !this.checked);
     try { localStorage.setItem('rhb-emo-grid', this.checked ? '1' : '0'); } catch (e) {}
   });
+  // Dungeon maps: Explore (fog of war), Map (like the pause map), Full (desktop: every room up front)
+  function dgModes() {
+    var D = window.EmoDungeons, sel = $('dgmode');
+    if (!D) { sel.parentNode.style.display = 'none'; return; }
+    var opts = [['explore', 'Explore (fog of war)'], ['map', 'Map (like the game)']];
+    if (!phone) opts.push(['full', 'Full (every room)']);
+    var sig = opts.map(function (o) { return o[0]; }).join();
+    if (sel.__sig !== sig) {
+      sel.__sig = sig; sel.textContent = '';
+      opts.forEach(function (o) { var e = document.createElement('option'); e.value = o[0]; e.textContent = o[1]; sel.appendChild(e); });
+    }
+    sel.value = D.mode();
+  }
+  $('dgmode').addEventListener('change', function () {
+    var D = window.EmoDungeons, m = this.value;
+    if (m === 'full' && D.pref() !== 'full' && !confirm('Full dungeon maps show every room of every dungeon right away, before you’ve been there.\n\n' +
+        'That’s meant for players new to rando: seeing the whole dungeon helps find the way to each check (and the pots in pot shuffle). ' +
+        'It gives away the layout, so if you like finding your own way, keep Explore.\n\nThe rooms are drawn from your game the first time you open each dungeon (a few seconds each).\n\nUse full maps?')) {
+      this.value = D.mode(); return;
+    }
+    D.setMode(m);
+  });
+  dgModes();
   $('o-rommap').checked = E.romMapsOn;
   $('o-rommap').addEventListener('change', function () { E.setRomMaps(this.checked); });
   $('phone-gear').addEventListener('click', function () {
@@ -342,6 +376,8 @@
       'Items: click to add or turn on, right click to take away.\n' +
       'Map: point at a square (or tap it) to see its checks. Click a chest when you’ve collected it (right click to undo). ' +
       '✓ marks all of it collected, ↺ reopens it (not collected), 📌 pins it to Pinned Locations, ✕ or Esc closes the card.\n' +
+      'Dungeons: the buttons above the map show each dungeon (entering one shows it by itself). The Dungeons menu picks the kind: ' +
+      'Explore fills in as you walk through, Map is like the pause map, Full (desktop) shows every room up front.\n' +
       'Right click a square (hold it on a phone or tablet) to mark which item is there; it shows on the map.\n\n' +
       'Colors: green = in logic, yellow = possible with a sequence break, blue = can look at it, ' +
       'orange = only some of it, red = not yet, gray = done.\n\n' +

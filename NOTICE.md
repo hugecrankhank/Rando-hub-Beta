@@ -46,6 +46,7 @@ under their own licenses, and nothing here restricts what those licenses allow:
 | EmoTracker web runtime's model (`emotracker/`) | follows EmoTracker by EmoSaru and the EmoTracker Community | MIT, `emotracker/LICENSE-EmoTracker.txt` |
 | Official ALTTPR EmoTracker pack (`emotracker/packs/alttpr_emosaru/`) | EmoSaru | MIT, its `LICENSE` |
 | Overworld map formats and tileset tables (`emotracker/romap.js`) | snesrev (zelda3) | MIT |
+| Dungeon floor tables, boss rooms, RAM/VRAM layout (`emotracker/dungeons.js`, `dgworker.js`) | snesrev (zelda3) | MIT |
 | fengari-web (`emotracker/fengari-web.js`) | Benoit Giannangeli, Daurnimator | MIT, `emotracker/LICENSE-fengari-web.txt` |
 | Pyodide | Pyodide contributors | MPL-2.0 |
 | Press Start 2P font (`fonts/`) | CodeMan38 | SIL Open Font License, `fonts/PressStart2P-OFL.txt` |
