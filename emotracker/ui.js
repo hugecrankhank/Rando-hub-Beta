@@ -239,22 +239,32 @@
     var box = el('div', 'map'), svg = document.createElementNS(SVGNS, 'svg');
     svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
     var img = document.createElementNS(SVGNS, 'image');
-    img.setAttribute('href', m.img.src);
-    if (m.img.filter.length) img.style.filter = m.img.filter.join(' ');
+    img.setAttribute('preserveAspectRatio', 'none');
+    var gridG = document.createElementNS(SVGNS, 'g');
+    gridG.setAttribute('class', 'grid');
     svg.appendChild(img);
+    svg.appendChild(gridG);
     var g = document.createElementNS(SVGNS, 'g');
     svg.appendChild(g);
     box.appendChild(svg);
-    var v = { m: m, box: box, svg: svg, g: g, pins: [] };
-    var probe = new Image();
-    probe.onload = function () {
-      m.w = probe.naturalWidth; m.h = probe.naturalHeight;
+    var v = { m: m, box: box, svg: svg, g: g, img: img, gridG: gridG, pins: [], zoom: null };
+    mapViews.push(v);
+    // The pack's picture sets the map's coordinates (where the squares go);
+    // the picture shown can be swapped for the one drawn from the ROM.
+    function sized() {
       svg.setAttribute('viewBox', '0 0 ' + m.w + ' ' + m.h);
       img.setAttribute('width', m.w); img.setAttribute('height', m.h);
       box.style.aspectRatio = m.w + ' / ' + m.h;
+      drawGrid(v); showPicture(v);
       refitMaps();
-    };
-    probe.src = m.img.src;
+    }
+    if (m.w) sized();
+    else {
+      var probe = new Image();
+      probe.onload = function () { m.w = probe.naturalWidth; m.h = probe.naturalHeight; sized(); };
+      probe.src = m.img.src;
+    }
+    zoomable(v);
     E.locations.forEach(function (loc) {
       loc.mapLocations.forEach(function (ml) {
         if (ml.map !== m.name) return;
@@ -301,6 +311,94 @@
     });
   }
   // Both worlds side by side or stacked, whichever shows them bigger.
+  // ── the picture: from the ROM when we have it, else the pack's ────────────
+  var mapViews = [];
+  function showPicture(v) {
+    var rom = E.romMaps && E.romMaps[/dark/i.test(v.m.name) ? 'dark' : 'light'];
+    var src = rom || v.m.img.src;
+    if (v.img.getAttribute('href') !== src) v.img.setAttribute('href', src);
+    v.img.style.filter = !rom && v.m.img.filter.length ? v.m.img.filter.join(' ') : '';
+    v.box.classList.toggle('rom', !!rom);
+  }
+  E.onRomMaps = function () { mapViews.forEach(function (v) { if (v.box.isConnected) showPicture(v); }); };
+  // the game's screens: 8 x 8 per world
+  function drawGrid(v) {
+    v.gridG.textContent = '';
+    if (!v.m.w) return;
+    for (var i = 1; i < 8; i++) {
+      [[v.m.w * i / 8, 0, v.m.w * i / 8, v.m.h], [0, v.m.h * i / 8, v.m.w, v.m.h * i / 8]].forEach(function (c) {
+        var l = document.createElementNS(SVGNS, 'line');
+        l.setAttribute('x1', c[0]); l.setAttribute('y1', c[1]); l.setAttribute('x2', c[2]); l.setAttribute('y2', c[3]);
+        v.gridG.appendChild(l);
+      });
+    }
+  }
+  // ── zoom: mouse wheel or pinch to zoom in, drag to move around,
+  //    double-click (double-tap) to see the whole world again ─────────────────
+  function zoomable(v) {
+    var svg = v.svg, drag = null, pts = new Map(), pinch = null, moved = false;
+    function vb() { return v.zoom || [0, 0, v.m.w, v.m.h]; }
+    function set(b) {
+      var W = v.m.w, H = v.m.h;
+      if (!W) return;
+      var w = Math.max(W / 12, Math.min(W, b[2])), h = w * H / W;
+      var x = Math.max(0, Math.min(W - w, b[0])), y = Math.max(0, Math.min(H - h, b[1]));
+      v.zoom = w >= W - 0.5 ? null : [x, y, w, h];
+      var z = vb();
+      svg.setAttribute('viewBox', z.join(' '));
+      v.box.classList.toggle('zoomed', !!v.zoom);
+      // the squares keep their size on screen
+      v.g.style.setProperty('--z', (W / z[2]).toFixed(3));
+    }
+    function toMap(cx, cy) {
+      var r = svg.getBoundingClientRect(), z = vb();
+      return [z[0] + (cx - r.left) / r.width * z[2], z[1] + (cy - r.top) / r.height * z[3]];
+    }
+    function zoomAt(cx, cy, f) {
+      var z = vb(), p = toMap(cx, cy), w = z[2] / f, h = z[3] / f;
+      set([p[0] - (p[0] - z[0]) / f, p[1] - (p[1] - z[1]) / f, w, h]);
+    }
+    svg.addEventListener('wheel', function (e) {
+      if (!e.ctrlKey && !e.altKey && !v.zoom && e.deltaY > 0) return;   // let the page scroll when not zoomed
+      e.preventDefault();
+      zoomAt(e.clientX, e.clientY, e.deltaY < 0 ? 1.25 : 0.8);
+    }, { passive: false });
+    svg.addEventListener('dblclick', function (e) { if (e.target.classList && e.target.classList.contains('pin')) return; e.preventDefault(); set([0, 0, v.m.w, v.m.h]); });
+    svg.addEventListener('pointerdown', function (e) {
+      pts.set(e.pointerId, [e.clientX, e.clientY]);
+      moved = false;
+      if (pts.size === 2) {
+        var a = Array.from(pts.values());
+        pinch = { d: Math.hypot(a[0][0] - a[1][0], a[0][1] - a[1][1]), z: vb().slice(), c: [(a[0][0] + a[1][0]) / 2, (a[0][1] + a[1][1]) / 2] };
+        drag = null;
+      } else if (v.zoom && !(e.target.classList && e.target.classList.contains('pin'))) {
+        drag = { x: e.clientX, y: e.clientY, z: vb().slice() };
+      }
+    });
+    svg.addEventListener('pointermove', function (e) {
+      if (!pts.has(e.pointerId)) return;
+      pts.set(e.pointerId, [e.clientX, e.clientY]);
+      var r = svg.getBoundingClientRect();
+      if (pinch && pts.size === 2) {
+        var a = Array.from(pts.values()), d = Math.hypot(a[0][0] - a[1][0], a[0][1] - a[1][1]);
+        var f = d / pinch.d, z = pinch.z, w = z[2] / f;
+        var c = [z[0] + (pinch.c[0] - r.left) / r.width * z[2], z[1] + (pinch.c[1] - r.top) / r.height * z[3]];
+        set([c[0] - (c[0] - z[0]) / f, c[1] - (c[1] - z[1]) / f, w, w * v.m.h / v.m.w]);
+        moved = true; e.preventDefault();
+      } else if (drag) {
+        var dx = (e.clientX - drag.x) / r.width * drag.z[2], dy = (e.clientY - drag.y) / r.height * drag.z[3];
+        if (Math.abs(e.clientX - drag.x) + Math.abs(e.clientY - drag.y) > 4) moved = true;
+        set([drag.z[0] - dx, drag.z[1] - dy, drag.z[2], drag.z[3]]);
+      }
+    });
+    function up(e) { pts.delete(e.pointerId); if (pts.size < 2) pinch = null; if (!pts.size) drag = null; }
+    svg.addEventListener('pointerup', up); svg.addEventListener('pointercancel', up);
+    // a drag isn't a click on whatever it ended over
+    svg.addEventListener('click', function (e) { if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; } }, true);
+    svg.style.touchAction = 'pan-y';
+    v.resetZoom = function () { set([0, 0, v.m.w, v.m.h]); };
+  }
+
   function refitMaps() {
     mapPanels.forEach(function (p) {
       var maps = p.__views.filter(function (v) { return v.m.w; });
@@ -581,7 +679,7 @@
   }
 
   E.render = function (root, key) {
-    itemViews = []; mapPanels = []; pinBoxes = [];
+    itemViews = []; mapPanels = []; pinBoxes = []; mapViews = [];
     root.textContent = '';
     var def = E.layouts[key];
     if (key === 'shared_item_grid') def = { type: 'layout', key: 'shared_item_grid' };

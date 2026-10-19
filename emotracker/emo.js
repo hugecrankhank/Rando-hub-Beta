@@ -692,7 +692,7 @@
     var b = bridge(), live = !!(b && b.ready());
     if (live !== Emo.connected) {
       Emo.connected = live;
-      if (live) { var g = romHash(b); if (g) setGame(g); watches.forEach(function (w) { w.dirty = true; }); }
+      if (live) { var g = romHash(b); if (g) { setGame(g); loadRomMaps(b, g); } watches.forEach(function (w) { w.dirty = true; }); }
       if (Emo.onStatus) Emo.onStatus(live);
     }
     if (!live || !L) return;
@@ -771,6 +771,64 @@
     Emo.batch(function () { applyDefaults(); restore(); });
     if (Emo.onGame) Emo.onGame(g);
   }
+  // ── maps drawn from the ROM (romap.js) ────────────────────────────────────
+  // Once per game: both worlds drawn from the running ROM, kept in the
+  // browser (IndexedDB) so the next load is instant. Emo.romMaps holds their
+  // object URLs; ui.js shows them in place of the pack's pictures.
+  Emo.romMaps = null;
+  var romMapsFor = null;
+  function idb() {
+    return new Promise(function (res, rej) {
+      var r = indexedDB.open('rhb-emo-maps', 1);
+      r.onupgradeneeded = function () { r.result.createObjectStore('maps'); };
+      r.onsuccess = function () { res(r.result); }; r.onerror = function () { rej(r.error); };
+    });
+  }
+  function idbGet(k) { return idb().then(function (db) { return new Promise(function (res) { var q = db.transaction('maps').objectStore('maps').get(k); q.onsuccess = function () { res(q.result || null); }; q.onerror = function () { res(null); }; }); }).catch(function () { return null; }); }
+  function idbPut(k, v) {
+    return idb().then(function (db) {
+      var st = db.transaction('maps', 'readwrite').objectStore('maps');
+      st.put(v, k);
+      // keep the last few games' maps only
+      var all = st.getAllKeys();
+      all.onsuccess = function () { var ks = all.result || []; if (ks.length > 6) ks.slice(0, ks.length - 6).forEach(function (x) { if (x !== k) st.delete(x); }); };
+    }).catch(function () {});
+  }
+  function useRomMaps(m) {
+    if (Emo.romMaps) { try { URL.revokeObjectURL(Emo.romMaps.light); URL.revokeObjectURL(Emo.romMaps.dark); } catch (e) {} }
+    Emo.romMaps = m ? { light: URL.createObjectURL(m.light), dark: URL.createObjectURL(m.dark) } : null;
+    if (Emo.onRomMaps) Emo.onRomMaps();
+  }
+  Emo.romMapsOn = true;
+  try { Emo.romMapsOn = localStorage.getItem('rhb-emo-rommaps') !== '0'; } catch (e) {}
+  function loadRomMaps(b, g) {
+    if (!Emo.romMapsOn || !window.RoMap || !g || romMapsFor === g) return;
+    romMapsFor = g;
+    idbGet('v1-' + g).then(function (hit) {
+      if (romMapsFor !== g) return;
+      if (hit && hit.light && hit.dark) { useRomMaps(hit); return; }
+      var rom;
+      try { rom = b.read(0, 0x200000); } catch (e) { return; }
+      // drawn a moment later, so it doesn't hold up the tracker
+      setTimeout(function () {
+        var job = null;
+        try { job = window.RoMap.render(rom); } catch (e) { Emo.log.push('map from ROM: ' + e.message); }
+        if (!job) { Emo.log.push('map from ROM: not an ALTTP JP 1.0 based ROM, using the pack\'s maps'); return; }
+        job.then(function (m) {
+          if (romMapsFor !== g) return;
+          useRomMaps(m);
+          idbPut('v1-' + g, m);
+        });
+      }, 300);
+    });
+  }
+  Emo.setRomMaps = function (on) {
+    Emo.romMapsOn = !!on;
+    try { localStorage.setItem('rhb-emo-rommaps', on ? '1' : '0'); } catch (e) {}
+    if (!on) { romMapsFor = null; useRomMaps(null); }
+    else { var b = bridge(); if (b && b.ready()) loadRomMaps(b, Emo.game); }
+  };
+
   // A fingerprint of the running ROM (FNV-1a over its first 2 MB).
   function romHash(b) {
     try {
@@ -872,7 +930,7 @@
       if (ipm && ipm.stages) ipm.stages.some(function (st, i) { if (st.codes.has('item_placement_' + pl)) { ipm.CurrentStage = i; return true; } return false; });
       snapshotDefaults();
       var b = bridge(), g = b && b.ready() ? romHash(b) : null;
-      if (g) { Emo.game = g; rememberGame(g); }
+      if (g) { Emo.game = g; rememberGame(g); setTimeout(function () { loadRomMaps(b, g); }, 0); }
       restore();
       loaded = true;
       quiet = 0; dirty = false;

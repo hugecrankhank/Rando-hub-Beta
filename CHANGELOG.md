@@ -30,6 +30,13 @@ played again later.
   - **Dungeons panel** under the items: chests left per dungeon (click to count down),
     small keys and big keys.
   - **Ganon's Tower**: chests opened (of 26) and which chest had the big key.
+  - **Maps drawn from the game:** both worlds are drawn pixel for pixel from the ROM
+    being played (the full 4096 x 4096 overworld), so they're sharp, and a seed that
+    changes the overworld shows its own map. Saved in the browser after the first time.
+    "Game maps" turns it off (the pack's pictures).
+  - **Zoom:** mouse wheel or pinch on a map, drag to move around, double-click to see the
+    whole world. The squares keep their size.
+  - **Grid:** the game's screens drawn on the maps (Grid checkbox).
   - **Bigger, sharper item icons:** an Items size menu (Small / Medium / Large; Auto
     picks Medium on a wide window), always at whole-pixel scales.
   - Item placement (the tracker's logic setting) starts on **Advanced**, the

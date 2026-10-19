@@ -89,6 +89,14 @@
   .map svg { display: block; width: 100%; height: 100%; }
   .map image { image-rendering: pixelated; }
   .map .pin { cursor: pointer; }
+  /* the squares and item marks keep their size when zoomed in */
+  .map .pin, .map image.cap { transform-box: fill-box; transform-origin: center; transform: scale(calc(1 / var(--z, 1))); }
+  .map .grid line { stroke: rgba(0, 0, 0, .55); stroke-width: 1px; vector-effect: non-scaling-stroke; }
+  body.no-grid .map .grid { display: none; }
+  .map.rom > svg > image { image-rendering: auto; }
+  .map.rom.zoomed > svg > image { image-rendering: pixelated; }
+  .map.zoomed svg { cursor: grab; }
+  .map { overflow: hidden; }
   .map .pin:hover { stroke: #fff; }
 
   /* locations */
@@ -140,6 +148,8 @@
 <div id="bar">
   <label title="Which of the pack's trackers to use">Tracker <select id="variant"></select></label>
   <label title="How the tracker is laid out">View <select id="view"></select></label>
+  <label title="Map: the game's screens as a grid"><input type="checkbox" id="o-grid"> Grid</label>
+  <label title="Draw the maps from the game itself (sharp, and the seed's own map). Off: the pack's pictures."><input type="checkbox" id="o-rommap"> Game maps</label>
   <label title="How big the item icons are">Items <select id="isize"><option value="auto">Auto</option><option value="1">Small</option><option value="1.5">Medium</option><option value="2">Large</option></select></label>
   <span title="Autotracking: reads the game as you play"><span id="dot"></span> <span id="stat">Waiting for the game</span></span>
   <span class="sp"></span>
@@ -153,6 +163,7 @@
 </div>
 <script src="fengari-web.js"></script>
 <script src="emo.js"></script>
+<script src="romap.js"></script>
 <script src="ui.js"></script>
 <script>
 (function () {
@@ -221,6 +232,15 @@
     params.set('variant', this.value);
     location.search = params.toString();
   });
+  var gridOn = true;
+  try { gridOn = localStorage.getItem('rhb-emo-grid') !== '0'; } catch (e) {}
+  $('o-grid').checked = gridOn; document.body.classList.toggle('no-grid', !gridOn);
+  $('o-grid').addEventListener('change', function () {
+    document.body.classList.toggle('no-grid', !this.checked);
+    try { localStorage.setItem('rhb-emo-grid', this.checked ? '1' : '0'); } catch (e) {}
+  });
+  $('o-rommap').checked = E.romMapsOn;
+  $('o-rommap').addEventListener('change', function () { E.setRomMaps(this.checked); });
   $('isize').value = isize;
   $('isize').addEventListener('change', function () {
     isize = this.value;
