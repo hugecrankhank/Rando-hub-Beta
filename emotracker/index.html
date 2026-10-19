@@ -109,6 +109,29 @@
   .l-pins.row { flex-direction: row; flex-wrap: wrap; }
   .pin-card { background: #262626; border: 1px solid #3a3a3a; border-radius: 5px; padding: 4px 6px; min-width: 160px; }
   .pins-empty { color: #888; font-style: italic; padding: 4px; }
+  /* counters and the map key */
+  #foot { flex: none; display: flex; flex-wrap: wrap; gap: 3px 14px; align-items: center; padding: 3px 8px; background: #111;
+    border-top: 1px solid #333; font-size: 11.5px; color: #bbb; }
+  #stats { display: flex; flex-wrap: wrap; gap: 2px 12px; }
+  #stats b { color: #fff; font-variant-numeric: tabular-nums; }
+  #stats .gtk b { color: #ffd166; }
+  #legend { display: flex; flex-wrap: wrap; gap: 2px 10px; margin-left: auto; }
+  #legend i { display: inline-block; width: 10px; height: 10px; border: 1px solid #000; margin-right: 4px; vertical-align: -1px; }
+  body.clean #foot { display: none; }
+  .map image.cap { pointer-events: none; image-rendering: pixelated; }
+  .mark { width: 22px; height: 22px; flex: none; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+    border: 1px dashed #555; border-radius: 4px; color: #888; font-weight: 700; position: relative; }
+  .mark.empty:hover { color: #fff; border-color: #888; }
+  .mark .pic { position: absolute; inset: 0; }
+  .mark .pic img { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+  .pick { position: fixed; z-index: 150; width: 280px; max-width: calc(100vw - 8px); padding: 6px 8px; background: #212121;
+    border: 1px solid #666; border-radius: 6px; box-shadow: 0 8px 22px rgba(0,0,0,.7); }
+  .pick-sec { width: 100%; margin: 2px 0 6px; background: #2b2b2b; color: #eee; border: 1px solid #444; border-radius: 4px; }
+  .pick-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; margin-bottom: 6px; }
+  .pick-it { position: relative; aspect-ratio: 1; background: #2b2b2b; border: 1px solid #3a3a3a; border-radius: 4px; cursor: pointer; padding: 0; }
+  .pick-it:hover { border-color: #3fd25b; }
+  .pick-it .pic img { position: absolute; inset: 2px; width: calc(100% - 4px); height: calc(100% - 4px); object-fit: contain; image-rendering: pixelated; }
+  .sec { touch-action: manipulation; -webkit-touch-callout: none; user-select: none; }
   #toast { position: fixed; z-index: 200; left: 50%; top: 40px; transform: translateX(-50%); background: #212121;
     border: 1px solid #3fd25b; border-radius: 8px; padding: 8px 12px; white-space: pre-wrap; max-width: 90%; }
 </style>
@@ -123,6 +146,10 @@
   <button id="b-help" type="button" title="How to use it">?</button>
 </div>
 <div id="root"><div id="msg">Loading EmoTracker pack…</div></div>
+<div id="foot">
+  <span id="stats" title="From the game: items found, deaths, bonks, and Ganon's Tower chests opened"></span>
+  <span id="legend"></span>
+</div>
 <script src="fengari-web.js"></script>
 <script src="emo.js"></script>
 <script src="ui.js"></script>
@@ -172,6 +199,7 @@
     $('view').value = view;
     if ($('view').value !== view) $('view').value = view = 'auto';
     draw(true);
+    paintLegend();
     var t = null;
     window.addEventListener('resize', function () { clearTimeout(t); t = setTimeout(function () { draw(false); }, 120); });
     if (E.log.some(function (l) { return /error/i.test(l); })) console.warn('EmoTracker pack messages:', E.log);
@@ -195,8 +223,9 @@
   $('b-help').addEventListener('click', function () {
     alert('EmoTracker (beta)\n\n' +
       'Items: click to add or turn on, right click to take away.\n' +
-      'Map: click a square for its checks. Click a chest when you’ve collected it (right click to undo). ' +
-      'Right click a square to mark all of it collected. 📌 pins it to Pinned Locations.\n\n' +
+      'Map: point at a square (or tap it) to see its checks. Click a chest when you’ve collected it (right click to undo). ' +
+      '✓ marks all of it collected, 📌 pins it to Pinned Locations.\n' +
+      'Right click a square (hold it on a phone or tablet) to mark which item is there; it shows on the map.\n\n' +
       'Colors: green = in logic, yellow = possible with a sequence break, blue = can look at it, ' +
       'orange = only some of it, red = not yet, gray = done.\n\n' +
       'Autotracking reads the game as you play, so most of this fills in on its own.');
@@ -205,6 +234,19 @@
     $('dot').classList.toggle('on', on);
     $('stat').textContent = on ? 'Autotracking' : 'Waiting for the game';
   };
+  // counters from the game, and the map key
+  var LEG = [[6, 'In logic'], [5, 'Sequence break'], [3, 'Can see it'], [1, 'Some of it'], [2, 'Needs a key'], [0, 'Not yet'], [7, 'Done']];
+  function paintLegend() {
+    if (!E.maps.length) { $('legend').textContent = ''; return; }
+    $('legend').innerHTML = LEG.map(function (l) { return '<span><i style="background:' + E.COLORS[l[0]] + '"></i>' + l[1] + '</span>'; }).join('');
+  }
+  function paintStats(st) {
+    if (!st) { $('stats').innerHTML = ''; return; }
+    var gtTxt = st.gtFound ? (st.gtAt != null ? 'Big key: chest <b>#' + st.gtAt + '</b>' : 'Big key: found') : 'chests <b>' + st.gtOpened + '</b>/26';
+    $('stats').innerHTML = '<span>Checks <b>' + st.checks + '</b></span><span>Deaths <b>' + st.deaths + '</b></span><span>Bonks <b>' + st.bonks + '</b></span>' +
+      '<span class="gtk" title="Ganon\'s Tower: chests opened (26, not Bob\'s Torch), and which chest had the big key">GT ' + gtTxt + '</span>';
+  }
+  E.onStats = paintStats;
   E.notify = function (md) {
     var t = document.createElement('div'); t.id = 'toast';
     t.textContent = md.replace(/[#*]/g, '').replace(/\|/g, ' ').replace(/^\s*-+\s*$/gm, '').trim();

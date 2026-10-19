@@ -5,6 +5,24 @@ Crowd Control+ is Rando Hub's crowd control: the gift bridge with a
 control panel and stream overlays. Every gift effect, big-donation seed
 roll and the subathon clock work exactly as before.
 
+NEW IN 1.9.0
+------------
+- GT big key guessing game (Live games tab): chat guesses which Ganon's
+  Tower chest has the big key (!gt 1-26). The game counts the GT chests
+  you open and picks the winners when the key turns up. New "GT big key"
+  overlay, and a "BIG KEY FOUND!" alert.
+
+NEW IN 1.8.0
+------------
+- Checks and bosses on the subathon clock (Subathon tab): e.g. take
+  1 minute off per check and 5 minutes off per boss beaten, or add time
+  instead. Counts from when Crowd Control+ first sees the game; boss
+  detours don't count. The clock overlay shows each change in red with
+  the reason. Optional "BOSS DEFEATED!" alert.
+- Boss detours read the game's "boss beaten" flag correctly now, so
+  "random boss" really skips bosses you've beaten, and a detour to a
+  beaten boss brings the boss back for the fight.
+
 NEW IN 1.6.0
 ------------
 - New effects: Random enemy (one that fits the area), Small magic

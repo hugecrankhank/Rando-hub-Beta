@@ -258,11 +258,13 @@
         r.setAttribute('width', size); r.setAttribute('height', size);
         r.setAttribute('stroke', '#000'); r.setAttribute('stroke-width', m.border);
         r.setAttribute('class', 'pin');
-        var t = document.createElementNS(SVGNS, 'title'); t.textContent = loc.Name; r.appendChild(t);
-        r.addEventListener('click', function (e) { e.stopPropagation(); openPopup(loc, e.clientX, e.clientY); });
-        r.addEventListener('contextmenu', function (e) { e.preventDefault(); loc.clearAll(); });
-        g.appendChild(r);
-        v.pins.push({ loc: loc, ml: ml, r: r });
+        // the item you've marked as being here, on the square's corner
+        var cap = document.createElementNS(SVGNS, 'image');
+        cap.setAttribute('x', ml.x - size * 0.05); cap.setAttribute('y', ml.y - size * 1.05);
+        cap.setAttribute('width', size * 1.1); cap.setAttribute('height', size * 1.1);
+        cap.setAttribute('class', 'cap'); cap.style.display = 'none';
+        pinEvents(r, loc);
+        g.appendChild(r); g.appendChild(cap);        v.pins.push({ loc: loc, ml: ml, r: r, cap: cap });
       });
     });
     return v;
@@ -276,6 +278,13 @@
           if (E.hideCleared && loc.level === A.Cleared) show = false;
           pin.r.style.display = show ? '' : 'none';
           pin.r.setAttribute('fill', E.COLORS[loc.level]);
+          var c = null;
+          loc.Sections.some(function (sec) { if (sec.captured && sec.visible) { c = E.findItem(sec.captured); return true; } return false; });
+          var ic = c && c.activeIcon();
+          if (ic && show) {
+            if (pin.cap.getAttribute('href') !== ic.src) pin.cap.setAttribute('href', ic.src);
+            pin.cap.style.display = '';
+          } else pin.cap.style.display = 'none';
         });
       });
     });
@@ -301,6 +310,107 @@
     });
   }
   window.addEventListener('resize', function () { clearTimeout(refitMaps.t); refitMaps.t = setTimeout(refitMaps, 60); });
+
+  // ── pointer handling on the map ───────────────────────────────────────────
+  // Mouse: pointing at a square shows its checks (they stay while the mouse
+  // is on the square or the card); a click keeps the card open. Right click
+  // marks which item is there. Touch: tap for the card, hold for the marker.
+  var hoverT = null, longT = null, longFired = false;
+  var hoverable = (function () { try { return matchMedia('(hover: hover) and (pointer: fine)').matches; } catch (e) { return false; } })();
+  function pinEvents(r, loc) {
+    r.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (longFired) { longFired = false; return; }
+      openPopup(loc, e.clientX, e.clientY, true);
+    });
+    r.addEventListener('contextmenu', function (e) { e.preventDefault(); e.stopPropagation(); openPicker(loc, null, e.clientX, e.clientY); });
+    r.addEventListener('mouseenter', function (e) {
+      if (!hoverable) return;
+      clearTimeout(hoverT);
+      if (popup && popup.__sticky) return;
+      var x = e.clientX, y = e.clientY;
+      hoverT = setTimeout(function () { if (!popup || !popup.__sticky) openPopup(loc, x, y, false); }, 120);
+    });
+    r.addEventListener('mouseleave', function () { if (hoverable) hoverCloseSoon(); });
+    r.addEventListener('pointerdown', function (e) {
+      if (e.pointerType !== 'touch') return;
+      longFired = false;
+      var x = e.clientX, y = e.clientY;
+      clearTimeout(longT);
+      longT = setTimeout(function () { longFired = true; openPicker(loc, null, x, y); }, 500);
+    });
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach(function (t) { r.addEventListener(t, function () { clearTimeout(longT); }); });
+  }
+  function hoverCloseSoon() {
+    clearTimeout(hoverT);
+    hoverT = setTimeout(function () {
+      if (popup && !popup.__sticky && !popup.matches(':hover')) closePopup();
+    }, 280);
+  }
+  // long press on any element (section rows in cards) → fn(x, y)
+  function longPress(node, fn) {
+    var t = null, fired = false;
+    node.addEventListener('pointerdown', function (e) {
+      if (e.pointerType !== 'touch') return;
+      fired = false;
+      var x = e.clientX, y = e.clientY;
+      t = setTimeout(function () { fired = true; fn(x, y); }, 500);
+    });
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach(function (k) { node.addEventListener(k, function () { clearTimeout(t); }); });
+    node.addEventListener('click', function (e) { if (fired) { fired = false; e.stopPropagation(); e.preventDefault(); } }, true);
+  }
+
+  // ── "what's here?": mark the item at a location ───────────────────────────
+  var picker = null;
+  function captureCodes() {
+    var L = E.layouts.tracker_capture_item, out = [];
+    (function walk(d) {
+      if (!d) return;
+      if (Array.isArray(d)) { d.forEach(walk); return; }
+      if (d.rows) d.rows.forEach(function (r) { (r || []).forEach(function (c) { if (c && out.indexOf(c) < 0) out.push(c); }); });
+      if (d.content) walk(d.content);
+    })(L);
+    if (!out.length) E.items.forEach(function (it) { if (it.type !== 'static' && it.type !== 'sectionchests' && it.codes.size) out.push(Array.from(it.codes)[0]); });
+    return out;
+  }
+  function openPicker(loc, sec, x, y) {
+    closePicker();
+    var secs = loc.Sections.filter(function (s) { return s.visible; });
+    if (!secs.length) return;
+    sec = sec || secs.filter(function (s) { return s.unclaimed(); })[0] || secs[0];
+    picker = el('div', 'pick');
+    var head = el('div', 'pop-head');
+    head.appendChild(el('span', 'pop-title', 'What\u2019s at ' + loc.Name + '?'));
+    var xb = el('button', 'pop-btn', '✕'); xb.addEventListener('click', closePicker); head.appendChild(xb);
+    picker.appendChild(head);
+    if (secs.length > 1) {
+      var sel = el('select', 'pick-sec');
+      secs.forEach(function (s, i) { var o = el('option', '', s.Name); o.value = i; if (s === sec) o.selected = true; sel.appendChild(o); });
+      sel.addEventListener('change', function () { sec = secs[+sel.value]; });
+      picker.appendChild(sel);
+    }
+    var grid = el('div', 'pick-grid');
+    captureCodes().forEach(function (code) {
+      var it = E.findItem(code);
+      if (!it) return;
+      var b = el('button', 'pick-it'); b.title = it.Name;
+      var pic = el('span', 'pic'); paintIcon(pic, it.activeIcon()); b.appendChild(pic);
+      b.addEventListener('click', function (e) { e.stopPropagation(); sec.capture(code); closePicker(); });
+      grid.appendChild(b);
+    });
+    picker.appendChild(grid);
+    var clr = el('button', 'pop-btn', 'Clear the mark');
+    clr.addEventListener('click', function (e) { e.stopPropagation(); sec.capture(null); closePicker(); });
+    picker.appendChild(clr);
+    picker.addEventListener('click', function (e) { e.stopPropagation(); });
+    picker.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+    document.body.appendChild(picker);
+    var r = picker.getBoundingClientRect();
+    picker.style.left = Math.max(4, Math.min(window.innerWidth - r.width - 4, x - r.width / 2)) + 'px';
+    picker.style.top = Math.max(4, Math.min(window.innerHeight - r.height - 4, y + 12)) + 'px';
+  }
+  function closePicker() { if (picker) picker.remove(); picker = null; }
+  document.addEventListener('click', closePicker);
 
   // ── location popup and pinned locations ───────────────────────────────────
   var popup = null, popupLoc = null;
@@ -344,14 +454,30 @@
         loc.ModifiedByUser = true;
         if (s.AvailableChestCount < n) s.AvailableChestCount++;
       });
+      // the marked item, or a "+" to mark one
+      var mark = el('span', 'mark');
+      if (s.captured && E.findItem(s.captured)) {
+        var mi = E.findItem(s.captured), mp = el('span', 'pic'); paintIcon(mp, mi.activeIcon()); mark.appendChild(mp);
+        mark.title = mi.Name + ' is here (click to change)';
+      } else { mark.textContent = '+'; mark.classList.add('empty'); mark.title = 'Mark which item is here'; }
+      mark.addEventListener('click', function (e) { e.stopPropagation(); openPicker(loc, s, e.clientX, e.clientY); });
       row.appendChild(chests);
+      row.appendChild(mark);
+      row.addEventListener('contextmenu', function (e) { e.preventDefault(); e.stopPropagation(); openPicker(loc, s, e.clientX, e.clientY); });
+      longPress(row, function (x, y) { openPicker(loc, s, x, y); });
       box.appendChild(row);
     });
   }
-  function openPopup(loc, x, y) {
+  function openPopup(loc, x, y, sticky) {
+    if (popup && popupLoc === loc) { if (sticky) popup.__sticky = true; return; }
     closePopup();
     popupLoc = loc;
     popup = el('div', 'loc-pop');
+    popup.__sticky = !!sticky;
+    popup.addEventListener('mouseleave', function () { if (!popup.__sticky) hoverCloseSoon(); });
+    popup.addEventListener('mouseenter', function () { clearTimeout(hoverT); });
+    // using the card keeps it open
+    popup.addEventListener('click', function (e) { e.stopPropagation(); if (popup) popup.__sticky = true; });
     paintPopup();
     document.body.appendChild(popup);
     var r = popup.getBoundingClientRect();
@@ -360,8 +486,9 @@
   }
   function paintPopup() {
     if (!popup) return;
-    var loc = popupLoc;
+    var loc = popupLoc, sticky = popup.__sticky;
     popup.textContent = '';
+    popup.__sticky = sticky;
     var head = el('div', 'pop-head');
     var t = el('span', 'pop-title', loc.Name); t.style.color = E.COLORS[loc.level]; head.appendChild(t);
     var pinned = E.pinned.indexOf(loc) >= 0;
@@ -374,7 +501,6 @@
     head.appendChild(pb); head.appendChild(cb); head.appendChild(xb);
     popup.appendChild(head);
     sectionRows(loc, popup, false);
-    popup.addEventListener('click', function (e) { e.stopPropagation(); });
   }
   function closePopup() { if (popup) popup.remove(); popup = null; popupLoc = null; }
   document.addEventListener('click', closePopup);
@@ -409,10 +535,52 @@
     if (E.onRepaint) E.onRepaint();
   }
 
+  // ── Rando Hub's dungeon panel ─────────────────────────────────────────────
+  // Under the items: each dungeon's chests left (click to count one down),
+  // and, where the pack's own grid doesn't already show them, its small keys
+  // and big key. Built from the pack's own items.
+  var DUNGEON_COLS = [
+    ['hc_label', 'escape_chests', 'hc_smallkey', ''], ['at_label', '', 'at_smallkey', ''],
+    ['ep_label', 'ep_chests', '', 'ep_bigkey'], ['dp_label', 'dp_chests', 'dp_smallkey', 'dp_bigkey'],
+    ['toh_label', 'toh_chests', 'toh_smallkey', 'toh_bigkey'], ['pod_label', 'pod_chests', 'pod_smallkey', 'pod_bigkey'],
+    ['sp_label', 'sp_chests', 'sp_smallkey', 'sp_bigkey'], ['sw_label', 'sw_chests', 'sw_smallkey', 'sw_bigkey'],
+    ['tt_label', 'tt_chests', 'tt_smallkey', 'tt_bigkey'], ['ip_label', 'ip_chests', 'ip_smallkey', 'ip_bigkey'],
+    ['mm_label', 'mm_chests', 'mm_smallkey', 'mm_bigkey'], ['tr_label', 'tr_chests', 'tr_smallkey', 'tr_bigkey'],
+    ['gt_label', 'gt_basement_chests', 'gt_smallkey', 'gt_bigkey']];
+  function dungeonPanel() {
+    if (!E.findItem('ep_label')) return null;
+    var keysShown = /key/.test(E.variant || '');
+    var rows = keysShown ? [0, 1] : [0, 1, 2, 3];
+    var grid = rows.map(function (r) { return DUNGEON_COLS.map(function (c) { return E.findItem(c[r]) ? c[r] : ''; }); });
+    if (E.findItem('gt_climb_chests')) grid.splice(2, 0, DUNGEON_COLS.map(function (c) { return c[0] === 'gt_label' ? 'gt_climb_chests' : ''; }));
+    return { type: 'group', header: 'Dungeons', header_background: '#3e4b57',
+      content: { type: 'itemgrid', h_alignment: 'center', item_width: 22, item_height: 20, item_margin: '1,1', badge_font_size: 10, rows: grid } };
+  }
+  function withDungeons(def) {
+    var extra = dungeonPanel();
+    if (!extra) return def;
+    var done = false;
+    function walk(d) {
+      if (!d || typeof d !== 'object') return d;
+      if (Array.isArray(d)) return d.map(walk);
+      if (d.type === 'layout' && d.key === 'shared_item_grid' && !done) {
+        done = true;
+        return { type: 'array', orientation: 'vertical', content: [d, extra] };
+      }
+      var o = {};
+      Object.keys(d).forEach(function (k) { o[k] = walk(d[k]); });
+      return o;
+    }
+    var out = walk(def);
+    return done ? out : def;
+  }
+
   E.render = function (root, key) {
     itemViews = []; mapPanels = []; pinBoxes = [];
     root.textContent = '';
     var def = E.layouts[key];
+    if (key === 'shared_item_grid') def = { type: 'layout', key: 'shared_item_grid' };
+    if (def && key !== 'tracker_broadcast') def = withDungeons(def);
     if (!def) { root.appendChild(el('div', 'unsupported', 'This pack has no layout "' + key + '".')); return; }
     var n = build(def);
     n.classList.add('emo-root');

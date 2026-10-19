@@ -431,7 +431,10 @@ function timerAdd(seconds, user, why) {
   seconds = Math.round(seconds);
   if (!seconds) return;
   if (timer.running) timer.endsAt = Math.max(Date.now(), timer.endsAt + seconds * 1000);
-  else timer.remaining = Math.max(0, timer.remaining + seconds);
+  else {
+    timer.remaining = Math.max(0, timer.remaining + seconds);
+    if (timer.remaining <= 0 && timer.active && seconds < 0) { timer.ended = true; log('⏱ TIME! The subathon clock hit 0:00:00.'); }
+  }
   if (seconds > 0) timer.added += seconds;
   timer.log.push({ id: timer.nextId++, seconds, user: user || '', why: why || '', at: Date.now() });
   if (timer.log.length > 30) timer.log.shift();
@@ -491,7 +494,7 @@ function timerApi(req, res) {
     res.end(JSON.stringify(view));
   });
 }
-function timerAction(action, seconds) {
+function timerAction(action, seconds, why) {
     const n = Math.round(+seconds || 0);
     switch (action) {
       case 'set':
@@ -512,7 +515,8 @@ function timerAction(action, seconds) {
       case 'add':
         if (!timer.active || !n) break;
         if (timer.ended && n > 0) { timer.ended = false; timer.remaining = 0; }
-        timerAdd(n, 'streamer', 'by hand');
+        timerAdd(n, why ? 'game' : 'streamer', why ? String(why).slice(0, 60) : 'by hand');
+        if (why) log(`  ⏱ ${n > 0 ? '+' : '−'}${fmtTime(Math.abs(n))} (${why}), clock: ${fmtTime(timerLeft())}`);
         break;
       case 'off':
         Object.assign(timer, { active: false, running: false, ended: false, remaining: 0, endsAt: 0 });
@@ -540,6 +544,7 @@ const TIMER_HTML = `<!doctype html><html><head><meta charset="utf-8"><title>Suba
   .pop { position: absolute; right: -0.2em; top: 0; transform: translateY(-40%); background: #3fb950; color: #04130a; font-weight: 800;
     font-size: calc(var(--s) * .26); padding: .15em .5em; border-radius: 999px; white-space: nowrap; opacity: 0; transition: opacity .4s, transform .4s; }
   .pop.on { opacity: 1; transform: translateY(-62%); }
+  .pop.minus { background: #e5534b; color: #fff; }
   .off { font-size: 16px; color: #9fb3c8; padding: 8px; }
 </style></head><body>
 <div class="box" id="box"><div class="lab" id="lab">TIME LEFT</div><div class="t" id="t">–:––:––</div><div class="pop" id="pop"></div></div>
@@ -565,8 +570,11 @@ async function poll() {
     box.className = 'box' + (q.get('bg') === '0' ? ' clear' : '') + (d.ended ? ' ended' : !d.running ? ' paused' : '');
     const a = d.lastAdd;
     if (a && a.id !== lastId) {
-      if (lastId !== null && a.seconds > 0) {
-        pop.textContent = '+' + short(a.seconds) + (a.user && a.user !== 'streamer' ? ' · ' + a.user : '');
+      if (lastId !== null && a.seconds) {
+        // time on is green; time off (checks and bosses, when set to take time off) is red
+        const who = a.user === 'game' ? a.why : a.user && a.user !== 'streamer' ? a.user : '';
+        pop.textContent = (a.seconds > 0 ? '+' : '−') + short(Math.abs(a.seconds)) + (who ? ' · ' + who : '');
+        pop.classList.toggle('minus', a.seconds < 0);
         pop.classList.add('on'); clearTimeout(popT); popT = setTimeout(() => pop.classList.remove('on'), 4000);
       }
       lastId = a.id;
@@ -915,7 +923,7 @@ const studio = createStudio({
     return ids.map((id) => ({ id, name: effectNames[id] || id, secs: id in defaultSecs ? (+(cfg.durations || {})[id] > 0 ? +cfg.durations[id] : defaultSecs[id]) : 0 }));
   },
   timerView,
-  timerApi: (op, seconds) => timerAction(op, seconds),
+  timerApi: (op, seconds, why) => timerAction(op, seconds, why),
   connectSource: (source, username) => {
     const patch = {};
     if (['local', 'tikfinity'].includes(source)) patch.source = source;
