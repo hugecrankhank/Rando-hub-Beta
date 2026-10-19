@@ -314,11 +314,33 @@
   // ── the picture: from the ROM when we have it, else the pack's ────────────
   var mapViews = [];
   function showPicture(v) {
-    var rom = E.romMaps && E.romMaps[/dark/i.test(v.m.name) ? 'dark' : 'light'];
-    var src = rom || v.m.img.src;
-    if (v.img.getAttribute('href') !== src) v.img.setAttribute('href', src);
-    v.img.style.filter = !rom && v.m.img.filter.length ? v.m.img.filter.join(' ') : '';
-    v.box.classList.toggle('rom', !!rom);
+    var tiles = E.romMaps && E.romMaps[/dark/i.test(v.m.name) ? 'dark' : 'light'];
+    var key = tiles ? tiles[0] : v.m.img.src;
+    if (v.__pic === key) return;
+    v.__pic = key;
+    if (v.tileG) { v.tileG.remove(); v.tileG = null; }
+    if (tiles && v.m.w) {
+      // 64 screens, 8 across, laid over the pack's coordinates
+      v.img.style.display = 'none';
+      var g = document.createElementNS(SVGNS, 'g'), sw = v.m.w / 8, sh = v.m.h / 8;
+      g.setAttribute('class', 'tiles');
+      tiles.forEach(function (u, i) {
+        var im = document.createElementNS(SVGNS, 'image');
+        im.setAttribute('href', u);
+        im.setAttribute('x', (i % 8) * sw); im.setAttribute('y', Math.floor(i / 8) * sh);
+        // a hair of overlap so no seams show between screens
+        im.setAttribute('width', sw + 0.6); im.setAttribute('height', sh + 0.6);
+        im.setAttribute('preserveAspectRatio', 'none');
+        g.appendChild(im);
+      });
+      v.svg.insertBefore(g, v.gridG);
+      v.tileG = g;
+    } else {
+      v.img.style.display = '';
+      v.img.setAttribute('href', v.m.img.src);
+      v.img.style.filter = v.m.img.filter.length ? v.m.img.filter.join(' ') : '';
+    }
+    v.box.classList.toggle('rom', !!tiles);
   }
   E.onRomMaps = function () { mapViews.forEach(function (v) { if (v.box.isConnected) showPicture(v); }); };
   // the game's screens: 8 x 8 per world
@@ -365,11 +387,17 @@
     }, { passive: false });
     svg.addEventListener('dblclick', function (e) { if (e.target.classList && e.target.classList.contains('pin')) return; e.preventDefault(); set([0, 0, v.m.w, v.m.h]); });
     svg.addEventListener('pointerdown', function (e) {
+      // a new touch starts a new gesture: forget fingers whose lifting we
+      // never saw (it happened outside the map), or they'd make a phantom pinch
+      if (e.isPrimary) { pts.clear(); pinch = null; drag = null; }
       pts.set(e.pointerId, [e.clientX, e.clientY]);
+      // (touch on the map itself only: capturing a tap on a square would stop its click)
+      if (e.pointerType === 'touch' && !(e.target.classList && e.target.classList.contains('pin'))) { try { svg.setPointerCapture(e.pointerId); } catch (x) {} }
       moved = false;
       if (pts.size === 2) {
         var a = Array.from(pts.values());
-        pinch = { d: Math.hypot(a[0][0] - a[1][0], a[0][1] - a[1][1]), z: vb().slice(), c: [(a[0][0] + a[1][0]) / 2, (a[0][1] + a[1][1]) / 2] };
+        var d0 = Math.hypot(a[0][0] - a[1][0], a[0][1] - a[1][1]);
+        pinch = d0 > 20 ? { d: d0, z: vb().slice(), c: [(a[0][0] + a[1][0]) / 2, (a[0][1] + a[1][1]) / 2] } : null;
         drag = null;
       } else if (v.zoom && !(e.target.classList && e.target.classList.contains('pin'))) {
         drag = { x: e.clientX, y: e.clientY, z: vb().slice() };
@@ -381,7 +409,7 @@
       var r = svg.getBoundingClientRect();
       if (pinch && pts.size === 2) {
         var a = Array.from(pts.values()), d = Math.hypot(a[0][0] - a[1][0], a[0][1] - a[1][1]);
-        var f = d / pinch.d, z = pinch.z, w = z[2] / f;
+        var f = Math.max(0.25, Math.min(4, d / pinch.d)), z = pinch.z, w = z[2] / f;
         var c = [z[0] + (pinch.c[0] - r.left) / r.width * z[2], z[1] + (pinch.c[1] - r.top) / r.height * z[3]];
         set([c[0] - (c[0] - z[0]) / f, c[1] - (c[1] - z[1]) / f, w, w * v.m.h / v.m.w]);
         moved = true; e.preventDefault();
@@ -392,7 +420,15 @@
       }
     });
     function up(e) { pts.delete(e.pointerId); if (pts.size < 2) pinch = null; if (!pts.size) drag = null; }
-    svg.addEventListener('pointerup', up); svg.addEventListener('pointercancel', up);
+    svg.addEventListener('pointerup', up); svg.addEventListener('pointercancel', up); svg.addEventListener('lostpointercapture', up);
+    // double-tap (touch) resets too
+    var lastTap = 0;
+    svg.addEventListener('pointerup', function (e) {
+      if (e.pointerType !== 'touch' || moved) return;
+      var now = Date.now();
+      if (now - lastTap < 300 && !(e.target.classList && e.target.classList.contains('pin'))) { set([0, 0, v.m.w, v.m.h]); lastTap = 0; }
+      else lastTap = now;
+    });
     // a drag isn't a click on whatever it ended over
     svg.addEventListener('click', function (e) { if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; } }, true);
     svg.style.touchAction = 'pan-y';

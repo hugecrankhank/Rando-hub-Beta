@@ -30,6 +30,10 @@ played again later.
   - **Dungeons panel** under the items: chests left per dungeon (click to count down),
     small keys and big keys.
   - **Ganon's Tower**: chests opened (of 26) and which chest had the big key.
+  - **Phone map fixes:** the maps drawn from the game are now 64 screen-sized pictures
+    per world instead of one huge one (iPhone Safari wouldn't draw the big one, so the
+    map showed black), and touch zoom forgets fingers lifted off the map (a leftover
+    one made the next touch zoom all the way in). Double-tap resets the zoom.
   - **Phone layout:** EmoTracker uses the same Items / Light World / Dark World tabs as
     Hutch's tracker on phones: one panel at a time, fitted below the game with no page
     scrolling (upright or sideways). − / + zoom the map; the tracker's own menu folds
