@@ -30,6 +30,10 @@ played again later.
   - **Dungeons panel** under the items: chests left per dungeon (click to count down),
     small keys and big keys.
   - **Ganon's Tower**: chests opened (of 26) and which chest had the big key.
+  - **Location cards:** fixed cards that wouldn't close while autotracking was running
+    (they were rebuilt on every update, which swallowed clicks); buttons now act the
+    moment you press them, and Esc closes. New **↺ Reopen** button marks everything at a
+    location not collected again (right click a single chest to reopen just that one).
   - **Maps drawn from the game:** both worlds are drawn pixel for pixel from the ROM
     being played (the full 4096 x 4096 overworld), so they're sharp, and a seed that
     changes the overworld shows its own map. Saved in the browser after the first time.

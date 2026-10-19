@@ -587,21 +587,40 @@
     popup.style.left = Math.max(4, Math.min(window.innerWidth - r.width - 4, x + 10)) + 'px';
     popup.style.top = Math.max(4, Math.min(window.innerHeight - r.height - 4, y + 10)) + 'px';
   }
+  // What a card shows, so it's only rebuilt when that changes (autotracking
+  // updates often while you play; rebuilding every time swallowed clicks).
+  function cardSig(loc) {
+    return [loc.level, E.pinned.indexOf(loc) >= 0, loc.Sections.map(function (s) {
+      var h = s.hosted();
+      return [s.visible, s.level, s.AvailableChestCount, s.captured, h ? JSON.stringify(h.icon()) : ''].join(',');
+    }).join('|')].join(';');
+  }
+  // Buttons act on press, so a repaint between press and release can't eat them.
+  function press(btn, fn) {
+    btn.addEventListener('pointerdown', function (e) { if (e.button !== 0) return; e.preventDefault(); e.stopPropagation(); fn(); });
+    btn.addEventListener('click', function (e) { e.stopPropagation(); });
+  }
   function paintPopup() {
     if (!popup) return;
-    var loc = popupLoc, sticky = popup.__sticky;
+    var loc = popupLoc, sticky = popup.__sticky, sig = cardSig(loc);
+    if (popup.__sig === sig) return;
+    popup.__sig = sig;
     popup.textContent = '';
     popup.__sticky = sticky;
     var head = el('div', 'pop-head');
-    var t = el('span', 'pop-title', loc.Name); t.style.color = E.COLORS[loc.level]; head.appendChild(t);
+    var t = el('span', 'pop-title', loc.Name);
+    t.style.color = loc.level === E.A.Cleared ? '#8b95a3' : E.COLORS[loc.level];
+    head.appendChild(t);
     var pinned = E.pinned.indexOf(loc) >= 0;
     var pb = el('button', 'pop-btn' + (pinned ? ' on' : ''), '📌'); pb.title = pinned ? 'Unpin' : 'Pin to Pinned Locations';
-    pb.addEventListener('click', function (e) { e.stopPropagation(); togglePin(loc); });
+    press(pb, function () { togglePin(loc); });
     var cb = el('button', 'pop-btn', '✓'); cb.title = 'Mark everything here collected';
-    cb.addEventListener('click', function (e) { e.stopPropagation(); loc.clearAll(); });
-    var xb = el('button', 'pop-btn', '✕'); xb.title = 'Close';
-    xb.addEventListener('click', function (e) { e.stopPropagation(); closePopup(); });
-    head.appendChild(pb); head.appendChild(cb); head.appendChild(xb);
+    press(cb, function () { loc.clearAll(); });
+    var rb = el('button', 'pop-btn', '↺'); rb.title = 'Reopen: mark everything here not collected';
+    press(rb, function () { loc.reopenAll(); });
+    var xb = el('button', 'pop-btn', '✕'); xb.title = 'Close (Esc)';
+    press(xb, closePopup);
+    head.appendChild(pb); head.appendChild(cb); head.appendChild(rb); head.appendChild(xb);
     popup.appendChild(head);
     sectionRows(loc, popup, false);
   }
@@ -614,6 +633,9 @@
     E.changed();
   }
   function paintPins(box) {
+    var sig = E.pinned.map(cardSig).join('#') + E.pinned.length;
+    if (box.__sig === sig) return;
+    box.__sig = sig;
     box.textContent = '';
     if (!E.pinned.length) { box.appendChild(el('div', 'pins-empty', 'Click a location on the map, then 📌 to pin it here.')); return; }
     E.pinned.forEach(function (loc) {

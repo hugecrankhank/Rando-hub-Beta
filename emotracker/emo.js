@@ -443,6 +443,12 @@
     var self = this;
     Emo.batch(function () { self.Sections.forEach(function (s) { if (s.visible) s.clear(); }); });
   };
+  // Undo: everything here back to not collected (and the hosted items' marks off)
+  Location.prototype.reopenAll = function () {
+    this.ModifiedByUser = true;
+    var self = this;
+    Emo.batch(function () { self.Sections.forEach(function (s) { if (s.visible) s.AvailableChestCount = s.ChestCount; }); });
+  };
   function locCount(path) {
     var parts = path.split('/'), loc = Emo.locByName[parts[0].trim().toLowerCase()];
     if (!loc) return { n: 0, max: A.Normal };
