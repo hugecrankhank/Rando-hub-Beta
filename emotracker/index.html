@@ -140,6 +140,21 @@
   .pick-it:hover { border-color: #3fd25b; }
   .pick-it .pic img { position: absolute; inset: 2px; width: calc(100% - 4px); height: calc(100% - 4px); object-fit: contain; image-rendering: pixelated; }
   .sec { touch-action: manipulation; -webkit-touch-callout: none; user-select: none; }
+  /* phone (Rando Hub's tabs): one panel, no scrolling; the menu folds behind ⚙ */
+  body.phone #root { overflow: hidden; }
+  body.phone #bar { display: none; }
+  body.phone.bar-open #bar { display: flex; }
+  #phone-gear { display: none; position: fixed; z-index: 60; top: 4px; right: 4px; width: 34px; height: 30px; padding: 0;
+    background: rgba(17,17,17,.85); color: #ddd; border: 1px solid #444; border-radius: 6px; font-size: 16px; }
+  body.phone #phone-gear { display: block; }
+  body.phone.bar-open #phone-gear { border-color: #3fd25b; }
+  body.phone.phone-items .emo-root { width: max-content; height: auto; min-height: 0; margin: 0 auto; }
+  body.phone.phone-items .l-container, body.phone.phone-items .l-array { height: auto; }
+  body.phone #legend { display: none; }
+  body.phone.foot-map #legend { display: flex; margin-left: 0; }
+  body.phone.foot-map #stats { display: none; }
+  body.phone #foot { font-size: 11px; padding: 2px 6px; }
+  body.phone #legend i { width: 8px; height: 8px; }
   #toast { position: fixed; z-index: 200; left: 50%; top: 40px; transform: translateX(-50%); background: #212121;
     border: 1px solid #3fd25b; border-radius: 8px; padding: 8px 12px; white-space: pre-wrap; max-width: 90%; }
 </style>
@@ -156,6 +171,7 @@
   <button id="b-reset" type="button" title="Clear everything you've marked for this tracker">Reset</button>
   <button id="b-help" type="button" title="How to use it">?</button>
 </div>
+<button id="phone-gear" type="button" title="Tracker options" aria-label="Tracker options">&#9881;</button>
 <div id="root"><div id="msg">Loading EmoTracker pack…</div></div>
 <div id="foot">
   <span id="stats" title="From the game: items found, deaths, bonks, and Ganon's Tower chests opened"></span>
@@ -199,14 +215,57 @@
     // bigger icons when there's room: 48 px on a wide window, 32 on a narrow one
     return w >= 1050 && h >= 600 ? 1.5 : 1;
   }
+  // ── phone: one panel at a time (Rando Hub's Items / Light World / Dark
+  //    World tabs), fitted to the space with no scrolling ─────────────────────
+  var phone = params.get('phone') || null;   // 'items' | 'lw' | 'dw'
+  function phoneLayouts() {
+    var names = E.maps.map(function (m) { return m.name; });
+    E.layouts.__phone_items = { type: 'array', orientation: 'vertical', content: [{ type: 'layout', key: 'shared_item_grid' }] };
+    E.layouts.__phone_lw = { type: 'map', maps: [names.filter(function (n) { return !/dark/i.test(n); })[0] || names[0]] };
+    E.layouts.__phone_dw = { type: 'map', maps: [names.filter(function (n) { return /dark/i.test(n); })[0] || names[1] || names[0]] };
+  }
+  function fitItems() {
+    var root = $('root'), n = root.querySelector('.emo-root');
+    if (!n || !document.body.classList.contains('phone-items')) return;
+    n.style.zoom = '';
+    var W = root.clientWidth, H = root.clientHeight, w = n.scrollWidth, h = n.scrollHeight;
+    if (!W || !H || !w || !h) return;
+    n.style.zoom = String(Math.max(0.5, Math.min(4, W / w, H / h)));
+  }
   function draw(force) {
     var k = pickLayout(), sc = pickScale();
-    if (k === current && sc === curScale && !force) return;
+    if (phone && E.maps.length) { k = '__phone_' + phone; sc = 1; }
+    else if (phone) { k = '__phone_items'; sc = 1; }
+    document.body.classList.toggle('phone', !!phone);
+    document.body.classList.toggle('phone-items', !!phone && k === '__phone_items');
+    if (k === current && sc === curScale && !force) { fitItems(); return; }
     current = k; curScale = sc; E.itemScale = sc;
     E.render($('root'), k);
+    fitItems();
+    paintFoot();
   }
+  function paintFoot() {
+    document.body.classList.toggle('foot-map', !!phone && phone !== 'items');
+  }
+  // Rando Hub's phone tabs call this (emo-host.js)
+  window.EmoPhone = {
+    set: function (t) {
+      t = t === 'lw' || t === 'dw' || t === 'items' ? t : null;
+      if (t === phone) return;
+      phone = t;
+      if (E.layouts.shared_item_grid) draw(true);
+    },
+    zoom: function (dir) {
+      var v = document.querySelector('.map svg');
+      if (!v) return;
+      var r = v.getBoundingClientRect();
+      v.dispatchEvent(new WheelEvent('wheel', { deltaY: dir > 0 ? -100 : 100, clientX: r.left + r.width / 2, clientY: r.top + r.height / 2, ctrlKey: true, bubbles: true, cancelable: true }));
+    },
+  };
+  window.addEventListener('resize', function () { setTimeout(fitItems, 30); });
 
   E.load(variant).then(function () {
+    phoneLayouts();
     var vs = E.manifest.variants || {};
     Object.keys(vs).forEach(function (k) {
       var o = document.createElement('option'); o.value = k; o.textContent = vs[k].display_name || k; $('variant').appendChild(o);
@@ -241,6 +300,10 @@
   });
   $('o-rommap').checked = E.romMapsOn;
   $('o-rommap').addEventListener('change', function () { E.setRomMaps(this.checked); });
+  $('phone-gear').addEventListener('click', function () {
+    document.body.classList.toggle('bar-open');
+    setTimeout(function () { window.dispatchEvent(new Event('resize')); }, 30);
+  });
   $('isize').value = isize;
   $('isize').addEventListener('change', function () {
     isize = this.value;

@@ -30,6 +30,10 @@ played again later.
   - **Dungeons panel** under the items: chests left per dungeon (click to count down),
     small keys and big keys.
   - **Ganon's Tower**: chests opened (of 26) and which chest had the big key.
+  - **Phone layout:** EmoTracker uses the same Items / Light World / Dark World tabs as
+    Hutch's tracker on phones: one panel at a time, fitted below the game with no page
+    scrolling (upright or sideways). − / + zoom the map; the tracker's own menu folds
+    behind its ⚙.
   - **Location cards:** fixed cards that wouldn't close while autotracking was running
     (they were rebuilt on every update, which swallowed clicks); buttons now act the
     moment you press them, and Esc closes. New **↺ Reopen** button marks everything at a
