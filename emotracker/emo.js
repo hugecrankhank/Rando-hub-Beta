@@ -801,8 +801,12 @@
     }).catch(function () {});
   }
   function useRomMaps(m) {
-    if (Emo.romMaps) { try { URL.revokeObjectURL(Emo.romMaps.light); URL.revokeObjectURL(Emo.romMaps.dark); } catch (e) {} }
-    Emo.romMaps = m ? { light: URL.createObjectURL(m.light), dark: URL.createObjectURL(m.dark) } : null;
+    if (Emo.romMaps) { try { Emo.romMaps.light.concat(Emo.romMaps.dark).forEach(function (u) { URL.revokeObjectURL(u); }); } catch (e) {} }
+    Emo.romMaps = null;
+    if (m && Array.isArray(m.light) && Array.isArray(m.dark) && m.light.length === 64 && m.dark.length === 64 &&
+        m.light.concat(m.dark).every(function (b) { return b && b.size > 0; })) {
+      Emo.romMaps = { light: m.light.map(function (b) { return URL.createObjectURL(b); }), dark: m.dark.map(function (b) { return URL.createObjectURL(b); }) };
+    }
     if (Emo.onRomMaps) Emo.onRomMaps();
   }
   Emo.romMapsOn = true;
@@ -810,7 +814,7 @@
   function loadRomMaps(b, g) {
     if (!Emo.romMapsOn || !window.RoMap || !g || romMapsFor === g) return;
     romMapsFor = g;
-    idbGet('v1-' + g).then(function (hit) {
+    idbGet('v2-' + g).then(function (hit) {
       if (romMapsFor !== g) return;
       if (hit && hit.light && hit.dark) { useRomMaps(hit); return; }
       var rom;
@@ -822,8 +826,9 @@
         if (!job) { Emo.log.push('map from ROM: not an ALTTP JP 1.0 based ROM, using the pack\'s maps'); return; }
         job.then(function (m) {
           if (romMapsFor !== g) return;
+          if (!m.light.concat(m.dark).every(function (b) { return b && b.size > 0; })) { Emo.log.push('map from ROM: drawing failed, using the pack\'s maps'); return; }
           useRomMaps(m);
-          idbPut('v1-' + g, m);
+          idbPut('v2-' + g, m);
         });
       }, 300);
     });

@@ -93,8 +93,8 @@
   .map .pin, .map image.cap { transform-box: fill-box; transform-origin: center; transform: scale(calc(1 / var(--z, 1))); }
   .map .grid line { stroke: rgba(0, 0, 0, .55); stroke-width: 1px; vector-effect: non-scaling-stroke; }
   body.no-grid .map .grid { display: none; }
-  .map.rom > svg > image { image-rendering: auto; }
-  .map.rom.zoomed > svg > image { image-rendering: pixelated; }
+  .map.rom .tiles image { image-rendering: auto; }
+  .map.rom.zoomed .tiles image { image-rendering: pixelated; }
   .map.zoomed svg { cursor: grab; }
   .map { overflow: hidden; }
   .map .pin:hover { stroke: #fff; }

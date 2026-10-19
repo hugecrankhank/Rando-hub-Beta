@@ -13,7 +13,8 @@
  * kMainTilesets / kAuxTilesets / kOwBgPalInfo tables (copied below). Addresses
  * are for the Japanese 1.0 ROM, which the randomizer is built on.
  *
- * window.RoMap.render(romBytes) → Promise<{ light: Blob, dark: Blob }> | null
+ * window.RoMap.render(romBytes) → Promise<{ light: [64 Blobs], dark: [64 Blobs] }> | null
+ * (row by row, 8 screens across)
  * (null when the ROM doesn't look like ALTTP JP 1.0 / a randomizer seed).
  */
 (function () {
@@ -170,13 +171,23 @@
     return ok >= 17 && sh >= 10;
   }
 
+  // Each world as 64 separate 512 x 512 screens: one 4096 x 4096 picture is
+  // more than phones (iPhone Safari) will draw.
   function renderWorld(rom, dw) {
-    var W = 4096, cv = document.createElement('canvas');
-    cv.width = W; cv.height = W;
-    var ctx = cv.getContext('2d'), img = ctx.createImageData(W, W), cache = {};
-    for (var s = 0; s < 64; s++) drawScreen(rom, s + (dw ? 64 : 0), img.data, W, (s & 7) * 512, (s >> 3) * 512, cache);
-    ctx.putImageData(img, 0, 0);
-    return new Promise(function (res) { cv.toBlob(function (b) { res(b); }, 'image/png'); });
+    var cv = document.createElement('canvas');
+    cv.width = 512; cv.height = 512;
+    var ctx = cv.getContext('2d'), cache = {}, out = [];
+    var s = 0;
+    return new Promise(function (res) {
+      function next() {
+        if (s >= 64) { res(out); return; }
+        var img = ctx.createImageData(512, 512);
+        drawScreen(rom, s + (dw ? 64 : 0), img.data, 512, 0, 0, cache);
+        ctx.putImageData(img, 0, 0);
+        cv.toBlob(function (b) { out.push(b); s++; next(); }, 'image/png');
+      }
+      next();
+    });
   }
 
   window.RoMap = {
