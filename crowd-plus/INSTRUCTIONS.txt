@@ -1,0 +1,798 @@
+CROWD CONTROL+  (for Rando Hub)
+TikTok LIVE crowd control with a control panel and stream overlays
+Complete setup guide (no experience needed)
+=========================================================================
+
+WHAT THIS IS
+------------
+You play A Link to the Past Randomizer in Rando Hub while you stream on
+TikTok LIVE. When viewers send gifts, like, follow or share, things happen
+in your game: extra hearts, lost rupees, inverted controls, slippery ice,
+angry cuccos, extra enemies, even a brand-new seed.
+
+Crowd Control+ is Rando Hub's crowd control: the gift bridge, plus:
+
+  CONTROL PANEL   A page in your browser where you set everything up with
+                  menus and buttons instead of editing files: which gift
+                  does what, test buttons, alerts, goals, chat, the
+                  subathon clock, and saved setups ("profiles").
+  OVERLAYS        Things your viewers see on stream, made for OBS and
+                  TikTok LIVE Studio, in the Rando Hub style:
+                    - Gift alerts (with sounds; bigger gifts = bigger alerts)
+                    - Goal bars (coins, likes, follows, shares or gifts)
+                    - Top gifters leaderboard
+                    - Recent events feed
+                    - Chat command replies (!rules, !effects, !timer ...)
+                    - Chat votes, team battles, the mystery box, the
+                      combo meter and predictions
+                    - Run stats (deaths, checks, where Link is, music,
+                      seed), hall of fame and "welcome back" pop-ups
+                    - The scrolling gift list and the subathon clock
+  READ CHAT ALOUD Text-to-speech for viewers' chat messages, with filters.
+
+How the pieces connect (all on the PC you stream from):
+
+  TikTok LIVE --> your LIVE page --> Crowd Control+ --> the game
+  (viewers)       (a Chrome/Edge    (this folder)  |-> your overlays
+                   window it opens)                '-> the control panel
+
+Crowd Control+ opens your own TikTok LIVE page in a separate Chrome or
+Edge window and reads the gifts, likes, follows, shares and chat that
+TikTok shows there. This is the LOCAL SIGNER, and it's the recommended
+way: free, no other apps, no accounts or keys.
+
+If a TikTok update ever breaks it, switch to the backup, TikFinity (a
+free app that does the listening instead), with one click on the
+control panel. See "THE BACKUP: TIKFINITY" at the end of Part 1.
+
+You set things up once (about 20 minutes). After that, starting it for a
+stream takes three clicks.
+
+
+WHAT'S IN THIS FOLDER
+---------------------
+  Start Crowd Control+.bat            Double-click to start (Windows).
+  Test mode (no TikTok).bat           Practice without going live.
+  Start Crowd Control+ (Mac).command  Same, for a Mac.
+  start-crowd-control-plus.sh         Same, for Linux.
+  mapping.json        Which gift does what (the control panel edits it).
+  studio.json         Alerts, goals, chat settings (made on first start;
+                      the control panel edits it).
+  icons\              Gift pictures. Name = the gift's name (Rose.png).
+  sounds\             Your own alert sounds (optional, see PART 5).
+  profiles\           Saved setups from the Profiles tab.
+  studio\             The control panel and overlay pages.
+  bridge.mjs, studio.mjs, package.json
+                      The program itself. You never need to open these.
+  INSTRUCTIONS.txt    This file.
+  WHATS-NEW.txt       What's new compared to the regular Crowd Control.
+  EFFECTS-OVERVIEW.md A technical overview of every effect.
+
+These files are created while it runs, and hold your stream's data:
+  stats.json          Totals and the top-gifters board.
+  hall-of-fame.json   All-time gifters.
+  viewers.json        Who's been to how many streams (welcome back).
+  clips.json          Clip markers.
+  seen-gifts.json     Every gift seen on stream and its coin value.
+  timer-state.json    The subathon clock.
+
+
+WHAT YOU NEED
+-------------
+  - A Windows PC. (Mac and Linux work too.)
+  - A TikTok account that can go LIVE.
+  - Your own copy of the original Japanese 1.0 "Zelda no Densetsu:
+    Kamigami no Triforce" ROM (.sfc). It isn't included and can't be
+    shared.
+  - Google Chrome or Microsoft Edge installed (the local signer opens
+    your LIVE page in it; Edge comes with Windows).
+  - OBS or TikTok LIVE Studio, for the overlays.
+
+
+=========================================================================
+PART 1 - ONE-TIME SETUP
+=========================================================================
+
+STEP 1. Put this folder somewhere easy
+  Right-click the .zip -> Extract All -> choose your Desktop.
+  Run things from the extracted folder, never from inside the .zip.
+
+  Used the old Crowd Control (the "Crowd Control" folder in Rando Hub
+  zips up to v1.3.7)? It's retired; this replaces it. Close its black
+  window for good, and copy your old mapping.json into this folder (say
+  Yes to replace) to keep your gift setup.
+
+STEP 2. Install Node.js (it runs Crowd Control+)
+  Go to https://nodejs.org, download the "LTS" version, run the installer
+  and click Next through everything.
+
+STEP 3. Start Crowd Control+
+  Double-click "Start Crowd Control+.bat". A black window opens (keep it
+  open) and the CONTROL PANEL opens in your browser:
+      http://localhost:21214/studio
+  Bookmark it. If it didn't open by itself, type that address in.
+
+STEP 4. Connect to TikTok (the local signer)
+  On the control panel's Dashboard, in "TikTok connection":
+  - Leave it on "Local signer (recommended)".
+  - Type your TikTok name (without @) and click Connect.
+  - A new Chrome / Edge window opens on your LIVE page. Log in to
+    TikTok in that window (once; it remembers you next time).
+  - Keep that window open while you stream. You can minimize it or put
+    it behind other windows. Its sound is muted, so it won't echo.
+  The dot turns green ("Connected to TikTok LIVE") once you're LIVE.
+  Before you go live it says "Waiting for the LIVE"; that's normal.
+  Closed the window by mistake? Click "Open my LIVE window".
+
+STEP 5. Connect the game
+  - Open Rando Hub: https://hugecrankhank.github.io/Rando-hub/
+    (in Chrome or Edge, on the same PC).
+  - Randomizer -> Base ROM... -> pick your Japanese 1.0 ROM (once).
+  - The game's ... menu -> "Crowd effects" -> tick "TikTok effects on".
+    Bridge address: ws://localhost:21214
+  - If the browser asks to allow access to devices on your local
+    network, click Allow.
+  The control panel's top bar now says "Game connected" (green).
+
+STEP 6. Add the overlays to your stream
+  In the control panel, open the OVERLAYS tab. Each overlay has an
+  address, a Copy button and a size. For each one you want:
+
+  OBS
+    Sources -> + -> Browser -> paste the address -> set the width and
+    height shown -> OK. Then drag it where you want it.
+    For alert sounds: tick "Control audio via OBS" in that source.
+
+  TikTok LIVE Studio
+    Add a "Link" source, paste the address, then size and place it.
+
+  Good starting set: Gift alerts (full screen), Goal bar (top), Top
+  gifters (a corner).
+
+That's the setup done.
+
+THE BACKUP: TIKFINITY
+  Only if the local signer stops working (TikTok sometimes changes its
+  website, and a Crowd Control+ update will fix it):
+  1. Install TikFinity from https://tikfinity.zerody.one, open it and
+     log in with your TikTok account. Its WebSocket / Events API port
+     should be 21213 (the default).
+  2. Control panel -> Dashboard -> TikTok connection -> choose
+     "TikFinity (backup)" -> Connect.
+  Switch back to "Local signer" the same way once it's fixed. Your gift
+  setup, overlays and everything else stay the same either way.
+
+
+=========================================================================
+PART 2 - EVERY TIME YOU STREAM
+=========================================================================
+
+1. Double-click "Start Crowd Control+.bat". The control panel opens,
+   and so does your LIVE window (it reconnects by itself).
+   (Using the TikFinity backup? Open TikFinity first.)
+2. Go LIVE on TikTok.
+3. Open (or refresh) Rando Hub. The panel's top bar should show:
+     Connected to TikTok LIVE            (green)
+     Game connected                      (green)
+     N overlays on stream                (green once OBS is open)
+4. Optional: Dashboard -> "Reset stream stats" for a fresh top-gifters
+   board, and reset goals on the Goals tab.
+
+Keep the black window and the LIVE window open the whole stream.
+Closing the black window stops everything. Keep the control panel tab open too if you use read-aloud.
+
+
+=========================================================================
+PART 3 - THE CONTROL PANEL, TAB BY TAB
+=========================================================================
+
+DASHBOARD
+  "TikTok connection" at the top: local signer (recommended) or the
+  TikFinity backup, your TikTok name, Connect, "Open my LIVE window",
+  and a green / red dot with what's happening.
+  Totals for this stream, the top gifter, and every event as it happens
+  (gifts, follows, shares, chat), with what it did in the game.
+  "Test without going live": pretend a viewer sent a gift, followed,
+  shared, liked or typed in chat. Alerts, goals and overlays react like
+  the real thing. Tick "Also run the game effect" to make it happen in
+  the game too (and count toward stats, goals and the subathon clock).
+
+GIFTS & EFFECTS
+  Every gift and its effect, with the gift's picture. Change an effect
+  from the menu, press Test to try it in the game, x to remove a gift,
+  or type a new gift name and press Add gift. Gifts that show up on
+  stream but aren't set up appear at the bottom with a + button.
+  "Test any effect" has a button for every effect the game has (plus the
+  mystery box and the boss-detour rescue).
+  Also here: big-donation levels (new seeds by coins), likes / follows /
+  shares, and how long timed effects last.
+
+  The same tests are in the game: ... menu -> Crowd effects. There you
+  also get "Test one boss", and, while connected, "Fake gift" (alert +
+  effect) and "Mystery box". Use whichever is handier.
+  Press "Save gift setup" when done. It works right away, no restart.
+
+ALERTS
+  Turn alerts on or off, the smallest gift that pops up, how long they
+  stay, sound and volume, and whether follows and shares get alerts too.
+  Sizes: small, big and huge, each starting at a coin value, with its
+  own headline. Test buttons show each size on your alert overlay.
+
+LIVE GAMES
+  Chat votes, team battle, mystery box, combo meter and predictions.
+  See PART 12.
+
+RUN & STREAM
+  Run stats from the game, death tax, clip markers, hall of fame and
+  welcome back. See PART 13.
+
+GOALS
+  Bars that fill up during the stream: coins, likes, follows, shares or
+  gifts. Name it, set the target, tick "On stream" to show it on the
+  Goal overlay (several can show at once). +100 / -100 and Reset adjust
+  it by hand. Example: "CHAOS SEED" at 5,000 coins, then roll a chaos
+  seed when it fills.
+
+OVERLAYS
+  Addresses, sizes and live previews of every overlay, plus settings for
+  the leaderboard and the event feed.
+
+CHAT & TTS
+  Read chat aloud (see PART 6) and chat commands (see PART 7).
+
+SUBATHON
+  The subathon clock: set a starting time, Start / Pause, adjust by
+  hand, and choose how many coins buy a second. (Same clock as the
+  regular Crowd Control; see PART 8.)
+
+PROFILES
+  Save your whole setup under a name ("Chill run", "Chaos night") and
+  load it in one click. Loading can keep your current goal progress.
+
+
+=========================================================================
+PART 4 - OVERLAY OPTIONS
+=========================================================================
+
+Add these to the end of any overlay address:
+  ?scale=1.3     bigger (0.8 = smaller)
+  ?bg=0          no background box, just the text and pictures
+  ?font=plain    normal letters instead of pixel letters
+Combine them with &, for example:
+  http://localhost:21214/overlay/goal?scale=1.2&bg=0
+
+Extra options:
+  Gift alerts    ?pos=bottom   alerts near the bottom instead of the top
+  Goal bar       ?id=g1        show only one goal (ids are in studio.json)
+  Top gifters    ?size=3       number of rows
+
+WHITE BOX BEHIND AN OVERLAY?
+  The overlays are see-through when there's nothing to show. A white box
+  means the page was captured the wrong way:
+    - OBS: use Sources -> + -> Browser (not Window Capture or Display
+      Capture of a Chrome window). Leave "Custom CSS" as OBS fills it in.
+    - TikTok LIVE Studio: use a Link source with the address.
+    - Opening the address in Chrome shows white; that's normal, Chrome
+      paints white behind see-through pages. It's clear in OBS.
+  If your app still can't show it clear, add ?screen=green to the end of
+  the address and put a Chroma Key filter (green) on that source.
+  Or skip the alerts overlay: gift alerts also show on the game itself,
+  over the hearts (game's ... menu -> Crowd effects -> "Gift alerts over
+  the hearts", on by default), so they're on stream with the game.
+
+The overlays only work while Crowd Control+ is running. If an overlay
+says "Waiting for the Crowd Control+ bridge", start it, then right-click
+the source in OBS -> Refresh.
+
+
+=========================================================================
+PART 5 - ALERT SOUNDS
+=========================================================================
+
+Alerts play a built-in retro chime (a different one per size). To use
+your own sounds, put files in the "sounds" folder named:
+    small.mp3   big.mp3   huge.mp3   follow.mp3   share.mp3
+(.wav and .ogg work too). Only the ones you add are replaced.
+
+In OBS, tick "Control audio via OBS" on the alerts source so the sound
+goes into your stream. Volume is on the Alerts tab.
+
+
+=========================================================================
+PART 6 - READING CHAT ALOUD (TEXT-TO-SPEECH)
+=========================================================================
+
+1. Chat & TTS tab -> tick "Read chat aloud" -> Save chat settings.
+2. In the "Where it plays" box, tick "Speak in this tab".
+3. Press "Test voice". Pick a voice and speed you like.
+
+Messages are spoken by the control panel tab with this computer's own
+voices, so keep that tab open while you stream, and make sure OBS / LIVE
+Studio captures your desktop audio.
+
+Who gets read: "Viewers who gifted" (at least N coins this stream) or
+"Everyone". Messages with links, !commands, or any word on your "Never
+read" list are skipped, and long messages are cut off.
+
+
+=========================================================================
+PART 7 - CHAT COMMANDS
+=========================================================================
+
+When a viewer types a command in chat, the reply pops up on the Chat
+commands overlay. Comes with:
+    !effects   the gift list (which gift does what)
+    !rules     a message you write
+    !timer     subathon time left
+Add your own on the Chat & TTS tab. Fill-ins that update by themselves:
+    {effects}  the gift list      {timer}  subathon time left
+    {top}      top 3 gifters      {goal}   the goal that's on stream
+    {coins}    coins this stream
+"Wait between uses" stops one command being spammed.
+
+
+=========================================================================
+PART 8 - THE SUBATHON CLOCK
+=========================================================================
+
+A countdown clock: you choose how long it starts at, and every coin
+viewers donate adds time. Set, Start, Pause and Adjust it on the
+control panel's Subathon tab (the old page at
+http://localhost:21214/timer/control still works too).
+
+On stream: add the "Subathon clock" overlay (Overlays tab). It also
+shows at the bottom of the game unless you turn that off in the game's
+Crowd effects menu.
+
+"Coins per second" sets the price: 1 = 3,600 coins an hour, 2 = 7,200,
+4 = 14,400, 0.5 = 1,800. The clock is saved, so if you close Crowd
+Control+ it comes back paused at the same time.
+
+
+=========================================================================
+PART 9 - PRACTICE MODE (NO TIKTOK)
+=========================================================================
+
+Double-click "Test mode (no TikTok).bat". Everything works without
+TikTok (no LIVE window opens): use the Dashboard's test buttons, or type in the black window:
+    gift Rose 3        a gift (uses your gift setup)
+    coins 1500         a donation worth 1,500 coins
+    like 300           likes
+    follow / share
+    chat !rules        a chat message
+    invert             any effect name, straight to the game
+    list               every effect name the game has
+
+
+PART 10 - WHAT EACH GIFT DOES (THE STARTING SETUP)
+=========================================================================
+
+This folder comes set up with this gift list. Change it any time on the
+control panel's Gifts & effects tab.
+
+  INSTANT EFFECTS
+    Rose .................. +1 heart
+    TikTok ................ +50 rupees
+    GG .................... +10 arrows
+    Ice Cream Cone ........ +10 bombs
+    Clap Clap ............. Refill magic
+    Rosa .................. Random Link sprite
+    Dolphin ............... -2 hearts (never kills you)
+    Friendship Necklace ... -50 rupees
+    Slow Motion ........... Lose all arrows
+    Perfume ............... Lose all bombs
+    GOAT Busker ........... Drain magic
+    Hi Bear ............... Random MSU-1 music pack
+
+  20-SECOND EFFECTS (more gifts add more time)
+    Doughnut .............. Cucco attack (outdoors; pauses indoors)
+    Scooter ............... Ice physics
+    Corgi ................. One-hit KO mode
+    Cheering Towel ........ No Y item
+    Confetti .............. B and Y swapped
+    Hand Heart ............ Inverted D-pad
+    Boxing Gloves ......... No sword
+    Fruit Friends ......... Magic locked
+
+  BIG DONATIONS: NEW SEEDS (by total coins in one donation)
+    1,000+ coins .......... New seed with the same settings
+                            (Galaxy is 1,000 coins, so it does this)
+    1,200+ coins .......... New seed from a RANDOM PRESET
+    2,000+ coins .......... CHAOS seed
+  A donation that reaches one of these does that instead of its gift's
+  normal effect. A streak counts as one donation (e.g. 50 x 20 coins).
+
+  SUBATHON CLOCK
+    Every coin ............ +1 second on the clock (Part 8; the rate
+                            can be changed)
+
+  ALSO
+    Every 300 likes ....... +1 heart
+    Every 500 likes ....... small magic refill
+    Every 2000 likes ...... full heal
+    Follow ................ +50 rupees
+    Share ................. +10 bombs
+    (follows and shares count once per viewer every 10 minutes)
+
+About the new seeds:
+  All three are off until you tick "Allow seed reroll" in the Crowd
+  effects menu. When one is sent, a banner on the game shows who sent it
+  and counts down 10 seconds. During the countdown a "Cancel new seed"
+  button appears in the Crowd effects menu if you want to keep your game.
+  Then the banner shows the new seed being made, and the new game loads
+  with its code. The banner can be turned off in the same menu.
+
+  Same settings: whatever the Randomizer bar is set to right now.
+
+  Random preset: picks one preset from the Saved presets menu, and the
+  banner and feed say which one (e.g. "Trinity · AVIANART").
+    - If you've starred (★) any presets, it only picks from your stars.
+      That's the easy way to choose which presets viewers can land on.
+    - Without stars it picks from every preset except glitched-logic ones
+      (HMG, OWG, No Logic, Anti-Logic), which can need glitches to finish.
+
+  CHAOS: picks alttpr.com, Kara's branch or AVIANART at random, then sets
+  every one of that site's menus at random. The banner shows the site and
+  the main settings it landed on. It never picks glitched logic, race
+  seeds, AVIANART's timer modes, or Kara's permanent one-hit-KO/gloom.
+  If a pick can't be generated, or is still being made after 3 minutes
+  (big shuffles on Kara's server can take a long time), it picks again,
+  up to 3 tries. The last try is allowed to take as long as it needs.
+
+  Heads-up: a random preset or chaos roll leaves the Randomizer bar on
+  those settings, so the next "same settings" roll repeats them. Save your
+  usual setup as a preset (Save as preset) so you can switch back to it in
+  one click.
+
+About Random sprite / Random MSU pack:
+  Random MSU picks from the music packs you've starred in the game's
+  music menu. If you haven't added any, the game just says so.
+
+
+=========================================================================
+
+
+=========================================================================
+PART 11 - EFFECT NAMES AND mapping.json (FOR REFERENCE)
+=========================================================================
+
+The control panel edits mapping.json for you. If you prefer editing it
+by hand in Notepad, it works the same as the regular Crowd Control and
+reloads by itself when saved. Extra setting in Crowd Control+:
+  "openPanel": false     don't open the control panel on start
+
+All effect names (use these on the right side):
+
+  INSTANT
+    heal_full      Full heal
+    heal_1         +1 heart
+    hurt_2         -2 hearts (never kills)
+    hp_1           Down to 1 heart
+    insta_kill     Instant death. Works like taking a hit for all your
+                   hearts, so a fairy in a bottle still saves you, and the
+                   Magic Cape or Cane of Byrna blocks it while active.
+    magic_full     Refill magic
+    magic_drain    Drain magic
+    rupees_plus    +50 rupees
+    rupees_minus   -50 rupees
+    bombs_plus     +10 bombs
+    bombs_none     Lose all bombs
+    arrows_plus    +10 arrows
+    arrows_none    Lose all arrows
+    enemy_spawn    Extra enemy: a copy of an enemy already in the room
+                   appears next to it. Nothing happens if there are no
+                   enemies around. (It can't pick a specific enemy: the
+                   game only has graphics loaded for the enemies nearby.)
+    enemy_random   Random enemy: a random enemy that fits this area (one
+                   whose graphics are loaded here) appears a few steps
+                   from Link. Which ones can appear changes from area to
+                   area; if none fit, it copies a nearby enemy instead.
+    magic_small    Small magic refill (a quarter of the meter)
+    warp_dungeon   Warp to a random dungeon: Link drops into a random
+                   dungeon's entrance. Keys of the dungeon he was in are
+                   kept. (It's for real: no going back like a boss detour.)
+    warp_flute     Flute warp: the flute bird takes Link to a random flute
+                   spot. Only outside in the Light World (where the flute
+                   works); anywhere else it warps to a random dungeon.
+    warp_random    Random warp: a flute spot or a dungeon, 50/50.
+
+  TIMED (default length; more gifts add more time)
+    invert         Inverted D-pad .............. 20s
+    no_sword       No sword .................... 20s
+    no_item        No Y item ................... 20s
+    swap_by        B and Y swapped ............. 20s
+    ice            Ice physics ................. 20s
+    one_hit        One-hit KO mode ............. 30s
+    no_magic       Magic locked ................ 30s
+    cucco_storm    Cucco attack (outdoors) ..... 30s
+    This folder's mapping.json sets one_hit, no_magic and cucco_storm
+    to 20s (see "durations" below).
+
+  NEW: SCREEN, SPEED AND LINK
+    mirror         Picture flipped left-right ...... 20s
+    upside_down    Picture upside down ............. 15s
+    wobble         Drunk wobble .................... 20s
+    tiny           Half-size picture ............... 20s
+    crt            Retro CRT filter ................ 30s
+    speed_up       1.5x speed ...................... 20s
+    slow_mo        Half speed ...................... 15s
+    freeze         Link can't move ................. 3s
+    pink_link      Pink Link ....................... 60s
+    fairy          Fairy in the first empty bottle
+    bee_bottle     Bee in the first empty bottle
+    music_roulette A random song from your MSU-1 pack
+
+  BOSS DETOURS (the game saves first and loads it back afterwards)
+    boss_ganon     Fight Ganon ..................... 60s
+    boss_aga       Fight Agahnim ................... 60s
+    boss_random    Fight a random boss you haven't beaten yet ... 60s
+                   change the length with "durations": { "boss_detour": 90 }
+
+  APP ACTIONS
+    sprite_roll    Random Link sprite
+    sprite_fav     Random sprite from your starred favourites
+    msu_roll       Random MSU-1 pack from your starred packs
+    seed_roll      New seed, same settings      } need "Allow seed
+    seed_preset    New seed, random preset      }  reroll" ticked
+    seed_chaos     New CHAOS seed               }
+
+  CROWD CONTROL+ ONLY
+    mystery_box    Slot machine picks an effect
+    detour_rescue  Ends a boss detour early (Link comes home)
+
+Other settings in mapping.json:
+  "coinTiers": [ { "coins": 1000, "effect": "seed_roll" }, ... ]
+                   a donation worth at least that many coins does that
+                   effect instead of its gift's own (highest one reached
+                   wins). Change the numbers or effects as you like; any
+                   effect name works here, not just seeds.
+  "timer": { "enabled": true, "coinsPerSecond": 1 }
+                   the subathon clock: how many coins add 1 second
+                   (Part 8)
+  "giftCoins": { "Galaxy": 1000 }
+                   only needed if the black window doesn't show
+                   "= N coins" for a gift: tells the bridge what it's worth
+  "durations": { "one_hit": 20, "no_magic": 20, "cucco_storm": 20 }
+                   how many seconds timed effects last
+  "likes": [ { "every": 300, "effect": "heal_1" },
+             { "every": 500, "effect": "magic_small" },
+             { "every": 2000, "effect": "heal_full" } ]
+                   like triggers, each counting on its own (add or remove
+                   them on the Gifts & effects tab)
+  "follow": "rupees_plus"     effect for a follow
+  "share": "bombs_plus"       effect for a share
+  "maxPerGift": 5             cap for gift streaks (20 Roses = 5 hearts)
+  "ticker": { "title": "GIFT EFFECTS", "speed": 70,
+              "labels": { "one_hit": "OHKO mode" } }
+                   title, speed, and nicer effect names for the
+                   scrolling gift list
+
+
+=========================================================================
+PART 12 - LIVE GAMES (Live games tab)
+=========================================================================
+
+Add each one's overlay from the Overlays tab first.
+
+CHAT VOTE
+  Write a question and 2-4 choices, pick an effect for each (or none for
+  a plain poll), press Start vote. Chat types 1, 2, 3 or 4. When time's
+  up the winner's effect runs. Quick buttons: "Random curses", "Curse or
+  blessing", "Which dungeon next?". Ties are settled by chance.
+
+TEAM BATTLE
+  Light World vs Dark World (rename them). Viewers type !light or !dark
+  to join. Their gifts fill their team's bar; gifters who didn't join
+  help the team that's behind. First to the coin target, or ahead when
+  the time limit runs out, wins, and that team's effect runs (by
+  default: a full heal for Light, a CHAOS seed for Dark).
+
+MYSTERY BOX
+  Set "Mystery box" as any gift's effect (Gifts & effects tab), as a
+  big-donation level, or as the combo bonus. A slot machine spins on
+  stream and lands on a random effect from the ones you tick.
+
+COMBO METER
+  Gifts that arrive within a few seconds of each other build a combo.
+  Every 10 in a row (you choose) fires a bonus effect.
+
+BOSS DETOUR
+  Set a gift to "Boss detour: Ganon", "Boss detour: Agahnim" or "Boss
+  detour: random boss" (Gifts & effects tab). The game saves first, drops
+  Link into that fight, and when it ends (time's up, Link falls, or he
+  wins) it loads the save, so the run carries on exactly where it was:
+  same room, same hearts, same items. A gold BOSS DETOUR alert shows on
+  stream at the start and end.
+    - How long: Gifts & effects -> Timed effects -> boss_detour (60s)
+    - Rewards: pick an effect and/or subathon seconds for beating the
+      boss and for surviving until time's up
+    - "Rescue Link from a boss detour" as a gift's effect ends it early
+    - On the game: ⚙ menu -> "End boss detour now" if you need out
+    - Testing: "Test one boss" picks a boss and sends Link there. Gifts
+      set to the random boss still pick at random.
+  Other effects wait until he's back. Early in a seed Ganon is usually
+  a survival challenge. Not for races (it's a save state).
+
+PREDICTIONS
+  "Will he beat this dungeon without dying?" Chat types !yes or !no
+  before it locks. When it's over, press "It happened" or "It didn't";
+  the people who called it get a shout-out on stream. Just for fun.
+
+Votes and predictions only count chat messages that are exactly the
+number or word (1, !vote 2, !yes ...), so normal chat isn't affected.
+
+
+=========================================================================
+PART 13 - RUN STATS, DEATH TAX, CLIPS, HALL OF FAME (Run & stream tab)
+=========================================================================
+
+RUN STATS
+  While the game's Crowd effects is on, Rando Hub sends deaths, checks,
+  where Link is, the MSU-1 pack and the seed. Add the "Run stats"
+  overlay (one row, or ?layout=column for a box).
+
+DEATH TAX
+  Every death can add time to the subathon clock (default 5 minutes)
+  and/or move a goal, with a "DEATH TAX" alert.
+
+CLIP MARKERS
+  Big moments are time-stamped automatically: big gifts, seed rolls,
+  deaths, vote and battle winners, combo bonuses, predictions. Viewers
+  can type !clip, and "Mark now" adds your own. The time shown is
+  stream time since the last "Reset stream stats" (Dashboard), so reset
+  at the start of each stream and the times match your recording.
+  "Download list" saves them as a text file.
+
+HALL OF FAME
+  All-time top gifters across every stream (hall-of-fame.json). Reset
+  stream stats doesn't clear it; it has its own reset button.
+
+WELCOME BACK
+  When a regular (seen in 3+ streams; you choose) shows up for the
+  first time in a stream, a small "Welcome back" pop-up says hi. A new
+  stream starts when you press Reset stream stats.
+
+MUSIC
+  Whenever the MSU-1 pack changes (your music menu, the dice button, or
+  a gift), Rando Hub itself shows "NOW PLAYING <pack>" on the game for 3
+  seconds. It's part of the game picture, so it's on stream whenever the
+  game is, with or without Crowd Control+.
+
+
+=========================================================================
+TROUBLESHOOTING
+=========================================================================
+
+Double-clicking "Start Crowd Control+.bat" says "Node.js is not installed"
+  Install it from https://nodejs.org (Part 1, Step 2), then try again.
+
+Buttons or the timer do nothing for minutes, then everything fires at once
+  Too many Crowd Control+ pages open in the same browser (browsers allow
+  about 6 connections to one address). Update to 1.3.4 or newer, keep the
+  control panel open in ONE tab, and add overlays to OBS / TikTok Studio
+  rather than opening them as browser tabs. The panel shows a red bar if
+  it's open in more than one tab.
+
+The black window shows an error about mapping.json when it starts
+  mapping.json has a typo (a missing quote or comma). Open it in
+  Notepad and compare with the examples in Part 11, or load a
+  profile from the control panel.
+
+The dot stays red: "Waiting for the LIVE"
+  Normal before you go live. Once you're LIVE: look at the LIVE window.
+  If TikTok asks you to log in or to verify ("drag the slider"), do it
+  there. If the window shows a different account's page, check your
+  TikTok name on the Dashboard and click Connect.
+
+"No Chrome or Edge found"
+  Install Google Chrome (or Microsoft Edge), then click Connect. If it's
+  installed somewhere unusual, put its full path in mapping.json as
+  "browserPath".
+
+Gifts stopped coming through with the local signer, but you're live
+  First click "Open my LIVE window" (or reload that window). Still
+  nothing? TikTok may have changed its site: switch the Dashboard's
+  TikTok connection to "TikFinity (backup)" (Part 1, "THE BACKUP") and
+  keep streaming. Check the Releases page for a Crowd Control+ update.
+
+The LIVE window opened with no sound
+  On purpose: it's muted so your stream doesn't echo.
+
+"can't reach TikFinity on port 21213" (TikFinity backup only)
+  TikFinity isn't open, isn't logged in, or its port isn't 21213.
+  The bridge keeps retrying, so just open TikFinity.
+
+"port 21214 is in use (bridge already running?)"
+  The bridge is already open in another black window. Use that one,
+  or close it and start again.
+
+The game's Crowd effects menu says "waiting for bridge"
+  The black window isn't open, or the Bridge address isn't
+  ws://localhost:21214. If the browser asked about local network
+  access, it has to be allowed.
+
+The game says "TikFinity, not the bridge: use ws://localhost:21214"
+  The game's Bridge address says 21213. Change it to 21214.
+
+A gift shows "not mapped" in the black window
+  It isn't set up yet, or TikTok spells it differently ("Hand Hearts"
+  vs "Hand Heart"). Gifts & effects tab: it's listed at the bottom under
+  "Seen on stream but not set up". Press its + button, pick an effect,
+  Save gift setup.
+
+Gifts appear in the black window but nothing happens in the game
+  Check the game is open and the black window said "game connected".
+  Effects wait while you're in a menu, text box or screen transition.
+
+"Extra enemy: No enemies here to copy"
+  It only copies enemies already on screen. Find a room with one.
+
+"needs a randomizer ROM"
+  Ice physics and Cucco attack use features built into randomizer
+  seeds. Generate a seed in the game's Randomizer panel.
+
+Cucco attack does nothing
+  It only works outdoors. Indoors its timer pauses, and it picks up
+  again when you go back outside.
+
+The scrolling list in OBS is blank or says "Waiting for the bridge"
+  Start the bridge first, then right-click the source -> Refresh.
+
+New seed doesn't happen
+  Tick "Allow seed reroll" in the game's Crowd effects menu.
+
+A big donation didn't trigger a new seed / didn't add time
+  The black window should show "= N coins" next to every gift. If it
+  doesn't, TikTok didn't send the coin value: add the gift's value to
+  "giftCoins" in mapping.json. Time is only added once the clock has been
+  set (Part 8) and while it hasn't run out.
+
+"Can't reach the bridge" on the timer page
+  The black window isn't open. Start it, then refresh the page.
+
+
+=========================================================================
+
+The control panel won't open / says it can't reach the bridge
+  The black window isn't open, or something else is using port 21214
+  (the regular Crowd Control). Close the other one and start again.
+  The address is http://localhost:21214/studio
+
+An overlay is blank in OBS
+  Start Crowd Control+ first, then right-click the source -> Refresh.
+  Check the address and size match the Overlays tab.
+
+No alert sound on stream
+  In OBS, tick "Control audio via OBS" on the alerts browser source, and
+  check Alerts tab -> Sound is ticked.
+
+Chat isn't read aloud
+  Chat & TTS: "Read chat aloud" ticked and saved, and "Speak in this
+  tab" ticked in the panel tab you keep open. Click anywhere on that tab
+  once (browsers only allow sound after a click). With "Viewers who
+  gifted", only people who gifted this stream are read.
+
+A chat command doesn't pop up
+  The Chat commands overlay must be added to your stream, "Commands on"
+  ticked, and the command typed exactly (it can't be used again until
+  "Wait between uses" has passed).
+
+
+=========================================================================
+MAC / LINUX
+=========================================================================
+Mac: double-click "Start Crowd Control+ (Mac).command" (first time:
+right-click it -> Open -> Open). Linux: ./start-crowd-control-plus.sh
+Practice mode: add --test (node bridge.mjs --test).
+Everything else is the same.
+
+
+=========================================================================
+THANK YOU
+=========================================================================
+Built for Rando Hub (https://hugecrankhank.github.io/Rando-hub/).
+TikTok events come from your own LIVE page (local signer) or TikFinity
+(backup). Message layout per the community's TikTok webcast notes
+(github.com/isaackogan/TikTok-Webcast-Protobuf). Pixel lettering: Press Start 2P
+(SIL Open Font License, studio\PressStart2P-OFL.txt).
+

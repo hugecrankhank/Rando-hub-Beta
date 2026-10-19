@@ -1,0 +1,3 @@
+snes9x.wasm was built from https://github.com/libretro/snes9x
+commit fae2fea08f74180759ef540ee94259213f503480
+with wasi-sdk 25.0 using emu/build/build.sh and emu/build/glue.cpp.

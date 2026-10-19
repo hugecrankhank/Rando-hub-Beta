@@ -1,0 +1,50 @@
+{
+  "source": "tikfinity",
+  "maxPerGift": 5,
+
+  "gifts": {
+    "Rose": "heal_1",
+    "TikTok": "rupees_plus",
+    "GG": "arrows_plus",
+    "Ice Cream Cone": "bombs_plus",
+    "Clap Clap": "magic_full",
+    "Rosa": "sprite_roll",
+    "Dolphin": "hurt_2",
+    "Friendship Necklace": "rupees_minus",
+    "Slow Motion": "arrows_none",
+    "Perfume": "bombs_none",
+    "GOAT Busker": "magic_drain",
+    "Hi Bear": "msu_roll",
+    "Doughnut": "cucco_storm",
+    "Scooter": "ice",
+    "Corgi": "one_hit",
+    "Cheering Towel": "no_item",
+    "Confetti": "swap_by",
+    "Hand Heart": "invert",
+    "Boxing Gloves": "no_sword",
+    "Fruit Friends": "no_magic",
+    "Galaxy": "seed_roll"
+  },
+
+  "coinTiers": [
+    { "coins": 1000, "effect": "seed_roll",   "label": "New seed (same settings)" },
+    { "coins": 1200, "effect": "seed_preset", "label": "Random preset seed" },
+    { "coins": 2000, "effect": "seed_chaos",  "label": "CHAOS seed" }
+  ],
+
+  "timer": { "enabled": true, "coinsPerSecond": 1 },
+
+  "durations": { "cucco_storm": 20, "one_hit": 20, "no_magic": 20 },
+
+  "likes": { "every": 300, "effect": "heal_1" },
+  "follow": "rupees_plus",
+  "share": "bombs_plus",
+
+  "ticker": {
+    "title": "GIFT EFFECTS",
+    "speed": 70,
+    "labels": { "one_hit": "OHKO mode" }
+  },
+
+  "allowedOrigins": ["https://hugecrankhank.github.io", "http://localhost", "http://127.0.0.1"]
+}

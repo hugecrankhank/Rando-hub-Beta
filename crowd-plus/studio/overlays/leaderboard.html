@@ -1,0 +1,41 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Top gifters</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="/studio/overlay.css">
+<style>
+  /* 420 x 420. ?size=3 shows a different number of rows than the panel setting. */
+  body { padding: calc(10px * var(--scale)); }
+  .board { padding: calc(14px * var(--scale)) calc(16px * var(--scale)); width: calc(380px * var(--scale)); }
+  .head { display: flex; align-items: center; gap: calc(10px * var(--scale)); font-size: calc(15px * var(--scale)); margin-bottom: calc(10px * var(--scale)); }
+  .row { display: grid; grid-template-columns: calc(34px * var(--scale)) calc(34px * var(--scale)) 1fr auto; gap: calc(10px * var(--scale)); align-items: center;
+    padding: calc(8px * var(--scale)) calc(4px * var(--scale)); border-top: 1px solid var(--line); transition: background .6s; }
+  .rank { font-size: calc(13px * var(--scale)); color: #c9c0e6; text-align: center; }
+  .row:nth-child(2) .rank { color: #ffd166; } .row:nth-child(3) .rank { color: #dfe7ef; } .row:nth-child(4) .rank { color: #e0a370; }
+  .av { width: calc(34px * var(--scale)); height: calc(34px * var(--scale)); border-radius: 50%; background: var(--navy); display: grid; place-items: center; font-weight: 800; overflow: hidden; font-size: calc(15px * var(--scale)); }
+  .av img { width: 100%; height: 100%; object-fit: cover; }
+  .name { font: 700 calc(18px * var(--scale)) var(--sans); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .coins { font: 800 calc(17px * var(--scale)) var(--sans); color: #fff; font-variant-numeric: tabular-nums; }
+  .coins small { color: #ffd166; }
+  .row.hot { background: rgba(230, 57, 70, .25); }
+  .empty { color: #c9c0e6; font-size: calc(15px * var(--scale)); padding: calc(8px * var(--scale)) 0; }
+</style></head>
+<body>
+<div class="board box"><div class="head pix shadow"><img class="die" src="/studio/die.svg" alt=""><span id="title">TOP GIFTERS</span></div><div id="rows"></div></div>
+<div class="offline-note">Waiting for the Crowd Control+ bridge…</div>
+<script src="/studio/common.js"></script>
+<script>
+let lastTop = {};
+function paint(top, settings, hot) {
+  const n = +CC.q.get('size') || settings.leaderboard.size || 5;
+  document.getElementById('title').textContent = settings.leaderboard.title || 'TOP GIFTERS';
+  const list = (top || []).slice(0, n);
+  document.getElementById('rows').innerHTML = list.length ? list.map((g, i) => {
+    const nm = g.nickname || g.user;
+    const av = g.avatar && /^https:\/\//.test(g.avatar) ? '<img src="' + CC.esc(g.avatar) + '" alt="" onerror="this.parentNode.textContent=\'' + CC.esc(nm[0] || '?').replace(/'/g, '') + '\'">' : CC.esc((nm[0] || '?').toUpperCase());
+    return '<div class="row' + (hot === g.user ? ' hot' : '') + '"><div class="rank pix">' + (i + 1) + '</div><div class="av">' + av + '</div><div class="name shadow">' + CC.esc(nm) + '</div><div class="coins shadow">' + CC.num(g.coins) + ' <small>🪙</small></div></div>';
+  }).join('') : '<div class="empty">Be the first to send a gift!</div>';
+}
+CC.on('state', (d) => paint(d.stats.top, d.settings));
+CC.on('event', (d, s) => { if (d.ev.type === 'gift' && d.stats) { paint(d.stats.top, s.settings, d.ev.user); setTimeout(() => paint(CC.state.stats.top, CC.state.settings), 1800); } });
+</script>
+</body></html>

@@ -1,0 +1,473 @@
+RANDO HUB - TIKTOK CROWD CONTROL
+Complete setup guide (no experience needed)
+=========================================================================
+
+WHAT THIS IS
+------------
+You play A Link to the Past Randomizer in your web browser while you
+stream on TikTok LIVE. When viewers send gifts, like, follow or share,
+things happen in your game: extra hearts, lost rupees, inverted controls,
+slippery ice, angry cuccos, extra enemies, even a brand-new seed.
+
+There are three pieces, all on the PC you stream from:
+
+  TikTok LIVE  -->  TikFinity  -->  the bridge  -->  the game
+  (your viewers)    (free app,      (this folder,    (a web page in
+                     hears your      turns gifts      your browser)
+                     LIVE)           into effects)
+
+You set things up once (about 15 minutes). After that, starting it for a
+stream takes three clicks.
+
+
+WHAT'S IN THIS FOLDER
+---------------------
+  start-bridge.bat     Double-click this to start the bridge.
+  mapping.json         Which gift does what. Open it with Notepad.
+  bridge.mjs           The bridge itself. You never need to open it.
+  package.json         Used by the bridge. Leave it alone.
+  icons\               Gift pictures for the scrolling gift list.
+  INSTRUCTIONS.txt     This file.
+  WHATS-NEW.txt        Update notes for people who used an older version.
+  EFFECTS-OVERVIEW.md  A technical overview of every effect (in the
+                       download zip; on GitHub it's crowd/README.md).
+
+
+WHAT YOU NEED
+-------------
+  - A Windows PC. (Mac and Linux work too; see the very end.)
+  - A TikTok account that can go LIVE.
+  - Your own copy of the original Japanese 1.0 "Zelda no Densetsu:
+    Kamigami no Triforce" ROM (.sfc). The randomizer builds every seed
+    from it. It isn't included and can't be shared.
+  - Chrome or Edge (recommended).
+  - Optional: OBS or TikTok LIVE Studio, if you stream from your PC and
+    want the scrolling gift list on screen.
+
+
+=========================================================================
+PART 1 - ONE-TIME SETUP
+=========================================================================
+
+STEP 1. Put this folder somewhere easy
+  Right-click the .zip -> Extract All -> choose your Desktop.
+  Important: run things from the extracted folder, not from inside the
+  .zip, or the bridge won't be able to save or read its files.
+
+STEP 2. Install Node.js (the bridge runs on it)
+  - Go to https://nodejs.org and download the "LTS" version.
+  - Run the installer and click Next through everything. The default
+    choices are fine.
+  - You don't need to open Node.js yourself, ever.
+
+STEP 3. Install TikFinity (connects to your TikTok LIVE, free)
+  - Go to https://tikfinity.zerody.one and download the desktop app.
+  - Open it and log in with your TikTok account.
+  - Check its WebSocket / Events API port is 21213. That's the default,
+    so normally you don't have to change anything.
+
+STEP 4. Set up the game
+  - Open https://hugecrankhank.github.io/Rando-hub/
+    in Chrome or Edge.
+  - Open the Randomizer panel, click "Base ROM..." and choose your
+    Japanese 1.0 ROM. It's remembered for next time.
+  - Click Generate & Play to make a seed and start playing.
+
+STEP 5. Turn on crowd effects in the game
+  - Open the game's ... menu (three dots) and find "Crowd effects".
+  - Tick "TikTok effects on".
+  - Make sure "Bridge address" says exactly:   ws://localhost:21214
+  - If the browser pops up asking to allow access to devices on your
+    local network, click Allow. (The bridge counts as a local device.)
+  - Optional: tick "Allow seed reroll" if you want the New Seed gift to
+    work. Read about it in Part 4 first.
+
+That's the setup done.
+
+
+=========================================================================
+PART 2 - EVERY TIME YOU STREAM
+=========================================================================
+
+1. Open TikFinity and make sure it's logged in.
+
+2. Double-click start-bridge.bat in this folder.
+   A black window opens. Within a few seconds it should say:
+     bridge listening on ws://localhost:21214
+     scrolling gift list for OBS: http://localhost:21214/ticker
+     subathon timer: http://localhost:21214/timer
+     connected to TikFinity on port 21213
+   Keep this window open the whole stream. Closing it stops the effects.
+
+3. Open (or refresh) the game page. The black window adds:
+     game connected (1 open)
+   and the Crowd effects menu in the game says "connected".
+
+4. Go LIVE on TikTok. Every gift, like, follow and share shows up in the
+   black window, and its effect appears in the top-right of the game.
+
+When you're done: close the black window. That's it.
+
+
+=========================================================================
+PART 3 - TEST EVERYTHING BEFORE YOU GO LIVE
+=========================================================================
+
+In the game: ... menu -> Crowd effects. There's a test button for every
+effect. Press one, close the menu, and it happens in-game.
+
+Effects only run during normal play: not in menus, text boxes or while
+the screen is changing. Queued effects wait and play one at a time,
+about a second apart, so viewers can see each one.
+
+Good things to check:
+  - Ice physics: walk around, Link should slide.
+  - Cucco attack: go outside and wait a couple of seconds.
+  - Extra enemy: stand in a room that has an enemy in it.
+
+
+=========================================================================
+PART 4 - WHAT EACH GIFT DOES
+=========================================================================
+
+This folder comes set up with this gift list:
+
+  INSTANT EFFECTS
+    Rose .................. +1 heart
+    TikTok ................ +50 rupees
+    GG .................... +10 arrows
+    Ice Cream Cone ........ +10 bombs
+    Clap Clap ............. Refill magic
+    Rosa .................. Random Link sprite
+    Dolphin ............... -2 hearts (never kills you)
+    Friendship Necklace ... -50 rupees
+    Slow Motion ........... Lose all arrows
+    Perfume ............... Lose all bombs
+    GOAT Busker ........... Drain magic
+    Hi Bear ............... Random MSU-1 music pack
+
+  20-SECOND EFFECTS (more gifts add more time)
+    Doughnut .............. Cucco attack (outdoors; pauses indoors)
+    Scooter ............... Ice physics
+    Corgi ................. One-hit KO mode
+    Cheering Towel ........ No Y item
+    Confetti .............. B and Y swapped
+    Hand Heart ............ Inverted D-pad
+    Boxing Gloves ......... No sword
+    Fruit Friends ......... Magic locked
+
+  BIG DONATIONS: NEW SEEDS (by total coins in one donation)
+    1,000+ coins .......... New seed with the same settings
+                            (Galaxy is 1,000 coins, so it does this)
+    1,200+ coins .......... New seed from a RANDOM PRESET
+    2,000+ coins .......... CHAOS seed
+  A donation that reaches one of these does that instead of its gift's
+  normal effect. A streak counts as one donation (e.g. 50 x 20 coins).
+
+  SUBATHON CLOCK
+    Every coin ............ +1 second on the clock (Part 6; the rate
+                            can be changed)
+
+  ALSO
+    Every 300 likes ....... +1 heart
+    Follow ................ +50 rupees
+    Share ................. +10 bombs
+    (follows and shares count once per viewer every 10 minutes)
+
+About the new seeds:
+  All three are off until you tick "Allow seed reroll" in the Crowd
+  effects menu. When one is sent, a banner on the game shows who sent it
+  and counts down 10 seconds. During the countdown a "Cancel new seed"
+  button appears in the Crowd effects menu if you want to keep your game.
+  Then the banner shows the new seed being made, and the new game loads
+  with its code. The banner can be turned off in the same menu.
+
+  Same settings: whatever the Randomizer bar is set to right now.
+
+  Random preset: picks one preset from the Saved presets menu, and the
+  banner and feed say which one (e.g. "Trinity · AVIANART").
+    - If you've starred (★) any presets, it only picks from your stars.
+      That's the easy way to choose which presets viewers can land on.
+    - Without stars it picks from every preset except glitched-logic ones
+      (HMG, OWG, No Logic, Anti-Logic), which can need glitches to finish.
+
+  CHAOS: picks alttpr.com, Kara's branch or AVIANART at random, then sets
+  every one of that site's menus at random. The banner shows the site and
+  the main settings it landed on. It never picks glitched logic, race
+  seeds, AVIANART's timer modes, or Kara's permanent one-hit-KO/gloom.
+  If a pick can't be generated, or is still being made after 3 minutes
+  (big shuffles on Kara's server can take a long time), it picks again,
+  up to 3 tries. The last try is allowed to take as long as it needs.
+
+  Heads-up: a random preset or chaos roll leaves the Randomizer bar on
+  those settings, so the next "same settings" roll repeats them. Save your
+  usual setup as a preset (Save as preset) so you can switch back to it in
+  one click.
+
+About Random sprite / Random MSU pack:
+  Random MSU picks from the music packs you've starred in the game's
+  music menu. If you haven't added any, the game just says so.
+
+
+=========================================================================
+PART 5 - THE SCROLLING GIFT LIST (FOR YOUR STREAM)
+=========================================================================
+
+While the bridge is running, this address shows a bar that scrolls
+through every gift, its picture, and what it does:
+
+    http://localhost:21214/ticker
+
+You can open it in your browser to see it. To put it on stream:
+
+  OBS
+    Sources -> + -> Browser
+    URL:    http://localhost:21214/ticker
+    Width:  1920      Height: 72
+    Click OK, then drag it to the top or bottom edge of the screen.
+
+  TikTok LIVE Studio
+    Add a "Link" source with the same URL, then size and place it.
+
+Optional settings, added to the end of the address:
+    ?height=90        taller bar (default 72)
+    ?speed=100        faster scrolling (default 70)
+    ?bg=0             see-through background
+    Example:  http://localhost:21214/ticker?height=90&speed=100
+
+It updates by itself whenever mapping.json is saved.
+
+Gift pictures come from the "icons" folder. A picture with exactly the
+gift's name (Rose.png, Galaxy.png...) shows next to that gift. To add a
+picture for a new gift, save it in "icons" with the gift's name.
+
+
+=========================================================================
+PART 6 - THE SUBATHON CLOCK
+=========================================================================
+
+A countdown clock for the stream: you choose how long it starts at, and
+every coin viewers donate adds 1 second. You keep streaming until it
+reaches 0:00:00.
+
+1. Start the bridge (Part 2).
+2. Open the control page in your browser:
+       http://localhost:21214/timer/control
+3. Type the starting time (hours and minutes) and press "Set timer".
+4. Press "Start" when you go live. "Pause" stops the clock (donations
+   still add time while it's paused).
+5. Use the Adjust buttons to add or take away time by hand.
+
+Showing it on stream:
+  - On the game: a small clock appears at the bottom of the game picture
+    with "+8m 20s name" when someone adds time. Turn it off in the game's
+    Crowd effects menu ("Show subathon clock on game").
+  - In OBS / TikTok LIVE Studio: add a browser/link source with
+        http://localhost:21214/timer
+    width 600, height 190.  ?size=96 makes it bigger, ?bg=0 removes the
+    box, ?label=0 hides "TIME LEFT".
+
+When it reaches 0:00:00 it shows TIME! and stops. Donations after that
+don't add time; if you want to keep going, use Adjust (+10 min etc.)
+and press Start.
+
+The clock is saved in timer-state.json in this folder. If you close the
+bridge (or the PC restarts), it comes back paused at the same time:
+press Start on the control page to continue.
+
+How much a second costs: "coinsPerSecond" in mapping.json ("timer"
+section). It's how many coins it takes to add 1 second:
+
+    "coinsPerSecond": 1     1 coin  = 1 second    3,600 coins per hour
+    "coinsPerSecond": 2     2 coins = 1 second    7,200 coins per hour
+    "coinsPerSecond": 4     4 coins = 1 second   14,400 coins per hour
+    "coinsPerSecond": 0.5   1 coin  = 2 seconds   1,800 coins per hour
+
+So if 3,600 coins an hour is about $18 to you, 2 is about $36 an hour
+and 4 is about $72 an hour. Small gifts add up: with 4, four 1-coin
+Roses add one second between them. It changes as soon as you save
+mapping.json, and the control page shows the current rate.
+To turn the clock off for good, set "enabled": false there.
+
+
+=========================================================================
+PART 7 - CHANGING WHICH GIFT DOES WHAT
+=========================================================================
+
+Right-click mapping.json -> Open with -> Notepad.
+
+The "gifts" section is a list of   "Gift name": "effect name",
+
+    "Rose": "heal_1",
+    "Scooter": "ice",
+    "Doughnut": "cucco_storm",
+
+Rules that keep the file working:
+  - Gift name and effect name each go in "double quotes".
+  - Every line in the list ends with a comma, except the last one.
+  - Save with Ctrl+S. The bridge reloads it by itself, no restart.
+    If you break the file, the black window says so and keeps using the
+    last good version until you fix it.
+
+Finding a gift's exact name: every gift that arrives is printed in the
+black window with its exact name, even ones you haven't mapped. Copy it
+from there. Capital letters don't matter. Small typos in effect names
+are fixed automatically, and the black window tells you when it does.
+
+All effect names (use these on the right side):
+
+  INSTANT
+    heal_full      Full heal
+    heal_1         +1 heart
+    hurt_2         -2 hearts (never kills)
+    hp_1           Down to 1 heart
+    insta_kill     Instant death. Works like taking a hit for all your
+                   hearts, so a fairy in a bottle still saves you, and the
+                   Magic Cape or Cane of Byrna blocks it while active.
+    magic_full     Refill magic
+    magic_drain    Drain magic
+    rupees_plus    +50 rupees
+    rupees_minus   -50 rupees
+    bombs_plus     +10 bombs
+    bombs_none     Lose all bombs
+    arrows_plus    +10 arrows
+    arrows_none    Lose all arrows
+    enemy_spawn    Extra enemy: a copy of an enemy already in the room
+                   appears next to it. Nothing happens if there are no
+                   enemies around. (It can't pick a specific enemy: the
+                   game only has graphics loaded for the enemies nearby.)
+
+  TIMED (default length; more gifts add more time)
+    invert         Inverted D-pad .............. 20s
+    no_sword       No sword .................... 20s
+    no_item        No Y item ................... 20s
+    swap_by        B and Y swapped ............. 20s
+    ice            Ice physics ................. 20s
+    one_hit        One-hit KO mode ............. 30s
+    no_magic       Magic locked ................ 30s
+    cucco_storm    Cucco attack (outdoors) ..... 30s
+    This folder's mapping.json sets one_hit, no_magic and cucco_storm
+    to 20s (see "durations" below).
+
+  NEW: SCREEN, SPEED AND LINK
+    mirror         Picture flipped left-right ...... 20s
+    upside_down    Picture upside down ............. 15s
+    wobble         Drunk wobble .................... 20s
+    tiny           Half-size picture ............... 20s
+    crt            Retro CRT filter ................ 30s
+    speed_up       1.5x speed ...................... 20s
+    slow_mo        Half speed ...................... 15s
+    freeze         Link can't move ................. 3s
+    pink_link      Pink Link ....................... 60s
+    fairy          Fairy in the first empty bottle
+    bee_bottle     Bee in the first empty bottle
+    music_roulette A random song from your MSU-1 pack
+
+  BOSS DETOURS (the game saves first and loads it back afterwards)
+    boss_ganon     Fight Ganon ..................... 60s
+    boss_aga       Fight Agahnim ................... 60s
+    boss_random    Fight a random boss ............. 60s
+                   change the length with "durations": { "boss_detour": 90 }
+
+  APP ACTIONS
+    sprite_roll    Random Link sprite
+    sprite_fav     Random sprite from your starred favourites
+    msu_roll       Random MSU-1 pack from your starred packs
+    seed_roll      New seed, same settings      } need "Allow seed
+    seed_preset    New seed, random preset      }  reroll" ticked
+    seed_chaos     New CHAOS seed               }
+
+Other settings in mapping.json:
+  "coinTiers": [ { "coins": 1000, "effect": "seed_roll" }, ... ]
+                   a donation worth at least that many coins does that
+                   effect instead of its gift's own (highest one reached
+                   wins). Change the numbers or effects as you like; any
+                   effect name works here, not just seeds.
+  "timer": { "enabled": true, "coinsPerSecond": 1 }
+                   the subathon clock: how many coins add 1 second
+                   (Part 6)
+  "giftCoins": { "Galaxy": 1000 }
+                   only needed if the black window doesn't show
+                   "= N coins" for a gift: tells the bridge what it's worth
+  "durations": { "one_hit": 20, "no_magic": 20, "cucco_storm": 20 }
+                   how many seconds timed effects last
+  "likes": { "every": 300, "effect": "heal_1" }
+                   one effect for every 300 likes
+  "follow": "rupees_plus"     effect for a follow
+  "share": "bombs_plus"       effect for a share
+  "maxPerGift": 5             cap for gift streaks (20 Roses = 5 hearts)
+  "ticker": { "title": "GIFT EFFECTS", "speed": 70,
+              "labels": { "one_hit": "OHKO mode" } }
+                   title, speed, and nicer effect names for the
+                   scrolling gift list
+
+
+=========================================================================
+TROUBLESHOOTING
+=========================================================================
+
+Double-clicking start-bridge.bat says "Node.js is not installed"
+  Install it from https://nodejs.org (Part 1, Step 2), then try again.
+
+The black window shows an error about mapping.json when it starts
+  mapping.json has a typo (a missing quote or comma). Open it in
+  Notepad and compare with the examples in Part 7.
+
+"can't reach TikFinity on port 21213"
+  TikFinity isn't open, isn't logged in, or its port isn't 21213.
+  The bridge keeps retrying, so just open TikFinity.
+
+"port 21214 is in use (bridge already running?)"
+  The bridge is already open in another black window. Use that one,
+  or close it and start again.
+
+The game's Crowd effects menu says "waiting for bridge"
+  The black window isn't open, or the Bridge address isn't
+  ws://localhost:21214. If the browser asked about local network
+  access, it has to be allowed.
+
+The game says "TikFinity, not the bridge: use ws://localhost:21214"
+  The game's Bridge address says 21213. Change it to 21214.
+
+A gift shows "not mapped" in the black window
+  Its name isn't in mapping.json, or TikTok spells it differently
+  (e.g. "Hand Hearts" vs "Hand Heart"). Copy the exact name from the
+  black window into mapping.json.
+
+Gifts appear in the black window but nothing happens in the game
+  Check the game is open and the black window said "game connected".
+  Effects wait while you're in a menu, text box or screen transition.
+
+"Extra enemy: No enemies here to copy"
+  It only copies enemies already on screen. Find a room with one.
+
+"needs a randomizer ROM"
+  Ice physics and Cucco attack use features built into randomizer
+  seeds. Generate a seed in the game's Randomizer panel.
+
+Cucco attack does nothing
+  It only works outdoors. Indoors its timer pauses, and it picks up
+  again when you go back outside.
+
+The scrolling list in OBS is blank or says "Waiting for the bridge"
+  Start the bridge first, then right-click the source -> Refresh.
+
+New seed doesn't happen
+  Tick "Allow seed reroll" in the game's Crowd effects menu.
+
+A big donation didn't trigger a new seed / didn't add time
+  The black window should show "= N coins" next to every gift. If it
+  doesn't, TikFinity isn't sending coin values: add the gift's value to
+  "giftCoins" in mapping.json. Time is only added once the clock has been
+  set (Part 6) and while it hasn't run out.
+
+"Can't reach the bridge" on the timer page
+  The black window isn't open. Start it, then refresh the page.
+
+
+=========================================================================
+MAC / LINUX
+=========================================================================
+Instead of start-bridge.bat, open a Terminal in this folder and run:
+    node bridge.mjs
+Everything else is the same.

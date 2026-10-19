@@ -1,0 +1,931 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Crowd Control+ Studio</title>
+<link rel="icon" href="/studio/die.svg">
+<style>
+  @font-face { font-family: "Rando Pixel"; src: url(/studio/PressStart2P-Regular.ttf) format("truetype"); }
+  :root {
+    color-scheme: dark;
+    --bg: #120c22; --panel: #1b1430; --panel2: #231a3d; --line: #33284f; --text: #ece9f5; --dim: #a59cbf;
+    --red: #e63946; --red2: #c8102e; --navy: #14213d; --ok: #3fb950; --warn: #e3b341;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.45 system-ui, "Segoe UI", sans-serif; }
+  header { display: flex; align-items: center; gap: 14px; padding: 12px 20px; background: var(--panel); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 5; flex-wrap: wrap; }
+  .brand { display: flex; align-items: center; gap: 10px; font: 13px/1 "Rando Pixel", monospace; white-space: nowrap; }
+  .brand b { color: var(--red); font-weight: 400; }
+  .brand img { width: 30px; height: 30px; }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-left: auto; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: var(--panel2); border: 1px solid var(--line); font-size: 12px; color: var(--dim); }
+  .chip i { width: 8px; height: 8px; border-radius: 50%; background: #666; }
+  .chip.ok i { background: var(--ok); } .chip.warn i { background: var(--warn); } .chip.bad i { background: var(--red); }
+  nav { display: flex; gap: 2px; padding: 0 16px; background: var(--panel); border-bottom: 1px solid var(--line); overflow-x: auto; position: sticky; top: 55px; z-index: 4; }
+  nav button { background: none; border: 0; border-bottom: 3px solid transparent; color: var(--dim); padding: 11px 13px; font: 600 13px system-ui; cursor: pointer; white-space: nowrap; }
+  nav button.on { color: var(--text); border-bottom-color: var(--red); }
+  main { max-width: 1180px; margin: 0 auto; padding: 18px 20px 60px; }
+  section { display: none; } section.on { display: block; }
+  h2 { font: 12px/1.2 "Rando Pixel", monospace; color: var(--red); margin: 22px 0 10px; letter-spacing: .02em; }
+  h2:first-child { margin-top: 4px; }
+  .grid { display: grid; gap: 14px; }
+  .g2 { grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+  .card h3 { margin: 0 0 10px; font-size: 14px; }
+  .hint { color: var(--dim); font-size: 12.5px; margin: 4px 0 10px; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+  .stat { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+  .stat b { display: block; font: 18px/1.2 "Rando Pixel", monospace; margin-top: 6px; }
+  .stat span { color: var(--dim); font-size: 12px; }
+  button, .btn { background: var(--panel2); border: 1px solid var(--line); color: var(--text); border-radius: 8px; padding: 7px 12px; font: 600 13px system-ui; cursor: pointer; }
+  button:hover { border-color: #57487d; }
+  button.primary { background: var(--red); border-color: var(--red); color: #fff; }
+  button.primary:hover { background: #f04b57; }
+  button.ghost { background: none; }
+  button.danger { color: #ff8a92; }
+  button.small { padding: 4px 9px; font-size: 12px; }
+  input, select, textarea { background: #0e0a1a; color: var(--text); border: 1px solid var(--line); border-radius: 8px; padding: 7px 9px; font: 13px system-ui; }
+  input[type=number] { width: 90px; } input[type=checkbox] { width: 16px; height: 16px; } input[type=checkbox], input[type=range] { accent-color: var(--red); }
+  textarea { width: 100%; min-height: 70px; resize: vertical; }
+  label.row, .row { display: flex; align-items: center; gap: 10px; margin: 8px 0; flex-wrap: wrap; }
+  label.row > span:first-child { min-width: 170px; color: var(--dim); }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-size: 11.5px; color: var(--dim); font-weight: 600; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+  td { padding: 6px 8px; border-bottom: 1px solid #241c3b; vertical-align: middle; }
+  td img.gi { width: 30px; height: 30px; object-fit: contain; display: block; }
+  td .noicon { width: 30px; height: 30px; border-radius: 6px; background: var(--panel2); display: grid; place-items: center; font-size: 15px; }
+  .bar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
+  .savebar { position: sticky; bottom: 0; background: linear-gradient(transparent, var(--bg) 30%); padding: 18px 0 6px; display: flex; gap: 10px; align-items: center; }
+  .dirty { color: var(--warn); font-size: 12.5px; }
+  .log { max-height: 460px; overflow: auto; }
+  .ev { display: grid; grid-template-columns: 62px 26px 1fr auto; gap: 8px; align-items: center; padding: 7px 4px; border-bottom: 1px solid #241c3b; font-size: 13px; }
+  .ev time { color: var(--dim); font-size: 11.5px; font-variant-numeric: tabular-nums; }
+  .ev .ic { font-size: 16px; text-align: center; } .ev img { width: 24px; height: 24px; object-fit: contain; }
+  .ev .fx { color: var(--dim); font-size: 12px; text-align: right; }
+  .ev.test { opacity: .7; } .ev .tag { font-size: 10.5px; background: var(--panel2); border: 1px solid var(--line); border-radius: 5px; padding: 1px 5px; color: var(--dim); margin-left: 6px; }
+  .goal { display: grid; gap: 8px; }
+  .meter { height: 14px; border-radius: 99px; background: #0e0a1a; border: 1px solid var(--line); overflow: hidden; }
+  .meter i { display: block; height: 100%; background: linear-gradient(90deg, var(--red2), var(--red)); }
+  .ov { display: grid; grid-template-columns: 1fr 360px; gap: 14px; align-items: start; }
+  .ov .url { display: flex; gap: 6px; margin: 8px 0; } .ov .url input { flex: 1; font-family: ui-monospace, Consolas, monospace; font-size: 12px; }
+  .prev { width: 360px; height: 200px; border-radius: 10px; border: 1px solid var(--line); overflow: hidden; position: relative;
+    background: repeating-conic-gradient(#1a1430 0% 25%, #221a3b 0% 50%) 50% / 24px 24px; }
+  .prev iframe { border: 0; width: 1000px; height: 560px; transform: scale(.36); transform-origin: 0 0; position: absolute; left: 0; top: 0; }
+  .kbd { font-family: ui-monospace, Consolas, monospace; background: #0e0a1a; border: 1px solid var(--line); border-radius: 5px; padding: 1px 5px; font-size: 12px; }
+  .clock { font: 34px/1 "Rando Pixel", monospace; text-align: center; padding: 18px; border-radius: 12px; background: #0e0a1a; border: 2px solid var(--red); }
+  .toast { position: fixed; right: 18px; bottom: 18px; background: var(--panel2); border: 1px solid var(--line); border-left: 4px solid var(--ok); padding: 10px 14px; border-radius: 10px; opacity: 0; transform: translateY(10px); transition: .25s; z-index: 50; max-width: 360px; }
+  .toast.on { opacity: 1; transform: none; } .toast.err { border-left-color: var(--red); }
+  .offline-banner { display: none; background: var(--red2); color: #fff; text-align: center; padding: 8px; font-weight: 600; }
+  html.offline .offline-banner { display: block; }
+  .muted { color: var(--dim); }
+  label.check { display: flex; align-items: flex-start; gap: 8px; margin: 10px 0; color: var(--text); cursor: pointer; } label.check input { margin-top: 2px; flex: none; }
+  .pill { display: inline-block; padding: 1px 7px; border-radius: 99px; font-size: 11px; background: var(--panel2); border: 1px solid var(--line); color: var(--dim); }
+  @media (max-width: 860px) { .ov { grid-template-columns: 1fr; } nav { top: 0; position: static; } header { position: static; } }
+</style>
+</head>
+<body>
+<div class="offline-banner">Can't reach the bridge. Is its window still open? Reconnecting…</div>
+<header>
+  <div class="brand"><img src="/studio/die.svg" alt="">CROWD CONTROL<b>+</b></div>
+  <div class="chips">
+    <span class="chip" id="chip-live"><i></i><span>TikTok</span></span>
+    <span class="chip" id="chip-game"><i></i><span>Game</span></span>
+    <span class="chip" id="chip-ov"><i></i><span>Overlays</span></span>
+  </div>
+</header>
+<nav id="tabs">
+  <button data-tab="dash" class="on">Dashboard</button>
+  <button data-tab="gifts">Gifts &amp; effects</button>
+  <button data-tab="alerts">Alerts</button>
+  <button data-tab="games">Live games</button>
+  <button data-tab="run">Run &amp; stream</button>
+  <button data-tab="goals">Goals</button>
+  <button data-tab="overlays">Overlays</button>
+  <button data-tab="chat">Chat &amp; TTS</button>
+  <button data-tab="timer">Subathon</button>
+  <button data-tab="profiles">Profiles</button>
+</nav>
+<main>
+
+<!-- DASHBOARD -->
+<section id="tab-dash" class="on">
+  <div class="card" id="conn-card" style="margin-bottom:14px">
+    <h3>TikTok connection</h3>
+    <div class="row" style="flex-wrap:wrap;gap:8px">
+      <select id="conn-source">
+        <option value="local">Local signer (recommended)</option>
+        <option value="tikfinity">TikFinity (backup)</option>
+      </select>
+      <input id="conn-user" placeholder="your TikTok name (without @)" style="min-width:220px" autocomplete="off" spellcheck="false">
+      <button class="primary" id="conn-go">Connect</button>
+      <button id="conn-open">Open my LIVE window</button>
+    </div>
+    <p class="hint" id="conn-status" style="margin-top:8px"></p>
+    <p class="hint" id="conn-help"></p>
+  </div>
+  <div class="stats" id="stats"></div>
+  <div class="grid g2" style="margin-top:14px">
+    <div class="card">
+      <h3>Live events</h3>
+      <div class="log" id="log"><p class="muted">Waiting for gifts, likes, follows and chat…</p></div>
+    </div>
+    <div class="card">
+      <h3>Test without going live</h3>
+      <p class="hint">Pretend a viewer did something. Alerts, goals and overlays react like the real thing. Tick the box to also run the game effect.</p>
+      <label class="row"><span>Viewer name</span><input id="t-user" value="TestViewer"></label>
+      <div class="row"><select id="t-gift" style="min-width:180px"></select>
+        x <input id="t-count" type="number" min="1" value="1" style="width:64px">
+        <input id="t-coins" type="number" min="0" placeholder="coins" title="Total coins for this donation" style="width:90px">
+        <button class="primary" id="t-send">Send gift</button></div>
+      <label class="check"><input type="checkbox" id="t-run"> Also run the game effect (and count it in stats, goals and the subathon clock)</label>
+      <div class="row"><button data-sim="follow">Follow</button><button data-sim="share">Share</button><button data-sim="like">50 likes</button></div>
+      <div class="row"><input id="t-chat" placeholder="Chat message, e.g. !rules" style="flex:1"><button id="t-chat-send">Send chat</button></div>
+      <h3 style="margin-top:18px">Stream</h3>
+      <div class="row"><button id="clear-alerts">Clear alerts on screen</button><button class="danger" id="reset-stats">Reset stream stats</button></div>
+      <p class="hint">Reset clears totals, the top-gifters board and the event log (start of a new stream). Goals reset on the Goals tab.</p>
+    </div>
+  </div>
+</section>
+
+<!-- GIFTS -->
+<section id="tab-gifts">
+  <h2>GIFTS</h2>
+  <p class="hint">Which gift does what in the game. The coin value is only needed if the bridge window doesn't show "= N coins" for that gift. Gifts seen on stream show up at the bottom so you can add them.</p>
+  <div class="card"><table><thead><tr><th style="width:44px"></th><th>Gift</th><th>Coins</th><th>Effect in the game</th><th></th></tr></thead><tbody id="gift-rows"></tbody></table>
+    <div class="bar"><input id="gift-new" list="gift-catalog" placeholder="Gift name (exactly as TikTok spells it)" style="min-width:260px"><datalist id="gift-catalog"></datalist><button id="gift-add">Add gift</button></div>
+    <div id="unmapped"></div>
+  </div>
+
+  <h2>TEST ANY EFFECT</h2>
+  <div class="card">
+    <p class="hint">Runs it in the game right now, as if a viewer sent it (the same tests are in the game's ⋯ menu → Crowd effects). The game must be connected and Link in normal play.</p>
+    <div id="fx-tests" class="row" style="flex-wrap:wrap;gap:6px"></div>
+  </div>
+
+  <h2>BIG DONATIONS</h2>
+  <p class="hint">A single donation worth at least this many coins (gift value x streak) does this instead of the gift's own effect. The highest one reached wins.</p>
+  <div class="card"><table><thead><tr><th>Coins</th><th>Effect</th><th>Name on the gift list</th><th></th></tr></thead><tbody id="tier-rows"></tbody></table>
+    <div class="bar"><button id="tier-add">Add a level</button></div></div>
+
+  <h2>LIKES, FOLLOWS, SHARES</h2>
+  <div class="card">
+    <div id="like-rows"></div>
+    <div class="row"><button class="small" id="like-add">Add a like trigger</button> <span class="hint">Each one counts on its own, e.g. +1 heart every 300, magic every 500, full heal every 2000.</span></div>
+    <div class="row"><span style="min-width:170px" class="muted">A follow</span><select id="follow-effect"></select></div>
+    <div class="row"><span style="min-width:170px" class="muted">A share</span><select id="share-effect"></select></div>
+    <p class="hint">Follows and shares count once per viewer every 10 minutes.</p>
+  </div>
+
+  <h2>TIMED EFFECTS</h2>
+  <div class="card">
+    <p class="hint">How many seconds each timed effect lasts. More gifts add more time.</p>
+    <div id="durations" class="grid" style="grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:4px 14px"></div>
+    <div class="row"><span style="min-width:170px" class="muted">Most effects per gift streak</span><input id="max-per" type="number" min="1"> <span class="hint">(20 Roses still gives at most this many)</span></div>
+  </div>
+
+  <div class="savebar"><button class="primary" id="gifts-save">Save gift setup</button><button class="ghost" id="gifts-undo">Undo changes</button><span class="dirty" id="gifts-dirty"></span></div>
+</section>
+
+<!-- ALERTS -->
+<section id="tab-alerts">
+  <h2>GIFT ALERTS</h2>
+  <div class="grid g2">
+    <div class="card">
+      <label class="row"><span>Alerts on</span><input type="checkbox" data-s="alerts.enabled"></label>
+      <label class="row"><span>Smallest gift that pops up</span><input type="number" min="0" data-s="alerts.minCoins"> coins</label>
+      <label class="row"><span>Seconds on screen</span><input type="number" min="2" max="30" data-s="alerts.seconds"></label>
+      <label class="row"><span>Show the game effect</span><input type="checkbox" data-s="alerts.showEffect"></label>
+      <label class="row"><span>Alert for follows</span><input type="checkbox" data-s="alerts.follows"></label>
+      <label class="row"><span>Alert for shares</span><input type="checkbox" data-s="alerts.shares"></label>
+      <label class="row"><span>Sound</span><input type="checkbox" data-s="alerts.sound"> <input type="range" min="0" max="1" step=".05" data-s="alerts.volume" style="width:140px"></label>
+    </div>
+    <div class="card">
+      <h3>Sizes</h3>
+      <p class="hint">Bigger donations get a bigger alert. Each size starts at a coin value.</p>
+      <table><thead><tr><th>Size</th><th>From</th><th>Headline</th><th></th></tr></thead><tbody id="alert-tiers"></tbody></table>
+      <p class="hint">Custom sounds: put <span class="kbd">small.mp3</span>, <span class="kbd">big.mp3</span>, <span class="kbd">huge.mp3</span>, <span class="kbd">follow.mp3</span> or <span class="kbd">share.mp3</span> in the <b>sounds</b> folder (.wav and .ogg work too). Without them, built-in chimes play. <span id="sound-files"></span></p>
+    </div>
+  </div>
+  <div class="savebar"><button class="primary" data-save-settings>Save alert settings</button><span class="dirty" data-dirty></span></div>
+</section>
+
+<!-- GOALS -->
+<section id="tab-goals">
+  <h2>GOALS</h2>
+  <p class="hint">Goal bars fill up from the stream: coins, likes, follows, shares or gifts. Tick <b>On stream</b> for the ones the goal overlay should show (several stack).</p>
+  <div class="grid g2" id="goals"></div>
+  <div class="bar"><button id="goal-add">Add a goal</button></div>
+</section>
+
+<!-- OVERLAYS -->
+<section id="tab-overlays">
+  <h2>OVERLAYS FOR OBS / TIKTOK LIVE STUDIO</h2>
+  <p class="hint">Add each one as a <b>Browser</b> source (OBS) or a <b>Link</b> source (TikTok LIVE Studio) with the address and size shown. They update live. Options go on the end of the address: <span class="kbd">?scale=1.3</span> bigger, <span class="kbd">?bg=0</span> no background box, <span class="kbd">?font=plain</span> normal letters instead of pixel letters, <span class="kbd">?screen=green</span> solid green behind it for a Chroma Key filter. The page itself is see-through: if you see a white box, it was added as a window or display capture instead of a Browser / Link source.</p>
+  <div id="ov-list" class="grid"></div>
+  <h2>LEADERBOARD AND FEED</h2>
+  <div class="card">
+    <label class="row"><span>Leaderboard title</span><input data-s="leaderboard.title"></label>
+    <label class="row"><span>Leaderboard rows</span><input type="number" min="1" max="10" data-s="leaderboard.size"></label>
+    <label class="row"><span>Feed rows</span><input type="number" min="1" max="12" data-s="feed.size"></label>
+    <div class="row"><span style="min-width:170px" class="muted">Feed shows</span>
+      <label><input type="checkbox" data-s="feed.gifts"> gifts</label><label><input type="checkbox" data-s="feed.follows"> follows</label>
+      <label><input type="checkbox" data-s="feed.shares"> shares</label><label><input type="checkbox" data-s="feed.likes"> likes</label></div>
+    <div class="savebar" style="position:static;padding-top:6px"><button class="primary" data-save-settings>Save</button><span class="dirty" data-dirty></span></div>
+  </div>
+</section>
+
+<!-- CHAT & TTS -->
+<section id="tab-chat">
+  <h2>TEXT-TO-SPEECH</h2>
+  <div class="grid g2">
+    <div class="card">
+      <label class="row"><span>Read chat aloud</span><input type="checkbox" data-s="tts.enabled"></label>
+      <label class="row"><span>Whose messages</span><select data-s="tts.who"><option value="gifters">Viewers who gifted</option><option value="everyone">Everyone</option></select></label>
+      <label class="row"><span>Gifted at least</span><input type="number" min="1" data-s="tts.minCoins"> coins this stream</label>
+      <label class="row"><span>Longest message</span><input type="number" min="20" max="300" data-s="tts.maxLength"> letters</label>
+      <label class="row"><span>Say the viewer's name</span><input type="checkbox" data-s="tts.readNames"></label>
+      <label class="row"><span>Voice</span><select data-s="tts.voice" id="tts-voice"><option value="">Default</option></select></label>
+      <label class="row"><span>Speed</span><input type="range" min=".6" max="1.6" step=".05" data-s="tts.rate" style="width:140px"></label>
+      <label class="row"><span>Volume</span><input type="range" min="0" max="1" step=".05" data-s="tts.volume" style="width:140px"></label>
+    </div>
+    <div class="card">
+      <h3>Where it plays</h3>
+      <p class="hint">Messages are read out loud by <b>this panel</b>, using this computer's voices. Keep this tab open while you stream and let OBS / LIVE Studio capture your desktop audio.</p>
+      <label class="check"><input type="checkbox" id="tts-here"> Speak in this tab</label>
+      <div class="row"><button id="tts-test">Test voice</button></div>
+      <h3 style="margin-top:14px">Never read</h3>
+      <p class="hint">Messages with any of these words (one per line) are skipped. Links and !commands are never read.</p>
+      <textarea id="tts-banned" placeholder="one word per line"></textarea>
+    </div>
+  </div>
+  <h2>CHAT COMMANDS</h2>
+  <div class="card">
+    <p class="hint">When a viewer types a command, the reply pops up on stream (Chat commands overlay). Fill-ins: <span class="kbd">{effects}</span> the gift list, <span class="kbd">{timer}</span> subathon time left, <span class="kbd">{top}</span> top 3 gifters, <span class="kbd">{goal}</span> the goal on stream, <span class="kbd">{coins}</span> coins this stream.</p>
+    <label class="row"><span>Commands on</span><input type="checkbox" data-s="commands.enabled"></label>
+    <label class="row"><span>Wait between uses</span><input type="number" min="0" data-s="commands.cooldown"> seconds per command</label>
+    <label class="row"><span>Seconds on screen</span><input type="number" min="3" max="30" data-s="commands.seconds"></label>
+    <table><thead><tr><th style="width:150px">Command</th><th>Reply</th><th></th></tr></thead><tbody id="cmd-rows"></tbody></table>
+    <div class="bar"><button id="cmd-add">Add command</button></div>
+  </div>
+  <div class="savebar"><button class="primary" data-save-settings>Save chat settings</button><span class="dirty" data-dirty></span></div>
+</section>
+
+<!-- SUBATHON -->
+<section id="tab-timer">
+  <h2>SUBATHON CLOCK</h2>
+  <div class="grid g2">
+    <div class="card">
+      <div class="clock" id="clock">–:––:––</div>
+      <p class="hint" id="clock-state" style="text-align:center">Not set</p>
+      <div class="row"><span class="muted" style="min-width:80px">Start at</span><input id="tm-h" type="number" min="0" value="1" style="width:64px"> h <input id="tm-m" type="number" min="0" max="59" value="0" style="width:64px"> m <button id="tm-set">Set</button></div>
+      <div class="row"><button class="primary" id="tm-start">▶ Start</button><button id="tm-pause">⏸ Pause</button><button class="danger" id="tm-off">Turn off</button></div>
+      <div class="row"><span class="muted" style="min-width:80px">Adjust</span><button data-tm="60">+1m</button><button data-tm="600">+10m</button><button data-tm="3600">+1h</button><button data-tm="-60">−1m</button><button data-tm="-600">−10m</button></div>
+    </div>
+    <div class="card">
+      <h3>Price of a second</h3>
+      <label class="row"><span>Coins per second</span><input id="tm-cps" type="number" min="0.05" step="0.05"></label>
+      <p class="hint" id="tm-rate"></p>
+      <label class="row"><span>Clock on</span><input type="checkbox" id="tm-enabled"></label>
+      <div class="row"><button class="primary" id="tm-save">Save</button></div>
+      <h3 style="margin-top:12px">Recent</h3>
+      <div id="tm-log" class="muted" style="font-size:12.5px"></div>
+    </div>
+  </div>
+</section>
+
+<!-- LIVE GAMES -->
+<section id="tab-games">
+  <h2>CHAT VOTE</h2>
+  <div class="grid g2">
+    <div class="card">
+      <p class="hint">Chat types <span class="kbd">1</span> to <span class="kbd">4</span> (or <span class="kbd">!vote 2</span>). When time's up, the winner's effect runs. Choices without an effect are just a poll ("Which dungeon next?").</p>
+      <label class="row"><span>Question</span><input id="pv-q" value="PICK THE NEXT CURSE" style="flex:1"></label>
+      <div id="pv-opts"></div>
+      <div class="row"><button class="small" id="pv-more">+ choice</button><button class="small" id="pv-random">Random curses</button><button class="small" id="pv-blessing">Curse or blessing</button><button class="small" id="pv-dungeon">Which dungeon next?</button></div>
+      <label class="row"><span>Seconds</span><input type="number" min="10" max="600" data-s="votes.seconds"></label>
+      <label class="check"><input type="checkbox" data-s="votes.autoRun"> Run the winner's effect automatically</label>
+      <div class="row"><button class="primary" id="pv-start">Start vote</button><button id="pv-end">End now</button><button class="danger" id="pv-cancel">Cancel</button></div>
+    </div>
+    <div class="card"><h3>Now</h3><div id="pv-now" class="muted">No vote running.</div></div>
+  </div>
+
+  <h2>TEAM BATTLE</h2>
+  <div class="grid g2">
+    <div class="card">
+      <p class="hint">Viewers join a team by typing its word in chat. Their gifts fill their team's bar; gifters who didn't join help the team that's behind. First to the target (or ahead when time runs out) wins, and that team's effect runs.</p>
+      <div class="row"><span class="muted" style="min-width:90px">Team 1</span><input data-s="battle.names.0" style="width:150px"><input data-s="battle.join.0" style="width:90px" title="Word to join"><select data-s="battle.effects.0" data-effects data-none></select></div>
+      <div class="row"><span class="muted" style="min-width:90px">Team 2</span><input data-s="battle.names.1" style="width:150px"><input data-s="battle.join.1" style="width:90px" title="Word to join"><select data-s="battle.effects.1" data-effects data-none></select></div>
+      <label class="row"><span>First to</span><input type="number" min="0" data-s="battle.target"> coins <span class="hint">(0 = no target)</span></label>
+      <label class="row"><span>Time limit</span><input type="number" min="0" id="bt-min" value="0"> minutes <span class="hint">(0 = none)</span></label>
+      <div class="row"><button class="primary" id="bt-start">Start battle</button><button id="bt-end">End now</button><button class="danger" id="bt-cancel">Cancel</button></div>
+    </div>
+    <div class="card"><h3>Now</h3><div id="bt-now" class="muted">No battle running.</div>
+      <div class="row"><button class="small" data-bt="0" data-amt="100">Team 1 +100</button><button class="small" data-bt="1" data-amt="100">Team 2 +100</button></div></div>
+  </div>
+
+  <h2>MYSTERY BOX</h2>
+  <div class="card">
+    <p class="hint">Choose <b>Mystery box</b> as a gift's effect (Gifts &amp; effects tab), as a big-donation level, or as the combo bonus. A slot machine spins on stream and lands on one of the effects ticked here.</p>
+    <label class="row"><span>Spin time</span><input type="number" min="2" max="10" data-s="mystery.spinSeconds"> seconds</label>
+    <div id="mb-pool" class="grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:2px 12px"></div>
+    <div class="row"><button id="mb-test">Spin one now</button></div>
+  </div>
+
+  <h2>COMBO METER</h2>
+  <div class="card">
+    <label class="check"><input type="checkbox" data-s="combo.enabled"> Combo meter on</label>
+    <label class="row"><span>Gifts count as a combo within</span><input type="number" min="2" max="60" data-s="combo.windowSeconds"> seconds of each other</label>
+    <label class="row"><span>Bonus every</span><input type="number" min="2" data-s="combo.bonusAt"> gifts in a row</label>
+    <label class="row"><span>Bonus effect</span><select data-s="combo.bonusEffect" data-effects data-none></select></label>
+  </div>
+
+  <h2>BOSS DETOUR</h2>
+  <div class="card">
+    <p class="hint">Gifts set to <b>Boss detour: Ganon / Agahnim / random boss</b> send Link into that fight. The game saves first and puts everything back when the fight ends (time's up, Link falls, or he wins), so nothing is lost. Set how long it lasts on <b>Gifts &amp; effects → Timed effects</b>. A gift set to <b>Rescue Link from a boss detour</b> ends it early.</p>
+    <label class="check"><input type="checkbox" data-s="detour.alert"> Show "BOSS DETOUR" alerts</label>
+    <div class="row"><span class="muted" style="min-width:170px">If he beats the boss</span><select data-s="detour.winEffect" data-effects data-none></select> and <input type="number" min="0" data-s="detour.winTimerSeconds" style="width:80px"> seconds on the subathon clock</div>
+    <div class="row"><span class="muted" style="min-width:170px">If he survives the timer</span><select data-s="detour.surviveEffect" data-effects data-none></select> and <input type="number" min="0" data-s="detour.surviveTimerSeconds" style="width:80px"> seconds on the clock</div>
+    <div class="row"><button class="small" data-test-detour="boss_ganon">Test Ganon</button><button class="small" data-test-detour="boss_aga">Test Agahnim</button><button class="small" data-test-detour="boss_random">Test random boss</button><button class="small" data-test-detour="detour_rescue">Rescue</button></div>
+    <div class="row"><span class="muted" style="min-width:170px">Test one boss</span><select id="dt-boss"><option value="ganon">Ganon</option><option value="aga1">Agahnim</option><option value="aga2">Agahnim 2</option><option value="armos">Eastern Palace (Armos)</option><option value="lanmolas">Desert Palace (Lanmolas)</option><option value="moldorm">Tower of Hera (Moldorm)</option><option value="helmasaur">Palace of Darkness (Helmasaur)</option><option value="arrghus">Swamp Palace (Arrghus)</option><option value="mothula">Skull Woods (Mothula)</option><option value="blind">Thieves&#39; Town (Blind)</option><option value="kholdstare">Ice Palace (Kholdstare)</option><option value="vitreous">Misery Mire (Vitreous)</option><option value="trinexx">Turtle Rock (Trinexx)</option></select><button class="small" id="dt-boss-go">Send Link there</button></div>
+    <p class="hint">Tests run in the game, so it must be connected and Link in normal play. "Test one boss" is only for checking each fight; gifts set to the random boss still pick at random.</p>
+  </div>
+
+  <h2>PREDICTIONS</h2>
+  <div class="grid g2">
+    <div class="card">
+      <p class="hint">Chat types <span class="kbd">!yes</span> or <span class="kbd">!no</span> before it locks. You say what happened; the people who called it get a shout-out on stream. Just for fun, no points or money.</p>
+      <label class="row"><span>Question</span><input id="pd-q" value="Will he beat this dungeon without dying?" style="flex:1"></label>
+      <div class="row"><span class="muted" style="min-width:170px">Answers</span><input id="pd-a" value="YES" style="width:110px"><input id="pd-b" value="NO" style="width:110px"></div>
+      <label class="row"><span>Votes lock after</span><input type="number" min="10" data-s="predict.seconds"> seconds</label>
+      <div class="row"><button class="primary" id="pd-start">Start prediction</button><button id="pd-lock">Lock now</button></div>
+      <div class="row"><button id="pd-yes">It happened (answer 1)</button><button id="pd-no">It didn't (answer 2)</button><button class="danger" id="pd-cancel">Cancel</button></div>
+    </div>
+    <div class="card"><h3>Now</h3><div id="pd-now" class="muted">No prediction running.</div></div>
+  </div>
+  <div class="savebar"><button class="primary" data-save-settings>Save settings</button><span class="dirty" data-dirty></span></div>
+</section>
+
+<!-- RUN & STREAM -->
+<section id="tab-run">
+  <h2>RUN STATS</h2>
+  <div class="grid g2">
+    <div class="card">
+      <p class="hint">Live from the game while Crowd effects is on: deaths, checks, where Link is, the MSU-1 pack and the seed. Put the <b>Run stats</b> overlay on stream.</p>
+      <div class="stats" id="run-now"></div>
+      <div class="row"><button class="small" id="run-test">Test with fake numbers</button></div>
+    </div>
+    <div class="card">
+      <h3>Death tax</h3>
+      <p class="hint">Every time Link dies...</p>
+      <label class="check"><input type="checkbox" data-s="deathTax.enabled"> Death tax on</label>
+      <label class="row"><span>Add to the subathon clock</span><input type="number" min="0" data-s="deathTax.timerSeconds"> seconds</label>
+      <label class="row"><span>Move this goal</span><select data-s="deathTax.goalId" id="dt-goal"></select> by <input type="number" data-s="deathTax.goalAmount" style="width:80px"></label>
+      <label class="check"><input type="checkbox" data-s="deathTax.alert"> Show a "DEATH TAX" alert</label>
+      <div class="row"><button class="small" id="dt-test">Test a death</button></div>
+    </div>
+  </div>
+
+  <h2>CLIP MARKERS</h2>
+  <div class="card">
+    <p class="hint">Big moments are time-stamped here so you can find them in your recording for TikTok clips. "Stream time" counts from the last <b>Reset stream stats</b>.</p>
+    <div class="row">
+      <label class="check" style="margin:0"><input type="checkbox" data-s="clips.deaths"> deaths</label>
+      <label class="check" style="margin:0"><input type="checkbox" data-s="clips.seeds"> seed rolls</label>
+      <label class="check" style="margin:0"><input type="checkbox" data-s="clips.chatClip"> viewers can type <span class="kbd">!clip</span></label>
+      <span class="muted">gifts worth</span><input type="number" min="1" data-s="clips.minCoins" style="width:80px"><span class="muted">coins or more</span>
+    </div>
+    <div class="row"><input id="cl-label" placeholder="What happened? (optional)" style="flex:1"><button class="primary" id="cl-add">Mark now</button><button id="cl-export">Download list</button><button class="danger" id="cl-clear">Clear</button></div>
+    <div class="log" id="cl-list" style="max-height:340px"></div>
+  </div>
+
+  <h2>HALL OF FAME</h2>
+  <div class="grid g2">
+    <div class="card">
+      <p class="hint">All-time top gifters, across every stream (Reset stream stats doesn't clear it). Put the <b>Hall of fame</b> overlay on stream.</p>
+      <label class="row"><span>Title</span><input data-s="hallOfFame.title"></label>
+      <label class="row"><span>Rows</span><input type="number" min="1" max="10" data-s="hallOfFame.size"></label>
+      <div class="row"><button class="danger small" id="hf-reset">Reset hall of fame</button></div>
+    </div>
+    <div class="card"><table><tbody id="hf-list"></tbody></table></div>
+  </div>
+
+  <h2>WELCOME BACK</h2>
+  <div class="card">
+    <p class="hint">When a regular shows up (chat, gift, like, follow) for the first time in a stream, the <b>Welcome back</b> overlay pops up. A stream starts at <b>Reset stream stats</b>. <span id="wb-known"></span></p>
+    <label class="check"><input type="checkbox" data-s="welcome.enabled"> Welcome back on</label>
+    <label class="row"><span>Regular = seen in at least</span><input type="number" min="2" data-s="welcome.minStreams"> streams</label>
+    <label class="row"><span>Headline</span><input data-s="welcome.title"></label>
+    <div class="row"><button class="small" id="wb-test">Test</button></div>
+  </div>
+  <div class="savebar"><button class="primary" data-save-settings>Save settings</button><span class="dirty" data-dirty></span></div>
+</section>
+
+<!-- PROFILES -->
+<section id="tab-profiles">
+  <h2>PROFILES</h2>
+  <p class="hint">Save the whole setup (gifts, big-donation levels, alerts, goals, chat settings) under a name, like "Chill run" or "Chaos night", and switch between them in one click.</p>
+  <div class="card">
+    <div class="row"><input id="pf-name" placeholder="Profile name" style="min-width:220px"><button class="primary" id="pf-save">Save current setup</button></div>
+    <label class="check"><input type="checkbox" id="pf-keep" checked> When loading, keep the current goal progress</label>
+    <table><tbody id="pf-rows"></tbody></table>
+  </div>
+</section>
+</main>
+<div class="toast" id="toast"></div>
+
+<script src="/studio/common.js"></script>
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = CC.esc;
+let S = null;          // last state from the bridge
+let draft = null;      // settings being edited (studio.json)
+let gdraft = null;     // gift setup being edited (mapping.json)
+let gDirty = false, sDirty = false;
+
+function toast(msg, err) { const t = $('toast'); t.textContent = msg; t.className = 'toast on' + (err ? ' err' : ''); clearTimeout(t._t); t._t = setTimeout(() => t.className = 'toast', 2600); }
+async function call(action, data, okMsg) { try { const r = await CC.api(action, data); if (okMsg) toast(okMsg); return r; } catch (e) { toast(e.message, true); throw e; } }
+
+// tabs
+document.querySelectorAll('#tabs button').forEach((b) => b.onclick = () => {
+  document.querySelectorAll('#tabs button').forEach((x) => x.classList.toggle('on', x === b));
+  document.querySelectorAll('main section').forEach((s) => s.classList.toggle('on', s.id === 'tab-' + b.dataset.tab));
+  try { localStorage.setItem('ccplus-tab', b.dataset.tab); } catch (e) {}
+});
+try { const t = localStorage.getItem('ccplus-tab'); if (t) document.querySelector('[data-tab="' + t + '"]')?.click(); } catch (e) {}
+
+// ── status chips ──
+// ── TikTok connection card ──
+let connEdited = false;
+function paintConn() {
+  const s = (S && S.status) || {};
+  const src = $('conn-source'), u = $('conn-user');
+  if (!connEdited && document.activeElement !== u && document.activeElement !== src) {
+    src.value = s.source === 'tikfinity' ? 'tikfinity' : 'local';
+    u.value = s.username || '';
+  }
+  const local = src.value === 'local';
+  u.style.display = local ? '' : 'none';
+  $('conn-open').style.display = local ? '' : 'none';
+  const live = s.source === 'test' ? 'Test mode (no TikTok). Close this and use "Start Crowd Control+" to go live.' : (s.live || 'Starting…');
+  const ok = /connected|live as/i.test(live) && !/dis/i.test(live);
+  $('conn-status').innerHTML = '<span style="display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;background:' + (ok ? 'var(--ok)' : s.source === 'test' ? 'var(--warn)' : 'var(--red)') + '"></span>' + esc(live);
+  $('conn-help').innerHTML = local
+    ? (s.browser === false ? '<b>No Chrome or Edge found.</b> Install Google Chrome, then click Connect again. ' : '') +
+      'Opens your LIVE page in its own Chrome / Edge window and reads gifts, likes, follows and chat from it. Free, no other apps or keys. ' +
+      'Log in to TikTok in that window once (it remembers). Keep it open while you stream (minimizing is fine; its sound is muted).'
+    : 'Uses the free TikFinity app: open TikFinity, log in, keep it running. Use this if the local signer stops working after a TikTok update.';
+}
+$('conn-source').onchange = () => { connEdited = true; paintConn(); };
+$('conn-user').oninput = () => { connEdited = true; };
+$('conn-go').onclick = () => {
+  const source = $('conn-source').value, username = $('conn-user').value.replace(/^@/, '').trim();
+  if (source === 'local' && !username) { toast('Type your TikTok name first', true); $('conn-user').focus(); return; }
+  call('connect', { source, username }, source === 'local' ? 'Opening your LIVE…' : 'Connecting to TikFinity…').then(() => { connEdited = false; });
+};
+$('conn-open').onclick = () => call('open-live', {}, 'Opening your LIVE window');
+
+function chips(st) {
+  if (!st) return;
+  const live = $('chip-live'), s = st.status || {};
+  const liveOk = /connected|live as/i.test(s.live) && !/dis/i.test(s.live);
+  live.className = 'chip ' + (s.source === 'test' ? 'warn' : liveOk ? 'ok' : 'bad');
+  live.lastElementChild.textContent = s.source === 'test' ? 'Test mode' : (s.live || 'TikTok');
+  $('chip-game').className = 'chip ' + (s.games ? 'ok' : 'bad');
+  $('chip-game').lastElementChild.textContent = s.games ? 'Game connected' + (s.games > 1 ? ' (' + s.games + ')' : '') : 'Game not connected';
+}
+CC.on('tick', (d) => {
+  // more than one Studio tab: buttons can get stuck waiting (browsers allow ~6 connections to one address)
+  let w = document.getElementById('tabs-warn');
+  if ((d.studioTabs || 0) > 1) {
+    if (!w) { w = document.createElement('div'); w.id = 'tabs-warn'; w.style.cssText = 'background:#7a1d24;color:#fff;padding:8px 14px;font:600 13px system-ui;text-align:center'; document.body.prepend(w); }
+    w.textContent = 'The control panel is open in ' + d.studioTabs + ' tabs. Close the extra ones: too many open pages can make buttons wait minutes before they work.';
+  } else if (w) w.remove();
+  chips(CC.state); if (S) paintConn(); const n = d.overlays || 0; $('chip-ov').className = 'chip ' + (n ? 'ok' : ''); $('chip-ov').lastElementChild.textContent = n + ' overlay' + (n === 1 ? '' : 's') + ' on stream'; paintClock(); });
+
+// ── dashboard ──
+const ICON = { gift: '🎁', like: '❤', follow: '➕', share: '↗', chat: '💬', death: '☠', music: '♪', detour: '⚔', 'detour-end': '⚔', 'detour-rescue': '🛟' };
+function paintStats() {
+  const s = S.stats;
+  $('stats').innerHTML = [['Coins', s.coins], ['Gifts', s.gifts], ['Likes', s.likes], ['Follows', s.follows], ['Shares', s.shares], ['Chat', s.chats]]
+    .map(([k, v]) => '<div class="stat"><span>' + k + '</span><b>' + CC.num(v) + '</b></div>').join('') +
+    '<div class="stat"><span>Top gifter</span><b style="font-size:12px">' + esc(s.top && s.top[0] ? (s.top[0].nickname || s.top[0].user) + ' · ' + CC.num(s.top[0].coins) : '—') + '</b></div>';
+}
+function evRow(e) {
+  const t = new Date(e.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const pic = e.type === 'gift' && e.icon ? '<img src="' + esc(e.icon) + '" alt="">' : '<span class="ic">' + (ICON[e.type] || '•') + '</span>';
+  let what = '<b>' + esc(CC.name(e)) + '</b> ';
+  if (e.type === 'gift') what += 'sent ' + esc(e.gift) + (e.count > 1 ? ' x' + e.count : '') + (e.coins ? ' <span class="muted">(' + CC.num(e.coins) + ' coins)</span>' : '');
+  else if (e.type === 'like') what += 'liked x' + e.count;
+  else if (e.type === 'follow') what += 'followed';
+  else if (e.type === 'share') what += 'shared the LIVE';
+  else if (e.type === 'chat') what += '<span class="muted">' + esc(e.text) + '</span>' + (e.command ? ' <span class="pill">command</span>' : '') + (e.speak ? ' <span class="pill">read aloud</span>' : '') +
+    (e.vote ? ' <span class="pill">voted ' + e.vote + '</span>' : '') + (e.predict ? ' <span class="pill">' + esc(e.predict) + '</span>' : '') + (e.team ? ' <span class="pill">joined ' + esc(e.team) + '</span>' : '') + (e.clipped ? ' <span class="pill">clip marked</span>' : '');
+  else if (e.type === 'death') what = '<b>Link</b> died (death #' + (e.deaths || '?') + ')' + (e.text ? ' <span class="muted">' + esc(e.text) + '</span>' : '');
+  else if (e.type === 'music') what = '<b>Music</b> <span class="muted">now ' + esc(e.text) + '</span>';
+  else if (e.type === 'detour') what = '<b>' + esc(CC.name(e)) + '</b> sent Link to fight ' + esc(e.text);
+  else if (e.type === 'detour-end') what = '<b>Boss detour</b> ' + esc(e.text) + ': ' + esc(e.result) + (e.bonus ? ' <span class="muted">(bonus: ' + esc(e.bonus) + ')</span>' : '');
+  else if (e.type === 'detour-rescue') what = '<b>' + esc(CC.name(e)) + '</b> rescued Link from the boss';
+  if (e.welcome) what += ' <span class="pill">regular · stream #' + e.welcome.streams + '</span>';
+  if (e.test) what += '<span class="tag">test</span>';
+  const fx = e.effectName ? '→ ' + esc(e.effectName) : e.tier ? esc(e.tier) : '';
+  return '<div class="ev' + (e.test ? ' test' : '') + '"><time>' + t + '</time>' + pic + '<div>' + what + '</div><div class="fx">' + fx + '</div></div>';
+}
+function paintLog() {
+  const list = (S.recent || []).filter((e) => e.type !== 'like' || e.count >= 1).slice(-60).reverse();
+  $('log').innerHTML = list.length ? list.map(evRow).join('') : '<p class="muted">Waiting for gifts, likes, follows and chat…</p>';
+}
+function fillGiftPicker() {
+  const sel = $('t-gift'), cur = sel.value;
+  sel.innerHTML = (S.catalog || []).map((g) => '<option value="' + esc(g.name) + '" data-coins="' + (g.coins ?? '') + '">' + esc(g.name) + (g.coins ? ' (' + g.coins + ')' : '') + '</option>').join('');
+  if (cur) sel.value = cur;
+}
+$('t-gift').onchange = () => { const o = $('t-gift').selectedOptions[0]; $('t-coins').placeholder = o && o.dataset.coins ? 'coins: ' + o.dataset.coins * (+$('t-count').value || 1) : 'coins'; };
+$('t-send').onclick = () => {
+  const o = $('t-gift').selectedOptions[0], count = Math.max(1, +$('t-count').value || 1);
+  const coins = $('t-coins').value !== '' ? +$('t-coins').value : (o && o.dataset.coins ? +o.dataset.coins * count : 1);
+  call('simulate', { kind: 'gift', user: $('t-user').value || 'TestViewer', gift: $('t-gift').value, count, coins, runEffect: $('t-run').checked });
+};
+document.querySelectorAll('[data-sim]').forEach((b) => b.onclick = () => call('simulate', { kind: b.dataset.sim, user: $('t-user').value || 'TestViewer', count: 50, runEffect: $('t-run').checked }));
+$('t-chat-send').onclick = () => { if ($('t-chat').value.trim()) call('simulate', { kind: 'chat', user: $('t-user').value || 'TestViewer', text: $('t-chat').value }); };
+$('t-chat').onkeydown = (e) => { if (e.key === 'Enter') $('t-chat-send').click(); };
+$('clear-alerts').onclick = () => call('clear-alerts', {}, 'Cleared');
+$('reset-stats').onclick = () => { if (confirm('Reset coins, gifts, likes, the top-gifters board and the event log?')) call('reset-stats', {}, 'Stream stats reset'); };
+
+// ── settings forms (data-s="path.to.key") ──
+const getPath = (o, p) => p.split('.').reduce((x, k) => x?.[k], o);
+const setPath = (o, p, v) => { const ks = p.split('.'); const last = ks.pop(); ks.reduce((x, k) => x[k], o)[last] = v; };
+function paintSettingsForms() {
+  // effect menus and the goal menu need their options before values are set
+  document.querySelectorAll('select[data-effects]').forEach((el) => { el.innerHTML = effectOptions(getPath(draft, el.dataset.s), el.hasAttribute('data-none')); });
+  $('dt-goal').innerHTML = '<option value="">— no goal —</option>' + S.settings.goals.map((g) => '<option value="' + esc(g.id) + '">' + esc(g.label) + '</option>').join('');
+  paintMysteryPool();
+  document.querySelectorAll('[data-s]').forEach((el) => {
+    const v = getPath(draft, el.dataset.s);
+    if (el.type === 'checkbox') el.checked = !!v; else el.value = v ?? '';
+  });
+  $('tts-banned').value = (draft.tts.bannedWords || []).join('\n');
+  paintAlertTiers(); paintCommands();
+}
+document.addEventListener('input', (ev) => {
+  const el = ev.target;
+  if (el.dataset && el.dataset.s) {
+    const v = el.type === 'checkbox' ? el.checked : el.type === 'number' || el.type === 'range' ? +el.value : el.value;
+    setPath(draft, el.dataset.s, v); markS();
+  }
+});
+document.addEventListener('change', (ev) => { if (ev.target.type === 'checkbox' && ev.target.dataset.s) { setPath(draft, ev.target.dataset.s, ev.target.checked); markS(); } });
+$('tts-banned').oninput = () => { draft.tts.bannedWords = $('tts-banned').value.split('\n').map((x) => x.trim()).filter(Boolean); markS(); };
+function markS() { sDirty = true; document.querySelectorAll('[data-dirty]').forEach((x) => x.textContent = 'Unsaved changes'); }
+document.querySelectorAll('[data-save-settings]').forEach((b) => b.onclick = async () => {
+  const keys = ['alerts', 'leaderboard', 'feed', 'tts', 'commands', 'votes', 'battle', 'mystery', 'combo', 'deathTax', 'predict', 'clips', 'hallOfFame', 'welcome', 'detour'];
+  await call('settings', { settings: Object.fromEntries(keys.map((k) => [k, draft[k]])) }, 'Saved');
+  sDirty = false; document.querySelectorAll('[data-dirty]').forEach((x) => x.textContent = '');
+});
+
+function paintAlertTiers() {
+  $('alert-tiers').innerHTML = draft.alerts.tiers.map((t, i) => '<tr><td><b>' + esc(t.name) + '</b></td>' +
+    '<td><input type="number" min="1" value="' + t.coins + '" data-tier="' + i + '" data-k="coins"> coins</td>' +
+    '<td><input value="' + esc(t.title) + '" data-tier="' + i + '" data-k="title"></td>' +
+    '<td><button class="small" data-test-tier="' + i + '">Test</button></td></tr>').join('');
+  $('alert-tiers').querySelectorAll('input').forEach((el) => el.oninput = () => { const t = draft.alerts.tiers[+el.dataset.tier]; t[el.dataset.k] = el.type === 'number' ? +el.value : el.value; markS(); });
+  $('alert-tiers').querySelectorAll('[data-test-tier]').forEach((b) => b.onclick = () => {
+    const t = draft.alerts.tiers[+b.dataset.testTier];
+    const g = (S.catalog || []).find((x) => x.coins && x.coins >= t.coins) || (S.catalog || [])[0] || { name: 'Rose' };
+    call('simulate', { kind: 'gift', user: $('t-user').value || 'TestViewer', gift: g.name, count: 1, coins: t.coins });
+  });
+}
+fetch('/sounds.json').then((r) => r.json()).then((f) => { $('sound-files').textContent = f.length ? 'Found: ' + f.join(', ') : ''; }).catch(() => {});
+
+// ── chat commands ──
+function paintCommands() {
+  $('cmd-rows').innerHTML = draft.commands.list.map((c, i) => '<tr><td><input value="' + esc(c.cmd) + '" data-ci="' + i + '" data-k="cmd" style="width:130px"></td>' +
+    '<td><input value="' + esc(c.text) + '" data-ci="' + i + '" data-k="text" style="width:100%"></td>' +
+    '<td style="white-space:nowrap"><button class="small" data-ctest="' + i + '">Test</button> <button class="small danger" data-cdel="' + i + '">✕</button></td></tr>').join('');
+  $('cmd-rows').querySelectorAll('input').forEach((el) => el.oninput = () => { draft.commands.list[+el.dataset.ci][el.dataset.k] = el.value; markS(); });
+  $('cmd-rows').querySelectorAll('[data-cdel]').forEach((b) => b.onclick = () => { draft.commands.list.splice(+b.dataset.cdel, 1); markS(); paintCommands(); });
+  $('cmd-rows').querySelectorAll('[data-ctest]').forEach((b) => b.onclick = () => {
+    if (sDirty) { toast('Save first, then test', true); return; }
+    call('simulate', { kind: 'chat', user: $('t-user').value || 'TestViewer', text: draft.commands.list[+b.dataset.ctest].cmd });
+  });
+}
+$('cmd-add').onclick = () => { draft.commands.list.push({ cmd: '!new', text: 'Reply text' }); markS(); paintCommands(); };
+
+// ── text-to-speech in this tab ──
+let ttsHere = false;
+try { ttsHere = localStorage.getItem('ccplus-tts-here') === '1'; } catch (e) {}
+$('tts-here').checked = ttsHere;
+$('tts-here').onchange = () => { ttsHere = $('tts-here').checked; try { localStorage.setItem('ccplus-tts-here', ttsHere ? '1' : '0'); } catch (e) {} };
+function voices() {
+  const vs = (window.speechSynthesis && speechSynthesis.getVoices()) || [];
+  const sel = $('tts-voice'), cur = draft ? draft.tts.voice : '';
+  sel.innerHTML = '<option value="">Default</option>' + vs.map((v) => '<option>' + esc(v.name) + '</option>').join('');
+  sel.value = cur || '';
+}
+if (window.speechSynthesis) speechSynthesis.onvoiceschanged = voices;
+function speak(text) {
+  if (!window.speechSynthesis || !S) return;
+  const T = S.settings.tts, u = new SpeechSynthesisUtterance(text);
+  const v = speechSynthesis.getVoices().find((x) => x.name === T.voice); if (v) u.voice = v;
+  u.rate = +T.rate || 1; u.volume = +T.volume; speechSynthesis.speak(u);
+}
+$('tts-test').onclick = () => speak((draft.tts.readNames ? 'TestViewer says: ' : '') + 'This is how chat messages will sound on stream.');
+
+// ── gift setup editor ──
+function effectOptions(sel, none) {
+  const eff = (S.effects || []);
+  return (none ? '<option value="">— nothing —</option>' : '') + eff.map((e) => '<option value="' + esc(e.id) + '"' + (e.id === sel ? ' selected' : '') + '>' + esc(e.name) + (e.secs ? ' (' + e.secs + 's)' : '') + '</option>').join('') +
+    (sel && !eff.some((e) => e.id === sel) ? '<option value="' + esc(sel) + '" selected>' + esc(sel) + ' (?)</option>' : '');
+}
+function newGDraft() {
+  const m = S.mapping;
+  gdraft = {
+    gifts: Object.entries(m.gifts).map(([name, effect]) => ({ name, effect, coins: m.giftCoins[name] ?? '' })),
+    coinTiers: JSON.parse(JSON.stringify(m.coinTiers || [])),
+    likes: (Array.isArray(m.likes) ? m.likes : m.likes && m.likes.every ? [m.likes] : []).map((t) => ({ every: +t.every || 0, effect: t.effect || '' })),
+    follow: m.follow || '', share: m.share || '', durations: { ...(m.durations || {}) }, maxPerGift: m.maxPerGift ?? 5,
+  };
+  gDirty = false; $('gifts-dirty').textContent = '';
+}
+function markG() { gDirty = true; $('gifts-dirty').textContent = 'Unsaved changes'; }
+function catalogFor(name) { return (S.catalog || []).find((g) => g.name.toLowerCase() === String(name).toLowerCase()); }
+function paintGifts() {
+  $('gift-rows').innerHTML = gdraft.gifts.map((g, i) => {
+    const c = catalogFor(g.name);
+    const icon = c && c.icon ? '<img class="gi" src="' + esc(c.icon) + '" alt="">' : '<div class="noicon">🎁</div>';
+    return '<tr><td>' + icon + '</td><td><input value="' + esc(g.name) + '" data-gi="' + i + '" data-k="name" style="width:200px"></td>' +
+      '<td><input type="number" min="0" value="' + esc(g.coins) + '" placeholder="' + (c && c.coins ? c.coins : 'auto') + '" data-gi="' + i + '" data-k="coins"></td>' +
+      '<td><select data-gi="' + i + '" data-k="effect">' + effectOptions(g.effect) + '</select></td>' +
+      '<td style="white-space:nowrap"><button class="small" data-gtest="' + i + '">Test</button> <button class="small danger" data-gdel="' + i + '">✕</button></td></tr>';
+  }).join('');
+  $('gift-rows').querySelectorAll('[data-gi]').forEach((el) => el[el.tagName === 'SELECT' ? 'onchange' : 'oninput'] = () => { gdraft.gifts[+el.dataset.gi][el.dataset.k] = el.value; markG(); });
+  $('gift-rows').querySelectorAll('[data-gdel]').forEach((b) => b.onclick = () => { gdraft.gifts.splice(+b.dataset.gdel, 1); markG(); paintGifts(); });
+  $('gift-rows').querySelectorAll('[data-gtest]').forEach((b) => b.onclick = () => { const g = gdraft.gifts[+b.dataset.gtest]; call('test-effect', { effect: g.effect, user: 'test' }, 'Sent ' + g.effect + ' to the game'); });
+  // tiers
+  $('tier-rows').innerHTML = gdraft.coinTiers.map((t, i) => '<tr><td><input type="number" min="1" value="' + t.coins + '" data-ti="' + i + '" data-k="coins"></td>' +
+    '<td><select data-ti="' + i + '" data-k="effect">' + effectOptions(t.effect) + '</select></td>' +
+    '<td><input value="' + esc(t.label || '') + '" data-ti="' + i + '" data-k="label" style="width:220px"></td>' +
+    '<td><button class="small danger" data-tdel="' + i + '">✕</button></td></tr>').join('');
+  $('tier-rows').querySelectorAll('[data-ti]').forEach((el) => el[el.tagName === 'SELECT' ? 'onchange' : 'oninput'] = () => { const t = gdraft.coinTiers[+el.dataset.ti]; t[el.dataset.k] = el.dataset.k === 'coins' ? +el.value : el.value; markG(); });
+  $('tier-rows').querySelectorAll('[data-tdel]').forEach((b) => b.onclick = () => { gdraft.coinTiers.splice(+b.dataset.tdel, 1); markG(); paintGifts(); });
+  // likes / follow / share
+  $('like-rows').innerHTML = gdraft.likes.map((t, i) => '<div class="row"><span style="min-width:170px" class="muted">Every</span>' +
+    '<input type="number" min="1" value="' + (t.every || '') + '" data-li="' + i + '" data-k="every" style="width:90px"> likes ' +
+    '<select data-li="' + i + '" data-k="effect">' + effectOptions(t.effect, true) + '</select> <button class="small danger" data-ldel="' + i + '">✕</button></div>').join('') ||
+    '<p class="hint">No like triggers. Add one below.</p>';
+  $('like-rows').querySelectorAll('[data-li]').forEach((el) => el[el.tagName === 'SELECT' ? 'onchange' : 'oninput'] = () => { const t = gdraft.likes[+el.dataset.li]; t[el.dataset.k] = el.dataset.k === 'every' ? +el.value : el.value; markG(); });
+  $('like-rows').querySelectorAll('[data-ldel]').forEach((b) => b.onclick = () => { gdraft.likes.splice(+b.dataset.ldel, 1); markG(); paintGifts(); });
+  $('follow-effect').innerHTML = effectOptions(gdraft.follow, true);
+  $('share-effect').innerHTML = effectOptions(gdraft.share, true);
+  $('max-per').value = gdraft.maxPerGift;
+  // durations
+  $('durations').innerHTML = (S.effects || []).filter((e) => e.secs).map((e) => '<label class="row" style="margin:3px 0"><span style="min-width:150px" class="muted">' + esc(e.name) + '</span><input type="number" min="1" value="' + (gdraft.durations[e.id] ?? e.secs) + '" data-dur="' + esc(e.id) + '" style="width:72px"> s</label>').join('') || '<p class="hint">Open the game and turn on Crowd effects to list them.</p>';
+  $('durations').querySelectorAll('[data-dur]').forEach((el) => el.oninput = () => { gdraft.durations[el.dataset.dur] = +el.value; markG(); });
+  // catalog + unmapped
+  $('gift-catalog').innerHTML = (S.catalog || []).map((g) => '<option value="' + esc(g.name) + '">').join('');
+  const mapped = new Set(gdraft.gifts.map((g) => g.name.toLowerCase()));
+  const un = (S.catalog || []).filter((g) => g.seen && !mapped.has(g.name.toLowerCase()));
+  $('unmapped').innerHTML = un.length ? '<p class="hint" style="margin-top:14px">Seen on stream but not set up: ' + un.map((g) => '<button class="small" data-addseen="' + esc(g.name) + '">+ ' + esc(g.name) + (g.coins ? ' (' + g.coins + ')' : '') + '</button>').join(' ') + '</p>' : '';
+  $('unmapped').querySelectorAll('[data-addseen]').forEach((b) => b.onclick = () => { gdraft.gifts.push({ name: b.dataset.addseen, effect: (S.effects[0] || {}).id || '', coins: '' }); markG(); paintGifts(); });
+}
+$('like-add').onclick = () => { const last = gdraft.likes[gdraft.likes.length - 1]; gdraft.likes.push({ every: last ? last.every * 2 : 300, effect: 'heal_1' }); markG(); paintGifts(); };
+$('follow-effect').onchange = () => { gdraft.follow = $('follow-effect').value; markG(); };
+$('share-effect').onchange = () => { gdraft.share = $('share-effect').value; markG(); };
+$('max-per').oninput = () => { gdraft.maxPerGift = Math.max(1, +$('max-per').value || 1); markG(); };
+$('gift-add').onclick = () => { const n = $('gift-new').value.trim(); if (!n) return; if (gdraft.gifts.some((g) => g.name.toLowerCase() === n.toLowerCase())) { toast(n + ' is already in the list', true); return; } gdraft.gifts.push({ name: n, effect: (S.effects[0] || {}).id || '', coins: '' }); $('gift-new').value = ''; markG(); paintGifts(); };
+$('tier-add').onclick = () => { gdraft.coinTiers.push({ coins: 500, effect: 'seed_roll', label: '' }); markG(); paintGifts(); };
+$('gifts-undo').onclick = () => { newGDraft(); paintGifts(); };
+$('gifts-save').onclick = async () => {
+  const gifts = {}, giftCoins = {};
+  for (const g of gdraft.gifts) { const n = g.name.trim(); if (!n || !g.effect) continue; gifts[n] = g.effect; if (g.coins !== '' && +g.coins > 0) giftCoins[n] = +g.coins; }
+  const durations = {}; for (const [k, v] of Object.entries(gdraft.durations)) if (+v > 0) durations[k] = +v;
+  const mapping = {
+    gifts, giftCoins, coinTiers: gdraft.coinTiers.filter((t) => +t.coins > 0 && t.effect).map((t) => ({ coins: +t.coins, effect: t.effect, ...(t.label ? { label: t.label } : {}) })),
+    likes: gdraft.likes.filter((t) => +t.every > 0 && t.effect).map((t) => ({ every: +t.every, effect: t.effect })),
+    follow: gdraft.follow, share: gdraft.share, durations, maxPerGift: gdraft.maxPerGift,
+  };
+  await call('mapping', { mapping }, 'Gift setup saved. The bridge uses it right away.');
+  gDirty = false; $('gifts-dirty').textContent = ''; gdraft = null;
+};
+
+// ── goals ──
+function paintGoals() {
+  $('goals').innerHTML = S.settings.goals.map((g) => {
+    const pct = Math.min(100, (g.current / g.target) * 100 || 0);
+    return '<div class="card goal" data-goal="' + esc(g.id) + '">' +
+      '<div class="row" style="margin:0"><input value="' + esc(g.label) + '" data-gk="label" style="flex:1;font-weight:700">' +
+      '<label><input type="checkbox" data-gk="show"' + (g.show ? ' checked' : '') + '> On stream</label></div>' +
+      '<div class="row" style="margin:0"><select data-gk="type">' + ['coins', 'likes', 'follows', 'shares', 'gifts'].map((t) => '<option' + (t === g.type ? ' selected' : '') + '>' + t + '</option>').join('') + '</select>' +
+      '<span class="muted">target</span><input type="number" min="1" value="' + g.target + '" data-gk="target">' +
+      '<span class="muted">now</span><input type="number" min="0" value="' + g.current + '" data-gk="current"></div>' +
+      '<div class="meter"><i style="width:' + pct + '%"></i></div>' +
+      '<div class="row" style="margin:0"><b>' + CC.num(g.current) + ' / ' + CC.num(g.target) + '</b><span class="muted">' + Math.floor(pct) + '%</span>' +
+      '<span style="margin-left:auto"></span><button class="small" data-gop="adjust" data-amt="100">+100</button><button class="small" data-gop="adjust" data-amt="-100">−100</button>' +
+      '<button class="small" data-gop="reset">Reset</button><button class="small primary" data-gop="update">Save</button><button class="small danger" data-gop="remove">✕</button></div></div>';
+  }).join('');
+  $('goals').querySelectorAll('[data-gop]').forEach((b) => b.onclick = () => {
+    const card = b.closest('[data-goal]'), id = card.dataset.goal, op = b.dataset.gop;
+    if (op === 'remove' && !confirm('Remove this goal?')) return;
+    const goal = {}; card.querySelectorAll('[data-gk]').forEach((el) => goal[el.dataset.gk] = el.type === 'checkbox' ? el.checked : el.value);
+    call('goal', { id, op, amount: +b.dataset.amt || 0, goal }, op === 'update' ? 'Goal saved' : null);
+  });
+}
+$('goal-add').onclick = () => call('goal', { op: 'add' }, 'Goal added');
+
+// ── overlays ──
+const OVS = [
+  ['run', 'Run stats', 'Deaths, checks, where Link is, music and seed, live from the game. ?layout=column for a box; ?hide=seed,music to hide parts.', '1000 x 90 (box: 320 x 330)'],
+  ['vote', 'Chat vote', 'The vote and its results.', '560 x 420'],
+  ['battle', 'Team battle', 'Light World vs Dark World tug of war.', '900 x 200'],
+  ['mystery', 'Mystery box', 'The slot machine.', '700 x 260'],
+  ['combo', 'Combo meter', 'The gift combo while it lasts.', '360 x 200'],
+  ['predict', 'Prediction', 'The question, the votes, and who called it.', '620 x 300'],
+  ['halloffame', 'Hall of fame', 'All-time top gifters.', '420 x 420'],
+  ['welcome', 'Welcome back', 'Pops up when a regular shows up.', '520 x 140'],
+  ['alerts', 'Gift alerts', 'Pops up with the viewer, the gift and what it did in the game, with a sound. Bigger donations get bigger alerts.', '1920 x 1080 (full screen, it centers itself)'],
+  ['goal', 'Goal bar', 'The goals ticked "On stream", filling up live.', '800 x 160 (one goal; add 110 height per extra goal)'],
+  ['leaderboard', 'Top gifters', 'This stream\'s biggest gifters.', '420 x 420'],
+  ['feed', 'Recent events', 'The latest gifts, follows and shares, newest on top.', '460 x 420'],
+  ['commands', 'Chat commands', 'Shows the reply when a viewer types a command like !rules.', '900 x 220'],
+  ['ticker', 'Scrolling gift list', 'Every gift and what it does, scrolling.', '1920 x 72'],
+  ['timer', 'Subathon clock', 'The subathon countdown.', '600 x 190'],
+];
+function paintOverlays() {
+  const base = location.origin;
+  $('ov-list').innerHTML = OVS.map(([id, name, desc, size]) => {
+    const u = base + (id === 'ticker' || id === 'timer' ? '/' + id : '/overlay/' + id);
+    return '<div class="card ov"><div><h3>' + name + '</h3><p class="hint">' + desc + '</p>' +
+      '<div class="url"><input readonly value="' + u + '"><button class="small" data-copy="' + u + '">Copy</button><a class="btn small" href="' + u + '" target="_blank">Open</a></div>' +
+      '<p class="hint">Size: ' + size + '</p></div>' +
+      '<div class="prev"><iframe loading="lazy" src="' + u + (u.includes('?') ? '&' : '?') + 'preview=1"></iframe></div></div>';
+  }).join('');
+  $('ov-list').querySelectorAll('[data-copy]').forEach((b) => b.onclick = () => { navigator.clipboard?.writeText(b.dataset.copy).then(() => toast('Copied')).catch(() => toast('Select the address and copy it', true)); });
+}
+
+// ── subathon ──
+let tmAt = 0;
+function paintClock() {
+  const t = S && S.timer; if (!t) return;
+  const left = t.running ? t.remaining - (Date.now() - tmAt) / 1000 : t.remaining;
+  $('clock').textContent = !t.active ? '–:––:––' : t.ended ? 'TIME!' : CC.fmt(Math.ceil(left));
+  $('clock-state').textContent = !t.active ? 'Not set: choose a starting time and press Set' : t.ended ? 'Finished. Adjust adds time to keep going.' : (t.running ? 'Running' : 'Paused');
+}
+setInterval(paintClock, 250);
+function paintTimerSide() {
+  const t = S.timer || {};
+  if (document.activeElement !== $('tm-cps')) $('tm-cps').value = t.coinsPerSecond ?? (S.mapping.timer.coinsPerSecond || 1);
+  $('tm-enabled').checked = S.mapping.timer.enabled !== false;
+  $('tm-rate').textContent = (t.rate || '') + (t.coinsPerSecond ? ' · ' + CC.num(Math.round(3600 * t.coinsPerSecond)) + ' coins per hour' : '');
+  $('tm-log').innerHTML = (t.log || []).slice(0, 8).map((l) => '<div>' + esc(l.user || '') + ' <b style="color:' + (l.seconds < 0 ? '#ff8a92' : '#3fb950') + '">' + (l.seconds < 0 ? '−' : '+') + CC.fmt(Math.abs(l.seconds)) + '</b> <span>' + esc(l.why || '') + '</span></div>').join('') || 'Nothing yet';
+}
+async function tm(op, seconds) { const r = await call('timer', { op, seconds }); if (r && r.timer) { S.timer = r.timer; tmAt = Date.now(); paintClock(); paintTimerSide(); } }
+$('tm-set').onclick = () => { const s = (+$('tm-h').value || 0) * 3600 + (+$('tm-m').value || 0) * 60; if (s <= 0) return toast('Choose a starting time first', true); if (S.timer.active && !S.timer.ended && !confirm('Replace the running clock?')) return; tm('set', s); };
+$('tm-start').onclick = () => tm('start');
+$('tm-pause').onclick = () => tm('pause');
+$('tm-off').onclick = () => { if (confirm('Turn the clock off? It disappears from the stream.')) tm('off'); };
+document.querySelectorAll('[data-tm]').forEach((b) => b.onclick = () => tm('add', +b.dataset.tm));
+$('tm-save').onclick = () => call('mapping', { mapping: { timer: { ...(S.mapping.timer || {}), enabled: $('tm-enabled').checked, coinsPerSecond: Math.max(0.05, +$('tm-cps').value || 1) } } }, 'Saved');
+
+// ── profiles ──
+function paintProfiles() {
+  $('pf-rows').innerHTML = (S.profiles || []).map((n) => '<tr><td><b>' + esc(n) + '</b></td><td style="text-align:right"><button class="small primary" data-pload="' + esc(n) + '">Load</button> <button class="small" data-psave="' + esc(n) + '">Overwrite</button> <button class="small danger" data-pdel="' + esc(n) + '">✕</button></td></tr>').join('') || '<tr><td class="muted">No profiles yet.</td></tr>';
+  $('pf-rows').querySelectorAll('[data-pload]').forEach((b) => b.onclick = () => { if (confirm('Load "' + b.dataset.pload + '"? Your current gift setup and settings are replaced (save them as a profile first if you want to keep them).')) call('profile-load', { name: b.dataset.pload, keepGoals: $('pf-keep').checked }, 'Loaded ' + b.dataset.pload).then(() => { gdraft = null; draft = null; }); });
+  $('pf-rows').querySelectorAll('[data-psave]').forEach((b) => b.onclick = () => { if (confirm('Overwrite "' + b.dataset.psave + '" with the current setup?')) call('profile-save', { name: b.dataset.psave }, 'Saved'); });
+  $('pf-rows').querySelectorAll('[data-pdel]').forEach((b) => b.onclick = () => { if (confirm('Delete "' + b.dataset.pdel + '"?')) call('profile-delete', { name: b.dataset.pdel }); });
+}
+$('pf-save').onclick = () => { const n = $('pf-name').value.trim(); if (!n) return toast('Give the profile a name', true); call('profile-save', { name: n }, 'Saved "' + n + '"').then(() => $('pf-name').value = ''); };
+
+// ── live games ──
+const effName = (id) => ((S.effects || []).find((e) => e.id === id) || {}).name || id;
+let pvOpts = [{ label: 'Ice physics', effect: 'ice' }, { label: 'Cucco attack', effect: 'cucco_storm' }, { label: 'Mirror mode', effect: 'mirror' }];
+function paintPvOpts() {
+  $('pv-opts').innerHTML = pvOpts.map((o, i) => '<div class="row"><span class="kbd">' + (i + 1) + '</span><input value="' + esc(o.label) + '" data-pv="' + i + '" data-k="label" style="width:200px">' +
+    '<select data-pv="' + i + '" data-k="effect">' + effectOptions(o.effect, true) + '</select>' + (pvOpts.length > 2 ? '<button class="small danger" data-pvdel="' + i + '">✕</button>' : '') + '</div>').join('');
+  $('pv-opts').querySelectorAll('[data-pv]').forEach((el) => el[el.tagName === 'SELECT' ? 'onchange' : 'oninput'] = () => {
+    const o = pvOpts[+el.dataset.pv]; o[el.dataset.k] = el.value;
+    if (el.dataset.k === 'effect' && el.value) { o.label = effName(el.value); paintPvOpts(); }
+  });
+  $('pv-opts').querySelectorAll('[data-pvdel]').forEach((b) => b.onclick = () => { pvOpts.splice(+b.dataset.pvdel, 1); paintPvOpts(); });
+}
+const BAD = ['invert', 'no_sword', 'no_item', 'swap_by', 'ice', 'cucco_storm', 'one_hit', 'no_magic', 'mirror', 'upside_down', 'wobble', 'tiny', 'speed_up', 'enemy_spawn', 'freeze'];
+const GOOD = ['heal_full', 'magic_full', 'rupees_plus', 'bombs_plus', 'arrows_plus', 'slow_mo', 'fairy', 'pink_link', 'crt'];
+function pickFrom(list, n) { const have = new Set((S.effects || []).map((e) => e.id)); const pool = list.filter((x) => have.has(x)); const out = []; while (out.length < n && pool.length) out.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]); return out; }
+$('pv-more').onclick = () => { if (pvOpts.length < 4) { pvOpts.push({ label: 'Choice ' + (pvOpts.length + 1), effect: '' }); paintPvOpts(); } };
+$('pv-random').onclick = () => { $('pv-q').value = 'PICK THE NEXT CURSE'; pvOpts = pickFrom(BAD, 3).map((id) => ({ label: effName(id), effect: id })); paintPvOpts(); };
+$('pv-blessing').onclick = () => { $('pv-q').value = 'CURSE OR BLESSING?'; const [b] = pickFrom(BAD, 1), [g] = pickFrom(GOOD, 1); pvOpts = [{ label: 'Curse: ' + effName(b), effect: b }, { label: 'Blessing: ' + effName(g), effect: g }]; paintPvOpts(); };
+$('pv-dungeon').onclick = () => { $('pv-q').value = 'WHICH DUNGEON NEXT?'; pvOpts = [{ label: 'Eastern Palace', effect: '' }, { label: 'Desert Palace', effect: '' }, { label: 'Tower of Hera', effect: '' }]; paintPvOpts(); };
+$('pv-start').onclick = () => call('poll-start', { question: $('pv-q').value, options: pvOpts, seconds: draft.votes.seconds }, 'Vote started');
+$('pv-end').onclick = () => call('poll-end', {});
+$('pv-cancel').onclick = () => call('poll-cancel', {}, 'Vote cancelled');
+function paintPollNow(P) {
+  if (!P) { $('pv-now').innerHTML = '<span class="muted">No vote running.</span>'; return; }
+  const total = P.options.reduce((n, o) => n + o.votes, 0);
+  $('pv-now').innerHTML = '<b>' + esc(P.question) + '</b> <span class="pill">' + (P.done ? 'done' : Math.max(0, Math.ceil((P.endsAt - Date.now()) / 1000)) + 's left') + '</span>' +
+    P.options.map((o, i) => '<div class="row" style="margin:6px 0"><span class="kbd">' + (i + 1) + '</span><span style="flex:1">' + esc(o.label) + (o.effect ? ' <span class="muted">→ ' + esc(effName(o.effect)) + '</span>' : '') + '</span><b>' + o.votes + '</b>' + (P.done && i === P.winner ? ' 🏆' : '') + '</div>' +
+      '<div class="meter"><i style="width:' + (total ? o.votes / total * 100 : 0) + '%"></i></div>').join('');
+}
+$('bt-start').onclick = () => call('battle-start', { names: draft.battle.names, effects: draft.battle.effects, target: draft.battle.target, minutes: +$('bt-min').value || 0 }, 'Battle started');
+$('bt-end').onclick = () => call('battle-end', {});
+$('bt-cancel').onclick = () => call('battle-cancel', {}, 'Battle cancelled');
+document.querySelectorAll('[data-bt]').forEach((b) => b.onclick = () => call('battle-add', { team: +b.dataset.bt, amount: +b.dataset.amt }));
+function paintBattleNow(B) {
+  if (!B) { $('bt-now').innerHTML = '<span class="muted">No battle running.</span>'; return; }
+  const tot = B.scores[0] + B.scores[1];
+  $('bt-now').innerHTML = [0, 1].map((i) => '<div class="row" style="margin:6px 0"><b style="flex:1">' + esc(B.names[i]) + '</b><span class="muted">' + B.members[i] + ' joined</span> <b>' + CC.num(B.scores[i]) + '</b>' + (B.done && B.winner === i ? ' 🏆' : '') + '</div>' +
+    '<div class="meter"><i style="width:' + (tot ? B.scores[i] / tot * 100 : 50) + '%"></i></div>').join('') +
+    '<p class="hint">' + (B.done ? esc(B.names[B.winner]) + ' won' + (B.effects[B.winner] ? ' → ' + esc(effName(B.effects[B.winner])) : '') : (B.target ? 'First to ' + CC.num(B.target) + ' coins' : '') + (B.endsAt ? ' · ends ' + new Date(B.endsAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '')) + '</p>';
+}
+function paintMysteryPool() {
+  const pool = new Set(draft.mystery.pool || []);
+  $('mb-pool').innerHTML = (S.effects || []).filter((e) => e.id !== 'mystery_box').map((e) => '<label class="check" style="margin:3px 0"><input type="checkbox" data-mb="' + esc(e.id) + '"' + (pool.has(e.id) ? ' checked' : '') + '> ' + esc(e.name) + '</label>').join('');
+  $('mb-pool').querySelectorAll('[data-mb]').forEach((el) => el.onchange = () => {
+    const set = new Set(draft.mystery.pool || []); el.checked ? set.add(el.dataset.mb) : set.delete(el.dataset.mb);
+    draft.mystery.pool = [...set]; markS();
+  });
+}
+$('dt-boss-go').onclick = () => call('test-boss', { boss: $('dt-boss').value, user: $('t-user').value || 'TestViewer' }, 'Sent to the game');
+document.querySelectorAll('[data-test-detour]').forEach((b) => b.onclick = () => call('test-effect', { effect: b.dataset.testDetour, user: $('t-user').value || 'TestViewer' }, 'Sent to the game'));
+$('mb-test').onclick = () => call('mystery', { user: $('t-user').value || 'Streamer' });
+$('pd-start').onclick = () => call('predict-start', { question: $('pd-q').value, labels: [$('pd-a').value, $('pd-b').value], seconds: draft.predict.seconds }, 'Prediction started');
+$('pd-lock').onclick = () => call('predict-lock', {});
+$('pd-yes').onclick = () => call('predict-resolve', { result: 0 });
+$('pd-no').onclick = () => call('predict-resolve', { result: 1 });
+$('pd-cancel').onclick = () => call('predict-cancel', {}, 'Prediction cancelled');
+function paintPredNow(P) {
+  if (!P) { $('pd-now').innerHTML = '<span class="muted">No prediction running.</span>'; return; }
+  $('pd-now').innerHTML = '<b>' + esc(P.question) + '</b> <span class="pill">' + (P.result >= 0 ? 'answered: ' + esc(P.labels[P.result]) : P.locked ? 'locked' : Math.max(0, Math.ceil((P.locksAt - Date.now()) / 1000)) + 's to vote') + '</span>' +
+    [0, 1].map((i) => '<div class="row" style="margin:6px 0"><span class="kbd">' + esc(P.words[i]) + '</span><span style="flex:1">' + esc(P.labels[i]) + '</span><b>' + P.counts[i] + '</b></div>').join('') +
+    (P.result >= 0 ? '<p class="hint">Called it: ' + (P.winners.length ? P.winners.map(esc).join(', ') : 'nobody') + '</p>' : '');
+}
+
+// ── run & stream ──
+function paintRunNow(r) {
+  r = r || {};
+  $('run-now').innerHTML = [['Deaths', r.deaths || 0], ['Checks', r.checks || 0], ['Where', r.place || '—'], ['Music', r.music || 'Game music'], ['Seed', (r.seed || '—').replace(/^ALttPR\s*-\s*/i, '')]]
+    .map(([k, v]) => '<div class="stat"><span>' + k + '</span><b style="font-size:' + (String(v).length > 10 ? 11 : 16) + 'px">' + esc(v) + '</b></div>').join('') +
+    '<p class="hint" style="grid-column:1/-1;margin:0">' + (r.at ? 'Updated ' + new Date(r.at).toLocaleTimeString() : 'Waiting for the game (turn on Crowd effects in Rando Hub).') + '</p>';
+}
+$('run-test').onclick = () => call('run-test', {});
+$('dt-test').onclick = () => call('death-test', {}, 'Test death sent');
+const fmtElapsed = (s) => Math.floor(s / 3600) + ':' + String(Math.floor(s / 60) % 60).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+const CLIP_ICON = { detour: '⚔', gift: '🎁', seed: '🎲', death: '☠', vote: '🗳', battle: '⚔', combo: '🔥', predict: '🔮', chat: '💬', manual: '📌' };
+function paintClips() {
+  const list = ((S.live && S.live.clips) || []).slice().reverse();
+  $('cl-list').innerHTML = list.length ? list.map((c) => '<div class="ev" style="grid-template-columns:80px 26px 1fr auto"><time title="' + new Date(c.at).toLocaleString() + '">' + fmtElapsed(c.elapsed) + '</time><span class="ic">' + (CLIP_ICON[c.kind] || '📌') + '</span><div>' + esc(c.label) +
+    ' <span class="muted" style="font-size:11.5px">' + new Date(c.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + '</span></div><button class="small danger" data-cldel="' + esc(c.id) + '">✕</button></div>').join('') : '<p class="muted">No clips yet.</p>';
+  $('cl-list').querySelectorAll('[data-cldel]').forEach((b) => b.onclick = () => call('clip-delete', { id: b.dataset.cldel }));
+}
+$('cl-add').onclick = () => call('clip-add', { label: $('cl-label').value || undefined }, 'Marked').then(() => $('cl-label').value = '');
+$('cl-label').onkeydown = (e) => { if (e.key === 'Enter') $('cl-add').click(); };
+$('cl-clear').onclick = () => { if (confirm('Clear every clip marker?')) call('clips-clear', {}); };
+$('cl-export').onclick = () => {
+  const list = (S.live && S.live.clips) || [];
+  const txt = 'Stream time\tClock time\tWhat\n' + list.map((c) => fmtElapsed(c.elapsed) + '\t' + new Date(c.at).toLocaleString() + '\t' + c.label).join('\n') + '\n';
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([txt], { type: 'text/plain' })); a.download = 'clip-markers-' + new Date().toISOString().slice(0, 10) + '.txt'; a.click();
+};
+function paintFame() {
+  const f = (S.live && S.live.fame) || [];
+  $('hf-list').innerHTML = f.length ? f.map((g, i) => '<tr><td class="muted">' + (i + 1) + '</td><td><b>' + esc(g.nickname || g.user) + '</b></td><td style="text-align:right">' + CC.num(g.coins) + ' coins</td><td class="muted" style="text-align:right">' + g.gifts + ' gifts</td><td><button class="small danger" data-hfdel="' + esc(g.user) + '">✕</button></td></tr>').join('') : '<tr><td class="muted">Nobody yet.</td></tr>';
+  $('hf-list').querySelectorAll('[data-hfdel]').forEach((b) => b.onclick = () => { if (confirm('Remove ' + b.dataset.hfdel + ' from the hall of fame?')) call('fame-remove', { user: b.dataset.hfdel }); });
+  $('wb-known').textContent = S.live ? CC.num(S.live.viewersKnown) + ' viewers remembered so far.' : '';
+}
+$('hf-reset').onclick = () => { if (confirm('Reset the all-time hall of fame? This can\'t be undone.')) call('fame-reset', {}, 'Hall of fame reset'); };
+$('wb-test').onclick = () => call('welcome-test', { user: $('t-user').value || 'RegularViewer' });
+function paintLive() { const L = S.live || {}; paintPollNow(L.poll); paintBattleNow(L.battle); paintPredNow(L.predict); paintRunNow(L.run); paintClips(); paintFame(); }
+setInterval(() => { if (S && S.live) { paintPollNow(S.live.poll); paintPredNow(S.live.predict); } }, 1000);
+CC.on('live', (d) => {
+  if (!S || !S.live) return;
+  if (d.fame) S.live.fame = d.fame;
+  paintLive();
+});
+let pvPainted = false;
+let fxTestsKey = '';
+function paintFxTests() {
+  const list = (S.effects || []).slice().sort((a, b) => String(a.name).localeCompare(String(b.name)));
+  const key = list.map((e) => e.id + e.name).join('|');
+  if (key === fxTestsKey) return; fxTestsKey = key;
+  const el = $('fx-tests');
+  el.innerHTML = list.length ? list.map((e) => '<button class="small" data-fxtest="' + esc(e.id) + '" title="' + esc(e.id) + '">' + esc(e.name) + '</button>').join('')
+    : '<span class="hint">Open the game and turn on Crowd effects to list them.</span>';
+  el.querySelectorAll('[data-fxtest]').forEach((b) => b.onclick = () => call('test-effect', { effect: b.dataset.fxtest, user: ($('t-user') && $('t-user').value) || 'TestViewer' }, 'Sent ' + effName(b.dataset.fxtest) + ' to the game'));
+}
+
+// ── wiring ──
+let overlaysPainted = false;
+CC.on('state', (d) => {
+  S = d; tmAt = Date.now();
+  chips(S); paintConn(); paintStats(); paintLog(); fillGiftPicker(); paintGoals(); paintTimerSide(); paintProfiles();
+  if (!sDirty || !draft) { draft = JSON.parse(JSON.stringify(S.settings)); paintSettingsForms(); voices(); }
+  if (!gDirty || !gdraft) { if (!gdraft || !gDirty) newGDraft(); paintGifts(); }
+  if (!overlaysPainted) { overlaysPainted = true; paintOverlays(); }
+  paintLive(); paintFxTests();
+  if (!pvPainted) { pvPainted = true; paintPvOpts(); }
+});
+CC.on('event', (d) => {
+  if (!S) return;
+  paintStats(); paintLog();
+  if (d.goals && !document.activeElement?.closest('#goals')) paintGoals();
+  if (d.ev.speak && ttsHere && S.settings.tts.enabled) speak(d.ev.speak);
+});
+window.addEventListener('beforeunload', (e) => { if (gDirty || sDirty) { e.preventDefault(); e.returnValue = ''; } });
+</script>
+</body></html>

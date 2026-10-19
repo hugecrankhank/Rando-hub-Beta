@@ -1,0 +1,38 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Combo meter</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="/studio/overlay.css">
+<style>
+  /* 360 x 200. Appears while gifts keep coming. */
+  body { padding: calc(10px * var(--scale)); }
+  .card { width: calc(320px * var(--scale)); padding: calc(12px * var(--scale)) calc(16px * var(--scale)); text-align: center; opacity: 0; transform: scale(.8); transition: opacity .3s, transform .3s; }
+  .card.on { opacity: 1; transform: none; }
+  .x { font-size: calc(46px * var(--scale)); line-height: 1.1; color: #fff; }
+  .x.hit { animation: hit .35s; } @keyframes hit { 40% { transform: scale(1.25); color: #ffd166; } }
+  .lab { font-size: calc(12px * var(--scale)); color: #ff8a92; margin-top: calc(4px * var(--scale)); }
+  .next { font: 600 calc(13px * var(--scale)) var(--sans); color: #c9c0e6; margin-top: calc(6px * var(--scale)); }
+  .timer { height: calc(6px * var(--scale)); border-radius: 9px; background: rgba(255,255,255,.12); overflow: hidden; margin-top: calc(10px * var(--scale)); }
+  .timer i { display: block; height: 100%; background: var(--red); transform-origin: left; }
+  .bonus .x { color: #ffd166; } .bonus { border-color: #ffd166; box-shadow: 0 0 calc(30px * var(--scale)) rgba(255,209,102,.7); }
+</style></head>
+<body>
+<div class="card box" id="card"><div class="x pix shadow" id="x">x0</div><div class="lab pix">GIFT COMBO</div><div class="next" id="next"></div><div class="timer"><i id="t"></i></div></div>
+<div class="offline-note">Waiting for the Crowd Control+ bridge…</div>
+<script src="/studio/common.js"></script>
+<script>
+const $ = (i) => document.getElementById(i); let C = null, bonusT = null;
+function paint(hit) {
+  const on = C && C.n > 0; $('card').classList.toggle('on', !!on); if (!on) return;
+  $('x').textContent = 'x' + C.n;
+  if (hit) { $('x').classList.remove('hit'); void $('x').offsetWidth; $('x').classList.add('hit'); }
+  const at = C.at || 10, left = at - (C.n % at);
+  $('next').textContent = C.bonus ? 'BONUS UNLOCKED!' : left + ' more for a bonus';
+  if (C.bonus) { $('card').classList.add('bonus'); clearTimeout(bonusT); bonusT = setTimeout(() => $('card').classList.remove('bonus'), 2500); }
+  const t = $('t'), ms = Math.max(0, C.endsAt - Date.now());
+  t.style.transition = 'none'; t.style.transform = 'scaleX(1)';
+  requestAnimationFrame(() => { t.style.transition = 'transform ' + ms + 'ms linear'; t.style.transform = 'scaleX(0)'; });
+}
+CC.on('live', (d) => { if (d.combo) { C = d.combo; paint(true); } });
+CC.on('state', () => { if (CC.q.get('preview') === '1') { C = { n: 7, at: 10, endsAt: Date.now() + 8000 }; paint(); } });
+</script>
+</body></html>

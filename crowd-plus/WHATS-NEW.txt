@@ -1,0 +1,90 @@
+CROWD CONTROL+  -  WHAT'S NEW
+=============================
+
+Crowd Control+ is Rando Hub's crowd control: the gift bridge with a
+control panel and stream overlays. Every gift effect, big-donation seed
+roll and the subathon clock work exactly as before.
+
+NEW IN 1.6.0
+------------
+- New effects: Random enemy (one that fits the area), Small magic
+  refill, Warp to a random dungeon, Flute warp (random flute spot),
+  Random warp (either).
+- Several like triggers at once, e.g. +1 heart every 300 likes, small
+  magic every 500, full heal every 2000 (Gifts & effects tab).
+- Boss detour "random boss" only picks bosses you haven't beaten yet.
+
+NEW IN 1.5.0
+------------
+- LOCAL SIGNER (recommended): no TikFinity needed. Type your TikTok name
+  on the Dashboard and click Connect. Crowd Control+ opens your LIVE page
+  in its own Chrome / Edge window (log in once, keep it open, it's muted)
+  and reads gifts, likes, follows, shares and chat from it. Free, no keys.
+- TikFinity stays as a one-click backup if a TikTok update breaks the
+  local signer: Dashboard -> TikTok connection -> "TikFinity (backup)".
+- Old mapping.json files keep using TikFinity until you switch.
+
+NEW IN 1.4.0
+------------
+- Crowd Control+ is now Rando Hub's only crowd control. The old
+  panel-less "Crowd Control" folder is retired (see "Moving over" below).
+- Test buttons in both places: "Test any effect" on the Gifts & effects
+  tab (every effect, mystery box, rescue), and in the game's ... menu
+  "Test one boss", "Fake gift" and "Mystery box" next to the effect tests.
+
+NEW IN 1.2.0
+------------
+- Boss detour: a gift sends Link to fight Ganon, Agahnim or a random
+  boss. The game saves first and loads it back when the fight ends, so
+  nothing is lost. Rewards for winning or surviving, a "rescue" gift,
+  gold alerts on stream, test buttons on the Live games tab
+  (needs Rando Hub 1.2.0 or newer)
+
+NEW IN 1.1.0
+------------
+- Live games: chat votes, team battle (Light vs Dark World), mystery box
+  slot machine, combo meter, predictions (!yes / !no)
+- Run stats overlay: deaths, checks, where Link is, music, seed
+- Death tax: each death adds subathon time and/or moves a goal
+- Clip markers (automatic, Mark now, and viewers' !clip), with download
+- Hall of fame (all-time gifters) and "welcome back" pop-ups for regulars
+- New effects: mirror, upside down, wobble, tiny screen, retro CRT,
+  speed up, slow motion, freeze, fairy / bee in a bottle, pink Link,
+  music roulette (needs Rando Hub 1.1.0 or newer)
+
+NEW IN 1.0
+----------
+1. Control panel (http://localhost:21214/studio, opens by itself)
+     - Gift setup with menus and gift pictures, no more editing files
+     - Test buttons for every gift, effect and alert
+     - Live event log and stream totals
+     - Gifts seen on stream that aren't set up yet, one click to add
+     - Subathon clock controls
+     - Profiles: save and switch whole setups
+
+2. Stream overlays for OBS / TikTok LIVE Studio
+     - Gift alerts with sounds and confetti (small, big, huge)
+     - Goal bars (coins, likes, follows, shares or gifts)
+     - Top gifters leaderboard
+     - Recent events feed
+     - Chat command replies
+   All in the Rando Hub style: pixel lettering, dice, red and white.
+
+3. Chat
+     - Read chat aloud (text-to-speech) with filters
+     - Chat commands like !effects, !rules and !timer, plus your own
+
+4. The scrolling gift list and the subathon clock now use the Rando Hub
+   red instead of gold.
+
+
+MOVING OVER FROM THE OLD CROWD CONTROL (RETIRED IN 1.4.0)
+---------------------------------------------------------
+1. Close the old bridge's black window for good.
+2. Extract Crowd Control+ to its own folder.
+3. Copy your old mapping.json into it (say Yes to replace), so your gift
+   setup comes along. timer-state.json can be copied the same way to
+   keep your subathon clock.
+4. Double-click "Start Crowd Control+.bat".
+The game's Crowd effects address stays ws://localhost:21214.
+Full guide: INSTRUCTIONS.txt.

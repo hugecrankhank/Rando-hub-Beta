@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ALTTPR Stream</title>
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<!--
+  The Stream window (Desktop layout, the Stream button; see desktop.js).
+
+  Items, dungeons and both worlds in one window, for a single capture in OBS.
+  The item tracker and the map are two separate pages (each with its own
+  styles), so this window holds two pop-out pages (popout.html?embed=1), one
+  per tracker. Each works exactly like a pop-out window of its own, with its
+  own options under its ☰ handle. This page adds the layout around them: maps
+  below or beside the items, a divider you can drag, one background for both.
+-->
+<style>
+  :root { --line: #2a313c; --text: #e6e9ee; --dim: #8b95a3; --accent: #5fbf6f; --split: 38%; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #000; color: var(--text);
+    font: 13px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  #wrap { position: fixed; inset: 0; display: grid; grid-template-rows: var(--split) 6px 1fr; grid-template-columns: 100%; }
+  body.beside #wrap { grid-template-columns: var(--split) 6px 1fr; grid-template-rows: 100%; }
+  body.no-items #wrap { grid-template-rows: 0 0 1fr; }
+  body.no-maps #wrap { grid-template-rows: 1fr 0 0; }
+  body.beside.no-items #wrap { grid-template-columns: 0 0 1fr; }
+  body.beside.no-maps #wrap { grid-template-columns: 1fr 0 0; }
+  iframe { width: 100%; height: 100%; border: 0; display: block; background: transparent; min-width: 0; min-height: 0; }
+  #split { cursor: row-resize; background: transparent; }
+  body.beside #split { cursor: col-resize; }
+  #split:hover, body.dragging #split { background: rgba(95, 191, 111, .35); }
+  #shield { position: fixed; inset: 0; z-index: 30; display: none; }
+  body.dragging #shield { display: block; cursor: row-resize; }
+  body.beside.dragging #shield { cursor: col-resize; }
+  #handle { position: fixed; z-index: 21; top: 4px; right: 4px; width: 26px; height: 26px; padding: 0;
+    display: flex; align-items: center; justify-content: center; border: 1px solid var(--line); border-radius: 6px;
+    background: rgba(22, 27, 34, .92); color: var(--text); font-size: 14px; cursor: pointer;
+    opacity: 0; pointer-events: none; transition: opacity .18s; }
+  body.show #handle, body.open #handle { opacity: 1; pointer-events: auto; }
+  #bar { position: fixed; z-index: 20; top: 34px; right: 4px; display: flex; flex-wrap: wrap; gap: 6px 8px;
+    align-items: center; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px;
+    background: rgba(22, 27, 34, .96); box-shadow: 0 4px 16px rgba(0,0,0,.5);
+    opacity: 0; pointer-events: none; transition: opacity .18s; max-width: calc(100% - 8px); }
+  body.open #bar { opacity: 1; pointer-events: auto; }
+  #bar label { display: flex; align-items: center; gap: 4px; color: var(--dim); white-space: nowrap; }
+  #bar select, #bar button { background: #0d1117; color: var(--text); border: 1px solid var(--line);
+    border-radius: 6px; padding: 3px 7px; font: inherit; cursor: pointer; }
+  #bar .tip { color: var(--dim); font-size: 12px; flex-basis: 100%; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <iframe id="fi" title="Items and dungeons" allowtransparency="true"></iframe>
+  <div id="split" title="Drag to resize. Double-click to reset."></div>
+  <iframe id="fm" title="Light World and Dark World" allowtransparency="true"></iframe>
+</div>
+<div id="shield"></div>
+<button id="handle" type="button" title="Stream layout" aria-label="Stream layout">&#9776;</button>
+<div id="bar" role="toolbar" aria-label="Stream layout">
+  <label>Maps
+    <select id="o-layout">
+      <option value="below">Below the items</option>
+      <option value="beside">Beside the items</option>
+    </select>
+  </label>
+  <label title="Behind everything. A solid green, blue or magenta can be keyed out in OBS with a Chroma Key filter.">Background
+    <select id="o-bg">
+      <option value="">Tracker's own</option>
+      <option value="#000000">Black</option>
+      <option value="#00b140">Green screen</option>
+      <option value="#0047bb">Blue screen</option>
+      <option value="#ff00ff">Magenta</option>
+    </select>
+  </label>
+  <button id="b-dock" type="button" title="Put everything back in the main window">Dock all</button>
+  <span class="tip">Each half has its own &#9776; (top left of it) for item rows, Fit and Clean.</span>
+</div>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var KEY = 'unified-kara-stream', GEOM_KEY = 'unified-kara-geom-stream';
+  var FRAMES = { 'stream-items': $('fi'), 'stream-maps': $('fm') };
+  var prefs = { layout: 'below', split: 38, bg: '#000000' };
+  try { Object.assign(prefs, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) {}
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(prefs)); } catch (e) {} }
+
+  function apply() {
+    document.body.classList.toggle('beside', prefs.layout === 'beside');
+    document.documentElement.style.setProperty('--split', prefs.split + '%');
+    document.body.style.background = prefs.bg || '#000';
+    $('o-layout').value = prefs.layout;
+    $('o-bg').value = prefs.bg;
+  }
+  apply();
+  $('o-layout').addEventListener('change', function () {
+    prefs.layout = this.value;
+    // beside: the items take a narrower column than they take a band
+    prefs.split = prefs.layout === 'beside' ? 40 : 38;
+    save(); apply();
+  });
+  $('o-bg').addEventListener('change', function () {
+    prefs.bg = this.value; save(); apply();
+    Object.keys(FRAMES).forEach(function (id) { var h = hostOf(id); if (h) { try { h.setPref('bg', prefs.bg); } catch (e) {} } });
+  });
+  $('b-dock').addEventListener('click', function () {
+    var a = api();
+    if (a) Object.keys(FRAMES).forEach(function (id) { try { a.dockWindow(id); } catch (e) {} });
+    window.close();
+  });
+
+  function api() { try { var o = window.opener; return o && !o.closed && o.UnifiedDesktop; } catch (e) { return null; } }
+  function hostOf(id) { try { return FRAMES[id].contentWindow.UnifiedPortalHost || null; } catch (e) { return null; } }
+
+  // ── dragging the divider ──────────────────────────────────────────────────
+  var drag = false;
+  $('split').addEventListener('pointerdown', function (e) { drag = true; document.body.classList.add('dragging'); e.preventDefault(); });
+  window.addEventListener('pointermove', function (e) {
+    if (!drag) return;
+    var beside = prefs.layout === 'beside';
+    var v = beside ? e.clientX / window.innerWidth : e.clientY / window.innerHeight;
+    prefs.split = Math.round(Math.max(10, Math.min(85, v * 100)) * 10) / 10;
+    document.documentElement.style.setProperty('--split', prefs.split + '%');
+  });
+  window.addEventListener('pointerup', function () {
+    if (!drag) return;
+    drag = false; document.body.classList.remove('dragging'); save();
+  });
+  $('split').addEventListener('dblclick', function () { prefs.split = prefs.layout === 'beside' ? 40 : 38; save(); apply(); });
+
+  // ── the toolbar ───────────────────────────────────────────────────────────
+  var hideTimer = null, closeTimer = null;
+  function reveal() {
+    document.body.classList.add('show');
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(function () {
+      if ($('handle').matches(':hover')) reveal(); else document.body.classList.remove('show');
+    }, 1800);
+  }
+  function openBar() { clearTimeout(closeTimer); document.body.classList.add('open'); }
+  function closeSoon() {
+    clearTimeout(closeTimer);
+    closeTimer = setTimeout(function () {
+      if ($('bar').matches(':hover') || $('handle').matches(':hover') ||
+          ($('bar').contains(document.activeElement) && document.activeElement.tagName === 'SELECT')) return closeSoon();
+      document.body.classList.remove('open');
+    }, 500);
+  }
+  document.addEventListener('mousemove', reveal);
+  $('handle').addEventListener('mouseenter', openBar);
+  $('handle').addEventListener('click', function () { document.body.classList.toggle('open'); });
+  $('handle').addEventListener('mouseleave', closeSoon);
+  $('bar').addEventListener('mouseenter', openBar);
+  $('bar').addEventListener('mouseleave', closeSoon);
+  // the handle also shows while the mouse moves over either half
+  Object.keys(FRAMES).forEach(function (id) {
+    FRAMES[id].addEventListener('load', function () {
+      try { FRAMES[id].contentDocument.addEventListener('mousemove', reveal); } catch (e) {}
+      try {
+        var pf = FRAMES[id].contentDocument.getElementById('pf');
+        if (pf) pf.addEventListener('load', function () { try { pf.contentDocument.addEventListener('mousemove', reveal); } catch (e) {} });
+      } catch (e) {}
+    });
+  });
+
+  // ── the halves ────────────────────────────────────────────────────────────
+  var state = { 'stream-items': 'wait', 'stream-maps': 'wait' };
+  function paint() {
+    document.body.classList.toggle('no-items', state['stream-items'] === 'empty');
+    document.body.classList.toggle('no-maps', state['stream-maps'] === 'empty');
+    if (state['stream-items'] === 'empty' && state['stream-maps'] === 'empty') window.close();
+  }
+  window.UnifiedStream = {
+    empty: function (id) { if (state[id] !== 'empty') { state[id] = 'empty'; paint(); } },
+    filled: function (id) {
+      if (state[id] === 'full') return;
+      state[id] = 'full'; paint();
+      var h = hostOf(id); if (h && prefs.bg !== undefined) { try { if (h.prefs().bg !== prefs.bg) h.setPref('bg', prefs.bg); } catch (e) {} }
+    },
+  };
+  Object.keys(FRAMES).forEach(function (id) { FRAMES[id].src = 'popout.html?embed=1&id=' + id; });
+
+  // ── remember where this window is ─────────────────────────────────────────
+  var lastGeom = '';
+  setInterval(function () {
+    var g = { x: window.screenX, y: window.screenY, w: window.innerWidth, h: window.innerHeight };
+    var s = JSON.stringify(g);
+    if (s !== lastGeom && g.w > 0 && g.h > 0) { lastGeom = s; try { localStorage.setItem(GEOM_KEY, s); } catch (e) {} }
+  }, 1000);
+})();
+</script>
+</body>
+</html>

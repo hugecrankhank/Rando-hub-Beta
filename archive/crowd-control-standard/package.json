@@ -1,0 +1,16 @@
+{
+  "name": "rando-hub-crowd-bridge",
+  "version": "1.3.7",
+  "private": true,
+  "description": "TikTok LIVE gifts → effects in the Rando Hub web app",
+  "type": "module",
+  "main": "bridge.mjs",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node bridge.mjs",
+    "test-mode": "node bridge.mjs --test"
+  },
+  "dependencies": {
+    "tiktok-live-connector": "^2.5.0"
+  }
+}

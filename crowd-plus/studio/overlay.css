@@ -1,0 +1,16 @@
+/* Shared by the stream overlays. Transparent page; everything sized from --scale. */
+@font-face { font-family: "Rando Pixel"; src: url(/studio/PressStart2P-Regular.ttf) format("truetype"); }
+:root { --scale: 1; --red: #e63946; --red2: #c8102e; --navy: #14213d; --box: rgba(18, 12, 34, .9); --line: rgba(255,255,255,.12);
+  --pix: "Rando Pixel", ui-monospace, monospace; --sans: system-ui, "Segoe UI", sans-serif; }
+html.plain { --pix: var(--sans); }
+/* ?screen=green / ?screen=magenta: a solid key colour for apps that can't show a transparent page (add a Chroma Key filter) */
+html.screen-green, html.screen-green body { background: #00ff00 !important; }
+html.screen-magenta, html.screen-magenta body { background: #ff00ff !important; }
+html, body { margin: 0; background: transparent !important; overflow: hidden; color: #fff; font-family: var(--sans); }
+html.clear .box { background: transparent !important; border-color: transparent !important; box-shadow: none !important; }
+.box { background: var(--box); border: calc(3px * var(--scale)) solid var(--red); border-radius: calc(14px * var(--scale)); box-shadow: 0 calc(6px * var(--scale)) calc(18px * var(--scale)) rgba(0,0,0,.45); }
+.pix { font-family: var(--pix); letter-spacing: .02em; }
+.shadow { text-shadow: 0 2px 3px rgba(0,0,0,.8); }
+.die { width: calc(28px * var(--scale)); height: calc(28px * var(--scale)); flex: none; }
+.offline-note { display: none; font: 14px var(--sans); color: #ccc; padding: 8px; }
+html.offline .offline-note { display: block; }

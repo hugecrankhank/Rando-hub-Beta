@@ -1,0 +1,17 @@
+randomizer/kara/generator.zip
+pyodide/
+emu/build/.obj/
+crowd/bridge/timer-state.json
+dist/
+notes.md
+crowd-plus/studio.json
+crowd-plus/stats.json
+crowd-plus/seen-gifts.json
+crowd-plus/timer-state.json
+crowd-plus/profiles/*.json
+crowd-plus/hall-of-fame.json
+crowd-plus/viewers.json
+crowd-plus/clips.json
+
+# Crowd Control+ local signer browser profile (TikTok login cookies)
+crowd-plus/tiktok-window/

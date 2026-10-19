@@ -1,0 +1,229 @@
+RANDO HUB  v{{VERSION}}
+A Link to the Past Randomizer + Snes9x emulator + Hutch's item tracker,
+all on one screen, in your web browser.
+=========================================================================
+
+Play online (recommended):   https://hugecrankhank.github.io/Rando-hub/
+Project page and updates:    https://github.com/hugecrankhank/Rando-hub
+
+
+WHAT'S IN THIS ZIP
+------------------
+  INSTRUCTIONS.txt                  This file.
+  Start Rando Hub (Windows).bat     Play from this folder on Windows.
+  Start Rando Hub (Mac).command     Play from this folder on a Mac.
+  start-rando-hub.sh                Play from this folder on Linux.
+  serve.mjs                         The small web server the Start files use.
+  app\                              The whole app (the same files as the
+                                    website, version {{VERSION}}).
+  Relays (optional)\                Cloudflare Worker files, only if you want
+                                    your own seed relays (see PART 6).
+  README.md                         The full manual (same as on GitHub).
+  CHANGELOG.md                      What changed in each version.
+
+This zip is a complete, frozen copy of version {{VERSION}}. Keep it and you
+can always play this exact version, even if the website changes later.
+
+
+WHAT YOU NEED
+-------------
+  - Your own copy of the original Japanese 1.0 ROM of
+    "Zelda no Densetsu: Kamigami no Triforce" (.sfc). Every seed is
+    built from it. It isn't included and can't be shared.
+  - A modern browser: Chrome, Edge, Safari or Firefox. Chrome or Edge is
+    best on a PC.
+  - To play from this zip (instead of the website): Node.js, free from
+    https://nodejs.org (the "LTS" version). Python 3 also works.
+
+
+=========================================================================
+PART 1 - THE EASY WAY: PLAY ONLINE AND INSTALL IT AS AN APP
+=========================================================================
+
+Open https://hugecrankhank.github.io/Rando-hub/ and install it. It gets
+its own icon and window, works offline, and updates itself.
+
+  iPhone / iPad
+    Open the link in Safari -> tap Share -> "Add to Home Screen" -> Add.
+    Always open it from the Home Screen icon: iOS keeps an installed app's
+    saves safe, but can clear a normal website's saves after a few weeks.
+
+  Android
+    Open the link in Chrome -> tap "Install app" (or menu ... -> Install
+    app / Add to Home screen).
+
+  Windows / Mac / Linux / Chromebook
+    Open the link in Chrome or Edge -> click the install icon at the right
+    end of the address bar (a monitor with a down arrow) -> Install.
+
+  Playing with no internet
+    Once, while online: Randomizer -> ROM options -> "Make available
+    offline". When it shows "Available offline", it opens and plays in
+    airplane mode.
+
+
+=========================================================================
+PART 2 - PLAY FROM THIS ZIP (ON A COMPUTER)
+=========================================================================
+
+1. Unzip it: right-click the .zip -> Extract All. Run things from the
+   unzipped folder, never from inside the .zip.
+2. Install Node.js from https://nodejs.org if you don't have it.
+3. Double-click:
+     Windows:  Start Rando Hub (Windows).bat
+     Mac:      Start Rando Hub (Mac).command
+               (first time: right-click it -> Open -> Open)
+     Linux:    ./start-rando-hub.sh
+4. A window opens and your browser goes to http://localhost:8067/.
+   Keep that window open while you play; close it when you're done.
+
+Notes:
+  - The app can't be opened by double-clicking app\index.html. Browsers
+    block what it needs on plain files, so always use a Start file.
+  - Saves, settings and your base ROM are kept by the browser per address.
+    The zip copy (localhost) and the website keep separate saves.
+  - From the zip, Kara's server and race seeds aren't available (her
+    server only answers the website). Kara's seeds are made in your
+    browser instead. Everything else works the same.
+
+
+=========================================================================
+PART 3 - FIRST GAME
+=========================================================================
+
+1. Press "Randomizer" at the top to open the Randomizer bar.
+2. Press "Base ROM..." and pick your Japanese 1.0 ROM. It's remembered.
+3. Pick a generator with the arrow next to "Randomizer":
+     alttpr.com      the official generator
+     Kara's branch   door, entrance and overworld shuffles
+     AVIANART        tournament and community presets
+4. Pick a preset (Saved presets) or set the menus how you like.
+5. Press "Generate & Play". The tracker sets itself up to match the seed.
+
+Already have a seed? Paste its link or code into "Load a seed", or use
+"Load ROM..." for an .sfc file you already rolled.
+
+
+=========================================================================
+PART 4 - HOW THE APP WORKS (THE SHORT VERSION)
+=========================================================================
+
+  The game     Snes9x, built into the page. The game box's ... menu has
+               save/load state (4 slots), restart, full screen, volume,
+               graphics filter (6xBRZ, CRT, sharp pixels...) and button
+               remapping. Keyboard: F5 save state, F8 load state, hold `
+               to fast-forward. Gamepads work; plug one in and press a
+               button.
+
+  On-screen controller
+               On phones and tablets a controller sits over the game so the
+               tracker keeps the rest of the screen. Size and see-through
+               level are adjustable. It hides when you use a real
+               controller and comes back when you touch the screen.
+
+  The tracker  Hutch's item tracker and map read the game's memory as you
+               play, so items, keys and checks fill in by themselves.
+               Tracker (behind the gear on phones): Newest release, Beta,
+               or Off.
+
+  Layouts      Layout -> Auto picks the best one for your screen:
+                 Phone     game on top, Items / Light World / Dark World
+                           buttons below (sideways: game left, tracker right)
+                 Tablet / Stacked   for iPads and tablets
+                 Desktop   tracker pieces can pop out into their own
+                           windows (handy for streaming). Two ready-made
+                           stream setups: "Stream windows" opens two
+                           windows (items + dungeons, and both maps);
+                           "Stream" opens one window with all of it,
+                           for a single capture in OBS.
+
+  Extras       Reroll (new seed, same settings), Link sprites from the
+               alttpr.com library, MSU-1 music packs, Resume last game,
+               saved presets you can export and share, seed links for races.
+
+
+=========================================================================
+PART 5 - TIKTOK CROWD CONTROL
+=========================================================================
+
+Viewers' gifts, likes, follows and shares change your game while you
+stream: hearts, rupees, inverted controls, ice physics, cucco attacks,
+even a brand-new seed. There's also a subathon clock and a scrolling gift
+list for OBS / TikTok LIVE Studio.
+
+Crowd control is a separate download: Crowd-Control-Plus-v{{VERSION}}.zip
+on the Releases page (https://github.com/hugecrankhank/Rando-hub/releases).
+It's the gift bridge plus a control panel and stream overlays (gift
+alerts, goal bars, top gifters, votes, boss detours and more). Open its
+INSTRUCTIONS.txt and follow it from the top; it's written for first-timers
+and takes about 15 minutes. Short version:
+
+  1. Install Node.js (free). Have Chrome or Edge.
+  2. Double-click "Start Crowd Control+.bat". The control panel opens.
+     Type your TikTok name and click Connect (no other apps needed).
+  3. In the game: ... menu -> Crowd effects -> turn on, address
+     ws://localhost:21214.
+
+It works with the website and with this zip copy. Test any effect from
+the game's ... menu or from the control panel.
+
+
+=========================================================================
+PART 6 - RELAYS (OPTIONAL, MOST PEOPLE CAN SKIP THIS)
+=========================================================================
+
+alttpr.com and AVIANART don't let other websites read their seeds, so
+the app goes through two small free "relays" that are already set up.
+You don't need to do anything.
+
+If you ever want your own (for example if you host the app somewhere
+else), the "Relays (optional)" folder has both. Each file's top lines
+explain the 5-minute setup on a free Cloudflare account. Then paste the
+relay's address in Randomizer -> ROM options.
+
+
+=========================================================================
+TROUBLESHOOTING
+=========================================================================
+
+The Start file says Node.js isn't installed
+  Install the LTS version from https://nodejs.org and try again.
+
+The browser opens but the page is blank or says "not found"
+  You're running it from inside the .zip. Extract it first (PART 2).
+
+"Generate & Play" asks for a base ROM
+  Press "Base ROM..." and pick your Japanese 1.0 .sfc. A US or
+  headered ROM won't work.
+
+No sound
+  Click or tap the game once; browsers only start sound after a tap.
+
+The controller doesn't respond
+  Press any button on it once with the game showing. Check the ... menu
+  -> controls if you remapped buttons.
+
+The tracker isn't updating
+  It starts once the game is past the file select screen. Make sure
+  Tracker isn't set to Off.
+
+iPhone saves disappeared
+  Install it to the Home Screen (PART 1) and always open it from there.
+
+
+=========================================================================
+THANK YOU
+=========================================================================
+
+  Heffie's Homies .... play testing
+  HydeoutGaming ...... play testing, development ideas
+  Gumby007 ........... play testing, development ideas
+  Hutch .............. tracker implementation, and modifications to fit
+                       tablet mode
+
+Also built on: Hutch's ALTTPR Tracker, Snes9x, the alttpr.com randomizer
+(sporchia), Kara's alttpr-python, AVIANART, and Pyodide. Full credits and
+licenses are in README.md.
+
+No ROMs are included. Use your own legally obtained copy.
+Rando Hub is a fan project and isn't affiliated with Nintendo.
