@@ -229,8 +229,54 @@
     n.__orient = String(d.orientation || 'auto').toLowerCase();
     n.__views = n.__maps.map(function (m) { var v = mapView(m); n.appendChild(v.box); return v; });
     mapPanels.push(n);
-    return n;
+    return window.EmoDungeons ? dungeonWrap(n) : n;
   };
+
+  // ── World / dungeon buttons above the maps, and the dungeon map ───────────
+  // Entering a dungeon shows its map, leaving shows the world again; the
+  // buttons pick one by hand (until the next time Link goes in or out).
+  E.dgSel = -1;
+  var dgWraps = [];
+  function dungeonWrap(maps) {
+    var D = window.EmoDungeons;
+    var w = el('div', 'l-mapwrap'), bar = el('div', 'dg-bar'), box = el('div', 'dg-view');
+    var btns = [];
+    function mk(i, label, title) {
+      var b = el('button', 'dg-btn', label); b.title = title; b.type = 'button';
+      b.addEventListener('click', function (e) { e.stopPropagation(); selectDg(i); });
+      bar.appendChild(b); btns.push(b);
+    }
+    mk(-1, 'World', 'The Light and Dark World');
+    D.list.forEach(function (d, i) { mk(i, d[1], d[2]); });
+    var view = new D.View(box);
+    w.appendChild(bar); w.appendChild(maps); w.appendChild(box);
+    var me = { w: w, maps: maps, box: box, view: view, btns: btns };
+    dgWraps.push(me);
+    showDg(me);
+    return w;
+  }
+  function showDg(me) {
+    var D = window.EmoDungeons, sel = E.dgSel, here = D.where().dg;
+    me.maps.style.display = sel < 0 ? '' : 'none';
+    me.box.style.display = sel < 0 ? 'none' : '';
+    me.btns.forEach(function (b, k) {
+      var i = k - 1;
+      b.classList.toggle('on', i === sel);
+      b.classList.toggle('here', i >= 0 && i === here);
+      b.classList.toggle('seen', i >= 0 && D.explored(i));
+    });
+    if (sel >= 0 && me.view.dg !== sel) me.view.show(sel);
+    if (sel < 0) setTimeout(refitMaps, 0);
+  }
+  function selectDg(i) {
+    E.dgSel = i;
+    dgWraps = dgWraps.filter(function (m) { return m.w.isConnected; });
+    dgWraps.forEach(showDg);
+  }
+  if (window.EmoDungeons) {
+    window.EmoDungeons.onEnter = function (dg) { selectDg(dg); };
+    setInterval(function () { dgWraps = dgWraps.filter(function (m) { return m.w.isConnected; }); dgWraps.forEach(showDg); }, 1000);
+  }
 
   // ── maps ──────────────────────────────────────────────────────────────────
   var SVGNS = 'http://www.w3.org/2000/svg';
