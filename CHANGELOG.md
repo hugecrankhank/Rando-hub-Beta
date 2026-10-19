@@ -36,6 +36,9 @@ played again later.
     shows as a dot. Entering a dungeon switches to its map, leaving switches back.
     Zoom with the wheel or a pinch, drag to move, double-click/double-tap to fit. Kept
     per game in the browser.
+  - **Test: warp to a dungeon** (emulator menu ⋯ → Game): pick a dungeon from the list
+    and Warp drops Link in at its entrance. The game is saved in memory first, so
+    "Back to before the warp" undoes it.
   - **Dungeon maps, three kinds** (Dungeons menu in the tracker's bar):
     - *Explore (fog of war)*: as above, now by floor (B1, 1F, 2F…) and cropped to what
       you've seen.
