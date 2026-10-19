@@ -304,6 +304,23 @@
     menuEl.hidden = true;
     if (menuEl._resume) setPaused(false);
   }
+  // Test: warp to a dungeon. Entrance ids (zelda3); module $11 drops Link in
+  // through that entrance, like the crowd effects' boss detour.
+  var DG_WARPS = [['Hyrule Castle', 0x04], ['Sanctuary / Sewers', 0x02], ['Eastern Palace', 0x08], ['Desert Palace', 0x09],
+    ['Tower of Hera', 0x33], ["Agahnim's Tower", 0x24], ['Palace of Darkness', 0x26], ['Swamp Palace', 0x25],
+    ['Skull Woods', 0x2B], ["Thieves' Town", 0x34], ['Ice Palace', 0x2D], ['Misery Mire', 0x27],
+    ['Turtle Rock', 0x35], ["Ganon's Tower", 0x37]];
+  var warpBack = null, lastWarp = 0;
+  function dgWarp(i) {
+    var d = DG_WARPS[i], w = core && core.wram();
+    if (!d || !w) return;
+    // only while playing (overworld or a dungeon, no menu/transition running)
+    if (!((w[0x10] === 0x07 || w[0x10] === 0x09) && w[0x11] === 0)) { toast('Start playing first (walk around in the game), then warp.'); return; }
+    var st = core.saveState();
+    if (st) warpBack = st;
+    w[0x10E] = d[1]; w[0x10F] = 0; w[0x10] = 0x11; w[0x11] = 0; w[0xB0] = 0;
+    toast('Warping to ' + d[0]);
+  }
   function renderMenu() {
     var P = window.Video ? Video.PRESETS : {};
     var opts = function (list, cur) { return list.map(function (o) { return '<option value="' + o[0] + '"' + (String(o[0]) === String(cur) ? ' selected' : '') + '>' + o[1] + '</option>'; }).join(''); };
@@ -318,7 +335,11 @@
       '<h4>Game</h4><div class="acts">' +
         '<button type="button" data-a="restart">Restart</button>' +
         (root.requestFullscreen ? '<button type="button" data-a="fs">Full screen</button>' : '') +
-      '</div><p class="hint">Save and load states from the bar on the game screen (💾 / 📂, S1–S4 picks the slot). In-game saves are kept automatically for each seed. Keys: F5 save state, F8 load state, hold ` to fast-forward.</p>' +
+      '</div>' +
+      '<h4>Test: warp to a dungeon</h4><div class="row"><span>Dungeon</span><select data-x="dgwarp">' + opts(DG_WARPS.map(function (d, i) { return [i, d[0]]; }), lastWarp) + '</select></div>' +
+      '<div class="acts"><button type="button" data-a="dgwarp">Warp</button>' + (warpBack ? '<button type="button" data-a="dgback">Back to before the warp</button>' : '') + '</div>' +
+      '<p class="hint">For testing (dungeon maps, tracker): drops Link in at the dungeon’s entrance. The game is saved in memory first, so “Back to before the warp” undoes it.</p>' +
+      '<p class="hint">Save and load states from the bar on the game screen (💾 / 📂, S1–S4 picks the slot). In-game saves are kept automatically for each seed. Keys: F5 save state, F8 load state, hold ` to fast-forward.</p>' +
       '<h4>Sound</h4><div class="row"><span>Volume</span><input type="range" min="0" max="1" step="0.05" data-s="volume" value="' + cfg.volume + '"></div>' +
       '<div class="row"><span>Mute</span><input type="checkbox" data-s="muted"' + (cfg.muted ? ' checked' : '') + '></div>' +
       '<h4>Graphics</h4>' +
@@ -345,6 +366,8 @@
       if (a === 'close') closeMenu();
       else if (a === 'restart') { if (confirm('Restart the game?')) { core.reset(); audio.clear(); menuEl._resume = true; closeMenu(); } }
       else if (a === 'fs') { closeMenu(); fullscreen(); }
+      else if (a === 'dgwarp') { var sel = menuEl.querySelector('[data-x=dgwarp]'); lastWarp = +sel.value; menuEl._resume = true; closeMenu(); dgWarp(lastWarp); }
+      else if (a === 'dgback') { if (warpBack && core.loadState(warpBack)) { audio.clear(); toast('Back to before the warp'); } warpBack = null; menuEl._resume = true; closeMenu(); }
       else if (a === 'resetmap') { input.keymap = Object.assign({}, EmuInput.DEFAULT_KEYS); input.padmap = Object.assign({}, EmuInput.DEFAULT_PAD); cfg.keymap = cfg.padmap = null; saveCfg(); renderMenu(); }
       else if (b.dataset.map) remap(b);
       else if (b.dataset.ext && hooks.menu) hooks.menu.click(b, renderMenu);
