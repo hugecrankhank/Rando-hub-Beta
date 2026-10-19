@@ -31,9 +31,9 @@
   function touch() {
     try { return !window.matchMedia('(pointer: fine)').matches; } catch (e) { return true; }
   }
+  // EmoTracker (emo-host.js) uses the same tabs: its frame shows one panel
+  function emo() { return !!(window.UnifiedTracker && window.UnifiedTracker.emo && window.UnifiedTracker.emo()); }
   function wanted() {
-    // EmoTracker (emo-host.js) has its own layouts; the phone tabs are Hutch's
-    if (window.UnifiedTracker && window.UnifiedTracker.emo && window.UnifiedTracker.emo()) return false;
     var p = pref();
     if (p === 'phone') return true;
     if (p !== 'auto') return false;
@@ -153,6 +153,7 @@
     });
     if (on) $('frames').className = tab === 'items' ? 'items-only' : 'map-only';
     document.body.classList.toggle('phone-map-tab', tab !== 'items');
+    if (window.UnifiedEmo) window.UnifiedEmo.setPhone(on && emo() ? tab : null);
     applyWorld();
     refit();
   }
@@ -178,6 +179,7 @@
       var zb = document.createElement('button');
       zb.type = 'button'; zb.textContent = z[0]; zb.title = z[2];
       zb.addEventListener('click', function () {
+        if (emo()) { if (window.UnifiedEmo) window.UnifiedEmo.phoneZoom(z[1]); return; }
         try { var w = $('map-frame').contentWindow; if (w.changeZoom) w.changeZoom(z[1]); } catch (e) {}
       });
       zoom.appendChild(zb);
@@ -277,6 +279,7 @@
       select(saved || tab);
     } else {
       $('frames').className = '';
+      if (window.UnifiedEmo) window.UnifiedEmo.setPhone(null);
       applyWorld();
       refit();
     }
@@ -320,6 +323,10 @@
     'body.phone #frames.items-only #map-frame { display: none !important; }',
     'body.phone #frames.map-only #items-wrap { display: none !important; }',
     'body.phone #frames.map-only #map-frame { display: block !important; flex: 1; height: auto !important; min-height: 0; }',
+    // EmoTracker: its one frame fills the space on every tab (it shows the tab itself)
+    'body.phone.tracker-emo #frames #items-wrap, body.phone.tracker-emo #frames #map-frame { display: none !important; }',
+    'body.phone.tracker-emo #frames #emo-frame { display: block !important; flex: 1; height: auto !important; min-height: 0; }',
+    'body.phone.tracker-emo #phone-map-btn { display: none !important; }',
     // header: title, status dots and ⚙; everything else behind the ⚙
     'body.phone:not(.phone-menu) header > :not(h1):not(#pad-status):not(#link-status):not(#phone-gear):not(#reroll-btn):not(#sprite-btn):not(#sprite-fav-btn):not(#music-btn):not(#music-roll-btn):not(#phone-map-btn) { display: none !important; }',
     // 🎲 Reroll (and the Sprite button, Full) stay in the header next to ⚙
@@ -359,5 +366,7 @@
     if (sel) sel.addEventListener('change', function () { setTimeout(apply, 0); });
   });
   window.addEventListener('resize', function (e) { if (e.isTrusted !== false) apply(); });
+  // switching to or from EmoTracker: tell it which tab is showing
+  window.addEventListener('trackermode', function () { setTimeout(function () { apply(); if (on) select(tab); }, 0); });
   window.addEventListener('orientationchange', function () { setTimeout(apply, 300); });
 })();

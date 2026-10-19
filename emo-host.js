@@ -25,7 +25,18 @@
   }
   // the randomizer bar's Item placement (Basic / Advanced) sets the tracker's logic
   function placement() { var el = document.getElementById('r-placement'); return el && /basic/i.test(el.value) ? 'basic' : 'advanced'; }
-  function url(v) { return 'emotracker/index.html?variant=' + encodeURIComponent(v) + '&placement=' + placement(); }
+  // the phone layout's tab (phone.js): Items, Light World or Dark World
+  var phoneTab = null;
+  function url(v) { return 'emotracker/index.html?variant=' + encodeURIComponent(v) + '&placement=' + placement() + (phoneTab ? '&phone=' + phoneTab : ''); }
+  function setPhone(t) {
+    phoneTab = t || null;
+    var f = $('emo-frame');
+    try { if (f && f.contentWindow && f.contentWindow.EmoPhone) f.contentWindow.EmoPhone.set(phoneTab); } catch (e) {}
+  }
+  function phoneZoom(dir) {
+    var f = $('emo-frame');
+    try { if (f && f.contentWindow && f.contentWindow.EmoPhone) f.contentWindow.EmoPhone.zoom(dir); } catch (e) {}
+  }
   function away() { try { return !!(win && !win.closed); } catch (e) { return false; } }
 
   function sync(gm, di) {
@@ -73,10 +84,13 @@
   }
 
   document.addEventListener('DOMContentLoaded', function () {
+    // a reloaded frame picks up the phone tab
+    var ef = $('emo-frame');
+    if (ef) ef.addEventListener('load', function () { if (phoneTab) setPhone(phoneTab); });
     var b = $('pop-emo');
     if (b) b.addEventListener('click', popOut);
   });
   window.addEventListener('pagehide', function () { if (away()) { try { win.close(); } catch (e) {} } });
 
-  window.UnifiedEmo = { sync: sync, variantFor: variantFor, popOut: popOut };
+  window.UnifiedEmo = { sync: sync, variantFor: variantFor, popOut: popOut, setPhone: setPhone, phoneZoom: phoneZoom };
 })();
