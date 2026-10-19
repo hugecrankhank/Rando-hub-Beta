@@ -23,7 +23,9 @@
     if (inv) return keys ? 'inverted_keysanity' : 'inverted';
     return keys ? 'keysanity' : 'standard';
   }
-  function url(v) { return 'emotracker/index.html?variant=' + encodeURIComponent(v); }
+  // the randomizer bar's Item placement (Basic / Advanced) sets the tracker's logic
+  function placement() { var el = document.getElementById('r-placement'); return el && /basic/i.test(el.value) ? 'basic' : 'advanced'; }
+  function url(v) { return 'emotracker/index.html?variant=' + encodeURIComponent(v) + '&placement=' + placement(); }
   function away() { try { return !!(win && !win.closed); } catch (e) { return false; } }
 
   function sync(gm, di) {
