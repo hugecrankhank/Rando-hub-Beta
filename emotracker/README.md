@@ -27,6 +27,9 @@ seed starts clean.
   behaviour (access rules, accessibility levels, item types, memory watches)
   follows EmoTracker's source.
 - **Official ALTTPR pack** by EmoSaru, MIT License (`packs/alttpr_emosaru/LICENSE`).
+- **Maps drawn from the game** (`romap.js`): the formats and tileset tables follow
+  **zelda3** by snesrev, MIT License. No map pictures are shipped for this: they're
+  drawn in the browser from the ROM being played.
 - **fengari-web** (Lua 5.3 in JavaScript) by Benoit Giannangeli and Daurnimator,
   MIT License (`LICENSE-fengari-web.txt`).
 
