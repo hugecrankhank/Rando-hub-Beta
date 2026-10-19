@@ -1,0 +1,52 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Goal bar</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="/studio/overlay.css">
+<style>
+  /* Shows every goal ticked "On stream" (?id=g1 shows just that one). 800 x 160 per goal. */
+  body { padding: calc(10px * var(--scale)); display: flex; flex-direction: column; gap: calc(14px * var(--scale)); }
+  .goal { padding: calc(14px * var(--scale)) calc(18px * var(--scale)); }
+  .top { display: flex; align-items: center; gap: calc(12px * var(--scale)); margin-bottom: calc(12px * var(--scale)); }
+  .label { font-size: calc(18px * var(--scale)); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .count { font: 800 calc(22px * var(--scale)) var(--sans); font-variant-numeric: tabular-nums; }
+  .count small { color: #c9c0e6; font-weight: 600; font-size: .75em; }
+  .meter { height: calc(30px * var(--scale)); border-radius: calc(8px * var(--scale)); background: rgba(0,0,0,.45); border: calc(2px * var(--scale)) solid rgba(255,255,255,.15); overflow: hidden; position: relative; }
+  .fill { height: 100%; width: 0; transition: width .8s cubic-bezier(.3, 1.3, .5, 1);
+    background: repeating-linear-gradient(-45deg, var(--red) 0 calc(14px * var(--scale)), var(--red2) calc(14px * var(--scale)) calc(28px * var(--scale))); background-size: 200% 100%; animation: slide 2.5s linear infinite; }
+  @keyframes slide { to { background-position: calc(-40px * var(--scale)) 0; } }
+  .pct { position: absolute; inset: 0; display: grid; place-items: center; font-size: calc(13px * var(--scale)); text-shadow: 0 2px 2px #000; }
+  .done .fill { background: linear-gradient(90deg, #ffd166, #ff9f1c); animation: none; }
+  .done .label::after { content: "  ✔"; color: #ffd166; }
+  .bump { animation: bump .5s; } @keyframes bump { 40% { transform: scale(1.03); } }
+  .unit { text-transform: uppercase; }
+</style></head>
+<body>
+<div class="offline-note">Waiting for the Crowd Control+ bridge…</div>
+<script src="/studio/common.js"></script>
+<script>
+const only = CC.q.get('id'); const els = {};
+function paint(goals) {
+  const list = goals.filter((g) => only ? g.id === only : g.show);
+  for (const id of Object.keys(els)) if (!list.some((g) => g.id === id)) { els[id].remove(); delete els[id]; }
+  for (const g of list) {
+    let el = els[g.id];
+    if (!el) {
+      el = els[g.id] = document.createElement('div'); el.className = 'goal box';
+      el.innerHTML = '<div class="top"><img class="die" src="/studio/die.svg" alt=""><div class="label pix shadow"></div><div class="count shadow"></div></div><div class="meter"><div class="fill"></div><div class="pct pix"></div></div>';
+      document.body.appendChild(el);
+    }
+    const pct = Math.min(100, (g.current / g.target) * 100 || 0);
+    const prev = el.dataset.cur;
+    el.querySelector('.label').textContent = g.label;
+    el.querySelector('.count').innerHTML = CC.num(Math.min(g.current, g.target)) + ' <small>/ ' + CC.num(g.target) + ' <span class="unit">' + CC.esc(g.type) + '</span></small>';
+    el.querySelector('.fill').style.width = pct + '%';
+    el.querySelector('.pct').textContent = Math.floor(pct) + '%';
+    el.classList.toggle('done', g.current >= g.target);
+    if (prev !== undefined && +prev !== g.current) { el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
+    el.dataset.cur = g.current;
+  }
+}
+CC.on('state', (d) => paint(d.settings.goals));
+CC.on('event', (d) => { if (d.goals) paint(d.goals); });
+</script>
+</body></html>

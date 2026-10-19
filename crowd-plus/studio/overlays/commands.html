@@ -1,0 +1,32 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Chat commands</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="/studio/overlay.css">
+<style>
+  /* 900 x 220. Shows the reply when a viewer types a chat command. */
+  body { padding: calc(10px * var(--scale)); }
+  .card { display: none; padding: calc(14px * var(--scale)) calc(18px * var(--scale)); max-width: calc(860px * var(--scale)); }
+  .card.on { display: block; animation: pop .45s cubic-bezier(.2, 1.4, .4, 1); }
+  @keyframes pop { from { opacity: 0; transform: translateY(calc(16px * var(--scale))) scale(.96); } }
+  .head { display: flex; align-items: center; gap: calc(10px * var(--scale)); font-size: calc(13px * var(--scale)); color: #ffb3b9; margin-bottom: calc(10px * var(--scale)); }
+  .head b { color: #fff; font-weight: 400; }
+  .reply { font: 700 calc(24px * var(--scale))/1.35 var(--sans); }
+</style></head>
+<body>
+<div class="card box" id="card"><div class="head pix"><img class="die" src="/studio/die.svg" alt=""><span><b id="cmd"></b> · <span id="who"></span></span></div><div class="reply shadow" id="reply"></div></div>
+<div class="offline-note">Waiting for the Crowd Control+ bridge…</div>
+<script src="/studio/common.js"></script>
+<script>
+const card = document.getElementById('card'); let t = null; const queue = []; let busy = false;
+function show(c) {
+  busy = true;
+  document.getElementById('cmd').textContent = c.cmd; document.getElementById('who').textContent = c.who; document.getElementById('reply').textContent = c.reply;
+  card.classList.remove('on'); void card.offsetWidth; card.classList.add('on');
+  const secs = Math.max(3, +(CC.state && CC.state.settings.commands.seconds) || 8);
+  clearTimeout(t); t = setTimeout(() => { card.classList.remove('on'); busy = false; if (queue.length) setTimeout(() => show(queue.shift()), 300); }, secs * 1000);
+}
+CC.on('event', (d) => { const e = d.ev; if (!e.command) return; const c = { cmd: e.command.cmd, reply: e.command.reply, who: CC.name(e) }; if (busy) { queue.push(c); if (queue.length > 5) queue.shift(); } else show(c); });
+CC.on('clear', () => { queue.length = 0; card.classList.remove('on'); busy = false; });
+CC.on('state', () => { if (CC.q.get('preview') === '1' && !busy) show({ cmd: '!rules', who: 'PreviewViewer', reply: 'Gifts change my game live! Big donations roll a brand-new seed.' }); });
+</script>
+</body></html>

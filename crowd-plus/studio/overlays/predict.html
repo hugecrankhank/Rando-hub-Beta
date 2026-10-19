@@ -1,0 +1,46 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Prediction</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="/studio/overlay.css">
+<style>
+  /* 620 x 300. */
+  body { padding: calc(10px * var(--scale)); }
+  .card { width: calc(580px * var(--scale)); padding: calc(14px * var(--scale)) calc(16px * var(--scale)); display: none; }
+  .card.on { display: block; animation: pop .45s cubic-bezier(.2, 1.4, .4, 1); }
+  @keyframes pop { from { opacity: 0; transform: translateY(calc(-14px * var(--scale))); } }
+  .head { display: flex; align-items: center; gap: calc(10px * var(--scale)); font-size: calc(11px * var(--scale)); color: #ffd166; }
+  .q { font: 800 calc(22px * var(--scale))/1.25 var(--sans); margin: calc(8px * var(--scale)) 0 calc(12px * var(--scale)); }
+  .sides { display: grid; grid-template-columns: 1fr 1fr; gap: calc(10px * var(--scale)); }
+  .side { border-radius: calc(10px * var(--scale)); padding: calc(10px * var(--scale)); text-align: center; background: rgba(0,0,0,.35); border: calc(2px * var(--scale)) solid rgba(255,255,255,.15); }
+  .side.y { border-color: #3fb950; } .side.n { border-color: #e63946; }
+  .side .lab { font-size: calc(16px * var(--scale)); } .side .cnt { font: 800 calc(26px * var(--scale)) var(--sans); margin-top: calc(4px * var(--scale)); }
+  .side .how { font: 600 calc(12px * var(--scale)) var(--sans); color: #c9c0e6; margin-top: calc(2px * var(--scale)); }
+  .side.win { background: rgba(255,209,102,.25); border-color: #ffd166; } .side.lose { opacity: .4; }
+  .foot { font: 600 calc(13px * var(--scale)) var(--sans); color: #e9e4f7; margin-top: calc(10px * var(--scale)); min-height: 1.2em; }
+  .foot b { color: #ffd166; }
+</style></head>
+<body>
+<div class="card box" id="card"><div class="head pix"><img class="die" src="/studio/die.svg" alt="">PREDICTION<span id="time" style="margin-left:auto"></span></div>
+<div class="q shadow" id="q"></div><div class="sides" id="sides"></div><div class="foot" id="foot"></div></div>
+<div class="offline-note">Waiting for the Crowd Control+ bridge…</div>
+<script src="/studio/common.js"></script>
+<script>
+const $ = (i) => document.getElementById(i); let P = null, shown = null;
+function paint() {
+  if (!P) { $('card').classList.remove('on'); shown = null; return; }
+  if (shown !== P.id) { shown = P.id; $('card').classList.remove('on'); void $('card').offsetWidth; $('card').classList.add('on'); }
+  $('q').textContent = P.question;
+  $('sides').innerHTML = [0, 1].map((i) => {
+    const cls = (i ? ' n' : ' y') + (P.result >= 0 ? (P.result === i ? ' win' : ' lose') : '');
+    return '<div class="side' + cls + '"><div class="lab pix shadow">' + CC.esc(P.labels[i]) + '</div><div class="cnt shadow">' + CC.num(P.counts[i]) + '</div><div class="how">' + (P.locked ? 'votes' : 'type ' + CC.esc(P.words[i])) + '</div></div>';
+  }).join('');
+  if (P.result >= 0) {
+    const w = P.winners || [], show = w.slice(0, (CC.state && CC.state.settings.predict.winnersShown) || 12);
+    $('foot').innerHTML = w.length ? '<b>Called it:</b> ' + show.map(CC.esc).join(', ') + (w.length > show.length ? ' +' + (w.length - show.length) + ' more' : '') : 'Nobody called it!';
+  } else $('foot').textContent = P.locked ? 'Votes are locked. Here we go…' : '';
+}
+setInterval(() => { $('time').textContent = P && !P.locked ? Math.max(0, Math.ceil((P.locksAt - Date.now()) / 1000)) + 's' : P && P.result < 0 ? 'LOCKED' : ''; }, 300);
+CC.on('state', (d) => { P = d.live && d.live.predict; if (!P && CC.q.get('preview') === '1') P = { id: 1, question: 'Will he beat Turtle Rock without dying?', labels: ['YES', 'NO'], words: ['!yes', '!no'], counts: [23, 31], locksAt: Date.now() + 40000, locked: false, result: -1 }; paint(); });
+CC.on('live', (d) => { if ('predict' in d) { P = d.predict; paint(); } });
+</script>
+</body></html>

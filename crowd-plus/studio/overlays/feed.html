@@ -1,0 +1,46 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Recent events</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="/studio/overlay.css">
+<style>
+  /* 460 x 420. Newest on top. */
+  body { padding: calc(10px * var(--scale)); display: flex; flex-direction: column; gap: calc(8px * var(--scale)); width: calc(440px * var(--scale)); }
+  .item { display: grid; grid-template-columns: calc(40px * var(--scale)) 1fr; gap: calc(12px * var(--scale)); align-items: center; padding: calc(8px * var(--scale)) calc(12px * var(--scale));
+    border-width: calc(2px * var(--scale)); border-radius: calc(10px * var(--scale)); animation: slidein .45s cubic-bezier(.2, 1.3, .4, 1); }
+  @keyframes slidein { from { opacity: 0; transform: translateX(calc(-40px * var(--scale))); } }
+  .pic { width: calc(40px * var(--scale)); height: calc(40px * var(--scale)); display: grid; place-items: center; font-size: calc(26px * var(--scale)); }
+  .pic img { width: 100%; height: 100%; object-fit: contain; }
+  .line { font: 600 calc(17px * var(--scale))/1.25 var(--sans); min-width: 0; }
+  .line b { font-weight: 800; }
+  .sub { display: block; color: #ffb3b9; font-size: calc(10.5px * var(--scale)); margin-top: calc(4px * var(--scale)); }
+  .item.follow, .item.share, .item.like { border-color: rgba(255, 209, 102, .8); }
+</style></head>
+<body>
+<div class="offline-note">Waiting for the Crowd Control+ bridge…</div>
+<script src="/studio/common.js"></script>
+<script>
+const ICON = { follow: '💖', share: '📣', like: '❤' };
+function wanted(e, F) { return (e.type === 'gift' && F.gifts) || (e.type === 'follow' && F.follows) || (e.type === 'share' && F.shares) || (e.type === 'like' && F.likes); }
+function row(e) {
+  const el = document.createElement('div'); el.className = 'item box ' + e.type;
+  const pic = e.type === 'gift' ? (e.icon ? '<img src="' + CC.esc(e.icon) + '" alt="">' : '🎁') : ICON[e.type];
+  let what = '<b>' + CC.esc(CC.name(e)) + '</b> ';
+  if (e.type === 'gift') what += 'sent ' + (e.count > 1 ? e.count + 'x ' : '') + CC.esc(e.gift);
+  else if (e.type === 'follow') what += 'followed';
+  else if (e.type === 'share') what += 'shared the LIVE';
+  else what += 'sent ' + CC.num(e.count) + ' likes';
+  const sub = e.effectName ? '<span class="sub pix">→ ' + CC.esc(e.effectName) + '</span>' : '';
+  el.innerHTML = '<div class="pic">' + pic + '</div><div class="line shadow">' + what + sub + '</div>';
+  return el;
+}
+function trim() { const n = CC.state.settings.feed.size || 6; const items = document.querySelectorAll('.item'); for (let i = n; i < items.length; i++) items[i].remove(); }
+CC.on('state', (d) => {
+  document.querySelectorAll('.item').forEach((x) => x.remove());
+  const F = d.settings.feed, list = (d.recent || []).filter((e) => wanted(e, F)).slice(-(F.size || 6));
+  for (const e of list) document.body.prepend(row(e));
+  if (!list.length && CC.q.get('preview') === '1') document.body.prepend(row({ type: 'gift', user: 'PreviewViewer', gift: 'Rose', count: 3, icon: '/icons/Rose.png', effectName: '+1 heart' }));
+});
+CC.on('event', (d, s) => { if (wanted(d.ev, s.settings.feed)) { document.body.prepend(row(d.ev)); trim(); } });
+CC.on('clear', () => document.querySelectorAll('.item').forEach((x) => x.remove()));
+</script>
+</body></html>

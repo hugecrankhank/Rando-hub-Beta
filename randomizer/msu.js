@@ -1,0 +1,406 @@
+// MSU-1 music packs, played next to the emulator.
+//
+// The emulator core has no MSU-1 chip, so the game always plays its own
+// (SPC) music. When a pack is loaded we build the ROM with the randomizer's
+// "no background music" flag (0x18021A) so the SPC stays silent but sound
+// effects keep playing, then follow the song the game asks for in WRAM and
+// play the matching PCM track here. Track choice mirrors z3randomizer's
+// msu.asm (dungeon/boss-specific tracks, light/dark world variants,
+// fallbacks for packs without the extended tracks, overworld resume).
+
+const WRAM = 0xF50000;            // AlttpBridge address of $7E0000
+const NO_BGM = 0x18021A;          // ROM flag: 1 = SPC music off
+const RATE = 44100;
+
+// msu.asm MSUTrackList: 1 = play once, 3 = loop
+const PLAY_ONCE = new Set([1, 8, 10, 19, 25, 26, 29, 33, 34]);
+// msu.asm MSUExtendedFallbackList (track -> track to use when missing)
+const FALLBACK = [0,
+  0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0D, 0x10,
+  0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F, 0x20,
+  0x21, 0x22, 0x11, 0x11, 0x10, 0x16, 0x16, 0x16, 0x16, 0x16, 0x11, 0x16, 0x16, 0x16, 0x15, 0x15,
+  0x15, 0x15, 0x15, 0x15, 0x15, 0x15, 0x15, 0x15, 0x15, 0x15, 0x16, 0x02, 0x09];
+const OVERWORLD = new Set([2, 3, 4, 5, 7, 9, 15, 60, 61]);
+const RESUME_MS = 30000;          // msu.asm MSUResumeTimer: 1800 frames
+
+// iPhone / iPad (iPadOS says it's a Mac): play songs by streaming them from the
+// file instead of decoding each whole song into memory. A decoded song is
+// 60-100 MB, and with the emulator and trackers that ran iPads out of memory
+// (lag on every song change, then Safari or the whole iPad crashing).
+// localStorage 'unified-msu-stream' = '1' / '0' forces it on or off.
+function wantStream() {
+  try { const v = localStorage.getItem('unified-msu-stream'); if (v === '1') return true; if (v === '0') return false; } catch (e) {}
+  const ua = navigator.userAgent || '';
+  return /iPad|iPhone|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+}
+
+// MSU-1 .pcm is 16-bit stereo 44.1 kHz little-endian: exactly a WAV's data, so
+// a WAV header in front of a slice of the file makes it playable (no copy).
+function wavHeader(dataLen) {
+  const wav = new DataView(new ArrayBuffer(44));
+  const str = (o, x) => { for (let i = 0; i < 4; i++) wav.setUint8(o + i, x.charCodeAt(i)); };
+  str(0, 'RIFF'); wav.setUint32(4, 36 + dataLen, true); str(8, 'WAVE');
+  str(12, 'fmt '); wav.setUint32(16, 16, true); wav.setUint16(20, 1, true); wav.setUint16(22, 2, true);
+  wav.setUint32(24, RATE, true); wav.setUint32(28, RATE * 4, true); wav.setUint16(32, 4, true); wav.setUint16(34, 16, true);
+  str(36, 'data'); wav.setUint32(40, dataLen, true);
+  return wav.buffer;
+}
+async function readPcm(blob) {
+  const head = new Uint8Array(await blob.slice(0, 8).arrayBuffer());
+  if (head.length < 8 || String.fromCharCode(...head.subarray(0, 4)) !== 'MSU1') throw new Error('not an MSU-1 .pcm file');
+  const loop = new DataView(head.buffer).getUint32(4, true);
+  const dataLen = Math.max(4, (blob.size - 8) & ~3);
+  const frames = dataLen / 4;
+  return { loop: loop < frames ? loop : 0, dataLen, frames };
+}
+
+/**
+ * A randomizer ROM's title starts with two capitals: "VT" (alttpr.com and this
+ * app's generator), "GK" (Kara's branch), "DR"/"ER"/"OR" (Door, Entrance and
+ * Overworld Randomizer, as AVIANART makes them). The plain game's is "ZELDA…"
+ * (JP) or "THE LEGEND…" (US). All of these randomizers share the music-off
+ * flag at 0x18021A.
+ */
+export function isRandoTitle(bytes) {
+  const t = String.fromCharCode(bytes[0], bytes[1]);
+  return /^[A-Z]{2}$/.test(t) && t !== 'ZE' && t !== 'TH';
+}
+
+export function trackNumber(fileName) {
+  const m = /-(\d+)\.pcm$/i.exec(fileName);
+  return m ? Number(m[1]) : null;
+}
+
+export class MsuPlayer {
+  constructor() {
+    this.tracks = new Map();      // track number -> Blob
+    this.ctx = null;
+    this.gain = null;
+    this.source = null;
+    this.playing = 0;             // MSU track currently playing
+    this.lastCmd = 0;             // last value seen at $7E0130
+    this.target = 1;              // volume the game asked for (F2/F3)
+    this.level = 1;               // current fade level
+    this.resume = null;           // { track, offset, at }
+    this.startedAt = 0;
+    this.buffers = new Map();     // small cache of decoded tracks
+    this.loadToken = 0;
+    this.lastFrame = -1;
+    this.lastFrameAt = 0;
+    this.timer = null;
+    this.useStream = wantStream();
+    this.streamFails = 0;
+    this.stream = null;           // { el, url, loop, dur, once } while streaming
+    this.loopT = null;
+  }
+
+  setTracks(map) { this.tracks = map; this.buffers.clear(); this.stop(); }
+  get count() { return this.tracks.size; }
+
+  // Must be called from a tap/click so iOS lets audio start.
+  unlock() {
+    // iOS: play through the silent switch, like a music app would
+    try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}
+    if (!this.ctx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      try { this.ctx = new AC({ sampleRate: RATE }); } catch (e) { this.ctx = new AC(); }
+      this.gain = this.ctx.createGain();
+      this.gain.connect(this.ctx.destination);
+    }
+    if (this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
+    // iOS only lets an <audio> play by itself later if it first played in a tap
+    if (this.useStream && !this.elBlessed) {
+      const el = this.audioEl();
+      if (el) {
+        this.elBlessed = true;
+        el.src = URL.createObjectURL(new Blob([wavHeader(400), new Uint8Array(400)], { type: 'audio/wav' }));
+        const p = el.play();
+        if (p && p.then) p.then(() => { if (!this.stream) el.pause(); }).catch(() => { this.elBlessed = false; });
+      }
+    }
+  }
+
+  // the one <audio> songs stream through, wired into the same volume as before
+  audioEl() {
+    if (this.el) return this.el;
+    if (!this.ctx || typeof Audio === 'undefined') return null;
+    const el = new Audio();
+    el.preload = 'auto';
+    el.setAttribute('playsinline', '');
+    try {
+      this.elNode = this.ctx.createMediaElementSource(el);
+      this.elNode.connect(this.gain);
+    } catch (e) { console.warn('[msu] streaming unavailable', e); this.useStream = false; return null; }
+    el.addEventListener('ended', () => {
+      const s = this.stream;
+      if (s && s.el === el && !s.once) { el.currentTime = s.loop; el.play().catch(() => {}); }
+    });
+    this.el = el;
+    return el;
+  }
+
+  start() {
+    if (this.timer) return;
+    this.timer = setInterval(() => this.tick(), 50);
+  }
+
+  stop() {
+    this.stopSource();
+    this.playing = 0;
+    this.lastCmd = 0;
+    this.resume = null;
+  }
+
+  // the ROM's music flag just changed mid-song: play the song the game is on
+  restart() { this.stopSource(); this.playing = 0; this.lastCmd = 0; }
+
+  stopSource() {
+    if (this.stream) {
+      const s = this.stream;
+      this.stream = null;
+      clearTimeout(this.loopT); this.loopT = null;
+      try { s.el.pause(); } catch (e) {}
+      URL.revokeObjectURL(s.url);
+    }
+    if (this.source) {
+      try { this.source.onended = null; this.source.stop(); } catch (e) {}
+      this.source.disconnect();
+      this.source = null;
+    }
+  }
+
+  active() {
+    const b = window.AlttpBridge;
+    if (!this.tracks.size || !b || !b.ready()) return false;
+    const st = b.status();
+    if (!st.running || (st.mode !== 'live' && st.mode !== 'snapshot')) return false;
+    // only when the running ROM is a randomizer ROM with its own music off
+    return isRandoTitle(b.read(0x7FC0, 2)) && b.read(NO_BGM, 1)[0] === 1;
+  }
+
+  ram(addr, len = 1) { return window.AlttpBridge.read(WRAM + addr, len); }
+
+  tick() {
+    if (!this.active()) {
+      if (this.playing) this.stop();
+      return;
+    }
+    const now = performance.now();
+
+    // pause with the game (menu open, emulator paused, tab hidden)
+    const frame = this.ram(0x1A)[0];
+    if (frame !== this.lastFrame) { this.lastFrame = frame; this.lastFrameAt = now; }
+    const paused = now - this.lastFrameAt > 600;   // not just a slow screen load
+    if (this.ctx) {
+      if (paused && this.ctx.state === 'running') this.ctx.suspend().catch(() => {});
+      if (!paused && this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
+    }
+    if (this.stream) {
+      const el = this.stream.el;
+      if (paused && !el.paused) { this.stream.held = true; el.pause(); }
+      else if (!paused && this.stream.held) { this.stream.held = false; el.play().catch(() => {}); }
+    }
+    if (paused) return;
+    this.keepLooping();
+
+    const cmd = this.ram(0x130)[0];       // LastAPUCommand: last song / F1 fade
+    const vol = this.ram(0x133)[0];       // CurrentControlRequest: catches F2/F3
+    if (vol === 0xF2) this.target = 0.5;
+    else if (vol === 0xF3) this.target = 1;
+
+    if (cmd !== this.lastCmd) {
+      const prev = this.lastCmd;
+      this.lastCmd = cmd;
+      if (cmd === 0xF1) {
+        this.target = 0;
+        this.fadingOut = true;
+      } else if (cmd >= 1 && cmd <= 0x3F && (cmd !== prev || !this.playing)) {
+        this.target = vol === 0xF2 ? 0.5 : 1;
+        this.fadingOut = false;
+        this.request(cmd);
+      }
+    }
+    this.applyVolume(now);
+  }
+
+  // msu.asm CheckMusicLoadRequest: pick the extended track for this request
+  pickTrack(req) {
+    const r = (a, n = 1) => this.ram(a, n);
+    const dungeonId = r(0x40C)[0];
+    const crystals = r(0xF37A)[0];
+    let t = req;
+    switch (req) {
+      case 2: if (r(0xF280 + 0x80)[0] & 0x40) t = 60; break;           // after the pedestal
+      case 9: if (crystals === 0x7F) t = 61; break;                     // all crystals
+      case 13:
+      case 15:
+        if (crystals === 0x7F) t = 61;
+        else if (r(0xF3CA)[0] !== 0 && r(0x8A)[0] === 0x40) t = 15;
+        break;
+      case 16: if (dungeonId === 0x08) t = (dungeonId >> 1) + 33; break; // Agahnim's Tower
+      case 17:
+      case 22: t = (dungeonId >> 1) + 33; break;                        // dungeon themes
+      case 21: t = (dungeonId >> 1) + 45; break;                        // boss themes
+    }
+    // Kakariko theme inside Link's house plays nothing
+    if (t === 7 && r(0x10)[0] === 0x07) return 0;
+    // fall back to the base track when the pack doesn't have the extended one
+    const chain = [t];
+    if (t >= 35 && t <= 46) chain.push(req);      // dungeon theme -> that dungeon's normal music
+    if (t >= 47 && t <= 58) chain.push(21);       // boss theme -> normal boss music
+    let x = chain[chain.length - 1];
+    for (let g = 0; g < 8 && FALLBACK[x] && FALLBACK[x] !== x; g++) { x = FALLBACK[x]; chain.push(x); }
+    chain.push(req);
+    return chain.find((c) => this.tracks.has(c)) || 0;
+  }
+
+  // Crowd "music roulette": play a random track of this pack right now. The
+  // game's next song change brings the normal music back.
+  roulette() {
+    const pool = [...this.tracks.keys()].filter((t) => !PLAY_ONCE.has(t) && t !== this.playing);
+    if (!pool.length || !this.active()) return 0;
+    const t = pool[Math.floor(Math.random() * pool.length)];
+    this.target = 1; this.fadingOut = false;
+    this.request(0, t);
+    return t;
+  }
+
+  async request(req, forced) {
+    const t = forced || this.pickTrack(req);
+    if (t === this.playing && this.source) return;
+    // remember where an overworld song was, for a quick return
+    if (this.playing && OVERWORLD.has(this.playing) && (this.source || this.stream) && this.ctx) {
+      this.resume = { track: this.playing, offset: this.position(), at: performance.now() };
+    }
+    this.stopSource();
+    this.playing = t;
+    if (!t) return;
+    const token = ++this.loadToken;
+    if (this.useStream && this.ctx) {
+      try { if (await this.startStream(t, token)) return; } catch (e) {
+        console.warn('[msu] streaming track', t, 'failed, decoding it instead', e);
+        if (this.stream) this.stopSource();
+        // the browser won't stream here (blocked or unsupported): stop trying
+        if (++this.streamFails >= 2) this.useStream = false;
+      }
+      if (token !== this.loadToken) return;
+    }
+    let buf;
+    try { buf = await this.decode(t); } catch (e) { console.warn('[msu] track', t, e); return; }
+    if (token !== this.loadToken || !this.ctx) return;
+
+    const src = this.ctx.createBufferSource();
+    src.buffer = buf.audio;
+    if (!PLAY_ONCE.has(t)) {
+      src.loop = true;
+      src.loopStart = Math.min(buf.loop / RATE, buf.audio.duration);
+      src.loopEnd = buf.audio.duration;
+    }
+    src.connect(this.gain);
+    let offset = 0;
+    // back on the overworld song within 30 s: carry on where it was (the cave
+    // or house song in between keeps this waiting, as msu.asm does)
+    if (this.resume && this.resume.track === t && performance.now() - this.resume.at < RESUME_MS) {
+      offset = this.resume.offset;
+      this.level = 0;            // fade back in
+      this.resume = null;
+    } else {
+      this.level = this.target;
+    }
+    src.onended = () => { if (this.source === src) { this.source = null; } };
+    this.source = src;
+    this.startedAt = this.ctx.currentTime - offset;
+    this.loopInfo = { loop: buf.loop / RATE, dur: buf.audio.duration, once: PLAY_ONCE.has(t) };
+    src.start(0, offset);
+  }
+
+  // Streaming: an <audio> playing the song straight from the file
+  async startStream(t, token) {
+    const el = this.audioEl();
+    if (!el) return false;
+    const v = this.tracks.get(t);
+    const blob = typeof v === 'function' ? await v() : v;
+    const info = await readPcm(blob);
+    if (token !== this.loadToken) return true;
+    const url = URL.createObjectURL(new Blob([wavHeader(info.dataLen), blob.slice(8, 8 + info.dataLen)], { type: 'audio/wav' }));
+    let offset = 0;
+    // back on the overworld song within 30 s: carry on where it was (the cave
+    // or house song in between keeps this waiting, as msu.asm does)
+    if (this.resume && this.resume.track === t && performance.now() - this.resume.at < RESUME_MS) {
+      offset = this.resume.offset;
+      this.level = 0;            // fade back in
+      this.resume = null;
+    } else {
+      this.level = this.target;
+    }
+    const once = PLAY_ONCE.has(t);
+    this.stream = { el, url, loop: info.loop / RATE, dur: info.frames / RATE, once, held: false };
+    this.loopInfo = { loop: info.loop / RATE, dur: info.frames / RATE, once };
+    el.src = url;
+    if (offset) {
+      const seek = () => { try { el.currentTime = offset; } catch (e) {} };
+      if (el.readyState >= 1) seek(); else el.addEventListener('loadedmetadata', seek, { once: true });
+    }
+    await el.play();
+    return true;
+  }
+
+  // jump back to the loop point right at the end of a streaming song
+  keepLooping() {
+    const s = this.stream;
+    if (!s || s.once || this.loopT || s.el.paused) return;
+    const rem = s.dur - s.el.currentTime;
+    if (rem > 0.3) return;
+    this.loopT = setTimeout(() => {
+      this.loopT = null;
+      if (this.stream === s) { try { s.el.currentTime = s.loop; } catch (e) {} }
+    }, Math.max(0, rem * 1000 - 25));
+  }
+
+  position() {
+    if (this.stream) return this.stream.el.currentTime || 0;
+    const p = this.ctx.currentTime - this.startedAt;
+    const { loop, dur, once } = this.loopInfo || { loop: 0, dur: 0, once: true };
+    if (once || p < dur) return Math.max(0, p);
+    return loop + ((p - loop) % Math.max(0.001, dur - loop));
+  }
+
+  applyVolume(now) {
+    if (!this.gain || !this.ctx) return;
+    const dt = Math.min(0.2, (now - (this.lastVolAt || now)) / 1000);
+    this.lastVolAt = now;
+    // msu.asm fades: down 2/255 per frame, up 16/255 per frame
+    if (this.level > this.target) {
+      this.level = Math.max(this.target, this.level - dt * 60 * 2 / 255);
+      if (this.level === 0 && this.fadingOut) { this.stopSource(); this.playing = 0; }
+    } else if (this.level < this.target) {
+      this.level = Math.min(this.target, this.level + dt * 60 * 16 / 255);
+    }
+    const ejs = window.EJS_emulator;
+    const master = ejs ? (ejs.muted ? 0 : (typeof ejs.volume === 'number' ? ejs.volume : 0.5)) : 0.5;
+    this.gain.gain.setTargetAtTime(this.level * master, this.ctx.currentTime, 0.02);
+  }
+
+  // Hand the PCM to the browser's own decoder as a WAV (MSU-1 .pcm is 16-bit
+  // stereo 44.1 kHz little-endian, exactly WAV's data), so decoding runs off
+  // the main thread and the emulator doesn't stall when the song changes.
+  async decode(t) {
+    if (this.buffers.has(t)) return this.buffers.get(t);
+    // a Blob, or (zip packs) a function that unpacks the song on demand
+    const v = this.tracks.get(t);
+    const blob = typeof v === 'function' ? await v() : v;
+    const info = await readPcm(blob);
+    const bytes = await new Blob([wavHeader(info.dataLen), blob.slice(8, 8 + info.dataLen)]).arrayBuffer();
+    const audio = await new Promise((ok, bad) => {
+      const p = this.ctx.decodeAudioData(bytes, ok, bad);
+      if (p && p.catch) p.catch(() => {});
+    });
+    const entry = { audio, loop: info.loop };
+    // keep only a couple of decoded songs (they're large)
+    if (this.buffers.size >= 2) this.buffers.delete(this.buffers.keys().next().value);
+    this.buffers.set(t, entry);
+    return entry;
+  }
+
+}

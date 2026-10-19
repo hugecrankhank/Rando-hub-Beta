@@ -1,0 +1,69 @@
+ALTTPR CROWD CONTROL - WHAT'S NEW AND HOW TO UPDATE
+==================================================
+
+NEW
+---
+1. Three kinds of new seed, by how many coins one donation is worth
+     1,000+ coins   New seed with the same settings
+     1,200+ coins   New seed from a RANDOM PRESET (the banner and feed
+                    say which preset it landed on)
+     2,000+ coins   CHAOS seed: a random site (alttpr.com, Kara's branch
+                    or AVIANART) with every one of its menus randomized
+   A donation that reaches one of these does that instead of its gift's
+   usual effect. A gift streak counts as one donation.
+   Random preset only picks from your starred (★) presets if you have
+   any; otherwise from every preset except glitched-logic ones.
+   Still needs "Allow seed reroll" ticked in the game's Crowd effects menu.
+
+2. Subathon clock
+   You choose a starting time, donations add time, and you stream until
+   it hits 0:00:00. "coinsPerSecond" sets how many coins buy 1 second
+   (1 = 3,600 coins an hour, 2 = 7,200, 4 = 14,400...). It shows at the
+   bottom of the game, and there's an OBS / LIVE Studio version too.
+
+3. Instant death (insta_kill) and Extra enemy (enemy_spawn) effects, if
+   you haven't added them yet. Map them to any gift in mapping.json.
+
+
+HOW TO UPDATE
+-------------
+1. Close the black bridge window.
+2. Copy bridge.mjs from the zip over your old one.
+3. Add these lines to your mapping.json, right after the "gifts" { ... },
+   section (keep the comma after the closing } of "gifts"):
+
+  "coinTiers": [
+    { "coins": 1000, "effect": "seed_roll",   "label": "New seed (same settings)" },
+    { "coins": 1200, "effect": "seed_preset", "label": "Random preset seed" },
+    { "coins": 2000, "effect": "seed_chaos",  "label": "CHAOS seed" }
+  ],
+
+  "timer": { "enabled": true, "coinsPerSecond": 1 },
+
+   (Or just use the mapping.json from the zip: it already has them, along
+   with the gift chart. It replaces any other changes you made to yours.)
+4. Start the bridge again. It should also say:
+     subathon timer: http://localhost:21214/timer
+5. Refresh the game page (F5).
+
+
+USING THE SUBATHON CLOCK
+------------------------
+1. With the bridge running, open http://localhost:21214/timer/control
+2. Type the starting hours/minutes, press "Set timer", then "Start".
+3. Donations add time by themselves. Pause, +/- buttons and a list of
+   recent donations are on the same page.
+4. On stream it shows at the bottom of the game automatically. For OBS /
+   TikTok LIVE Studio, add a browser/link source:
+       http://localhost:21214/timer      (width 600, height 190)
+The clock is saved, so closing the bridge doesn't lose it: it comes back
+paused, press Start to continue. Full details: INSTRUCTIONS.txt, Part 6.
+
+
+CHECK IT WORKS
+--------------
+- In the game: ... menu -> Crowd effects has test buttons for
+  "Random preset seed!" and "CHAOS seed!".
+- When a real gift arrives, the black window shows "= N coins" next to
+  it. That's what the seed tiers and the clock use. If it's missing for
+  a gift, see "A big donation didn't trigger..." in INSTRUCTIONS.txt.

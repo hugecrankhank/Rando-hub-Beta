@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EmoTracker</title>
+<!--
+  EmoTracker for the web (beta): runs an EmoTracker pack inside Rando Hub.
+  emo.js = the model (items, locations, logic, Lua, autotracking),
+  ui.js = the layouts. Credits and licenses: README.md in this folder.
+-->
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #1b1b1b; color: #e8e8e8;
+    font: 12px/1.3 system-ui, -apple-system, "Segoe UI", sans-serif; overflow: hidden; }
+  body { display: flex; flex-direction: column; }
+  #bar { flex: none; display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; padding: 4px 6px;
+    background: #111; border-bottom: 1px solid #333; }
+  #bar label { display: flex; align-items: center; gap: 4px; color: #9aa; }
+  #bar select, #bar button { background: #222; color: #e8e8e8; border: 1px solid #444; border-radius: 4px;
+    padding: 2px 6px; font: inherit; cursor: pointer; }
+  #bar .sp { flex: 1; }
+  #dot { width: 9px; height: 9px; border-radius: 50%; background: #666; display: inline-block; }
+  #dot.on { background: #3fd25b; box-shadow: 0 0 6px #3fd25b; }
+  #stat { color: #9aa; }
+  body.clean #bar { display: none; }
+  #root { flex: 1; min-height: 0; position: relative; overflow: auto; }
+  #msg { padding: 20px; color: #9aa; }
+
+  /* layouts */
+  .emo-root { min-height: 100%; height: 100%; }
+  .l-container { display: flex; flex-direction: column; height: 100%; }
+  .l-container > * { flex: 1 1 auto; min-height: 0; }
+  .l-dock-root { display: flex; height: 100%; width: 100%; min-height: 0; }
+  .l-dock-root > * { flex: 1 1 auto; min-width: 0; min-height: 0; }
+  .l-dock { display: flex; min-width: 0; min-height: 0; width: 100%; height: 100%; }
+  .l-dock.row { flex-direction: row; }
+  .l-dock.col { flex-direction: column; }
+  .l-dock > .docked { flex: none; overflow: auto; }
+  /* a docked child takes only the room it needs along the docking edge */
+  .l-dock.row > .docked { width: auto !important; height: 100%; max-width: 70%; }
+  .l-dock.col > .docked { height: auto !important; width: 100%; max-height: 70%; }
+  .l-dock.row > .docked.l-dock-root, .l-dock.col > .docked.l-dock-root { display: flex; }
+  .l-dock.col > .docked.l-dock-root > .l-dock, .l-dock.col > .docked .l-dock { height: auto; }
+  .l-dock.row > .docked.l-dock-root > .l-dock, .l-dock.row > .docked .l-dock { width: auto; }
+  .l-dock > .l-dock-rest { flex: 1 1 auto; min-width: 0; min-height: 0; display: flex; }
+  .l-dock-rest > * { flex: 1 1 auto; min-width: 0; min-height: 0; }
+  .l-array { display: flex; min-width: 0; }
+  .l-array.col { flex-direction: column; }
+  .l-array.row { flex-direction: row; }
+  .l-array.wrap { flex-wrap: wrap; }
+  [data-h="center"] { align-self: center; }
+  [data-h="left"] { align-self: flex-start; }
+  [data-h="right"] { align-self: flex-end; }
+  [data-h="stretch"] { align-self: stretch; }
+  .l-group { display: flex; flex-direction: column; min-height: 0; background: #2b2b2b; }
+  .l-head { display: flex; align-items: center; gap: 6px; padding: 3px 6px; font-weight: 600; letter-spacing: .02em; }
+  .l-title { flex: 1; }
+  .l-body { flex: 1 1 auto; min-height: 0; overflow: auto; display: flex; flex-direction: column; }
+  .l-body > * { flex: 0 0 auto; }
+  .l-dock > .docked.l-group > .l-body, .l-dock > .docked > .l-body { overflow: visible; }
+  .shadow { box-shadow: 0 1px 5px rgba(0,0,0,.45); }
+  .l-grid { display: flex; flex-direction: column; align-items: center; padding: 2px; }
+  .l-row { display: flex; }
+  .it { position: relative; cursor: pointer; user-select: none; -webkit-user-select: none; flex: none; }
+  .it.static, .it.blank { cursor: default; }
+  .it .pic, .hosted .pic, .l-image { position: relative; display: block; width: 100%; height: 100%; }
+  .it img, .hosted img, .l-image img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain;
+    image-rendering: pixelated; pointer-events: none; }
+  .it .badge { position: absolute; right: -1px; bottom: -3px; font: bold 12px/1 system-ui, sans-serif; color: whitesmoke;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; pointer-events: none; }
+  .l-popbtn { position: relative; }
+  .l-gear { background: transparent; border: 0; color: #ddd; cursor: pointer; font-size: 14px; padding: 0 2px; }
+  .l-popup { position: absolute; z-index: 30; right: 0; top: 100%; padding: 6px; border-radius: 6px; min-width: 160px;
+    box-shadow: 0 6px 18px rgba(0,0,0,.6); }
+  .l-tabs { display: flex; flex-direction: column; height: 100%; }
+  .l-tabbar { display: flex; gap: 2px; }
+  .l-tab { background: #222; color: #ccc; border: 1px solid #444; padding: 2px 8px; cursor: pointer; }
+  .l-tab.on { background: #3e4b57; color: #fff; }
+  .l-tabbody { flex: 1; min-height: 0; }
+  .l-canvas { position: relative; }
+  .unsupported { min-width: 20px; min-height: 20px; outline: 1px dashed #844; }
+
+  /* maps */
+  .l-maps { display: flex; align-items: center; justify-content: center; gap: 2px; width: 100%; height: 100%;
+    min-width: 0; min-height: 0; overflow: hidden; background: #000; }
+  .l-maps.col { flex-direction: column; }
+  .map { position: relative; flex: none; }
+  .map svg { display: block; width: 100%; height: 100%; }
+  .map image { image-rendering: pixelated; }
+  .map .pin { cursor: pointer; }
+  .map .pin:hover { stroke: #fff; }
+
+  /* locations */
+  .loc-pop { position: fixed; z-index: 100; min-width: 200px; max-width: 320px; padding: 6px 8px; background: #212121;
+    border: 1px solid #555; border-radius: 6px; box-shadow: 0 8px 22px rgba(0,0,0,.7); }
+  .pop-head { display: flex; align-items: center; gap: 4px; margin-bottom: 4px; }
+  .pop-title { flex: 1; font-weight: 700; }
+  .pop-btn { background: #2b2b2b; color: #ddd; border: 1px solid #444; border-radius: 4px; cursor: pointer; padding: 0 5px; font-size: 12px; }
+  .pop-btn.on { border-color: #3fd25b; }
+  .sec { display: flex; align-items: center; gap: 6px; padding: 2px 0; }
+  .sec-name { flex: 1; }
+  .sec-chests { display: flex; align-items: center; gap: 2px; cursor: pointer; user-select: none; }
+  .chest { width: 20px; height: 20px; image-rendering: pixelated; }
+  .cnt { font-weight: 700; margin-left: 2px; }
+  .hosted { width: 24px; height: 24px; display: inline-block; cursor: pointer; }
+  .l-pins { display: flex; gap: 4px; padding: 4px; align-items: flex-start; min-height: 30px; }
+  .l-pins.col { flex-direction: column; align-items: stretch; }
+  .l-pins.row { flex-direction: row; flex-wrap: wrap; }
+  .pin-card { background: #262626; border: 1px solid #3a3a3a; border-radius: 5px; padding: 4px 6px; min-width: 160px; }
+  .pins-empty { color: #888; font-style: italic; padding: 4px; }
+  #toast { position: fixed; z-index: 200; left: 50%; top: 40px; transform: translateX(-50%); background: #212121;
+    border: 1px solid #3fd25b; border-radius: 8px; padding: 8px 12px; white-space: pre-wrap; max-width: 90%; }
+</style>
+</head>
+<body>
+<div id="bar">
+  <label title="Which of the pack's trackers to use">Tracker <select id="variant"></select></label>
+  <label title="How the tracker is laid out">View <select id="view"></select></label>
+  <span title="Autotracking: reads the game as you play"><span id="dot"></span> <span id="stat">Waiting for the game</span></span>
+  <span class="sp"></span>
+  <button id="b-reset" type="button" title="Clear everything you've marked for this tracker">Reset</button>
+  <button id="b-help" type="button" title="How to use it">?</button>
+</div>
+<div id="root"><div id="msg">Loading EmoTracker pack…</div></div>
+<script src="fengari-web.js"></script>
+<script src="emo.js"></script>
+<script src="ui.js"></script>
+<script>
+(function () {
+  'use strict';
+  var E = window.EmoWeb, $ = function (id) { return document.getElementById(id); };
+  var params = new URLSearchParams(location.search);
+  if (params.get('clean') === '1') document.body.classList.add('clean');
+  var VIEW_KEY = 'rhb-emo-view';
+  var VIEWS = [['auto', 'Auto'], ['tracker_default', 'Items beside map'], ['tracker_horizontal', 'Items below map'],
+               ['tracker_broadcast', 'Broadcast'], ['shared_item_grid', 'Items only']];
+  var view = 'auto';
+  try { view = localStorage.getItem(VIEW_KEY) || 'auto'; } catch (e) {}
+  // one picked in this menu wins (Rando Hub clears it when its own settings change)
+  var variant = null;
+  try { variant = localStorage.getItem('rhb-emo-variant'); } catch (e) {}
+  variant = variant || params.get('variant');
+
+  function pickLayout() {
+    var v = view;
+    if (v === 'auto') {
+      var r = $('root'), w = r.clientWidth, h = r.clientHeight;
+      v = !E.maps.length ? 'tracker_default' : (w >= 760 && w > h * 1.1 ? 'tracker_default' : 'tracker_horizontal');
+    }
+    if (!E.layouts[v]) v = E.layouts.tracker_default ? 'tracker_default' : Object.keys(E.layouts)[0];
+    return v;
+  }
+  var current = null;
+  function draw(force) {
+    var k = pickLayout();
+    if (k === current && !force) return;
+    current = k;
+    E.render($('root'), k);
+  }
+
+  E.load(variant).then(function () {
+    var vs = E.manifest.variants || {};
+    Object.keys(vs).forEach(function (k) {
+      var o = document.createElement('option'); o.value = k; o.textContent = vs[k].display_name || k; $('variant').appendChild(o);
+    });
+    $('variant').value = E.variant;
+    VIEWS.forEach(function (v) {
+      if (v[0] !== 'auto' && !E.layouts[v[0]]) return;
+      var o = document.createElement('option'); o.value = v[0]; o.textContent = v[1]; $('view').appendChild(o);
+    });
+    $('view').value = view;
+    if ($('view').value !== view) $('view').value = view = 'auto';
+    draw(true);
+    var t = null;
+    window.addEventListener('resize', function () { clearTimeout(t); t = setTimeout(function () { draw(false); }, 120); });
+    if (E.log.some(function (l) { return /error/i.test(l); })) console.warn('EmoTracker pack messages:', E.log);
+  }).catch(function (e) {
+    $('msg').textContent = 'Couldn’t load the EmoTracker pack: ' + (e && e.message || e);
+  });
+
+  $('variant').addEventListener('change', function () {
+    try { localStorage.setItem('rhb-emo-variant', this.value); } catch (e) {}
+    params.set('variant', this.value);
+    location.search = params.toString();
+  });
+  $('view').addEventListener('change', function () {
+    view = this.value;
+    try { localStorage.setItem(VIEW_KEY, view); } catch (e) {}
+    draw(true);
+  });
+  $('b-reset').addEventListener('click', function () {
+    if (confirm('Clear everything marked on this tracker? (Autotracking fills it back in from the game.)')) E.reset();
+  });
+  $('b-help').addEventListener('click', function () {
+    alert('EmoTracker (beta)\n\n' +
+      'Items: click to add or turn on, right click to take away.\n' +
+      'Map: click a square for its checks. Click a chest when you’ve collected it (right click to undo). ' +
+      'Right click a square to mark all of it collected. 📌 pins it to Pinned Locations.\n\n' +
+      'Colors: green = in logic, yellow = possible with a sequence break, blue = can look at it, ' +
+      'orange = only some of it, red = not yet, gray = done.\n\n' +
+      'Autotracking reads the game as you play, so most of this fills in on its own.');
+  });
+  E.onStatus = function (on) {
+    $('dot').classList.toggle('on', on);
+    $('stat').textContent = on ? 'Autotracking' : 'Waiting for the game';
+  };
+  E.notify = function (md) {
+    var t = document.createElement('div'); t.id = 'toast';
+    t.textContent = md.replace(/[#*]/g, '').replace(/\|/g, ' ').replace(/^\s*-+\s*$/gm, '').trim();
+    document.body.appendChild(t);
+    setTimeout(function () { t.remove(); }, 12000);
+  };
+})();
+</script>
+</body>
+</html>

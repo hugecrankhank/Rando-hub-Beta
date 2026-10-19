@@ -1,0 +1,45 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Mystery box</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="/studio/overlay.css">
+<style>
+  /* 700 x 260. A slot machine that lands on the effect. */
+  body { padding: calc(10px * var(--scale)); }
+  .card { width: calc(660px * var(--scale)); padding: calc(14px * var(--scale)) calc(18px * var(--scale)); display: none; text-align: center; }
+  .card.on { display: block; animation: pop .45s cubic-bezier(.2, 1.4, .4, 1); }
+  @keyframes pop { from { opacity: 0; transform: scale(.9) rotate(-2deg); } }
+  .top { font-size: calc(15px * var(--scale)); color: #ffd166; display: flex; justify-content: center; align-items: center; gap: calc(10px * var(--scale)); }
+  .who { font: 700 calc(16px * var(--scale)) var(--sans); color: #e9e4f7; margin: calc(6px * var(--scale)) 0 calc(10px * var(--scale)); }
+  .window { position: relative; height: calc(64px * var(--scale)); overflow: hidden; border-radius: calc(10px * var(--scale)); background: #0b0716; border: calc(3px * var(--scale)) solid #fff; }
+  .reel { position: absolute; left: 0; right: 0; top: 0; }
+  .reel div { height: calc(64px * var(--scale)); display: grid; place-items: center; font-size: calc(20px * var(--scale)); }
+  .window::before, .window::after { content: ""; position: absolute; left: 0; right: 0; height: 30%; z-index: 1; pointer-events: none; }
+  .window::before { top: 0; background: linear-gradient(#0b0716, transparent); } .window::after { bottom: 0; background: linear-gradient(transparent, #0b0716); }
+  .done .window { border-color: #ffd166; box-shadow: 0 0 calc(24px * var(--scale)) rgba(255,209,102,.7); }
+</style></head>
+<body>
+<div class="card box" id="card"><div class="top pix shadow"><img class="die" src="/studio/die.svg" alt="">MYSTERY BOX<img class="die" src="/studio/die.svg" alt=""></div>
+<div class="who" id="who"></div><div class="window"><div class="reel pix" id="reel"></div></div></div>
+<div class="offline-note">Waiting for the Crowd Control+ bridge…</div>
+<script src="/studio/common.js"></script>
+<script>
+const card = document.getElementById('card'), reel = document.getElementById('reel'); let hideT = null;
+function spin(d) {
+  clearTimeout(hideT);
+  document.getElementById('who').textContent = d.user ? 'from ' + d.user : '';
+  const items = d.reel.concat(d.result);
+  reel.innerHTML = items.map((x) => '<div class="shadow">' + CC.esc(x) + '</div>').join('');
+  card.classList.remove('done'); card.classList.remove('on'); void card.offsetWidth; card.classList.add('on');
+  const h = reel.firstChild.getBoundingClientRect().height, n = items.length - 1;
+  reel.style.transition = 'none'; reel.style.transform = 'translateY(0)';
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    reel.style.transition = 'transform ' + d.secs + 's cubic-bezier(.15, .7, .2, 1)';
+    reel.style.transform = 'translateY(' + (-n * h) + 'px)';
+  }));
+  setTimeout(() => card.classList.add('done'), d.secs * 1000);
+  hideT = setTimeout(() => card.classList.remove('on'), d.secs * 1000 + 3500);
+}
+CC.on('live', (d) => { if (d.what === 'mystery') spin(d); });
+CC.on('state', () => { if (CC.q.get('preview') === '1' && !card.classList.contains('on')) spin({ user: 'PreviewViewer', reel: ['Ice physics', 'Pink Link', '+50 rupees', 'Mirror mode', 'Freeze!', 'Slow motion'], result: 'Cucco attack', secs: 2.5 }); });
+</script>
+</body></html>

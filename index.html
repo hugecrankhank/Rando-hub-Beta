@@ -1,0 +1,1688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!-- maximum-scale=1: iOS zooms the page in when a text box or menu with text under
+     16px is tapped (the seed box, the selects, the tracker's menus), and a Home Screen
+     app stays zoomed. This stops that zoom; pinch-to-zoom still works on iOS. -->
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Rando Hub Beta</title>
+<meta name="application-name" content="Rando Hub">
+<meta name="version" content="1.7.1">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#161b22">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" href="icons/favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<!-- Solid status bar, not black-translucent: on recent iOS a Home Screen app with a
+     see-through status bar shows the page up under the clock but then cuts the same
+     height off the bottom of the screen (62pt on an iPhone 17 Pro Max). -->
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Rando Hub">
+<style>
+  :root {
+    --bg: #0e1116; --panel: #161b22; --line: #2a313c; --text: #e6e9ee;
+    --dim: #8b95a3; --accent: #5fbf6f; --warn: #e3b341; --bad: #e5534b;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
+    font: 14px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  body { display: grid; grid-template-rows: auto auto 1fr; }
+
+  header { padding-top: max(10px, env(safe-area-inset-top)) !important;
+    padding-left: max(16px, env(safe-area-inset-left)) !important; padding-right: max(16px, env(safe-area-inset-right)) !important; }
+  header { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center;
+    padding: 10px 16px; border-bottom: 1px solid var(--line); background: var(--panel); }
+  @font-face { font-family: "Rando Pixel"; src: url(fonts/PressStart2P-Regular.ttf) format("truetype"); font-display: swap; }
+  header h1 { font-size: 15px; margin: 0 8px 0 0; letter-spacing: .02em; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+  header h1 .app-name { font-family: "Rando Pixel", ui-monospace, monospace; font-weight: 400; color: #fff; font-size: .9em; line-height: 1; }
+  header h1 .app-name span { color: #e63946; }
+  header h1 .app-die { width: 1.65em; height: 1.65em; flex: none; }
+  header h1 .app-ver { font-size: 10px; font-weight: 400; color: var(--dim); margin-left: -2px; letter-spacing: 0; }
+  body.phone header h1 .app-ver, body.tablet header h1 .app-ver { display: none; }
+  /* phones: the pixel font at its native 8px, so the name fits beside the buttons */
+  body.phone header h1 { gap: 5px; }
+  body.phone header h1 .app-name { font-size: 8px; }
+  body.phone header h1 .app-die { width: 18px; height: 18px; }
+  label.ctl { display: flex; gap: 6px; align-items: center; color: var(--dim); font-size: 13px; }
+  select, button, .filebtn { background: #0d1117; color: var(--text); border: 1px solid var(--line);
+    border-radius: 6px; padding: 5px 10px; font: inherit; font-size: 13px; cursor: pointer; }
+  button:hover, .filebtn:hover, select:hover { border-color: #3d4654; }
+  .filebtn.primary { background: #1f6f3a; border-color: #2a8a4a; }
+  #rom-input { display: none; }
+  .spacer { flex: 1; }
+  #link-status, #pad-status { font-size: 12px; color: var(--dim); display: flex; align-items: center; gap: 6px; }
+  #link-status i, #pad-status i { width: 8px; height: 8px; border-radius: 50%; background: var(--dim); display: inline-block; }
+  #pad-status.on i { background: var(--accent); }
+  #link-status.live i { background: var(--accent); }
+  #link-status.snap i { background: var(--warn); }
+  #map-key, #map-settings-btn { display: none; }
+  body.tablet #map-key { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; color: var(--dim); align-items: center; }
+  body.tablet #map-settings-btn { display: inline-block; padding: 3px 10px; font-size: 12px; }
+  #map-key span { display: inline-flex; align-items: center; gap: 5px; }
+  #map-key b { width: 10px; height: 10px; border-radius: 2px; border: 1.5px solid #000; display: inline-block; }
+  #map-key b.cleared { background: rgba(40,40,40,.85); border: 1px solid #555; }
+  #map-settings-btn.open { border-color: var(--accent); }
+
+  /* ── randomizer bar ── */
+  #rando-bar { display: none; flex-wrap: wrap; gap: 8px 12px; align-items: flex-end; padding: 8px 16px 10px;
+    padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right));
+    border-bottom: 1px solid var(--line); background: #11161d; }
+  body.rando-open #rando-bar { display: flex; }
+  /* a tall bar (AVIANART's tabs, the customizer) scrolls inside itself, so the
+     game area below always keeps its room (phones have their own sheet) */
+  body.rando-open:not(.phone) #rando-bar { max-height: 64vh; overflow-y: auto; overscroll-behavior: contain; }
+  /* …with Base ROM / Generate & Play always in view at its bottom edge */
+  body:not(.phone) #rando-bar .actions { position: sticky; bottom: -10px; z-index: 5; flex-basis: 100%;
+    margin: 0 -16px -10px; padding: 8px 16px 10px; background: #11161d; border-top: 1px solid var(--line); }
+  #rando-bar label.f { display: flex; flex-direction: column; gap: 3px; color: var(--dim); font-size: 11px;
+    text-transform: uppercase; letter-spacing: .04em; }
+  #rando-bar label.f select, #rando-bar label.f input { text-transform: none; letter-spacing: 0; }
+  #rando-bar input[type=text] { background: #0d1117; color: var(--text); border: 1px solid var(--line);
+    border-radius: 6px; padding: 5px 8px; font: inherit; font-size: 13px; width: 9em; }
+  #rando-bar .group { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: flex-end; }
+  /* the bar's main fields line up by their labels, so boxes sit on one line even
+     when a field has a note under it (Load a seed, Link sprite, AVIANART) */
+  #rando-bar > .group { align-items: flex-start; }
+  #rando-bar details { color: var(--dim); font-size: 12px; align-self: center; }
+  #rando-bar details[open] { flex-basis: 100%; }
+  #rando-bar details summary { cursor: pointer; }
+  #rando-bar details .group { margin-top: 6px; }
+  #rando-bar .actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  #r-generate { background: #1f6f3a; border-color: #2a8a4a; font-weight: 600; }
+  #r-generate:disabled { opacity: .6; cursor: progress; }
+  /* the generator choice: alttpr.com's settings or Kara's */
+  body:not(.gen-kara) #rando-bar .kara-only, body:not(.gen-avian) #rando-bar .avian-only,
+  body.gen-kara #rando-bar .vt-only, body.gen-avian #rando-bar .vt-only, body.gen-avian #rando-bar .no-avian { display: none !important; }
+  #r-kara { display: contents; }
+  #rando-bar label.f[hidden] { display: none; }
+  #r-kara-more-body { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+  #rando-bar .kara-group { align-items: flex-end; }
+  #rando-bar .kara-group-title { flex-basis: 100%; color: var(--text); font-size: 11px; text-transform: uppercase;
+    letter-spacing: .04em; margin-top: 4px; }
+  #r-kara-more .hint { margin: 8px 0 0; }
+  /* The fold-outs (More Kara settings, ROM options) as clear buttons, with a
+     hint of what's inside while closed */
+  #rando-bar details > summary { display: inline-flex; align-items: center; gap: 8px; list-style: none;
+    padding: 7px 14px; border: 1px solid #2a8a4a; border-radius: 8px; background: #12261a; color: var(--accent);
+    font-size: 13px; font-weight: 600; text-transform: none; letter-spacing: 0; cursor: pointer;
+    -webkit-user-select: none; user-select: none; }
+  #rando-bar details > summary::-webkit-details-marker { display: none; }
+  #rando-bar details > summary:hover { background: #173322; border-color: var(--accent); }
+  #rando-bar details > summary::before { content: ''; width: 7px; height: 7px; margin: 0 2px 0 1px;
+    border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(-45deg);
+    transition: transform .15s; }
+  #rando-bar details[open] > summary::before { transform: rotate(45deg); margin-top: -4px; }
+  #rando-bar details:not([open]) > summary::after { color: var(--dim); font-weight: 400; font-size: 12px; }
+  #r-kara-more:not([open]) > summary::after { content: 'door, overworld, entrance and item shuffles\2026'; }
+  #r-rom-more:not([open]) > summary::after { content: 'heart beep, MSU-1 music, quickswap, offline use\2026'; }
+  /* Customizer (randomizer/custom-ui.js): alttpr.com's Customizer menus, one dropdown each, and presets */
+  #r-custom > summary .cz-badge { padding: 1px 8px; border-radius: 10px; border: 1px solid var(--line); color: var(--dim);
+    font-size: 11px; font-weight: 600; }
+  #r-custom > summary .cz-badge.on { color: #0e1116; background: var(--accent); border-color: var(--accent); }
+  #r-custom:not([open]) > summary::after { content: 'item pool, placements, starting items\2026'; }
+  body.custom-on:not(.gen-kara) #r-generate::after { content: ' (custom)'; font-weight: 400; }
+  #r-custom-body { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; color: var(--text); font-size: 13px;
+    max-height: min(62vh, 640px); overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+    padding-right: 4px; }
+  body.phone #r-custom-body { max-height: none; overflow: visible; }
+  .cz-top { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; padding: 8px 10px; border: 1px solid var(--line);
+    border-radius: 8px; background: #0d1117; }
+  .cz-top .cz-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .cz-top input[type=text] { width: 12em; }
+  .cz-top button:disabled { opacity: .5; cursor: default; }
+  .cz-top .cz-lbl { color: var(--dim); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+  #r-custom-import { display: none; }
+  .cz-menus { display: flex; flex-direction: column; gap: 6px; }
+  #rando-bar details.cz-sec { color: var(--text); font-size: 13px; border: 1px solid var(--line); border-radius: 8px;
+    background: #0d1117; align-self: stretch; }
+  #rando-bar details.cz-sec > summary { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; width: 100%;
+    padding: 9px 12px; border: 0; border-radius: 8px; background: transparent; color: var(--text); font-weight: 600; }
+  #rando-bar details.cz-sec > summary:hover { background: #161b22; }
+  #rando-bar details.cz-sec > summary small { color: var(--dim); font-weight: 400; font-size: 12px; }
+  #rando-bar details.cz-sec[open] > summary { border-bottom: 1px solid var(--line); border-radius: 8px 8px 0 0; color: var(--accent); }
+  #rando-bar details.cz-sec > summary::after { content: none; }
+  .cz-body { padding: 10px 12px 12px; }
+  .cz-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: 8px 16px; margin-bottom: 10px; }
+  .cz-cell { display: flex; align-items: center; gap: 4px; min-width: 0; }
+  .cz-toggle { display: flex; align-items: center; gap: 8px; cursor: pointer; min-height: 30px; }
+  .cz-q { flex: none; width: 22px; height: 22px; padding: 0; border-radius: 50%; font-size: 12px; line-height: 1; color: var(--dim); }
+  .cz-q[aria-expanded=true] { color: var(--accent); border-color: var(--accent); }
+  .cz-flbl { display: flex; align-items: center; gap: 6px; min-height: 22px; }
+  .cz-flbl .cz-q { width: 18px; height: 18px; font-size: 11px; text-transform: none; }
+  .cz-help { grid-column: 1 / -1; margin: -2px 0 2px; padding: 6px 10px; border-left: 3px solid var(--accent); background: #12261a;
+    color: var(--text); font-size: 12px; border-radius: 0 6px 6px 0; }
+  .cz-toggle input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .cz-switch { flex: none; width: 34px; height: 20px; border-radius: 10px; background: #2a313c; position: relative; transition: background .15s; }
+  .cz-switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%;
+    background: #c9d1d9; transition: transform .15s; }
+  .cz-toggle input:checked + .cz-switch { background: #2a8a4a; }
+  .cz-toggle input:checked + .cz-switch::after { transform: translateX(14px); background: #fff; }
+  .cz-toggle input:focus-visible + .cz-switch { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .cz-toggle input:disabled ~ * { opacity: .45; }
+  .cz-f { display: flex; flex-direction: column; gap: 3px; color: var(--dim); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+  .cz-f input, .cz-f select, .cz-f textarea { text-transform: none; letter-spacing: 0; }
+  .cz-f.cz-wide { grid-column: 1 / -1; }
+  .cz-body input[type=number], .cz-body input[type=text], .cz-body input[type=search], .cz-body textarea, .cz-top input[type=text] {
+    background: #0d1117; color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px;
+    font: inherit; font-size: 13px; }
+  .cz-body textarea { resize: vertical; }
+  .cz-hint { color: var(--dim); font-size: 12px; margin: 6px 0 0; }
+  .cz-hint.bad { color: var(--bad); }
+  .cz-sub { color: var(--dim); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; margin: 4px 0; }
+  .cz-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; }
+  .cz-head > span { font-weight: 600; margin-right: auto; }
+  .cz-head b { color: var(--accent); }
+  .cz-head b.bad { color: var(--bad); }
+  .cz-head .cz-search { flex: 1 1 12em; min-width: 0; }
+  .cz-mini { display: inline-flex; gap: 5px; align-items: center; color: var(--dim); font-size: 12px; }
+  .cz-table { display: flex; flex-direction: column; max-height: 50vh; overflow-y: auto; -webkit-overflow-scrolling: touch;
+    border: 1px solid var(--line); border-radius: 6px; overscroll-behavior: contain; }
+  body.phone .cz-table { max-height: 60vh; }
+  .cz-tr { display: grid; grid-template-columns: 5.5em 4em minmax(0, 1fr); gap: 8px; align-items: center; padding: 4px 8px;
+    border-top: 1px solid #1c222b; }
+  .cz-tr[hidden] { display: none; }
+  .cz-th { position: sticky; top: 0; z-index: 1; background: #161b22; color: var(--dim); font-size: 11px; text-transform: uppercase;
+    letter-spacing: .04em; border-top: 0; }
+  .cz-tr input[type=number] { width: 4.5em; padding: 3px 6px; }
+  .cz-tr > span:nth-child(2) { color: var(--dim); text-align: center; }
+  .cz-locs .cz-tr { grid-template-columns: minmax(0, .8fr) minmax(0, 1.3fr) minmax(0, 1.4fr); }
+  .cz-locs .cz-tr > span:nth-child(2) { color: var(--text); text-align: left; }
+  .cz-locs .cz-tr > span:first-child { color: var(--dim); font-size: 12px; }
+  .cz-locs .cz-tr[data-set] > span:nth-child(2) { color: var(--accent); }
+  .cz-pick { display: flex; gap: 4px; min-width: 0; }
+  .cz-pick select { flex: 1; min-width: 0; padding: 3px 6px; }
+  .cz-x { padding: 2px 8px; }
+  .cz-x[hidden] { display: none; }
+  @media (max-width: 600px) {
+    .cz-locs .cz-tr { grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); }
+    .cz-locs .cz-tr > span:first-child { display: none; }
+  }
+  .cz-eq-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .cz-eq { position: relative; width: 44px; height: 44px; padding: 3px; display: flex; align-items: center; justify-content: center;
+    background: #0d1117; }
+  .cz-eq img { width: 32px; height: 32px; object-fit: contain; image-rendering: pixelated; opacity: .3; }
+  .cz-eq.on { border-color: #2a8a4a; background: #12261a; }
+  .cz-eq.on img { opacity: 1; }
+  .cz-eq b { position: absolute; right: 2px; bottom: 0; font-size: 10px; color: #fff; text-shadow: 0 0 2px #000, 0 0 2px #000; }
+  .cz-body input[type=range] { width: 100%; accent-color: var(--accent); }
+  .cz-pack { display: grid; grid-template-columns: 4em minmax(0, 1fr); gap: 8px; align-items: start; padding: 6px 0;
+    border-top: 1px solid #1c222b; }
+  .cz-pack:first-child { border-top: 0; }
+  .cz-pack-name { color: var(--dim); padding-top: 5px; }
+  .cz-pack-slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 9.5em), 1fr)); gap: 4px; }
+  .cz-pack-slots select { min-width: 0; padding: 3px 6px; }
+  #r-base-label.ok { color: var(--accent); }
+  #r-base-input, #r-sprite-input, #r-msu-input, #r-msu-dir, #r-msu-dir-label[hidden] { display: none; }
+  #r-msu-name { text-transform: none; letter-spacing: 0; font-size: 12px; color: var(--text); max-width: 16em;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #rando-bar .sprite-field { display: flex; flex-direction: column; gap: 3px; color: var(--dim); font-size: 11px;
+    text-transform: uppercase; letter-spacing: .04em; }
+  #rando-bar .sprite-row { display: flex; gap: 6px; text-transform: none; letter-spacing: 0; }
+  #r-sprite-name { text-transform: none; letter-spacing: 0; font-size: 12px; color: var(--text); max-width: 16em;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #rando-bar details .hint { text-transform: none; letter-spacing: 0; font-size: 12px; flex-basis: 100%; }
+  #rando-bar details .hint a { color: var(--accent); }
+  #r-status { font-size: 12px; color: var(--dim); }
+  #r-status.ok { color: var(--accent); }
+  #r-status.bad { color: var(--bad); }
+  #r-seed-out { font-size: 12px; color: var(--dim); user-select: all; }
+  #rando-bar .paste-field { display: flex; flex-direction: column; gap: 3px; color: var(--dim); font-size: 11px;
+    text-transform: uppercase; letter-spacing: .04em; }
+  #rando-bar .paste-field { flex: none; }
+  #rando-bar input#r-paste { width: 22em; min-width: 22em; text-transform: none; letter-spacing: 0; }
+  #rando-bar input#r-relay { width: 16em; }
+  #rando-bar input#r-avian-relay { width: 16em; }
+  #rando-bar #r-avian-custom { width: 11em; }
+  /* fields with a row of controls and a note under them */
+  #rando-bar .stack-field { display: flex; flex-direction: column; gap: 3px; color: var(--dim); font-size: 11px;
+    text-transform: uppercase; letter-spacing: .04em; max-width: 100%; }
+  #rando-bar .stack-field .sprite-row { flex-wrap: wrap; align-items: center; }
+  #rando-bar .stack-field select { max-width: 100%; }
+  #r-saved { min-width: 13em; }
+  #r-saved-fav { min-width: 34px; padding-left: 6px; padding-right: 6px; font-size: 16px; line-height: 1; }
+  #r-saved-fav.on { color: #f5c542; border-color: #8a6d1f; }
+  #r-avian-tabs button { padding: 6px 12px; }
+  #r-avian-tabs button.on { border-color: var(--accent); background: #12261a; color: var(--accent); }
+  #r-avian-mode { padding: 1px 8px; border-radius: 10px; border: 1px solid var(--line); color: var(--dim); font-size: 10px; margin-left: 4px; }
+  #r-avian-mode.on { color: #0e1116; background: var(--accent); border-color: var(--accent); }
+  #r-avian-desc b { color: var(--text); font-weight: 600; }
+  #r-avian-panel { flex-basis: 100%; display: flex; flex-direction: column; gap: 10px; padding: 10px 12px; border: 1px solid var(--line);
+    border-radius: 8px; background: #0d1117; }
+  #r-avian-panel[hidden] { display: none !important; }
+  #r-avian-panel .av-head { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; font-size: 12px; color: var(--dim); }
+  #r-avian-panel .av-head b { color: var(--text); font-size: 13px; }
+  #r-avian-panel .av-group { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: flex-end; padding-top: 8px; border-top: 1px solid #1c222b; }
+  #r-avian-panel .av-group:first-of-type { border-top: 0; padding-top: 0; }
+  #r-avian-panel .av-checks { display: flex; flex-wrap: wrap; gap: 6px 16px; flex-basis: 100%; }
+  #r-avian-panel .av-check { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text); cursor: pointer; }
+  #r-avian-panel select { max-width: 100%; }
+  #r-avian-panel .hint { margin: 0; font-size: 11px; color: var(--dim); }
+  #rando-bar .field-note { text-transform: none; letter-spacing: 0; font-size: 11px; color: var(--dim); max-width: 28em; }
+  #rando-bar .small-row { gap: 12px; }
+  #rando-bar .linkish { background: none; border: 0; padding: 0; color: var(--accent); font-size: 12px; cursor: pointer;
+    text-decoration: underline; text-underline-offset: 2px; text-transform: none; letter-spacing: 0; }
+  #rando-bar button:disabled { opacity: .5; cursor: default; }
+  #r-saved-field { padding-right: 12px; margin-right: 2px; border-right: 1px solid var(--line); }
+  body.phone #r-saved-field { padding-right: 0; margin-right: 0; border-right: 0; }
+  body.phone #rando-bar .stack-field .sprite-row:first-of-type { flex-wrap: nowrap; }
+  body.phone #rando-bar .stack-field { width: 100%; min-width: 0; }
+  body.phone #r-saved { min-width: 0; width: 0; flex: 1 1 0; }
+  body.phone #rando-bar label.f { max-width: 100%; min-width: 0; }
+  body.phone #rando-bar label.f select { max-width: 100%; }
+  body.phone #rando-bar .sprite-row { flex-wrap: wrap; }
+  body.phone #rando-bar input#r-relay, body.phone #rando-bar input#r-avian-relay { width: 100%; max-width: 100%; }
+  /* ROM options: every control the same height, in one aligned row (one column on phones) */
+  #r-rom-more .rom-grid { align-items: flex-end; }
+  #r-rom-more .rom-grid > label.f select { height: 40px; min-width: 9em; }
+  #r-msu-field .sprite-row { flex-wrap: nowrap; }
+  #r-msu-field .filebtn, #r-msu-field button { height: 40px; display: inline-flex; align-items: center; }
+  #r-msu-pick { min-width: 11em; max-width: 18em; justify-content: center; }
+  #r-msu-pick span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
+  #r-msu-pick.on { border-color: #2a8a4a; }
+  #r-msu-pick.on span { color: var(--accent); }
+  #r-offline-field[hidden] { display: none; }
+  #r-offline-slot button { height: 40px; }
+  #r-offline-field { flex-basis: 100%; }
+  #r-offline-field .sprite-row { align-items: center; gap: 12px; }
+  #r-offline-field .field-note { max-width: 60em; }
+  body.phone #r-rom-more .rom-grid > label.f, body.phone #r-msu-field { flex: 1 1 100%; }
+  body.phone #r-rom-more .rom-grid > label.f select { width: 100%; }
+  body.phone #r-msu-pick { flex: 1 1 auto; max-width: none; min-width: 0; }
+  body.phone #rando-bar #r-offline-field .sprite-row { flex-wrap: wrap; align-items: flex-start; }
+  body.phone #r-offline-field .field-note { flex-basis: 100%; }
+  #rando-bar details#r-rom-adv { flex-basis: 100%; }
+  #rando-bar details#r-rom-adv > summary { padding: 0; border: 0; background: none; font-size: 12px; font-weight: 400;
+    color: var(--dim); text-decoration: underline; text-underline-offset: 2px; }
+  #rando-bar details#r-rom-adv > summary::before { width: 5px; height: 5px; }
+  body.phone #r-avian-panel label.f { flex: 1 1 100%; }
+  /* buttons with a small line under their name (Load ROM, Base ROM) */
+  .two-line { display: inline-flex; flex-direction: column; align-items: flex-start; line-height: 1.15; }
+  .two-line[hidden] { display: none; }
+  .two-line small { font-size: 10px; font-weight: 400; color: var(--dim); white-space: nowrap; }
+  #r-base-label { border-color: #2a8a4a; }
+  header .tracker-ctl { color: #8fb3d9; }
+  #r-base-label:not(.ok) { background: #2a2410; border-color: var(--warn, #d29922); }
+
+  /* seed links (randomizer/share.js) */
+  #r-shared { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; flex-basis: 100%;
+    padding: 8px 10px; border: 1px solid #2a8a4a; border-radius: 8px; background: #102418; font-size: 13px; color: var(--text); }
+  #r-shared[hidden] { display: none; }
+  #r-shared span { color: var(--dim); }
+  #r-shared button.primary { background: #1f6f3a; border-color: #2a8a4a; font-weight: 600; }
+  #r-shared .note { flex-basis: 100%; font-size: 12px; color: var(--warn); }
+  #r-code { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--dim); }
+  #r-code[hidden] { display: none; }
+  #r-code .code-item { display: inline-flex; flex-direction: column; align-items: center; min-width: 34px; }
+  #r-code .code-item img { width: 22px; height: 22px; image-rendering: pixelated; object-fit: contain; }
+  #r-code .code-item small { font-size: 9px; color: var(--text); white-space: nowrap; }
+  #r-code .code-lbl { text-transform: uppercase; letter-spacing: .04em; }
+
+  /* sprite preview and library (randomizer/library.js) */
+  #rando-bar .sprite-field { position: relative; }
+  #rando-bar .sprite-col { display: flex; flex-direction: column; gap: 3px; }
+  .sprite-prev { width: 40px; height: 52px; padding: 2px; display: flex; align-items: center; justify-content: center;
+    background: #0d1117; }
+  .sprite-prev img, .sprite-prev canvas { width: 32px; height: 48px; object-fit: contain; image-rendering: pixelated; }
+  .sprite-prev canvas { height: 32px; }
+  #r-sprite-sheet { position: absolute; z-index: 30; top: 100%; left: 0; margin-top: 4px; padding: 6px; max-height: 60vh;
+    overflow-y: auto; background: #0d1117; border: 1px solid var(--line); border-radius: 8px; }
+  #r-sprite-sheet canvas { display: block; width: 256px; image-rendering: pixelated; }
+  #sprite-lib { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center;
+    padding: 16px; background: rgba(0, 0, 0, .6); }
+  #sprite-lib[hidden] { display: none; }
+  #sprite-lib .sl-box { display: flex; flex-direction: column; width: min(980px, 100%); max-height: 100%;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  #sprite-lib .sl-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 10px 12px;
+    border-bottom: 1px solid var(--line); }
+  #sprite-lib .sl-head b { margin-right: auto; }
+  #sl-search { background: #0d1117; color: var(--text); border: 1px solid var(--line); border-radius: 6px;
+    padding: 5px 8px; font: inherit; font-size: 13px; width: 16em; }
+  #sl-grid { flex: 1; overflow-y: auto; padding: 10px; display: grid; gap: 6px;
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); }
+  #sl-grid .sl-cell { position: relative; display: flex; min-width: 0; }
+  #sl-grid .sl-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px 6px;
+    min-width: 0; }
+  /* ★ in the corner of each sprite; ✕ on your own */
+  #sl-grid .sl-star, #sl-grid .sl-del { position: absolute; top: 2px; width: 26px; height: 26px; padding: 0; min-width: 0;
+    display: flex; align-items: center; justify-content: center; border: 0; background: transparent;
+    font-size: 16px; line-height: 1; color: var(--dim); }
+  #sl-grid .sl-star { right: 2px; }
+  #sl-grid .sl-star.on { color: #f5c542; }
+  #sl-grid .sl-del { left: 2px; font-size: 12px; opacity: .7; }
+  #sl-grid .sl-cell.own .sl-item { border-style: dashed; }
+  #sprite-lib .sl-views { display: flex; gap: 4px; flex: 1 1 260px; flex-wrap: wrap; align-items: center; }
+  #sprite-lib .sl-views + .filebtn { margin-left: auto; }
+  #sprite-lib .sl-views [aria-selected=true] { border-color: var(--accent); color: var(--text); }
+  #sprite-lib .sl-count:empty { display: none; }
+  #sprite-lib .sl-count { font-size: 11px; color: var(--dim); margin-left: 2px; }
+  #r-sprite-star { padding: 0 6px; min-width: 0; line-height: 1.2; font-size: 14px; color: var(--dim); }
+  #r-sprite-star.on { color: #f5c542; }
+  #rando-bar .sprite-col > .sprite-row:last-child { align-items: center; }
+  #sl-grid .sl-item img { width: 32px; height: 48px; image-rendering: pixelated; }
+  #sl-grid .sl-item canvas.sl-head-only { width: 32px; height: 32px; margin: 8px 0; image-rendering: pixelated; }
+  #sl-grid .sl-item .sl-name { font-size: 12px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #sl-grid .sl-item .sl-author { font-size: 10px; color: var(--dim); max-width: 100%; overflow: hidden;
+    text-overflow: ellipsis; white-space: nowrap; }
+  #sl-grid .sl-item.picking { border-color: var(--accent); }
+  #sprite-lib.busy #sl-grid { opacity: .6; pointer-events: none; }
+  #sprite-lib .sl-note { padding: 8px 12px; border-top: 1px solid var(--line); font-size: 12px; color: var(--dim); }
+  #r-toggle[aria-expanded=true] { border-color: var(--accent); }
+  /* the same chevron as the dropdowns beside it; it points up while open */
+  #r-toggle::after { content: ''; display: inline-block; width: 10px; height: 6px; margin-left: 10px;
+    vertical-align: 2px; background: no-repeat center / contain
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23e6e9ee' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+  #r-toggle[aria-expanded=true]::after { transform: rotate(180deg); }
+  /* Randomizer and the generator picker as one split button: the words show
+     or hide the settings bar, the arrow picks the generator */
+  #rando-split { position: relative; display: inline-flex; }
+  #rando-split #r-toggle { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+  #rando-split #r-toggle::after { display: none; }
+  #r-gen-name { color: var(--dim); font-weight: 400; }
+  body.gen-kara #r-gen-name { color: var(--accent); font-weight: 600; }
+  body.gen-kara #rando-split > button { border-color: var(--accent); }
+  #r-gen-btn { border-left: 0; border-top-left-radius: 0; border-bottom-left-radius: 0; padding: 5px 10px;
+    position: relative; }
+  #r-gen-btn::before { content: ''; position: absolute; left: 0; top: 5px; bottom: 5px; border-left: 1px solid var(--line); }
+  #r-toggle[aria-expanded=true] + #r-gen-btn { border-color: var(--accent); }
+  #r-gen-btn::after { content: ''; display: inline-block; width: 10px; height: 6px; vertical-align: 2px;
+    background: no-repeat center / contain
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23e6e9ee' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+  #r-gen-btn[aria-expanded=true]::after { transform: rotate(180deg); }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  #r-gen-menu { position: absolute; top: calc(100% + 4px); left: 0; z-index: 60; min-width: 100%; padding: 4px;
+    display: flex; flex-direction: column; gap: 2px; background: var(--panel); border: 1px solid var(--line);
+    border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.5); }
+  #r-gen-menu[hidden] { display: none; }
+  #r-gen-menu button { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; text-align: left;
+    border: 0; background: transparent; padding: 6px 10px 6px 28px; position: relative; white-space: nowrap; }
+  #r-gen-menu button:hover, #r-gen-menu button:focus-visible { background: #1b2430; outline: none; }
+  #r-gen-menu button small { color: var(--dim); font-size: 11px; }
+  #r-gen-menu button[aria-checked=true]::before { content: '\2713'; position: absolute; left: 10px; top: 6px; color: var(--accent); }
+
+  main { display: grid; grid-template-columns: minmax(0, 1fr) auto; min-height: 0; grid-row: 3; }
+  #game-wrap { position: relative; min-height: 0; display: flex; align-items: center; justify-content: center;
+    background: #000; }
+  #game { width: 100%; height: 100%; }
+  #placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; gap: 14px;
+    align-items: center; justify-content: center; text-align: center; padding: 24px; color: var(--dim); }
+  #placeholder h2 { color: var(--text); margin: 0; font-size: 20px; }
+  #placeholder p { max-width: 460px; margin: 0; }
+  #placeholder a { color: var(--accent); }
+  #resume-box { display: flex; flex-direction: column; align-items: center; gap: 6px; margin-bottom: 8px; }
+  #resume-btn { background: #1f6f3a; border-color: #2a8a4a; color: #fff; font-size: 17px; font-weight: 600;
+    padding: 12px 26px; border-radius: 10px; }
+  #resume-box small { color: var(--text); font-size: 13px; }
+  #resume-discard { background: transparent; border: 0; color: var(--dim); font-size: 12px; text-decoration: underline;
+    padding: 2px 6px; }
+
+  aside { width: var(--tracker-w, 548px); border-left: 1px solid var(--line); display: flex;
+    flex-direction: column; min-height: 0; background: #000; }
+  aside .tabs { display: flex; border-bottom: 1px solid var(--line); background: var(--panel); }
+  aside .tabs button { border: 0; border-radius: 0; background: transparent; padding: 8px 14px; color: var(--dim); }
+  aside .tabs button.on { color: var(--text); box-shadow: inset 0 -2px var(--accent); }
+  #frames { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+  #frames iframe { border: 0; background: #000; display: block; }
+  #items-wrap { height: 400px; flex: none; overflow: hidden; position: relative; }
+  #items-frame { width: 100%; height: 100%; transform-origin: 0 0; }
+  #map-frame { width: 100%; flex: 1; min-height: 0; }
+  #frames.items-only #map-frame { display: none; }
+  #frames.items-only #items-wrap { flex: 1; height: auto; }
+  #frames.map-only #items-wrap { display: none; }
+  /* EmoTracker (beta, emo-host.js): its own frame fills the column */
+  #frames #emo-frame { display: none; width: 100%; flex: 1; min-height: 0; border: 0; background: #1b1b1b; }
+  body.tracker-emo #frames #emo-frame { display: block; }
+  body.tracker-emo #items-wrap, body.tracker-emo #map-frame, body.tracker-emo aside .tabs,
+  body.tracker-emo #pop-items, body.tracker-emo #pop-dungeons, body.tracker-emo #pop-light, body.tracker-emo #pop-dark,
+  body.tracker-emo #open-broadcast, body.tracker-emo #open-stream-pair, body.tracker-emo #open-stream,
+  body.tracker-emo #onlyadkd-sel, body.tracker-emo #map-key, body.tracker-emo #map-settings-btn { display: none !important; }
+  #pop-emo { display: none; }
+  body.desktop.tracker-emo #pop-emo { display: inline-block; }
+  body.tracker-emo.emo-away main { grid-template-columns: minmax(0, 1fr) 0 0; }
+  body.tracker-emo.emo-away aside { width: 0; overflow: hidden; }
+  body.tracker-emo.emo-away #dock-split { visibility: hidden; }
+
+  /* Tablet layout (tablet.js), built on Hutch's own tablet view (his
+     mobile.html / js/mobile.js): one item tracker fills the screen with the
+     items across the top and the dungeons along the bottom, the map tracker
+     sits in the band between them with Light World left and Dark World
+     right, and the game goes in the gap between the two maps. */
+  .tab-pane { display: none; }
+  #tab-full { position: absolute; inset: 0; overflow: hidden; background: #000; }
+  #tab-items { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; background: #000; }
+  #tab-map { position: absolute; left: 0; top: 0; width: 100%; height: 0; border: 0; display: block;
+    background: transparent; }
+  #layout-sel { display: none; }
+  @media (min-width: 700px) { #layout-sel { display: flex; } }
+  /* iOS home-screen app with a translucent status bar: height:100% comes up
+     short by the status bar's height, leaving a black strip at the bottom.
+     Pinning the page to the screen edges avoids it. The tracker stops just
+     above the home indicator so its bottom buttons stay tappable. */
+  body.tablet { position: fixed; inset: 0; height: auto; display: grid; grid-template-rows: auto auto 1fr; }
+  body.tablet main { display: block; position: relative; }
+  body.tablet #tab-full { bottom: env(safe-area-inset-bottom, 0px); }
+  body.tablet aside { display: none; }
+  body.tablet .tab-pane { display: block; }
+  body.tablet #game-wrap { position: absolute; z-index: 2; left: 50%; top: 30%; width: 0; height: 0; }
+  body.tablet header { padding-top: max(6px, env(safe-area-inset-top)) !important; padding-bottom: 6px; gap: 6px 12px; }
+  body.tablet header h1 { font-size: 14px; }
+
+  /* Desktop layout (desktop.js): the classic layout, plus a resizable
+     tracker column whose panels can be popped out into their own windows.
+     The game takes over the space a panel leaves. */
+  #win-bar, #dock-split, #exit-game-only { display: none; }
+  body.desktop #win-bar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  #win-bar .lbl { color: var(--dim); font-size: 13px; }
+  #win-bar button { padding: 4px 9px; }
+  #win-bar button.on { border-color: var(--accent); color: var(--accent); background: #12261a; }
+  body.desktop main { grid-template-columns: minmax(0, 1fr) 6px auto; }
+  body.desktop #dock-split { display: block; cursor: col-resize; background: var(--panel);
+    border-left: 1px solid var(--line); touch-action: none; }
+  body.desktop #dock-split:hover { background: #22303f; }
+  body.desktop aside { border-left: 0; }
+  /* The trackers keep running while all their pieces are in other windows
+     (desktop.js, portal.js), so their frames shrink away rather than being
+     hidden with display:none. */
+  body.desktop aside .tabs { display: none; }
+  body.desktop #items-wrap { flex: none; }
+  body.desktop.items-away #items-wrap { height: 0 !important; visibility: hidden; }
+  body.desktop.map-away #map-frame { flex: 0 0 0 !important; height: 0 !important; visibility: hidden; }
+  body.desktop.all-away main { grid-template-columns: minmax(0, 1fr) 0 0; }
+  body.desktop.all-away aside { width: 0; overflow: hidden; }
+  body.desktop.all-away #dock-split { visibility: hidden; }
+  #popup-note { position: fixed; top: 64px; right: 16px; z-index: 50; max-width: 360px; padding: 10px 12px;
+    background: #3a2a0c; border: 1px solid var(--warn); border-radius: 8px; color: var(--text); font-size: 13px; }
+  /* Game only: just the game, edge to edge, for capture. */
+  body.game-only header, body.game-only #rando-bar, body.game-only aside,
+  body.game-only #dock-split, body.game-only #popup-note { display: none !important; }
+  body.game-only main { grid-template-columns: minmax(0, 1fr) !important; position: relative; }
+  body.game-only #exit-game-only { display: block; position: absolute; z-index: 10; top: 8px; right: 8px;
+    opacity: 0; transition: opacity .2s; }
+  body.game-only main:hover #exit-game-only { opacity: .85; }
+
+  /* Phones / narrow windows: one scrolling column. Game on top at the SNES
+     aspect ratio, item tracker scaled to the screen width, then both maps
+     stacked full-width so markers stay big enough to tap. */
+  @media (max-width: 900px) {
+    body.desktop #dock-split { display: none; }
+    #rando-bar label.f { flex: 1 1 42%; }
+    #rando-bar label.f select, #rando-bar label.f input { width: 100%; }
+    #rando-bar .group { flex-basis: 100%; }
+    html, body { height: auto; }
+    body { display: block; }
+    main { display: block; }
+    #game-wrap { width: 100%; aspect-ratio: 8 / 7; max-height: 75vh; }
+    aside { width: 100%; border-left: 0; border-top: 1px solid var(--line); }
+    #frames { display: block; }
+    #items-wrap, #frames.items-only #items-wrap { height: 400px; }
+    #map-frame { height: calc(200vw + 90px); }
+    body.tracker-emo #frames #emo-frame { height: 92vh; }
+  }
+
+  /* Tracker: Off (tracker-mode.js). Every layout becomes the game alone,
+     filling the screen under the header; the trackers aren't loaded. The
+     on-screen controller moves off the picture (emu/player.js "outside"). */
+  html body.tracker-off { position: fixed !important; inset: 0 !important; height: auto !important;
+    display: grid !important; grid-template-rows: auto auto minmax(0, 1fr) !important; overflow: hidden !important; }
+  html body.tracker-off main { display: block !important; position: relative !important; grid-row: 3 !important;
+    min-height: 0 !important; grid-template-columns: none !important; }
+  html body.tracker-off #game-wrap { position: absolute !important; inset: 0 !important;
+    left: env(safe-area-inset-left, 0px) !important; right: env(safe-area-inset-right, 0px) !important;
+    top: 0 !important; bottom: env(safe-area-inset-bottom, 0px) !important;
+    width: auto !important; height: auto !important; max-height: none !important; aspect-ratio: auto !important;
+    transform: none !important; }
+  html body.tracker-off aside, html body.tracker-off .tab-pane, html body.tracker-off #dock-split,
+  html body.tracker-off #map-key, html body.tracker-off #map-settings-btn,
+  html body.tracker-off #phone-tabs, html body.tracker-off #phone-map-btn,
+  html body.tracker-off #pop-items, html body.tracker-off #pop-dungeons, html body.tracker-off #pop-light,
+  html body.tracker-off #pop-dark, html body.tracker-off #open-broadcast,
+  html body.tracker-off #open-stream-pair, html body.tracker-off #open-stream { display: none !important; }
+  html body.tracker-off.game-only #exit-game-only { display: block; }
+  /* computers: Timer and Game only stay in the header (the pop-outs need a tracker) */
+  @media (pointer: fine) {
+    html body.tracker-off #win-bar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+    html body.tracker-off #win-bar .lbl { display: none; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1 title="Rando Hub Beta (v1.7.1 + EmoTracker)"><svg class="app-die" viewBox="-130 -130 260 260" aria-hidden="true"><g transform="rotate(-12)"><rect x="-108" y="-108" width="216" height="216" rx="32" fill="#fff" stroke="#c8102e" stroke-width="16"/><circle cx="-56" cy="-56" r="23" fill="#c8102e"/><circle cx="56" cy="-56" r="23" fill="#14213d"/><circle r="23" fill="#c8102e"/><circle cx="-56" cy="56" r="23" fill="#14213d"/><circle cx="56" cy="56" r="23" fill="#c8102e"/></g></svg><span class="app-name">RANDO <span>HUB</span></span><small class="app-ver">v1.7.1 beta</small></h1>
+
+  <div id="rando-split">
+    <button id="r-toggle" aria-expanded="false" aria-controls="rando-bar" title="Show or hide the randomizer settings (they fold away by themselves when you go back to playing)">Randomizer<span id="r-gen-name"> · alttpr.com</span></button>
+    <button id="r-gen-btn" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="r-gen-menu" title="Choose the generator"><span class="sr">Choose the generator</span></button>
+    <div id="r-gen-menu" role="menu" hidden>
+      <button type="button" role="menuitemradio" data-gen="alttpr" aria-checked="true"><b>alttpr.com</b><small>The official generator (build 2024-02-18)</small></button>
+      <button type="button" role="menuitemradio" data-gen="kara" aria-checked="false"><b>Kara's branch</b><small>alttpr.gwaa.kiwi: door, overworld and more shuffles</small></button>
+      <button type="button" role="menuitemradio" data-gen="avianart" aria-checked="false"><b>AVIANART</b><small>avianart.games: tournament and community presets</small></button>
+    </div>
+    <!-- the generator choice itself (randomizer/app.js reads it); the menu above sets it -->
+    <select id="r-gen" hidden aria-hidden="true" tabindex="-1">
+      <option value="alttpr" selected>alttpr.com</option>
+      <option value="kara">Kara's branch</option>
+      <option value="avianart">AVIANART</option>
+    </select>
+  </div>
+    <label class="filebtn two-line" id="rom-input-label" for="rom-input" title="Open a ROM file to play: a seed that's already been rolled (.sfc), or a plain copy of the game. To make new seeds, use Base ROM in the Randomizer bar.">Load ROM…<small>rolled seed or vanilla game</small></label>
+  <!-- No `accept` filter: iOS doesn't know the .sfc/.smc types and would gray
+       the files out. The ROM is checked in JS after it's picked instead. -->
+  <input type="file" id="rom-input">
+  <label class="ctl tracker-ctl" title="Tracker setting only: tells the tracker which world state you're playing. It doesn't change the seed (set that in the Randomizer bar). Seeds generated here set it for you.">Tracker world
+    <select id="gamemode">
+      <option value="open">Open</option>
+      <option value="standard">Standard</option>
+      <option value="inverted">Inverted 1.0</option>
+      <option value="inverted2">Inverted 2.0</option>
+      <option value="retro">Retro</option>
+    </select>
+  </label>
+  <label class="ctl tracker-ctl" title="Tracker setting only: tells the tracker how dungeon items are shuffled. It doesn't change the seed (set that in the Randomizer bar). Seeds generated here set it for you.">Tracker dungeon items
+    <select id="dungeonitems">
+      <option value="standard">Standard</option>
+      <option value="mapcompass">Map/Compass</option>
+      <option value="mapcompasskeys">Map/Compass/Small Keys</option>
+      <option value="keysanity">Key Sanity</option>
+    </select>
+  </label>
+  <label class="ctl" id="layout-sel" title="Desktop: the game with the trackers beside it, and tracker windows you can pop out. Tablet: items on top, maps on the sides, dungeons at the bottom">Layout
+    <select id="layout">
+      <option value="auto">Auto</option>
+<option value="desktop">Desktop</option>      <option value="tablet">Tablet</option>
+      <option value="stacked">Stacked</option>
+      <option value="classic">Classic</option>
+      <option value="phone">Phone</option>
+    </select>
+  </label>
+  <label class="ctl" id="tracker-sel" title="Hutch's tracker: his newest release, his beta, or Off for the game on its own, full screen">Tracker
+    <select id="tracker-mode"></select>
+  </label>
+  <label class="ctl" id="onlyadkd-sel" title="OnlyADKD: sets every OnlyADKD option on the trackers and loads its prebuilt entrance map (same as the OnlyADKD button next to New Game on the map)">
+    <input type="checkbox" id="onlyadkd-toggle"> OnlyADKD
+  </label>
+  <button id="emu-settings-btn" type="button" hidden title="Emulator settings: sound, graphics filter, aspect ratio, on-screen controller, controls, restart">&#127918; Emulator</button>
+
+  <!-- Desktop layout (desktop.js): tracker windows -->
+  <div id="win-bar" role="group" aria-label="Tracker windows">
+    <span class="lbl">Pop out</span>
+    <button id="pop-items" type="button">&#10697; Items</button>
+    <button id="pop-dungeons" type="button">&#10697; Dungeons</button>
+    <button id="pop-light" type="button">&#10697; Light World</button>
+    <button id="pop-dark" type="button">&#10697; Dark World</button>
+    <button id="pop-emo" type="button" title="EmoTracker in its own window. Click again to put it back here.">&#10697; EmoTracker</button>
+    <button id="open-stream-pair" type="button" title="Two windows set up for stream capture: items + dungeons in one, both worlds side by side in the other. Click again to put them back.">&#127909; Stream windows</button>
+    <button id="open-stream" type="button" title="One window with items, dungeons and both worlds, set up for a single stream capture. Click again to put it back.">&#127909; Stream</button>
+    <button id="open-broadcast" type="button" title="Hutch's broadcast view: a stream overlay of the items and dungeons">&#128225; Broadcast</button>
+    <button id="open-timer" type="button" title="Hutch's timer in its own window">&#9201; Timer</button>
+    <button id="game-only-btn" type="button" title="Hide everything but the game, for a clean capture. Esc to come back.">&#9974; Game only</button>
+  </div>
+    <div class="spacer"></div>
+  <button id="install-btn" hidden>Install app</button>
+  <div id="pad-status"><i></i><span>No controller</span></div>
+  <div id="link-status"><i></i><span>No game loaded</span></div>
+  <!-- Tablet / Stacked: the map's own bars are hidden, so its key and its
+       Settings button live up here instead of on top of the map. -->
+  <div id="map-key" aria-label="Map key">
+    <span><b style="background:#4dff88"></b>Available</span>
+    <span><b style="background:#ffd700"></b>Possible</span>
+    <span><b style="background:#ff8c00"></b>Visible</span>
+    <span><b style="background:#9333ea"></b>Out of logic</span>
+    <span><b style="background:#ff4444"></b>Unavailable</span>
+    <span><b class="cleared"></b>Cleared</span>
+  </div>
+  <button id="map-settings-btn" type="button" title="Map settings">&#9881; Map settings</button>
+</header>
+
+<div id="popup-note" role="alert" hidden>Your browser blocked the new window. Allow pop-ups for this site
+  (the icon at the right end of the address bar), then click the button again.</div>
+
+<section id="rando-bar" aria-label="Randomizer settings">
+  <div id="r-shared" role="status" hidden></div>
+  <div class="group">
+    <div class="f stack-field" id="r-saved-field">Saved presets
+      <div class="sprite-row">
+        <select id="r-saved" aria-label="Saved presets"></select>
+        <button type="button" id="r-saved-save" title="Save the settings you have now (alttpr.com, Kara's branch or AVIANART) under a name of your own; it shows up in this list next time">&#65291; Save as preset</button>
+        <button type="button" id="r-saved-fav" aria-pressed="false" disabled title="Pick a preset, then star it to keep it at the top of the list">☆</button>
+        <button type="button" id="r-saved-del" title="Delete the chosen preset" disabled>Delete</button>
+      </div>
+      <div class="sprite-row small-row">
+        <button type="button" id="r-saved-export" class="linkish" title="Download the chosen preset (or all of yours) as a file">Export</button>
+        <label class="linkish" for="r-saved-import" title="Add presets from a file: one exported here, or a Save file from alttpr.com's Customizer">Import…</label>
+        <input type="file" id="r-saved-import" accept=".json,application/json" hidden>
+      </div>
+    </div>
+    <div id="r-kara" class="kara-only"></div>
+    <div class="f stack-field avian-only" id="r-avian-field"><span>AVIANART settings <span id="r-avian-mode">Preset</span></span>
+      <div class="sprite-row" id="r-avian-tabs" role="group" aria-label="AVIANART settings tabs"></div>
+      <span id="r-avian-desc" class="field-note"></span>
+    </div>
+    <!-- the open tab's settings, right under the tab buttons -->
+    <div id="r-avian-panel" class="avian-only" hidden></div>
+    <label class="f avian-only" title="A race seed: AVIANART keeps its spoiler hidden">Race
+      <select id="r-avian-race">
+        <option value="no" selected>No</option>
+        <option value="yes">Yes (spoiler hidden)</option>
+      </select>
+    </label>
+    <label class="f vt-only">World state
+      <select id="r-mode">
+        <option value="standard">Standard</option>
+        <option value="open" selected>Open</option>
+        <option value="inverted">Inverted</option>
+        <option value="retro">Retro</option>
+      </select>
+    </label>
+    <label class="f vt-only">Goal
+      <select id="r-goal">
+        <option value="ganon" selected>Defeat Ganon</option>
+        <option value="fast_ganon">Fast Ganon</option>
+        <option value="dungeons">All Dungeons</option>
+        <option value="pedestal">Master Sword Pedestal</option>
+        <option value="triforce-hunt">Triforce Pieces</option>
+        <option value="ganonhunt">Ganonhunt</option>
+        <option value="completionist">Completionist</option>
+      </select>
+    </label>
+    <label class="f vt-only">Open tower
+      <select id="r-tower">
+        <option value="0">0 Crystals</option><option value="1">1 Crystal</option><option value="2">2 Crystals</option>
+        <option value="3">3 Crystals</option><option value="4">4 Crystals</option><option value="5">5 Crystals</option>
+        <option value="6">6 Crystals</option><option value="7" selected>7 Crystals</option><option value="random">Random</option>
+      </select>
+    </label>
+    <label class="f vt-only">Ganon vulnerable
+      <select id="r-ganon">
+        <option value="0">0 Crystals</option><option value="1">1 Crystal</option><option value="2">2 Crystals</option>
+        <option value="3">3 Crystals</option><option value="4">4 Crystals</option><option value="5">5 Crystals</option>
+        <option value="6">6 Crystals</option><option value="7" selected>7 Crystals</option><option value="random">Random</option>
+      </select>
+    </label>
+    <label class="f vt-only">Swords
+      <select id="r-weapons">
+        <option value="randomized" selected>Randomized</option>
+        <option value="assured">Assured</option>
+        <option value="vanilla">Vanilla</option>
+        <option value="swordless">Swordless</option>
+      </select>
+    </label>
+    <label class="f vt-only">Dungeon items
+      <select id="r-dungeon">
+        <option value="standard" selected>Standard</option>
+        <option value="mc">Maps/Compasses</option>
+        <option value="mcs">Maps/Compasses/Small Keys</option>
+        <option value="full">Keysanity</option>
+      </select>
+    </label>
+    <label class="f vt-only">Item placement
+      <select id="r-placement">
+        <option value="basic">Basic</option>
+        <option value="advanced" selected>Advanced</option>
+      </select>
+    </label>
+    <label class="f vt-only">Accessibility
+      <select id="r-access">
+        <option value="items" selected>100% Inventory</option>
+        <option value="locations">100% Locations</option>
+        <option value="none">Beatable Only</option>
+      </select>
+    </label>
+    <label class="f vt-only">Item pool
+      <select id="r-pool">
+        <option value="easy">Easy</option>
+        <option value="normal" selected>Normal</option>
+        <option value="hard">Hard</option>
+        <option value="expert">Expert</option>
+      </select>
+    </label>
+    <label class="f vt-only">Item functionality
+      <select id="r-func">
+        <option value="easy">Easy</option>
+        <option value="normal" selected>Normal</option>
+        <option value="hard">Hard</option>
+        <option value="expert">Expert</option>
+      </select>
+    </label>
+    <label class="f vt-only">Hints
+      <select id="r-hints">
+        <option value="on" selected>On</option>
+        <option value="off">Off</option>
+      </select>
+    </label>
+    <label class="f no-avian">Seed
+      <input type="text" id="r-seed" placeholder="random" inputmode="numeric" autocomplete="off" spellcheck="false">
+    </label>
+    <div class="f paste-field">Load a seed
+      <div class="sprite-row">
+        <input type="text" id="r-paste" placeholder="Paste a seed link" autocomplete="off" spellcheck="false" autocapitalize="off">
+        <button type="button" id="r-paste-go" title="Load and play the seed you pasted">Load</button>
+      </div>
+      <span class="field-note">alttpr.com, alttpr.gwaa.kiwi or avianart.games link (or a seed link from this app)</span>
+    </div>
+    <div class="f sprite-field">Link sprite
+      <div class="sprite-row">
+        <button type="button" id="r-sprite-prev" class="sprite-prev" title="Browse the sprite library">
+          <img alt="" src="https://alttpr-assets.s3.us-east-2.amazonaws.com/001.link.1.zspr.png"><canvas hidden></canvas>
+        </button>
+        <div class="sprite-col">
+          <div class="sprite-row">
+            <button type="button" id="r-sprite-lib" title="Browse the alttpr.com sprite library">Library…</button>
+            <label class="filebtn" for="r-sprite-input" id="r-sprite-label" title="Use your own .zspr or .spr file">File…</label>
+            <input type="file" id="r-sprite-input">
+            <button type="button" id="r-sprite-random" title="A random sprite from the whole library and your own (changes Link right away during a game)">&#127922; Random</button>
+            <button type="button" id="r-sprite-fav-roll" title="A random sprite from your favourites">&#127922;&#9733; Favorites</button>
+            <button type="button" id="r-sprite-clear" hidden title="Go back to the normal Link">Default</button>
+          </div>
+          <div class="sprite-row">
+            <button type="button" id="r-sprite-star" class="r-star" hidden aria-pressed="false" title="Star this sprite">&#9734;</button>
+            <span id="r-sprite-name">Default Link</span>
+          </div>
+        </div>
+      </div>
+      <div id="r-sprite-sheet" hidden><canvas></canvas></div>
+    </div>
+  </div>
+  <details id="r-kara-more" class="kara-only">
+    <summary>More Kara settings</summary>
+    <div id="r-kara-more-body"></div>
+    <p class="hint">Settings, presets and help text (hover a setting) are from Kara's
+      <a href="https://alttpr.gwaa.kiwi/generate" target="_blank" rel="noopener">alttpr.gwaa.kiwi</a>. Her generator
+      (<a href="https://git.gwaa.kiwi/alttpr-gwaa-kiwi/alttpr-python" target="_blank" rel="noopener">alttpr-python</a>,
+      MIT license, built on Aerinon's Door Randomizer and codemann8's Overworld Randomizer) runs here in your browser.
+      The first seed loads Python (about 15&nbsp;MB, kept for next time). Big shuffles can take a minute or more.</p>
+  </details>
+  <details id="r-custom" class="vt-only">
+    <summary>Customizer <span id="r-custom-badge" class="cz-badge">Off</span></summary>
+    <div id="r-custom-body">
+      <div class="cz-top">
+        <label class="cz-toggle" title="On: Generate makes a seed from the menus below (alttpr.com's Customizer). Off: a normal seed from the bar's settings."><input type="checkbox" id="r-custom-on"><span class="cz-switch" aria-hidden="true"></span><span>Use the customizer when generating</span></label>
+        <div class="cz-row">
+          <button type="button" id="r-custom-reset" title="Put every menu back to alttpr.com's defaults (saved presets are kept)">Reset all</button>
+        </div>
+      </div>
+      <div class="cz-menus"></div>
+      <p class="hint">alttpr.com's Customizer, made here in your browser with the same code: change the item pool, place items,
+        pick starting equipment and more. Just because you can, doesn't mean you should: some settings make games that
+        can't be finished. To keep a setup, use <b>Save</b> in Saved presets: it keeps the bar's settings and these menus.</p>
+    </div>
+  </details>
+  <details id="r-rom-more">
+    <summary>ROM options</summary>
+    <div class="group rom-grid">
+      <label class="f">Heart beep
+        <select id="r-heartbeep">
+          <option value="normal">Normal</option>
+          <option value="half" selected>Half speed</option>
+          <option value="quarter">Quarter speed</option>
+          <option value="double">Double speed</option>
+          <option value="off">Off</option>
+        </select>
+      </label>
+      <label class="f">Item quickswap
+        <select id="r-quickswap">
+          <option value="off">Off</option>
+          <option value="on" selected>On</option>
+        </select>
+      </label>
+      <label class="f vt-only">Menu speed
+        <select id="r-menuspeed">
+          <option value="slow">Slow</option>
+          <option value="normal" selected>Normal</option>
+          <option value="fast">Fast</option>
+          <option value="instant">Instant</option>
+        </select>
+      </label>
+      <div class="f stack-field" id="r-msu-field">MSU-1 music
+        <div class="sprite-row">
+          <label class="filebtn two-line" for="r-msu-input" id="r-msu-pick" title="Choose an MSU-1 pack: one .zip, or all its .pcm files"><span id="r-msu-pick-text">Choose pack…</span><small id="r-msu-name">.zip or .pcm files</small></label>
+          <input type="file" id="r-msu-input" multiple>
+          <label class="filebtn" for="r-msu-dir" id="r-msu-dir-label" hidden title="Choose the folder that holds the pack's .pcm files">Folder…</label>
+          <input type="file" id="r-msu-dir" webkitdirectory>
+          <button id="r-msu-clear" type="button" hidden title="Use the game's own music again">Off</button>
+        </div>
+      </div>
+      <p class="hint">MSU-1: pick the pack as one <code>.zip</code> or all its <code>.pcm</code> files (on iPhone, tap
+        <b>Select</b> in the file picker), or its folder with <b>Folder…</b> on a computer. It plays right away and on
+        every seed after. Your packs stay in <b>♪</b> in the header: switch, star (☆) or roll one (🎲) mid-game.</p>
+      <div class="f stack-field" id="r-offline-field" hidden>Offline use
+        <div class="sprite-row"><span id="r-offline-slot"></span>
+        <span class="field-note">Only for playing with no internet (a plane, bad Wi-Fi). It downloads the parts of the
+          app you haven't used yet, mainly the emulator and Kara's generator (about 25&nbsp;MB), so the app opens and
+          makes alttpr.com and Kara seeds offline. AVIANART, Kara's server, seed links and the sprite library still
+          need internet. You can skip it if you're always online: the app keeps what you use as you go.</span></div>
+      </div>
+      <details id="r-rom-adv">
+        <summary>Advanced: seed relays</summary>
+        <div class="group">
+          <label class="f" title="Leave empty to use the built-in relay for alttpr.com seeds, or enter your own (see the README)">alttpr.com relay
+            <input type="url" id="r-relay" placeholder="https://….workers.dev" autocomplete="off" spellcheck="false">
+          </label>
+          <label class="f" title="Leave empty to use the built-in relay for AVIANART seeds, or enter your own (see the README)">AVIANART relay
+            <input type="url" id="r-avian-relay" placeholder="https://….workers.dev" autocomplete="off" spellcheck="false">
+          </label>
+          <p class="hint">Leave these empty to use the built-in relays. Only needed if you run your own (see the README).</p>
+        </div>
+      </details>
+    </div>
+  </details>
+  <div class="actions">
+    <label class="filebtn two-line" id="r-base-label" for="r-base-input"><span id="r-base-text">Base ROM…</span><small>Japanese 1.0 ROM, used to generate seeds</small></label>
+    <input type="file" id="r-base-input">
+    <button id="r-generate">Generate &amp; Play</button>
+    <button id="r-stop" type="button" hidden title="Stop making this seed">Stop</button>
+    <button id="r-download" class="two-line" hidden title="Save the seed you just made as a .sfc file, to keep it or play it somewhere else (your sprite and options are included)">Download ROM<small>save this seed as a .sfc file</small></button>
+    <button id="r-spoiler" hidden>Spoiler</button>
+    <button id="r-share" type="button" hidden title="Copy a link that sets up this exact seed for someone else">&#128279; Share seed</button>
+    <button id="r-share-race" type="button" hidden title="Copy a link to this seed for a race: same game for everyone, spoiler hidden">&#127937; Race link</button>
+    <span id="r-seed-out"></span>
+    <span id="r-code" hidden></span>
+    <span id="r-status" role="status" aria-live="polite"></span>
+  </div>
+</section>
+
+<main>
+  <button id="exit-game-only" type="button" title="Show the trackers and menus again (Esc)">Show trackers</button>
+  <div id="game-wrap">
+    <div id="game"></div>
+    <div id="placeholder">
+
+      <h2>Generate a seed to start</h2>
+      <p>Pick your settings in the <b>Randomizer</b> bar above, choose your own Japanese 1.0 ALttP ROM
+         with <b>Base ROM</b> (once, it's what new seeds are made from), then press <b>Generate &amp; Play</b>.
+         Already have a rolled seed <code>.sfc</code>, or want the plain game? Use <b>Load ROM…</b> at the top instead.
+         The tracker on the right updates automatically as you play.</p>
+            <p style="font-size:12px">Everything runs in your browser. Your ROM is never uploaded.</p>
+    </div>
+  </div>
+  <div id="dock-split" title="Drag to resize the tracker column. Double-click to reset."></div>
+  <aside>
+    <div class="tabs">
+      <button data-view="both" class="on">Items + Map</button>
+      <button data-view="items-only">Items</button>
+      <button data-view="map-only">Map</button>
+    </div>
+    <div id="frames">
+      <div id="items-wrap"><iframe id="items-frame" title="Item tracker"></iframe></div>
+      <iframe id="map-frame" title="Map tracker"></iframe>
+      <iframe id="emo-frame" title="EmoTracker"></iframe>
+    </div>
+  </aside>
+  <div class="tab-pane" id="tab-full">
+    <iframe id="tab-items" title="Item tracker"></iframe>
+    <iframe id="tab-map" title="Map tracker" allowtransparency="true"></iframe>
+  </div>
+</main>
+
+
+<div id="sprite-lib" hidden role="dialog" aria-modal="true" aria-label="Sprite library">
+  <div class="sl-box">
+    <div class="sl-head">
+      <b>Sprite library</b>
+      <input type="search" id="sl-search" placeholder="Search names, authors, tags" autocomplete="off" spellcheck="false">
+      <select id="sl-tag" aria-label="Tag"><option value="">All tags</option></select>
+      <button type="button" id="sl-random" title="Pick one at random (from the ones shown)">Random</button>
+      <button type="button" id="sl-close" aria-label="Close">&#10005;</button>
+      <div class="sl-views" role="tablist" aria-label="Show">
+        <button type="button" role="tab" data-view="all">All</button>
+        <button type="button" role="tab" data-view="fav">&#9733; Favorites <span class="sl-count"></span></button>
+        <button type="button" role="tab" data-view="own">Mine <span class="sl-count"></span></button>
+      </div>
+      <label class="filebtn" for="sl-add-input" title="Keep your own .zspr / .spr files in this list">+ Add files</label>
+      <input type="file" id="sl-add-input" multiple accept=".zspr,.spr" hidden>
+    </div>
+    <div id="sl-grid"></div>
+    <div id="sl-note" class="sl-note"></div>
+  </div>
+</div>
+
+<script src="emu/core.js"></script>
+<script src="emu/video.js"></script>
+<script src="emu/audio.js"></script>
+<script src="emu/input.js"></script>
+<script src="emu/player.js"></script>
+<script src="crowd/effects.js"></script>
+<script src="bridge/sni-bridge.js"></script>
+<script src="tracker/hutch-versions.js"></script>
+<script src="tracker-mode.js"></script>
+<script src="onlyadkd.js"></script>
+<script src="tablet.js"></script>
+
+<script src="portal.js"></script>
+<script src="desktop.js"></script>
+<script src="phone.js"></script>
+<script src="emo-host.js"></script>
+<script src="sheet.js"></script>
+<script src="longpress.js"></script>
+<script src="reroll.js"></script><script src="compact-header.js"></script><script src="offline.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+
+  // ── settings → tracker URLs ───────────────────────────────────────────────
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem('unified-kara-settings') || '{}'); } catch (e) {}
+  $('gamemode').value = saved.gamemode || 'open';
+  $('dungeonitems').value = saved.dungeonitems || 'standard';
+
+  // Extra tracker flags known when the seed was generated in-app (swordless,
+  // GT crystal requirement). Cleared when a ROM is loaded from a file.
+  var trackerExtra = saved.extra || null;
+  function saveSettings() {
+    localStorage.setItem('unified-kara-settings', JSON.stringify({
+      gamemode: $('gamemode').value, dungeonitems: $('dungeonitems').value, extra: trackerExtra }));
+  }
+  function trackerUrls() {
+    var gm = $('gamemode').value, di = $('dungeonitems').value;
+    // EmoTracker (emo-host.js) runs in its own frame; Hutch's stay empty
+    if (window.UnifiedTracker && window.UnifiedTracker.emo && window.UnifiedTracker.emo()) {
+      if (window.UnifiedEmo) window.UnifiedEmo.sync(gm, di);
+      return { items: 'about:blank', map: 'about:blank' };
+    }
+    if (window.UnifiedEmo) window.UnifiedEmo.sync(gm, di);
+    var common = '&gamemode=' + gm + '&dungeonitems=' + di + '&bg=black';
+    var mapExtra = '';
+    if (trackerExtra) {
+      // generated here: never shuffled; alttpr.com seeds: as the seed says
+      mapExtra = '&swordless=' + encodeURIComponent(trackerExtra.swordless || 'no')
+        + '&gtcrystals=' + encodeURIComponent(trackerExtra.gtcrystals || '7')
+        + '&bossshuffle=' + encodeURIComponent(trackerExtra.bossshuffle || 'no')
+        + '&enemizer=' + encodeURIComponent(trackerExtra.enemizer || 'no');
+    }
+    // Kara's branch: more of the seed's settings the tracker understands
+    // (entrance shuffle, shops, pots, key drops, which dungeon items are out)
+    var more = '', entrance = 'no';
+    if (trackerExtra && trackerExtra.more) {
+      Object.keys(trackerExtra.more).forEach(function (k) {
+        if (k === 'entranceshuffle') entrance = trackerExtra.more[k];
+        else more += '&' + k + '=' + encodeURIComponent(trackerExtra.more[k]);
+      });
+    }
+    var u = {
+      items: trackerBase() + 'itemtracker.html?scale=1' + common + (trackerExtra ? '&swordless=' + encodeURIComponent(trackerExtra.swordless || 'no') + '&bossshuffle=' + encodeURIComponent(trackerExtra.bossshuffle || 'no') : '') + more,
+      map: trackerBase() + 'map.html?zoom=0.6&logic=nmg&entranceshuffle=' + entrance + '&entrancemode=none' + common + mapExtra + more,
+    };
+    // OnlyADKD (onlyadkd.js, the button in the map's top bar) sets the mode's own flags
+    return window.UnifiedOnlyAdkd ? window.UnifiedOnlyAdkd.urls(u) : u;
+  }
+  function trackerBase() { return window.UnifiedTracker ? window.UnifiedTracker.base() : 'tracker/'; }
+  function trackerOff() { return !!(window.UnifiedTracker && window.UnifiedTracker.off()); }
+  function loadTrackers() {
+    var u = trackerUrls();
+    if (window.UnifiedTablet) { window.UnifiedTablet.setUrls(u); return; }
+    $('items-frame').src = trackerOff() ? 'about:blank' : u.items;
+    $('map-frame').src = trackerOff() ? 'about:blank' : u.map;
+  }
+  // the Tracker choice (tracker-mode.js): newest release, beta or off
+  (function () {
+    var sel = $('tracker-mode'), T = window.UnifiedTracker;
+    if (!sel || !T) { if ($('tracker-sel')) $('tracker-sel').hidden = true; return; }
+    T.options().forEach(function (o) {
+      var opt = document.createElement('option'); opt.value = o[0]; opt.textContent = o[1]; sel.appendChild(opt);
+    });
+    sel.value = T.mode();
+    sel.addEventListener('change', function () { T.set(this.value); });
+    window.addEventListener('trackermode', function () {
+      sel.value = T.mode();
+      var u = trackerUrls();
+      if (window.UnifiedTablet && window.UnifiedTablet.refresh) window.UnifiedTablet.refresh(u);
+      else loadTrackers();
+      setTimeout(function () { window.dispatchEvent(new Event('resize')); }, 60);
+    });
+  })();
+  // OnlyADKD (onlyadkd.js): header checkbox, kept in step with the map's button
+  (function () {
+    var box = $('onlyadkd-toggle'), O = window.UnifiedOnlyAdkd;
+    if (!box || !O) { if ($('onlyadkd-sel')) $('onlyadkd-sel').hidden = true; return; }
+    box.checked = O.on();
+    box.addEventListener('change', function () { O.set(this.checked); });
+    window.addEventListener('trackermode', function () { box.checked = O.on(); });
+  })();
+  if (window.UnifiedTablet) {
+    $('layout').value = window.UnifiedTablet.pref();
+    $('layout').addEventListener('change', function () { window.UnifiedTablet.setPref(this.value); });
+  }
+  ['gamemode', 'dungeonitems'].forEach(function (id) {
+    $(id).addEventListener('change', function () {
+      saveSettings();
+      loadTrackers();
+    });
+  });
+  loadTrackers();
+
+  document.querySelectorAll('aside .tabs button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      document.querySelectorAll('aside .tabs button').forEach(function (x) { x.classList.toggle('on', x === b); });
+      $('frames').className = b.dataset.view === 'both' ? '' : b.dataset.view;
+    });
+  });
+
+  // ── item tracker: scale to fit its panel ──────────────────────────────────
+  // Hutch's item grid is ~500px wide and ~411px tall. Measure its real size
+  // and shrink it to fit the panel in both directions, so it never clips at
+  // the sides (phones) or shows a scrollbar (the 400px desktop panel).
+  var ITEMS_W = 500, ITEMS_H = 400;
+  function itemsNaturalHeight() {
+    try {
+      var d = $('items-frame').contentDocument, w = d.defaultView;
+      if (!d || !d.body) return 0;
+      // Content height + the height of the pinned bottom bar. The bar is
+      // position:fixed, so its *position* just follows the frame's height:
+      // count its size, not where it sits, or the measurement chases itself
+      // (the item tracker shrank on each refit once the bar got taller).
+      var bottom = 0, pinned = 0;
+      Array.prototype.forEach.call(d.body.children, function (el) {
+        if (el.tagName === 'SCRIPT') return;
+        var fixed = w.getComputedStyle(el).position === 'fixed';
+        if (el.offsetParent === null && !fixed) return;
+        var r = el.getBoundingClientRect();
+        if (!r.height) return;
+        if (fixed) pinned = Math.max(pinned, r.height);
+        else bottom = Math.max(bottom, r.bottom + w.scrollY);
+      });
+      return Math.ceil(bottom + pinned + (parseFloat(w.getComputedStyle(d.body).marginBottom) || 0));
+    } catch (e) { return 0; }
+  }
+  function fitItems() {
+    // Desktop: Hutch's tablet item tracker, sized by desktop.js.
+    if (window.UnifiedDesktop && window.UnifiedDesktop.active()) {
+      $('items-frame').style.width = $('items-frame').style.height = $('items-frame').style.transform = '';
+      return;
+    }
+    var wrap = $('items-wrap'), fr = $('items-frame');
+    var w = wrap.clientWidth;
+    if (!w) return;
+    // Phone layout (phone.js): one panel that fits both ways, like a desktop panel
+    var phone = window.innerWidth <= 900 && !document.body.classList.contains('phone');
+    var full = $('frames').classList.contains('items-only') && !phone;
+    var natH = itemsNaturalHeight() || ITEMS_H;
+    var availH = full ? wrap.clientHeight : ITEMS_H;
+    var k = Math.min(1, w / ITEMS_W);
+    if (!phone) k = Math.min(k, availH / natH);
+    if (phone) { availH = Math.ceil(natH * k); wrap.style.height = availH + 'px'; }
+    else wrap.style.height = '';
+    if (k < 0.999) {
+      fr.style.width = (w / k) + 'px';
+      fr.style.height = (availH / k) + 'px';
+      fr.style.transform = 'scale(' + k + ')';
+    } else {
+      fr.style.width = fr.style.height = fr.style.transform = '';
+    }
+    // Sub-pixel rounding can leave a 1px overflow; never show a scrollbar.
+    try { $('items-frame').contentDocument.documentElement.style.overflow = 'hidden'; } catch (e) {}
+  }
+  var itemsTimer = null;
+  function fitItemsSoon() { clearTimeout(itemsTimer); itemsTimer = setTimeout(fitItems, 60); }
+  $('items-frame').addEventListener('load', function () {
+    fitItemsSoon(); setTimeout(fitItems, 800);
+    // Hutch's own −/+ size buttons change the grid size; refit when they do.
+    try {
+      var iw = $('items-frame').contentWindow, c = iw.document.querySelector('.tracker-container');
+      if (c && iw.ResizeObserver) new iw.ResizeObserver(fitItemsSoon).observe(c);
+    } catch (e) {}
+  });
+  window.addEventListener('resize', fitItemsSoon);
+  document.querySelectorAll('aside .tabs button').forEach(function (b) {
+    b.addEventListener('click', function () { setTimeout(fitItems, 0); });
+  });
+
+  // ── map: skip redraws when the game data hasn't changed ───────────────────
+  // About once a second the item tracker sends the map a fresh item snapshot
+  // and room data, and Hutch's map rewrites every marker on both worlds each
+  // time, even when nothing changed. That restarts marker styling and shows
+  // as a periodic flash. Drop updates identical to the previous one; any real
+  // change (an item, a chest, a manual mark) still goes straight through.
+  function installMapDedupe(w) {
+    if (!w || w.__unifiedDedupe) return;
+    w.__unifiedDedupe = true;
+    var origRooms = w.onRoomsUpdated, lastRooms = null;
+    if (typeof origRooms === 'function') {
+      w.onRoomsUpdated = function (data) {
+        try {
+          if (data && lastRooms && data.length === lastRooms.length) {
+            var same = true;
+            for (var i = 0; i < data.length; i++) if (data[i] !== lastRooms[i]) { same = false; break; }
+            if (same) return;
+          }
+          lastRooms = data ? Array.prototype.slice.call(data) : null;
+        } catch (e) {}
+        return origRooms.apply(this, arguments);
+      };
+    }
+    var bc = w._bc;
+    if (bc && typeof bc.onmessage === 'function') {
+      // The item tracker alternates a full snapshot and a slimmer poll
+      // snapshot (different key sets), so compare each one against the last
+      // snapshot of the same shape rather than just the previous message.
+      var origMsg = bc.onmessage, lastByShape = {};
+      bc.onmessage = function (e) {
+        if (e && e.data && e.data.type === 'items' && e.data.data) {
+          try {
+            var snap = e.data.data, keys = Object.keys(snap).sort();
+            var shape = keys.join(','), sig = JSON.stringify(snap, keys);
+            if (lastByShape[shape] === sig) return;
+            lastByShape[shape] = sig;
+          } catch (x) {}
+        }
+        return origMsg.call(this, e);
+      };
+    }
+  }
+  $('map-frame').addEventListener('load', function () {
+    try { installMapDedupe($('map-frame').contentWindow); } catch (e) {}
+  });
+
+  // ── map auto-fit: always show Light AND Dark World ────────────────────────
+  // Hutch draws each world at a fixed 512px side by side and clips overflow,
+  // so in this panel the Dark World was cut off. Size both maps to fit the
+  // frame, choosing side-by-side or stacked, whichever gives bigger maps.
+  // Map markers are positioned in %, so any size works.
+  function fitMap() {
+    var f = $('map-frame'), d;
+    try { d = f.contentDocument; } catch (e) { return; }
+    if (!d) return;
+    var outer = d.getElementById('maps-outer'), maps = d.getElementById('maps');
+    if (!outer || !maps || !outer.clientWidth) return;
+    var cs = d.defaultView.getComputedStyle(outer);
+    var w = outer.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    var h = outer.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+    var gap = 12;
+    // Only the worlds still in this frame (Desktop can pop one out).
+    // (and only the ones showing: the Phone layout shows one world at a time)
+    var here = [].filter.call(maps.querySelectorAll('.map-wrap'), function (el) { return el.style.display !== 'none'; });
+    if (!here.length) return;
+    var side = Math.min((w - gap) / 2, h);       // side by side
+    var stack = Math.min(w, (h - gap) / 2);      // stacked
+    if (here.length === 1) side = stack = Math.min(w, h);
+    var vertical = here.length > 1 && stack > side;
+    var size = Math.max(120, Math.floor(vertical ? stack : side));
+    maps.classList.toggle('vertical', vertical);
+    var lbl = d.getElementById('layout-sel'); if (lbl) lbl.value = vertical ? 'vertical' : 'horizontal';
+    here.forEach(function (el) {
+      el.style.width = size + 'px'; el.style.height = size + 'px';
+    });
+    outer.style.textAlign = 'center';
+    // Sync Hutch's zoom control to the fitted size so its −/+ buttons step
+    // from here (his steps now go down to 50%) and the label is accurate.
+    try {
+      var mw = f.contentWindow, pct = size / 512 * 100;
+      if (mw.ZOOM_STEPS) {
+        var idx = 0;
+        mw.ZOOM_STEPS.forEach(function (z, i) { if (z <= pct + 0.5) idx = i; });
+        mw.zoomIdx = idx;
+      }
+      var zl = d.getElementById('zoom-label'); if (zl) zl.textContent = Math.round(pct) + '%';
+      // Hutch (Oct 5): markers keep full size down to 75%, then shrink with
+      // the map. His applyZoom sets --mk; mirror it since we size directly.
+      d.documentElement.style.setProperty('--mk', pct < 75 ? (pct / 75).toFixed(3) : '1');
+    } catch (e) {}
+  }
+  var fitTimer = null;
+  function fitMapSoon() { clearTimeout(fitTimer); fitTimer = setTimeout(fitMap, 60); }
+  $('map-frame').addEventListener('load', function () {
+    fitMapSoon(); setTimeout(fitMap, 800);   // again after Hutch's own init
+    try {
+      var w = $('map-frame').contentWindow;
+      w.addEventListener('resize', fitMapSoon);
+      // Hutch's bottom bar can wrap and change height; refit when it does.
+      var bb = w.document.getElementById('bottombar');
+      if (bb && w.ResizeObserver) new w.ResizeObserver(fitMapSoon).observe(bb);
+    } catch (e) {}
+  });
+  window.addEventListener('resize', fitMapSoon);
+  document.querySelectorAll('aside .tabs button').forEach(function (b) {
+    b.addEventListener('click', fitMapSoon);
+  });
+
+  // ── controller: indicator + auto-assign to player 1 ───────────────────────
+  // EmulatorJS only assigns a controller to player 1 from its "connected"
+  // event. If the browser already exposes the controller when the emulator
+  // starts, that event fires before EmulatorJS listens and the pad is never
+  // assigned, so it gives no input. Assign it ourselves when that happens.
+  function pads() {
+    try { return Array.from(navigator.getGamepads ? navigator.getGamepads() : []).filter(Boolean); }
+    catch (e) { return []; }
+  }
+  function assignPad() {
+    var ejs = window.EJS_emulator;
+    if (!ejs || !ejs.gamepad || !ejs.frontend || !ejs.frontend.gamepadSelection) return;
+    var sel = ejs.frontend.gamepadSelection;
+    var known = ejs.gamepad.gamepads || [];
+    if (!known.length || sel.some(function (s) { return s; })) return;
+    var gp = known[0];
+    sel[0] = gp.id + '_' + gp.index;
+    try { ejs.frontend.updateGamepadLabels(); } catch (e) {}
+    console.log('[unified] assigned controller to player 1:', gp.id);
+  }
+  function paintPad() {
+    var el = $('pad-status'), list = pads();
+    if (list.length) {
+      el.className = 'on';
+      el.title = list[0].id;
+      el.querySelector('span').textContent = 'Controller connected';
+    } else {
+      el.className = '';
+      el.title = 'Connect a controller, then press any button on it';
+      el.querySelector('span').textContent = 'No controller (press a button)';
+    }
+  }
+  setInterval(function () { paintPad(); assignPad(); }, 500);
+  window.addEventListener('gamepadconnected', function () { paintPad(); assignPad(); });
+
+  // ── installable app ───────────────────────────────────────────────────────
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('sw.js').catch(function (e) { console.warn('[unified] SW failed', e); });
+    });
+  }
+  // Chrome / Edge offer an install prompt; surface it as a header button.
+  var deferredPrompt = null;
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault(); deferredPrompt = e; $('install-btn').hidden = false;
+  });
+  $('install-btn').addEventListener('click', function () {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.finally(function () { deferredPrompt = null; $('install-btn').hidden = true; });
+  });
+  window.addEventListener('appinstalled', function () { $('install-btn').hidden = true; });
+
+  // ── ⚙ → Emulator: the Snes9x settings (save/load state stay on the game's own bar)
+  function showEmuBtn() { $('emu-settings-btn').hidden = !(window.Snes9xPlayer && Snes9xPlayer.ready); }
+  document.addEventListener('s9x-ready', showEmuBtn);
+  showEmuBtn();
+  $('emu-settings-btn').addEventListener('click', function () {
+    // fold the phone's ⚙ menu away first so the game box is back to full size
+    if (document.body.classList.contains('phone-menu')) { var g = $('phone-gear'); if (g) g.click(); }
+    if (window.Snes9xPlayer) Snes9xPlayer.openMenu();
+  });
+
+  // ── link status pill ──────────────────────────────────────────────────────
+  function paint(s) {
+    var el = $('link-status'), txt = el.querySelector('span');
+    el.className = '';
+    if (!s.romLoaded) txt.textContent = 'No game loaded';
+    else if (!s.running) txt.textContent = 'Starting emulator…';
+    else if (s.mode === 'live') { el.className = 'live'; txt.textContent = 'Tracker linked (live memory)'; }
+    else if (s.mode === 'snapshot') { el.className = 'snap'; txt.textContent = 'Tracker linked (snapshot mode)'; }
+    else txt.textContent = 'Waiting for game…';
+  }
+  AlttpBridge.onStatus(paint);
+  setInterval(function () { paint(AlttpBridge.status()); }, 1000);
+
+  // ── ROM loading + EmulatorJS boot ─────────────────────────────────────────
+  $('rom-input').addEventListener('change', async function (ev) {
+    var file = ev.target.files && ev.target.files[0];
+    if (!file) return;
+    var bytes = new Uint8Array(await file.arrayBuffer());
+    ev.target.value = '';   // allow picking the same file again later
+    var body = bytes.length % 1024 === 512 ? bytes.length - 512 : bytes.length;
+    if (/\.zip$/i.test(file.name) || (bytes[0] === 0x50 && bytes[1] === 0x4B)) {
+      alert('That looks like a .zip file. Unzip it first and load the .sfc inside.');
+      return;
+    }
+    if (body < 0x80000 || body > 0x800000 || body % 0x8000 !== 0) {
+      if (!confirm('"' + file.name + '" doesn\'t look like a SNES ROM. Load it anyway?')) return;
+    }
+    // An unrandomized Japanese 1.0 ROM: use it as the base ROM and generate
+    // a seed from the Randomizer settings instead of booting the vanilla game.
+    if (window.UnifiedRando && await window.UnifiedRando.useIfBaseRom(bytes)) return;
+    if (window.EJS_emulator) {
+      if (!confirm('Load a different ROM? The current game will be closed.')) return;
+    }
+    // A seed from elsewhere: we don't know its flags, so drop the extras and
+    // go back to the World / Dungeon items selectors.
+    trackerExtra = null;
+    saveSettings();
+    if (window.UnifiedRando) bytes = window.UnifiedRando.prepareLoadedRom(bytes);
+    startRom(bytes, file.name, true);
+  });
+
+  // EmulatorJS can't swap games in place. If one is running, stash the ROM
+  // in IndexedDB, reload, and boot it from there on the next page load.
+  // Starting a game folds the Randomizer settings away so the game has the
+  // screen, in every layout, and remembers that across the reload
+  // EmulatorJS needs to switch games. The Randomizer button opens it again.
+  function foldRando() {
+    document.body.classList.remove('rando-open');
+    var t = $('r-toggle'); if (t) t.setAttribute('aria-expanded', 'false');
+    try { localStorage.setItem('unified-kara-open', '0'); } catch (e) {}
+  }
+  function startRom(bytes, name, reloadTrackers) {
+    foldRando();
+    currentRom = { bytes: bytes, name: name };
+    if (window.EJS_emulator) {
+      switching = true;   // the reload below is ours, not iOS closing the page
+      stashRom(bytes, name).then(function () { location.reload(); }, function (e) {
+        alert('Could not hand the ROM over to a fresh emulator: ' + e);
+      });
+      return;
+    }
+    if (reloadTrackers) loadTrackers();
+    // the randomizer bar shows this ROM's file-select code (and the share
+    // buttons, if it's the seed it generated)
+    if (window.UnifiedRando && window.UnifiedRando.noteRom) window.UnifiedRando.noteRom(bytes, name);
+    else window.__pendingRomNote = { bytes: bytes, name: name };
+    AlttpBridge.setRom(bytes, name);
+    bootEmulator(new File([bytes], name, { type: 'application/octet-stream' }));
+  }
+  // One connection, opened at load and kept: a save made while the page is
+  // closing has no time to open a new one first (closing a laptop tab lost
+  // the spot that way).
+  var idbConn = null, idbOpening = null;
+  function idbOpen() {
+    if (idbConn) return Promise.resolve(idbConn);
+    if (idbOpening) return idbOpening;
+    idbOpening = new Promise(function (resolve, reject) {
+      var r = indexedDB.open('rhb-beta-s9x-kara', 1);
+      r.onupgradeneeded = function () { r.result.createObjectStore('kv'); };
+      r.onsuccess = function () {
+        idbConn = r.result;
+        idbConn.onversionchange = idbConn.onclose = function () { try { this.close(); } catch (e) {} if (idbConn === this) { idbConn = null; idbOpening = null; } };
+        resolve(idbConn);
+      };
+      r.onerror = function () { idbOpening = null; reject(r.error); };
+    });
+    return idbOpening;
+  }
+  idbOpen().catch(function () {});
+  function stashRom(bytes, name) {
+    return idbOpen().then(function (db) {
+      return new Promise(function (resolve, reject) {
+        var tx = db.transaction('kv', 'readwrite');
+        tx.objectStore('kv').put({ bytes: bytes, name: name }, 'pending-rom');
+        tx.oncomplete = function () { resolve(); };
+        tx.onerror = function () { reject(tx.error); };
+      });
+    });
+  }
+  function takeStashedRom() {
+    return idbOpen().then(function (db) {
+      return new Promise(function (resolve) {
+        var tx = db.transaction('kv', 'readwrite'), st = tx.objectStore('kv');
+        var g = st.get('pending-rom');
+        g.onsuccess = function () { if (g.result) st.delete('pending-rom'); resolve(g.result || null); };
+        g.onerror = function () { resolve(null); };
+      });
+    }).catch(function () { return null; });
+  }
+  takeStashedRom().then(function (p) {
+    if (p && p.bytes && !window.EJS_emulator) { startRom(new Uint8Array(p.bytes), p.name, false); return; }
+    // No game handed over: if a game was saved when the app was last closed,
+    // offer to pick it up where it was (a Resume button on the start screen).
+    idbGet(RESUME_KEY).then(function (r) {
+      if (!r || !r.rom || !r.state || window.EJS_emulator) return;
+      if (Date.now() - r.at > RESUME_DAYS * 864e5) return;
+      showResume(r);
+    });
+  });
+
+  // Used by the randomizer bar (randomizer/app.js).
+  window.UnifiedApp = window.UnifiedApp || {};
+  window.UnifiedApp.installMapDedupe = installMapDedupe;
+  Object.assign(window.UnifiedApp, {
+    playRom: function (bytes, name, tracker) {
+      if (tracker) {
+        if (tracker.gamemode && [].some.call($('gamemode').options, function (o) { return o.value === tracker.gamemode; })) $('gamemode').value = tracker.gamemode;
+        if (tracker.dungeonitems) $('dungeonitems').value = tracker.dungeonitems;
+        trackerExtra = { swordless: tracker.swordless || 'no', gtcrystals: tracker.gtcrystals || '7',
+          bossshuffle: tracker.bossshuffle || 'no', enemizer: tracker.enemizer || 'no' };
+        if (tracker.more) trackerExtra.more = tracker.more;
+        saveSettings();
+      }
+      startRom(bytes, name, true);
+    },
+    // Changing the sprite during a game (randomizer/app.js)
+    runningRom: function () { return window.EJS_emulator && currentRom ? currentRom : null; },
+    setRunningRom: function (bytes) { if (currentRom) currentRom.bytes = bytes; },
+  });
+
+  // ── volume that works on iPhone/iPad ──────────────────────────────────────
+  // EmulatorJS's slider only sets the gain on audio sources that exist at that
+  // moment; sources the core opens later (e.g. after iOS resumes its suspended
+  // AudioContext on first touch) stay at full volume, so the slider seems dead.
+  // Instead: leave every source at 1 and apply the volume on OpenAL's master
+  // gain node, which all sources feed into, re-checking periodically.
+  // Also tell iOS this is media playback, so the hardware volume buttons
+  // control it and the silent switch doesn't mute it (Safari 16.4+).
+  try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}
+  function applyVolume() {
+    var ejs = window.EJS_emulator;
+    var ctx = ejs && ejs.Module && ejs.Module.AL && ejs.Module.AL.currentCtx;
+    if (!ctx || !ctx.gain) return;
+    var v = ejs.muted ? 0 : (typeof ejs.volume === 'number' ? ejs.volume : 0.5);
+    if (ctx.gain.gain.value !== v) ctx.gain.gain.value = v;
+    (ctx.sources || []).forEach(function (s) {
+      if (s && s.gain && s.gain.gain.value !== 1) s.gain.gain.value = 1;
+    });
+    // iOS also leaves audio 'interrupted' after another app has the screen
+    if (ctx.audioCtx && ctx.audioCtx.state !== 'running' && ctx.audioCtx.state !== 'closed') {
+      try { ctx.audioCtx.resume(); } catch (e) {}
+    }
+  }
+  function hookVolume() {
+    var ejs = window.EJS_emulator;
+    if (!ejs || ejs.__volHooked || typeof ejs.setVolume !== 'function') return;
+    var orig = ejs.setVolume.bind(ejs);
+    ejs.setVolume = function (v) { orig(v); applyVolume(); };
+    ejs.__volHooked = true;
+    applyVolume();
+  }
+  setInterval(function () { hookVolume(); applyVolume(); }, 500);
+  ['touchend', 'click'].forEach(function (t) {
+    document.addEventListener(t, function () { setTimeout(applyVolume, 50); }, true);
+  });
+
+  // ── leaving the app and coming back ───────────────────────────────────────
+  // When another app takes the screen, iOS stops this page's timers and
+  // interrupts its audio. The emulator paces itself on that audio, so when you
+  // came back it could sit frozen waiting for sound that never resumed. And if
+  // iOS needs the memory, it closes the page outright and the run is lost.
+  // So: on the way out, save the game's state and pause it; on the way back,
+  // restart the audio and unpause. If iOS closed the page instead, the next
+  // launch offers to reopen that game exactly where it was.
+  var RESUME_KEY = 'resume-state';
+  var RESUME_DAYS = 30;        // how long a saved game is offered
+  var AUTOSAVE_MS = 30000;     // also saved this often while playing
+  var pausedForBackground = false;
+  var currentRom = null;       // { bytes, name } of the game that's running
+  var pendingState = null;     // a state to load as soon as the game starts
+  var switching = false;       // reloading to switch games
+  function idbPutNow(db, key, val) {
+    return new Promise(function (resolve) {
+      var tx = db.transaction('kv', 'readwrite');
+      tx.objectStore('kv').put(val, key);
+      tx.oncomplete = tx.onerror = tx.onabort = function () { resolve(); };
+      if (tx.commit) try { tx.commit(); } catch (e) {}   // don't wait for the next task: the page may be closing
+    });
+  }
+  function idbPut(key, val) {
+    // With the connection already open the write starts right now, inside the
+    // close event, instead of after another round trip the page won't live to see.
+    if (idbConn) { try { return idbPutNow(idbConn, key, val); } catch (e) {} }
+    return idbOpen().then(function (db) { return idbPutNow(db, key, val); }).catch(function () {});
+  }
+  function idbTake(key) {
+    return idbOpen().then(function (db) {
+      return new Promise(function (resolve) {
+        var tx = db.transaction('kv', 'readwrite'), st = tx.objectStore('kv');
+        var g = st.get(key);
+        g.onsuccess = function () { if (g.result) st.delete(key); resolve(g.result || null); };
+        g.onerror = function () { resolve(null); };
+      });
+    }).catch(function () { return null; });
+  }
+  function idbGet(key) {
+    return idbOpen().then(function (db) {
+      return new Promise(function (resolve) {
+        var g = db.transaction('kv', 'readonly').objectStore('kv').get(key);
+        g.onsuccess = function () { resolve(g.result || null); };
+        g.onerror = function () { resolve(null); };
+      });
+    }).catch(function () { return null; });
+  }
+  // Save where the game is, so closing the app (or iOS closing it) never loses
+  // the run: on the way out, and every minute while playing. The save is kept
+  // until a different game starts, and offered with a Resume button.
+  function saveSpot() {
+    var ejs = window.EJS_emulator;
+    // pendingState: the saved spot hasn't been loaded yet; don't overwrite it with the title screen
+    if (switching || pendingState || !ejs || !ejs.gameManager || !currentRom) return;
+    try {
+      var state = ejs.gameManager.getState();
+      if (state && state.length) idbPut(RESUME_KEY, {
+        state: state, rom: currentRom.bytes, name: currentRom.name, at: Date.now() });
+    } catch (e) {}
+  }
+  // Every 30 s while the game runs, even when the window is covered (on a
+  // desktop the tracker windows can cover it for a whole run).
+  setInterval(function () {
+    var ejs = window.EJS_emulator;
+    if (ejs && !ejs.paused) saveSpot();
+  }, AUTOSAVE_MS);
+  function leaving(e) {
+    var ejs = window.EJS_emulator;
+    if (switching || !ejs || !ejs.gameManager) return;
+    if (pausedForBackground) return;            // already saved when it was put away
+    saveSpot();                                 // always, even if the game was paused
+    if (ejs.paused) return;
+    // On a desktop the window counts as hidden when it's minimized or fully
+    // covered, which with tracker windows on top can happen mid-run; don't
+    // pause the game for that.
+    if (window.UnifiedDesktop && window.UnifiedDesktop.active() && !(e && e.type === 'pagehide')) return;
+    try { ejs.pause(); pausedForBackground = true; } catch (e) {}
+  }
+  // Start screen: "Resume last game" with the seed's name and when it was played
+  function showResume(r) {
+    var ph = $('placeholder');
+    if (!ph) return;
+    var mins = Math.round((Date.now() - r.at) / 60000);
+    var ago = mins < 2 ? 'just now' : mins < 60 ? mins + ' minutes ago' :
+      mins < 2880 ? Math.round(mins / 60) + ' hours ago' : Math.round(mins / 1440) + ' days ago';
+    var box = document.createElement('div');
+    box.id = 'resume-box';
+    box.innerHTML = '<button type="button" id="resume-btn">&#9654; Resume last game</button>' +
+      '<small></small><button type="button" id="resume-discard" title="Forget this saved game">Discard</button>';
+    box.querySelector('small').textContent = r.name.replace(/\.[^.]+$/, '') + ' \u00b7 played ' + ago;
+    ph.insertBefore(box, ph.firstChild);
+    $('resume-btn').addEventListener('click', function () {
+      pendingState = r.state;
+      startRom(new Uint8Array(r.rom), r.name, true);
+    });
+    $('resume-discard').addEventListener('click', function () {
+      if (!confirm('Forget this saved game? You can\u2019t resume it afterwards.')) return;
+      idbTake(RESUME_KEY); box.remove();
+    });
+  }
+  function back() {
+    applyVolume();
+    var ejs = window.EJS_emulator;
+    if (ejs && pausedForBackground) {
+      pausedForBackground = false;
+      try { ejs.play(); } catch (e) {}
+    }
+    // the saved spot is kept: it's offered next time the app opens
+  }
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'hidden') leaving(); else back();
+  });
+  window.addEventListener('pagehide', leaving);
+  // Closing a laptop tab or window: beforeunload comes first and gives the save
+  // the most time. (The game isn't paused here, in case the close is cancelled.)
+  window.addEventListener('beforeunload', function () { if (!pausedForBackground) saveSpot(); });
+  window.addEventListener('pageshow', function (e) { if (e.persisted) back(); });
+  function loadPendingState(tries) {
+    var ejs = window.EJS_emulator, st = pendingState;
+    if (!st) return;
+    tries = tries || 0;
+    // A slow machine may not have the core ready yet: try again for a few seconds.
+    if (!ejs || !ejs.gameManager) {
+      if (tries < 10) setTimeout(function () { loadPendingState(tries + 1); }, 500);
+      return;
+    }
+    try {
+      ejs.gameManager.loadState(new Uint8Array(st));
+      pendingState = null;
+      AlttpBridge.invalidate();
+    } catch (e) {
+      if (tries < 10) setTimeout(function () { loadPendingState(tries + 1); }, 500);
+      else pendingState = null;
+    }
+  }
+
+  // ── keep the mouse free ───────────────────────────────────────────────────
+  // snes9x advertises SNES-mouse support, so EmulatorJS pointer-locks the
+  // cursor whenever the game canvas is clicked, which freezes it in place.
+  // ALttP never uses a mouse, so block pointer lock on this page entirely.
+  (function () {
+    var noop = function () { return Promise.resolve(); };
+    ['requestPointerLock', 'mozRequestPointerLock', 'webkitRequestPointerLock'].forEach(function (k) {
+      if (Element.prototype[k]) Element.prototype[k] = noop;
+    });
+    document.addEventListener('pointerlockchange', function () {
+      if (document.pointerLockElement && document.exitPointerLock) document.exitPointerLock();
+    });
+  })();
+
+  // ── keep controls and graphics settings across seeds ──────────────────────
+  // EmulatorJS saves the control mapping and its settings (shaders, video,
+  // etc.) per game name, and every seed is a new name, so they reset each
+  // time. Keep the latest copy under one key and hand it to each new game.
+  // (The game name stays per seed so in-game saves don't mix between seeds.)
+  var EMU_SHARED = 'unified-emu-settings';
+  function emuKey(gameName) { return 'ejs-1-snes-' + gameName + '-settings'; }
+  function seedEmuSettings(key) {
+    try {
+      if (localStorage.getItem(key)) return false;    // this seed has its own already
+      var o = JSON.parse(localStorage.getItem(EMU_SHARED) || 'null');
+      if (!o || typeof o !== 'object') return false;
+      o.cheats = [];                                  // cheats belong to one game
+      localStorage.setItem(key, JSON.stringify(o));
+      return true;
+    } catch (e) { return false; }
+  }
+  function shareEmuSettings(key) {
+    try { var v = localStorage.getItem(key); if (v) localStorage.setItem(EMU_SHARED, v); } catch (e) {}
+  }
+  function hookEmuSettings(ejs, fallbackKey) {
+    var key = (typeof ejs.getLocalStorageKey === 'function') ? ejs.getLocalStorageKey() : fallbackKey;
+    // Normally seeded before boot; if EmulatorJS named the key differently, seed now.
+    if (key !== fallbackKey && seedEmuSettings(key) && typeof ejs.loadSettings === 'function') {
+      try { ejs.loadSettings(); } catch (e) {}
+    }
+    var hasShared = false;
+    try { hasShared = !!localStorage.getItem(EMU_SHARED); } catch (e) {}
+    if (!hasShared) shareEmuSettings(key);            // first run: adopt this seed's settings
+    if (typeof ejs.saveSettings !== 'function' || ejs.__unifiedShared) return;
+    var save = ejs.saveSettings;
+    ejs.saveSettings = function () {
+      var r = save.apply(this, arguments);
+      shareEmuSettings(key);
+      return r;
+    };
+    ejs.__unifiedShared = true;
+  }
+
+  function bootEmulator(file) {
+    $('placeholder').remove();
+    // Snes9x, built for the web (emu/). It plays the same part EmulatorJS did:
+    // it calls EJS_onGameStart and publishes window.EJS_emulator once running.
+    window.EJS_gameName = file.name.replace(/\.[^.]+$/, '');
+    window.EJS_onGameStart = function () {
+      AlttpBridge.invalidate();
+      if (pendingState) setTimeout(function () { loadPendingState(0); }, 300);
+      else idbTake(RESUME_KEY);   // a new game: the older saved spot no longer applies (it saves its own)
+    };
+    Snes9xPlayer.boot('#game', file).catch(function (e) { console.error('[snes9x]', e); });
+  }
+})();
+</script>
+
+<script type="module">
+  import { init } from './randomizer/app.js';
+  init();
+</script>
+</body>
+</html>

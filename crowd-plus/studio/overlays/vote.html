@@ -1,0 +1,48 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Chat vote</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="/studio/overlay.css">
+<style>
+  /* 560 x 420. Shows while a vote is running, then the winner for a few seconds. */
+  body { padding: calc(10px * var(--scale)); }
+  .card { width: calc(520px * var(--scale)); padding: calc(14px * var(--scale)) calc(16px * var(--scale)); display: none; }
+  .card.on { display: block; animation: pop .45s cubic-bezier(.2, 1.4, .4, 1); }
+  @keyframes pop { from { opacity: 0; transform: scale(.94); } }
+  .head { display: flex; align-items: center; gap: calc(10px * var(--scale)); }
+  .q { flex: 1; font-size: calc(15px * var(--scale)); line-height: 1.4; }
+  .time { font-size: calc(13px * var(--scale)); color: #ffd166; }
+  .how { font: 600 calc(13px * var(--scale)) var(--sans); color: #c9c0e6; margin: calc(6px * var(--scale)) 0 calc(10px * var(--scale)); }
+  .opt { position: relative; display: flex; align-items: center; gap: calc(12px * var(--scale)); margin-top: calc(8px * var(--scale)); padding: calc(9px * var(--scale)) calc(12px * var(--scale));
+    border-radius: calc(9px * var(--scale)); background: rgba(0,0,0,.4); overflow: hidden; border: calc(2px * var(--scale)) solid transparent; }
+  .opt .fill { position: absolute; inset: 0; width: 0; background: linear-gradient(90deg, rgba(200,16,46,.75), rgba(230,57,70,.55)); transition: width .5s ease; }
+  .opt > *:not(.fill) { position: relative; }
+  .key { width: calc(30px * var(--scale)); height: calc(30px * var(--scale)); border-radius: calc(6px * var(--scale)); background: #fff; color: #14213d; display: grid; place-items: center; font-size: calc(13px * var(--scale)); flex: none; }
+  .lab { flex: 1; font: 800 calc(19px * var(--scale)) var(--sans); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pct { font: 800 calc(18px * var(--scale)) var(--sans); font-variant-numeric: tabular-nums; }
+  .opt.win { border-color: #ffd166; } .opt.win .fill { background: linear-gradient(90deg, #ff9f1c, #ffd166); } .opt.win .lab, .opt.win .pct { color: #14213d; text-shadow: none; }
+  .opt.lose { opacity: .45; }
+</style></head>
+<body>
+<div class="card box" id="card"><div class="head"><img class="die" src="/studio/die.svg" alt=""><div class="q pix shadow" id="q"></div><div class="time pix" id="time"></div></div>
+<div class="how" id="how">Type the number in chat to vote!</div><div id="opts"></div></div>
+<div class="offline-note">Waiting for the Crowd Control+ bridge…</div>
+<script src="/studio/common.js"></script>
+<script>
+const card = document.getElementById('card'); let P = null, shown = null;
+function paint() {
+  if (!P) { card.classList.remove('on'); shown = null; return; }
+  if (shown !== P.id) { shown = P.id; card.classList.remove('on'); void card.offsetWidth; card.classList.add('on'); }
+  const total = P.options.reduce((n, o) => n + o.votes, 0);
+  document.getElementById('q').textContent = P.question;
+  document.getElementById('how').textContent = P.done ? (P.winner >= 0 && P.options[P.winner].votes ? 'Chat picked: ' + P.options[P.winner].label + '!' : 'No votes this time') : 'Type the number in chat to vote! · ' + CC.num(total) + ' vote' + (total === 1 ? '' : 's');
+  document.getElementById('opts').innerHTML = P.options.map((o, i) => {
+    const pct = total ? Math.round(o.votes / total * 100) : 0;
+    const cls = P.done ? (i === P.winner ? ' win' : ' lose') : '';
+    return '<div class="opt' + cls + '"><div class="fill" style="width:' + (P.done && i === P.winner ? 100 : pct) + '%"></div><div class="key pix">' + (i + 1) + '</div><div class="lab shadow">' + CC.esc(o.label) + '</div><div class="pct shadow">' + pct + '%</div></div>';
+  }).join('');
+}
+setInterval(() => { if (P && !P.done) { const s = Math.max(0, Math.ceil((P.endsAt - Date.now()) / 1000)); document.getElementById('time').textContent = s + 's'; } else document.getElementById('time').textContent = P && P.done ? 'DONE' : ''; }, 250);
+CC.on('state', (d) => { P = d.live && d.live.poll; if (!P && CC.q.get('preview') === '1') P = { id: 1, question: 'PICK THE NEXT CURSE', options: [{ label: 'Ice physics', votes: 12 }, { label: 'Cucco attack', votes: 7 }, { label: 'Mirror mode', votes: 4 }], endsAt: Date.now() + 30000, done: false }; paint(); });
+CC.on('live', (d) => { if ('poll' in d) { P = d.poll; paint(); } });
+</script>
+</body></html>

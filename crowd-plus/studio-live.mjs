@@ -1,0 +1,363 @@
+/*
+ * Crowd Control+ live features, on top of studio.mjs:
+ *
+ *   chat votes      a poll on stream; chat types 1-4; the winner's effect runs
+ *   team battle     gifts fill a Light World or Dark World bar; the winner's
+ *                   effect runs
+ *   mystery box     a slot machine that lands on a random effect
+ *   combo meter     gifts close together build a multiplier; every N = bonus
+ *   run stats       deaths, checks, place, seed and music from the game
+ *   death tax       a death adds subathon time and/or moves a goal
+ *   predictions     "Will he beat this dungeon without dying?" !yes / !no
+ *   clip markers    big moments time-stamped for editing later (+ !clip)
+ *   hall of fame    all-time top gifters across streams
+ *   welcome back    a pop-up when a regular shows up again
+ *
+ * Everything reaches the overlays and the panel through the same event
+ * stream as the rest of the Studio ({ kind: 'live', ... } messages and the
+ * `live` part of the state snapshot).
+ */
+import fs from 'node:fs';
+import path from 'node:path';
+
+export const LIVE_DEFAULTS = {
+  votes: { seconds: 45, autoRun: true },
+  battle: { names: ['LIGHT WORLD', 'DARK WORLD'], join: ['!light', '!dark'], target: 2000, minutes: 0,
+    effects: ['heal_full', 'seed_chaos'] },
+  mystery: { spinSeconds: 4, pool: ['heal_full', 'heal_1', 'hurt_2', 'rupees_plus', 'rupees_minus', 'bombs_plus', 'arrows_plus',
+    'magic_drain', 'invert', 'no_sword', 'swap_by', 'ice', 'cucco_storm', 'enemy_spawn', 'mirror', 'upside_down', 'wobble',
+    'tiny', 'crt', 'speed_up', 'slow_mo', 'freeze', 'fairy', 'pink_link', 'sprite_roll', 'music_roulette'] },
+  combo: { enabled: true, windowSeconds: 8, bonusAt: 10, bonusEffect: 'mystery_box' },
+  deathTax: { enabled: true, timerSeconds: 300, goalId: '', goalAmount: 0, alert: true },
+  predict: { seconds: 60, winnersShown: 12 },
+  clips: { minCoins: 500, deaths: true, seeds: true, chatClip: true, chatCooldown: 30 },
+  hallOfFame: { title: 'HALL OF FAME', size: 5 },
+  welcome: { enabled: true, minStreams: 3, title: 'WELCOME BACK' },
+  detour: { alert: true, winEffect: 'heal_full', winTimerSeconds: 300, surviveEffect: 'rupees_plus', surviveTimerSeconds: 0 },
+};
+
+const DUNGEON_ORDER = ['Hyrule Castle', 'Eastern Palace', 'Desert Palace', 'Tower of Hera', "Agahnim's Tower", 'Palace of Darkness',
+  'Swamp Palace', 'Skull Woods', "Thieves' Town", 'Ice Palace', 'Misery Mire', 'Turtle Rock', "Ganon's Tower"];
+
+export function createLive(ctx) {
+  // ctx: { HERE, log, push(msg), settings(), saveSettings(), fire(effect,user,label), effectName(id),
+  //        effectIds(), timerApi(op,seconds), timerView(), streamSince(), record(ev) }
+  const { HERE, log } = ctx;
+  const S = () => ctx.settings();
+  const readJson = (f, fb) => { try { return JSON.parse(fs.readFileSync(f, 'utf8')); } catch { return fb; } };
+  const writeLater = (() => { const t = {}; return (f, v) => { clearTimeout(t[f]); t[f] = setTimeout(() => { try { fs.writeFileSync(f, JSON.stringify(v, null, 1) + '\n'); } catch (e) { log(`couldn't save ${path.basename(f)}: ${e.message}`); } }, 800); }; })();
+  const clean = (s, n) => String(s ?? '').replace(/[\u0000-\u001f]/g, '').trim().slice(0, n);
+  const send = (what, data = {}) => ctx.push({ kind: 'live', what, ...data });
+  const name = (u, nick) => nick || u || 'someone';
+
+  // ── persistent files ───────────────────────────────────────────────────
+  const FAME_FILE = path.join(HERE, 'hall-of-fame.json');
+  const VIEWERS_FILE = path.join(HERE, 'viewers.json');
+  const CLIPS_FILE = path.join(HERE, 'clips.json');
+  let fame = readJson(FAME_FILE, {});          // user → { coins, gifts, nickname, avatar, streams, last }
+  let viewers = readJson(VIEWERS_FILE, {});    // user → { streams, lastStream, nickname }
+  let clips = readJson(CLIPS_FILE, []);        // { id, at, elapsed, label, kind }
+
+  // ── run stats from the game ────────────────────────────────────────────
+  let runStats = { deaths: 0, checks: 0, bonks: 0, place: '', seed: '', music: '', hearts: 0, at: 0 };
+  function onGame(m) {
+    if (m.type === 'run') {
+      runStats = { deaths: +m.deaths || 0, checks: +m.checks || 0, bonks: +m.bonks || 0, place: clean(m.place, 40), seed: clean(m.seed, 80),
+        music: clean(m.music, 80), hearts: +m.hearts || 0, at: Date.now() };
+      send('run', { run: runStats });
+    } else if (m.type === 'death') {
+      runStats.deaths = +m.deaths || runStats.deaths + 1;
+      onDeath();
+    } else if (m.type === 'detour') {
+      const D = S().detour;
+      if (m.phase === 'start') {
+        ctx.record({ type: 'detour', user: m.user || 'someone', text: clean(m.boss, 40), secs: +m.secs || 60,
+          alert: D.alert ? { tier: 'detour', title: 'BOSS DETOUR!' } : undefined });
+        addClip(`Boss detour: ${clean(m.boss, 40)}${m.user ? ' (sent by ' + clean(m.user, 40) + ')' : ''}`, 'detour', m.user);
+        send('detour', { detour: { boss: clean(m.boss, 40), user: clean(m.user, 40), secs: +m.secs || 60, at: Date.now() } });
+      } else {
+        const r = String(m.result || '');
+        let bonus = '';
+        if (r === 'won' || r === 'survived') {
+          const eff = r === 'won' ? D.winEffect : D.surviveEffect, secs = Math.round(+(r === 'won' ? D.winTimerSeconds : D.surviveTimerSeconds) || 0);
+          if (eff) { setTimeout(() => ctx.fire(eff, r === 'won' ? 'Boss beaten' : 'Survived', 'Detour bonus'), 1500); bonus = ctx.effectName(eff); }
+          const tv = ctx.timerView();
+          if (secs && tv.active && !tv.ended) { ctx.timerApi('add', secs); bonus += (bonus ? ' + ' : '') + `${fmtShort(secs)} on the clock`; }
+        }
+        const title = { won: 'BOSS DEFEATED!', survived: 'SURVIVED THE DETOUR!', ko: 'KNOCKED OUT!', escaped: 'ESCAPED!', lost: 'DETOUR OVER' }[r] || 'DETOUR OVER';
+        ctx.record({ type: 'detour-end', user: 'Link', text: clean(m.boss, 40), result: r, bonus,
+          alert: D.alert ? { tier: r === 'won' || r === 'survived' ? 'big' : 'death', title } : undefined });
+        if (r === 'won') addClip(`Beat ${clean(m.boss, 40)} on a boss detour!`, 'detour');
+        send('detour', { detour: null, result: r });
+      }
+    } else if (m.type === 'rescue') {
+      ctx.record({ type: 'detour-rescue', user: m.user || 'someone', text: 'rescued Link from the boss!' });
+    } else if (m.type === 'music') {
+      runStats.music = clean(m.pack, 80);
+      send('music', { pack: runStats.music });
+      ctx.record({ type: 'music', user: 'game', text: runStats.music || "The game's own music" });
+    }
+  }
+  function onDeath() {
+    const T = S().deathTax;
+    let taxed = '';
+    if (T.enabled) {
+      const secs = Math.round(+T.timerSeconds || 0);
+      const tv = ctx.timerView();
+      if (secs && tv.active && !tv.ended) { ctx.timerApi('add', secs); taxed = `+${fmtShort(secs)} on the clock`; }
+      const g = (S().goals || []).find((x) => x.id === T.goalId);
+      if (g && +T.goalAmount) { g.current = Math.max(0, (+g.current || 0) + +T.goalAmount); ctx.saveSettings(); taxed += (taxed ? ', ' : '') + `${g.label} +${T.goalAmount}`; }
+    }
+    ctx.record({ type: 'death', user: 'Link', deaths: runStats.deaths, text: taxed, alert: T.enabled && T.alert ? { tier: 'death', title: 'DEATH TAX' } : undefined });
+    if (S().clips.deaths) addClip(`Death #${runStats.deaths}`, 'death');
+    send('run', { run: runStats });
+  }
+  const fmtShort = (s) => s < 60 ? s + 's' : s < 3600 ? Math.floor(s / 60) + 'm' + (s % 60 ? ' ' + (s % 60) + 's' : '') : Math.floor(s / 3600) + 'h ' + Math.floor(s / 60) % 60 + 'm';
+
+  // ── chat votes ─────────────────────────────────────────────────────────
+  let poll = null, pollT = null;
+  function pollView() { return poll && { id: poll.id, question: poll.question, options: poll.options.map((o) => ({ label: o.label, effect: o.effect, votes: o.votes })), endsAt: poll.endsAt, done: poll.done, winner: poll.winner, total: poll.voters.size }; }
+  function startPoll(a) {
+    const opts = (a.options || []).map((o) => ({ label: clean(o.label, 40), effect: clean(o.effect, 40), votes: 0 })).filter((o) => o.label).slice(0, 4);
+    if (opts.length < 2) throw new Error('A vote needs at least 2 choices');
+    const secs = Math.max(10, Math.min(600, Math.round(+a.seconds || S().votes.seconds || 45)));
+    poll = { id: Date.now(), question: clean(a.question, 80) || 'VOTE!', options: opts, endsAt: Date.now() + secs * 1000, voters: new Map(), done: false, winner: -1 };
+    clearTimeout(pollT); pollT = setTimeout(endPoll, secs * 1000);
+    log(`vote started: ${poll.question} (${opts.map((o) => o.label).join(' / ')})`);
+    send('poll', { poll: pollView() });
+  }
+  function votePoll(user, idx) {
+    if (!poll || poll.done || idx < 0 || idx >= poll.options.length) return false;
+    const prev = poll.voters.get(user);
+    if (prev === idx) return false;
+    if (prev !== undefined) poll.options[prev].votes--;
+    poll.voters.set(user, idx); poll.options[idx].votes++;
+    send('poll', { poll: pollView() });
+    return true;
+  }
+  function endPoll() {
+    if (!poll || poll.done) return;
+    clearTimeout(pollT);
+    poll.done = true;
+    const max = Math.max(...poll.options.map((o) => o.votes));
+    const top = poll.options.map((o, i) => [o, i]).filter(([o]) => o.votes === max);
+    const [w, wi] = top[Math.floor(Math.random() * top.length)];   // a tie is settled by chance
+    poll.winner = wi;
+    log(`vote ended: "${w.label}" wins with ${w.votes} vote${w.votes === 1 ? '' : 's'}`);
+    if (w.effect && S().votes.autoRun && max > 0) ctx.fire(w.effect, 'Chat vote', w.label);
+    addClip(`Vote: ${w.label}`, 'vote');
+    send('poll', { poll: pollView() });
+    setTimeout(() => { if (poll && poll.done && Date.now() - poll.endsAt > 9000) { poll = null; send('poll', { poll: null }); } }, 12000);
+  }
+
+  // ── team battle ────────────────────────────────────────────────────────
+  let battle = null, battleT = null;
+  function battleView() { return battle && { id: battle.id, names: battle.names, scores: battle.scores, members: battle.members.map((m) => m.size), target: battle.target, endsAt: battle.endsAt, done: battle.done, winner: battle.winner, effects: battle.effects }; }
+  function startBattle(a) {
+    const B = S().battle;
+    const target = Math.max(0, Math.round(+a.target ?? B.target));
+    const minutes = Math.max(0, +a.minutes || 0);
+    if (!target && !minutes) throw new Error('Set a coin target or a time limit');
+    battle = { id: Date.now(), names: [clean(a.names?.[0] || B.names[0], 24), clean(a.names?.[1] || B.names[1], 24)], scores: [0, 0], members: [new Map(), new Map()],
+      target, endsAt: minutes ? Date.now() + minutes * 60000 : 0, done: false, winner: -1, effects: [a.effects?.[0] ?? B.effects[0], a.effects?.[1] ?? B.effects[1]] };
+    clearTimeout(battleT); if (minutes) battleT = setTimeout(() => endBattle(), minutes * 60000);
+    log(`team battle: ${battle.names[0]} vs ${battle.names[1]}`);
+    send('battle', { battle: battleView() });
+  }
+  function teamOf(user) { return !battle ? -1 : battle.members[0].has(user) ? 0 : battle.members[1].has(user) ? 1 : -1; }
+  function joinTeam(user, t, quiet) {
+    if (!battle || battle.done) return;
+    battle.members[1 - t].delete(user); battle.members[t].set(user, 0);
+    if (!quiet) send('battle', { battle: battleView(), joined: { user, team: t } });
+  }
+  function battleGift(user, coins) {
+    if (!battle || battle.done || !coins) return;
+    let t = teamOf(user);
+    if (t < 0) { t = battle.scores[0] <= battle.scores[1] ? 0 : 1; joinTeam(user, t, true); }   // helps the team that's behind
+    battle.scores[t] += coins;
+    battle.members[t].set(user, (battle.members[t].get(user) || 0) + coins);
+    send('battle', { battle: battleView(), gift: { user, team: t, coins } });
+    if (battle.target && battle.scores[t] >= battle.target) endBattle(t);
+  }
+  function endBattle(force) {
+    if (!battle || battle.done) return;
+    clearTimeout(battleT);
+    battle.done = true;
+    battle.winner = force ?? (battle.scores[0] === battle.scores[1] ? Math.floor(Math.random() * 2) : battle.scores[0] > battle.scores[1] ? 0 : 1);
+    const w = battle.winner, eff = battle.effects[w];
+    log(`team battle won by ${battle.names[w]} (${battle.scores[0]} - ${battle.scores[1]})`);
+    if (eff) ctx.fire(eff, battle.names[w], 'Team battle');
+    addClip(`${battle.names[w]} won the team battle`, 'battle');
+    send('battle', { battle: battleView() });
+  }
+
+  // ── mystery box ────────────────────────────────────────────────────────
+  const mysteryQueue = []; let mysteryBusy = false;
+  function mystery(user, label) {
+    const known = new Set(ctx.effectIds());
+    const pool = (S().mystery.pool || []).filter((id) => known.has(id) && id !== 'mystery_box');
+    if (!pool.length) { log('mystery box: no effects in its pool that the game has'); return; }
+    mysteryQueue.push({ user, label, pool });
+    nextMystery();
+  }
+  function nextMystery() {
+    if (mysteryBusy || !mysteryQueue.length) return;
+    mysteryBusy = true;
+    const job = mysteryQueue.shift();
+    const pick = job.pool[Math.floor(Math.random() * job.pool.length)];
+    const secs = Math.max(2, Math.min(10, +S().mystery.spinSeconds || 4));
+    const reel = Array.from({ length: 18 }, () => ctx.effectName(job.pool[Math.floor(Math.random() * job.pool.length)]));
+    send('mystery', { user: job.user, reel, result: ctx.effectName(pick), secs });
+    setTimeout(() => {
+      ctx.fire(pick, job.user, 'Mystery box');
+      setTimeout(() => { mysteryBusy = false; nextMystery(); }, 2500);
+    }, secs * 1000);
+  }
+
+  // ── combo meter ────────────────────────────────────────────────────────
+  let combo = { n: 0, last: 0, best: 0, bonuses: 0 }, comboT = null;
+  function comboGift(count) {
+    const C = S().combo; if (!C.enabled) return;
+    const now = Date.now(), win = Math.max(2, +C.windowSeconds || 8) * 1000;
+    if (now - combo.last > win) { combo.n = 0; combo.bonuses = 0; }
+    const before = combo.n;
+    combo.n += Math.max(1, count || 1); combo.last = now; combo.best = Math.max(combo.best, combo.n);
+    const at = Math.max(2, +C.bonusAt || 10);
+    let bonus = false;
+    if (Math.floor(combo.n / at) > Math.floor(before / at)) {
+      bonus = true; combo.bonuses++;
+      if (C.bonusEffect) ctx.fire(C.bonusEffect, 'Combo x' + combo.n, 'Combo bonus');
+      addClip(`Combo x${combo.n}`, 'combo');
+    }
+    send('combo', { combo: { n: combo.n, at, endsAt: now + win, bonus } });
+    clearTimeout(comboT); comboT = setTimeout(() => { combo.n = 0; send('combo', { combo: { n: 0, at, endsAt: 0 } }); }, win + 50);
+  }
+
+  // ── predictions ────────────────────────────────────────────────────────
+  let pred = null, predT = null;
+  function predView() {
+    return pred && { id: pred.id, question: pred.question, labels: pred.labels, words: pred.words, counts: [0, 1].map((i) => [...pred.votes.values()].filter((v) => v === i).length),
+      locksAt: pred.locksAt, locked: pred.locked, result: pred.result, winners: pred.result >= 0 ? pred.winners : [] };
+  }
+  function startPred(a) {
+    const secs = Math.max(10, Math.min(1800, Math.round(+a.seconds || S().predict.seconds || 60)));
+    pred = { id: Date.now(), question: clean(a.question, 90) || 'Will he do it?', labels: [clean(a.labels?.[0], 20) || 'YES', clean(a.labels?.[1], 20) || 'NO'],
+      words: ['!yes', '!no'], votes: new Map(), locksAt: Date.now() + secs * 1000, locked: false, result: -1, winners: [] };
+    clearTimeout(predT); predT = setTimeout(lockPred, secs * 1000);
+    log(`prediction: ${pred.question}`);
+    send('predict', { predict: predView() });
+  }
+  function lockPred() { if (pred && !pred.locked) { pred.locked = true; clearTimeout(predT); send('predict', { predict: predView() }); } }
+  function resolvePred(i) {
+    if (!pred || pred.result >= 0) return;
+    pred.locked = true; pred.result = i; clearTimeout(predT);
+    pred.winners = [...pred.votes.entries()].filter(([, v]) => v === i).map(([u]) => u);
+    log(`prediction "${pred.question}": ${pred.labels[i]} (${pred.winners.length} got it right)`);
+    addClip(`Prediction: ${pred.labels[i]}`, 'predict');
+    send('predict', { predict: predView() });
+    setTimeout(() => { if (pred && pred.result >= 0) { pred = null; send('predict', { predict: null }); } }, 20000);
+  }
+
+  // ── clip markers ───────────────────────────────────────────────────────
+  let clipChat = new Map();
+  function addClip(label, kind = 'manual', by = '') {
+    const at = Date.now(), since = ctx.streamSince();
+    const c = { id: at.toString(36) + Math.random().toString(36).slice(2, 5), at, elapsed: Math.max(0, Math.round((at - since) / 1000)), label: clean(label, 90), kind, by: clean(by, 40) };
+    clips.push(c); if (clips.length > 500) clips.shift();
+    writeLater(CLIPS_FILE, clips);
+    send('clip', { clip: c });
+    return c;
+  }
+
+  // ── hall of fame + welcome back ────────────────────────────────────────
+  function famous(n) {
+    return Object.entries(fame).map(([user, f]) => ({ user, ...f })).sort((a, b) => b.coins - a.coins || b.gifts - a.gifts).slice(0, n);
+  }
+  function seenViewer(user, nickname) {
+    if (!user || user === 'someone') return false;
+    const sid = ctx.streamSince();
+    const v = viewers[user] || (viewers[user] = { streams: 0, lastStream: 0, nickname: '' });
+    if (nickname) v.nickname = nickname;
+    if (v.lastStream === sid) return false;
+    v.lastStream = sid; v.streams++;
+    writeLater(VIEWERS_FILE, viewers);
+    const W = S().welcome;
+    return W.enabled && v.streams >= Math.max(2, +W.minStreams || 3) ? v.streams : false;
+  }
+
+  // ── every event from studio.record() comes through here ────────────────
+  // It can add to the event before it goes out: e.welcome = n streams.
+  function onEvent(e) {
+    if (['gift', 'chat', 'follow', 'share', 'like'].includes(e.type) && !e.test) {
+      const n = seenViewer(e.user, e.nickname);
+      if (n) e.welcome = { streams: n, title: S().welcome.title || 'WELCOME BACK' };
+    }
+    if (e.type === 'gift') {
+      if (!e.test || e.countStats) {
+        const f = fame[e.user] || (fame[e.user] = { coins: 0, gifts: 0, nickname: '', avatar: '', last: 0 });
+        f.coins += e.coins || 0; f.gifts += e.count || 1; f.last = Date.now();
+        if (e.nickname) f.nickname = e.nickname; if (e.avatar) f.avatar = e.avatar;
+        writeLater(FAME_FILE, fame);
+        send('fame', { fame: famous(20) });
+      }
+      comboGift(e.count || 1);
+      battleGift(e.user, e.coins || 0);
+      const Cl = S().clips;
+      if ((e.coins || 0) >= (+Cl.minCoins || 500)) addClip(`${name(e.user, e.nickname)}: ${e.count > 1 ? e.count + 'x ' : ''}${e.gift} (${e.coins} coins)`, 'gift', e.user);
+      if (Cl.seeds && /^seed_/.test(e.effect || '')) addClip(`${name(e.user, e.nickname)} rolled ${e.effectName || 'a new seed'}`, 'seed', e.user);
+    }
+    if (e.type === 'chat' && e.text) {
+      const t = e.text.trim().toLowerCase();
+      // votes: "1".."4" or "!vote 2"
+      const v = t.match(/^(?:!vote\s*)?([1-4])$/);
+      if (v && poll && !poll.done) { if (votePoll(e.user, +v[1] - 1)) e.vote = +v[1]; }
+      // predictions
+      if (pred && !pred.locked) { const i = pred.words.indexOf(t); if (i >= 0) { pred.votes.set(e.user, i); e.predict = pred.labels[i]; send('predict', { predict: predView() }); } }
+      // team battle
+      if (battle && !battle.done) {
+        const B = S().battle; const i = (B.join || []).map((w) => String(w).toLowerCase()).indexOf(t);
+        if (i === 0 || i === 1) { joinTeam(e.user, i); e.team = battle.names[i]; }
+      }
+      // !clip
+      const Cl = S().clips;
+      if (Cl.chatClip && t === '!clip') {
+        const last = clipChat.get(e.user) || 0;
+        if (Date.now() - last > (+Cl.chatCooldown || 30) * 1000) { clipChat.set(e.user, Date.now()); addClip(`!clip from ${name(e.user, e.nickname)}`, 'chat', e.user); e.clipped = true; }
+      }
+    }
+  }
+
+  // ── panel actions ──────────────────────────────────────────────────────
+  function action(a) {
+    switch (a.action) {
+      case 'poll-start': startPoll(a); return true;
+      case 'poll-end': endPoll(); return true;
+      case 'poll-cancel': clearTimeout(pollT); poll = null; send('poll', { poll: null }); return true;
+      case 'battle-start': startBattle(a); return true;
+      case 'battle-end': endBattle(); return true;
+      case 'battle-cancel': clearTimeout(battleT); battle = null; send('battle', { battle: null }); return true;
+      case 'battle-add': if (battle && !battle.done) { const t = a.team ? 1 : 0; battle.scores[t] += Math.round(+a.amount || 0); send('battle', { battle: battleView() }); if (battle.target && battle.scores[t] >= battle.target) endBattle(t); } return true;
+      case 'mystery': mystery(a.user || 'Streamer', 'Mystery box'); return true;
+      case 'predict-start': startPred(a); return true;
+      case 'predict-lock': lockPred(); return true;
+      case 'predict-resolve': resolvePred(a.result ? 1 : 0); return true;
+      case 'predict-cancel': clearTimeout(predT); pred = null; send('predict', { predict: null }); return true;
+      case 'clip-add': return { clip: addClip(a.label || 'Marked by the streamer', 'manual') };
+      case 'clip-delete': clips = clips.filter((c) => c.id !== a.id); writeLater(CLIPS_FILE, clips); send('clips'); return true;
+      case 'clips-clear': clips = []; writeLater(CLIPS_FILE, clips); send('clips'); return true;
+      case 'fame-reset': fame = {}; writeLater(FAME_FILE, fame); send('fame', { fame: [] }); return true;
+      case 'fame-remove': delete fame[a.user]; writeLater(FAME_FILE, fame); send('fame', { fame: famous(20) }); return true;
+      case 'death-test': runStats.deaths++; onDeath(); return true;
+      case 'run-test': onGame({ type: 'run', deaths: runStats.deaths, checks: runStats.checks + 7, bonks: runStats.bonks, place: DUNGEON_ORDER[Math.floor(Math.random() * DUNGEON_ORDER.length)], seed: runStats.seed || 'ALttPR - TestSeed', music: runStats.music, hearts: Math.max(3, runStats.hearts) }); return true;
+      case 'welcome-test': ctx.record({ type: 'chat', user: a.user || 'RegularViewer', text: 'hey!', welcome: { streams: 12, title: S().welcome.title || 'WELCOME BACK' }, test: true }); return true;
+      default: return false;
+    }
+  }
+
+  function snapshot() {
+    return { poll: pollView(), battle: battleView(), combo: { n: combo.n, at: S().combo.bonusAt, best: combo.best }, predict: predView(), run: runStats,
+      clips: clips.slice(-200), fame: famous(20), viewersKnown: Object.keys(viewers).length };
+  }
+
+  return { onEvent, onGame, mystery, run: action, snapshot, addClip, famous };
+}

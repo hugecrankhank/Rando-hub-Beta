@@ -1,0 +1,3 @@
+Rando Hub note: EmoTracker draws #FF00FF (magenta) in pack images as
+transparent. For the browser, the images in this copy of the pack had their
+magenta pixels made transparent once, ahead of time. Nothing else was changed.
