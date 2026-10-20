@@ -132,6 +132,8 @@
   var where = { indoors: false, dg: -1, room: -1, x: 0, y: 0 };
   var flags = null, dgItems = { map: 0, compass: 0 };
   var HUD = 40;   // the top lines show the HUD over the room
+  // …and the magic meter hangs down the left side below them
+  var METER_W = 40, METER_H = 72;
   function capture() {
     var m = wram(0x10, 2), b1b = wram(0x1B, 1), bri = wram(0x13, 1), r = wram(0xA0, 2), d = wram(0x40C, 1),
       sx = wram(0xE2, 2), sy = wram(0xE8, 2), lk = wram(0x20, 4);
@@ -163,6 +165,7 @@
       var wy = camY + y; if ((wy >> 9) !== ry) continue;
       var ly = wy & 511;
       for (var x = 0; x < W; x++) {
+        if (x < METER_W && y < METER_H) continue;
         var wx = camX + x; if ((wx >> 9) !== rx) continue;
         var c = f.data[y * f.w + x * step], q = (ly * 512 + (wx & 511)) * 4;
         var r5 = c >> 11, g6 = (c >> 5) & 63, b5 = c & 31;
@@ -199,7 +202,7 @@
       cv.getContext('2d').putImageData(new ImageData(R.px, 512, 512), 0, 0);
       cv.toBlob(function (blob) {
         if (!blob || game !== g) return;
-        idb().then(function (db) { db.transaction('rooms', 'readwrite').objectStore('rooms').put({ png: blob, dg: R.dg }, g + '/' + id); }).catch(function () {});
+        idb().then(function (db) { db.transaction('rooms', 'readwrite').objectStore('rooms').put({ png: blob, dg: R.dg, m: 1 }, g + '/' + id); }).catch(function () {});
       }, 'image/png');
     });
   }
@@ -218,8 +221,11 @@
     rooms = {}; game = g;
     Object.keys(full).forEach(function (id) { URL.revokeObjectURL(full[id].url); });
     full = {}; tried = {}; layouts = readLayouts();
-    eachKey('rooms', g, function (c, k, mine) {
+    function each(c, k, mine) {
       if (!mine) return;
+      // rooms kept before the magic meter was left out had it smeared over them
+      // (when the screen scrolls): they're dropped and drawn again on the next visit
+      if (!c.value || !c.value.m) { c.delete(); return; }
       var id = +k.slice(g.length + 1), v = c.value, img = new Image();
       img.onload = function () {
         if (game !== g) return;
@@ -232,7 +238,9 @@
         URL.revokeObjectURL(img.src);
       };
       img.src = URL.createObjectURL(v.png);
-    }, paintAll);
+    }
+    each.write = true;
+    eachKey('rooms', g, each, paintAll);
     fullLoaded = false;
     eachKey('full', g, function (c, k, mine) {
       if (mine) full[+k.slice(g.length + 1)] = { url: URL.createObjectURL(c.value) };

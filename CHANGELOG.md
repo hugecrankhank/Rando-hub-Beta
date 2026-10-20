@@ -5,6 +5,13 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta: dungeon maps without the magic meter (2026-10-20)
+
+- **Explore dungeon maps** no longer pick up the magic meter: it was copied from the game's
+  screen with each room, and smeared into a long bar in rooms that scroll. Rooms already
+  drawn with it are dropped once and drawn again, clean, on your next visit. (Map and
+  Full modes weren't affected.)
+
 ## Beta: Mudora on phones: more room for the map (2026-10-20)
 
 - The options (dungeon maps, item size, grid, Settings, Reset maps, help, and on Mudora 2.0
