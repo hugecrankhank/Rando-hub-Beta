@@ -172,16 +172,21 @@
 
   // ── the two worlds ────────────────────────────────────────────────────────
   var views = [];
+  // Drawn on a canvas the size of the box, not as one huge zoomed picture:
+  // zooming a 4096-pixel world as a page element made iPhone Safari build a
+  // picture many times the screen and run out of memory. Fully zoomed out it
+  // draws a small copy of the world (1024 x 1024, made once); zoomed in, only
+  // the screens in view at full size (a handful kept, the rest let go).
   function WorldView(world) {
     var self = this;
     this.world = world;
     this.box = el('div', 'wv');
-    this.inner = el('div', 'inner');
-    this.tiles = el('div'); this.grid = el('div', 'grid'); this.pins = el('div');
-    this.inner.appendChild(this.tiles); this.inner.appendChild(this.grid); this.inner.appendChild(this.pins);
-    this.box.appendChild(this.inner);
+    this.cv = el('canvas', 'wcv'); this.cx = this.cv.getContext('2d');
+    this.pins = el('div', 'pins');
+    this.box.appendChild(this.cv); this.box.appendChild(this.pins);
     this.box.appendChild(el('div', 'wname', world === 'lw' ? 'Light World' : 'Dark World'));
     this.zoom = 0.1; this.pan = [0, 0]; this.userMoved = false; this.pinEls = {};
+    this.small = null; this.full = {}; this.used = []; this.raf = 0;
     // wheel / pinch zoom, drag to move, double-click / double-tap to fit
     var pts = new Map(), pinch = null, drag = null, lastTap = 0, box = this.box;
     box.addEventListener('wheel', function (e) { e.preventDefault(); self.zoomAt(e.clientX, e.clientY, e.deltaY < 0 ? 1.2 : 1 / 1.2); }, { passive: false });
@@ -217,19 +222,78 @@
     views.push(this);
     this.paintTiles();
   }
-  WorldView.prototype.clampZ = function (z) { var f = this.fitZ || 0.05; return Math.max(f * 0.8, Math.min(4, z)); };
+  WorldView.prototype.clampZ = function (z) { var f = this.fitZ || 0.05; return Math.max(f * 0.8, Math.min(3, z)); };
+  WorldView.prototype.maps = function () { return M.romMaps && M.romMaps[this.world === 'lw' ? 'light' : 'dark']; };
+  // a new game's pictures: make the small copy, one screen at a time
   WorldView.prototype.paintTiles = function () {
-    var maps = M.romMaps && M.romMaps[this.world === 'lw' ? 'light' : 'dark'];
-    var key = maps ? maps[0] : 'none';
+    var maps = this.maps(), key = maps ? maps[0] : 'none', self = this;
     if (this.__tiles === key) return;
-    this.__tiles = key; this.tiles.textContent = '';
-    if (!maps) { this.tiles.appendChild(el('div', 'nomap')); return; }
+    this.__tiles = key; this.small = null; this.full = {}; this.used = [];
+    if (!maps) { this.draw(); return; }
+    var sc = document.createElement('canvas'); sc.width = sc.height = 1024;
+    var sx = sc.getContext('2d'), i = 0;
+    (function next() {
+      if (self.__tiles !== key) return;
+      if (i >= 64) { self.small = sc; self.draw(); return; }
+      var im = new Image(), n = i++;
+      im.onload = function () { sx.drawImage(im, (n % 8) * 128, Math.floor(n / 8) * 128, 128, 128); im.src = ''; next(); };
+      im.onerror = next;
+      im.src = maps[n];
+    })();
+    this.draw();
+  };
+  WorldView.prototype.tile = function (n) {
+    var t = this.full[n], self = this, maps = this.maps();
+    if (t) { t.at = Date.now(); return t.ok ? t.im : null; }
+    if (!maps) return null;
+    t = this.full[n] = { im: new Image(), ok: false, at: Date.now() };
+    t.im.onload = function () { t.ok = true; self.draw(); };
+    t.im.src = maps[n];
+    // keep a few screens only
+    var keys = Object.keys(this.full);
+    if (keys.length > 24) {
+      keys.sort(function (a, b) { return self.full[a].at - self.full[b].at; }).slice(0, keys.length - 24).forEach(function (k) {
+        self.full[k].im.onload = null; self.full[k].im.src = ''; delete self.full[k];
+      });
+    }
+    return null;
+  };
+  WorldView.prototype.draw = function () {
     var self = this;
-    maps.forEach(function (u, i) {
-      var im = el('img', 'tile'); im.src = u; im.alt = ''; im.draggable = false;
-      im.style.left = (i % 8) * 512 + 'px'; im.style.top = Math.floor(i / 8) * 512 + 'px';
-      self.tiles.appendChild(im);
-    });
+    if (this.raf) return;
+    this.raf = requestAnimationFrame(function () { self.raf = 0; self.drawNow(); });
+  };
+  WorldView.prototype.drawNow = function () {
+    var W = this.box.clientWidth, H = this.box.clientHeight;
+    if (!W || !H) return;
+    var dpr = Math.min(2, window.devicePixelRatio || 1);
+    if (this.cv.width !== Math.round(W * dpr) || this.cv.height !== Math.round(H * dpr)) { this.cv.width = Math.round(W * dpr); this.cv.height = Math.round(H * dpr); }
+    var cx = this.cx, z = this.zoom, px = this.pan[0], py = this.pan[1];
+    cx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    cx.fillStyle = '#050607'; cx.fillRect(0, 0, W, H);
+    cx.imageSmoothingEnabled = z * dpr < 1;
+    var maps = this.maps();
+    if (!maps) { cx.fillStyle = '#1a2a1a'; cx.fillRect(px, py, 4096 * z, 4096 * z); }
+    else {
+      var useFull = z * dpr > 0.3;
+      if (this.small) cx.drawImage(this.small, px, py, 4096 * z, 4096 * z);
+      if (useFull) {
+        var x0 = Math.max(0, Math.floor(-px / z / 512)), x1 = Math.min(7, Math.floor((W - px) / z / 512));
+        var y0 = Math.max(0, Math.floor(-py / z / 512)), y1 = Math.min(7, Math.floor((H - py) / z / 512));
+        for (var ty = y0; ty <= y1; ty++) for (var tx = x0; tx <= x1; tx++) {
+          var im = this.tile(ty * 8 + tx);
+          if (im) cx.drawImage(im, px + tx * 512 * z, py + ty * 512 * z, 512 * z + 0.5, 512 * z + 0.5);
+        }
+      }
+    }
+    if (!document.body.classList.contains('no-grid')) {
+      cx.strokeStyle = 'rgba(255,255,255,.14)'; cx.lineWidth = 1; cx.beginPath();
+      for (var i = 1; i < 8; i++) {
+        var gx = Math.round(px + i * 512 * z) + 0.5, gy = Math.round(py + i * 512 * z) + 0.5;
+        cx.moveTo(gx, py); cx.lineTo(gx, py + 4096 * z); cx.moveTo(px, gy); cx.lineTo(px + 4096 * z, gy);
+      }
+      cx.stroke();
+    }
   };
   WorldView.prototype.fit = function () {
     var W = this.box.clientWidth, H = this.box.clientHeight;
@@ -240,16 +304,25 @@
     this.apply();
   };
   WorldView.prototype.apply = function () {
-    this.inner.style.transform = 'translate(' + this.pan[0] + 'px,' + this.pan[1] + 'px) scale(' + this.zoom + ')';
-    // pins keep the same size on screen, a little bigger when zoomed in
-    this.inner.style.setProperty('--pz', (1 / this.zoom) * (this.box.clientWidth < 500 ? 0.85 : 1) * Math.min(1.8, Math.max(1, Math.sqrt(this.zoom / (this.fitZ || this.zoom)))));
-    this.box.style.imageRendering = this.zoom >= 0.5 ? 'pixelated' : '';
+    var z = this.zoom, px = this.pan[0], py = this.pan[1], self = this;
+    // pins keep their size on screen, a little bigger when zoomed in
+    var ps = (this.box.clientWidth < 500 ? 0.85 : 1) * Math.min(1.8, Math.max(1, Math.sqrt(z / (this.fitZ || z))));
+    this.pins.style.setProperty('--pz', ps);
+    Object.keys(this.pinEls).forEach(function (id) {
+      var p = self.pinEls[id];
+      p.style.left = (px + p.__x * z) + 'px'; p.style.top = (py + p.__y * z) + 'px';
+    });
+    this.draw();
   };
   WorldView.prototype.zoomAt = function (cx, cy, f) { this.setZoomAt(cx, cy, this.clampZ(this.zoom * f)); };
   WorldView.prototype.setZoomAt = function (cx, cy, z) {
     var r = this.box.getBoundingClientRect(), x = cx - r.left, y = cy - r.top;
     this.pan = [x - (x - this.pan[0]) * z / this.zoom, y - (y - this.pan[1]) * z / this.zoom];
     this.zoom = z; this.userMoved = true; this.apply();
+  };
+  WorldView.prototype.place = function (p, at) {
+    p.__x = at.x; p.__y = at.y;
+    p.style.left = (this.pan[0] + at.x * this.zoom) + 'px'; p.style.top = (this.pan[1] + at.y * this.zoom) + 'px';
   };
   WorldView.prototype.paintPins = function () {
     var self = this, seen = {};
@@ -259,7 +332,7 @@
       var p = self.pinEls[id];
       if (!p) {
         p = self.pinEls[id] = el('div', 'pin');
-        var at = M.checkAt(c); p.style.left = at.x + 'px'; p.style.top = at.y + 'px';
+        self.place(p, M.checkAt(c));
         hookPin(p, function () { return { kind: 'check', c: c }; });
         self.pins.appendChild(p);
       }
@@ -273,12 +346,12 @@
     });
     Object.keys(M.dungeons).forEach(function (k) {
       var d = M.dungeons[k]; if (!d || d.world !== self.world) return;
+      var at = M.dungeonAt(k); if (!at) return;
       var id = 'd' + k; seen[id] = 1;
       var p = self.pinEls[id];
       if (!p) {
         p = self.pinEls[id] = el('div', 'pin dgn');
-        var at = M.dungeonAt(k); if (!at) return;
-        p.style.left = at.x + 'px'; p.style.top = at.y + 'px';
+        self.place(p, at);
         hookPin(p, function () { return { kind: 'dungeon', k: k }; });
         self.pins.appendChild(p);
       }
@@ -433,7 +506,7 @@
   var gridOn = true;
   try { gridOn = localStorage.getItem('rhb-mudora-grid') !== '0'; } catch (e) {}
   $('o-grid').checked = gridOn; document.body.classList.toggle('no-grid', !gridOn);
-  $('o-grid').addEventListener('change', function () { document.body.classList.toggle('no-grid', !this.checked); try { localStorage.setItem('rhb-mudora-grid', this.checked ? '1' : '0'); } catch (e) {} });
+  $('o-grid').addEventListener('change', function () { document.body.classList.toggle('no-grid', !this.checked); views.forEach(function (v) { v.draw(); }); try { localStorage.setItem('rhb-mudora-grid', this.checked ? '1' : '0'); } catch (e) {} });
   function dgModes() {
     var sel = $('dgmode');
     if (!D) { sel.parentNode.style.display = 'none'; return; }
