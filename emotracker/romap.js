@@ -109,7 +109,10 @@
     for (var i = 0; i < 7; i++) cg[(0xe2 >> 1) + i] = w(rom, PAL_AUX3 + (a3 * 7 + i) * 2);
     var out = new Uint8Array(128 * 3);
     for (var k = 0; k < 128; k++) { var c = rgb(cg[k]); out[k * 3] = c[0]; out[k * 3 + 1] = c[1]; out[k * 3 + 2] = c[2]; }
-    return { pal: out, back: rgb(head & 0x40 ? 0x2a32 : 0x2669) };
+    // Death Mountain's open sky: in the game the cloud layer shows through
+    // there; the plain backdrop (grass green) looked wrong, so the sky's teal
+    var dm = !(head & 0x40) && (sc === 3 || sc === 5 || sc === 7);
+    return { pal: out, back: dm ? [48, 96, 96] : rgb(head & 0x40 ? 0x2a32 : 0x2669) };
   }
 
   // ── one 512 x 512 screen into the world's pixel buffer ────────────────────
