@@ -39,6 +39,7 @@ under their own licenses, and nothing here restricts what those licenses allow:
 | Part | Author | License |
 | --- | --- | --- |
 | `tracker/` (item tracker and map) | Hutch (hutchch) | MIT, `tracker/LICENSE` |
+| Mudora's logic (`mudora/`, read from `tracker/` as it runs) | Hutch (hutchch) | MIT, `tracker/LICENSE` |
 | Snes9x emulator core (`emu/`) | Snes9x team | Snes9x non-commercial license, `emu/build/LICENSES/snes9x-LICENSE` |
 | Shaders (`emu/`) | libretro contributors | each file's header (xBRZ: GPL-3.0) |
 | Randomizer logic and base patch (`randomizer/`) | sporchia; KatDevsGames | MIT, `randomizer/LICENSE-THIRD-PARTY.md` |

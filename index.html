@@ -440,6 +440,11 @@
   body.tracker-emo #onlyadkd-sel, body.tracker-emo #map-key, body.tracker-emo #map-settings-btn { display: none !important; }
   #pop-emo { display: none; }
   body.desktop.tracker-emo #pop-emo { display: inline-block; }
+  /* Mudora (beta): Hutch's frames keep running for the logic, out of sight */
+  html body.tracker-emo.tracker-mudora #frames #items-wrap, html body.tracker-emo.tracker-mudora #frames #map-frame {
+    display: block !important; position: fixed !important; left: -12000px !important; top: 0 !important;
+    width: 900px !important; height: 700px !important; flex: none !important; opacity: 0 !important; pointer-events: none !important; }
+  html body.tracker-emo.tracker-mudora #frames #items-wrap iframe { width: 900px; height: 700px; }
   body.tracker-emo.emo-away main { grid-template-columns: minmax(0, 1fr) 0 0; }
   body.tracker-emo.emo-away aside { width: 0; overflow: hidden; }
   body.tracker-emo.emo-away #dock-split { visibility: hidden; }
@@ -977,7 +982,8 @@
   function trackerUrls() {
     var gm = $('gamemode').value, di = $('dungeonitems').value;
     // EmoTracker (emo-host.js) runs in its own frame; Hutch's stay empty
-    if (window.UnifiedTracker && window.UnifiedTracker.emo && window.UnifiedTracker.emo()) {
+    // (Mudora runs there too, but reads Hutch's logic: his frames still load, out of sight)
+    if (window.UnifiedTracker && window.UnifiedTracker.emo && window.UnifiedTracker.emo() && !window.UnifiedTracker.mudora()) {
       if (window.UnifiedEmo) window.UnifiedEmo.sync(gm, di);
       return { items: 'about:blank', map: 'about:blank' };
     }

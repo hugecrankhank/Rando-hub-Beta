@@ -5,6 +5,28 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta: Mudora (2026-10-19)
+
+- **Tracker → Mudora (beta):** Rando Hub's own tracker, named after the Book of Mudora
+  (the one that reads the old writing; this one reads your game).
+  - **Logic: Hutch's, unchanged.** His item tracker and map still run, out of sight,
+    and Mudora shows their answers: which checks are in logic, cleared checks, dungeon
+    colours, items, keys and prizes. Clicks go back to his tracker, so both stay in
+    step, and his updates come in through the usual Hutch updater. None of his
+    pictures are shown.
+  - **Everything you see comes from the game:** item icons are cut from the game's own
+    pause menu by a hidden copy of the emulator (randomizer menus too), the two worlds
+    are drawn from the ROM, and the dungeon maps are the Explore / Map / Full ones.
+  - **Checks where they really are:** each pin sits on the door, cave, hole, item or
+    person in the game (read from the ROM); a few spots that aren't one place keep
+    Hutch's position.
+  - Items (click up, right click / hold back; right click a medallion for MM / TR),
+    a dungeons panel (prize, big key, map, compass, small keys, chests left: click to
+    count, right click to undo; click a dungeon for its map), hover cards with Done /
+    Not done and marking which item is at a check, counters (checks, deaths, bonks,
+    Ganon's Tower chests and where its big key was), the colour key, and the phone
+    tabs (Items / Light World / Dark World). "⧉ Mudora" opens it in its own window.
+
 ## Beta: EmoTracker (2026-10-19)
 
 - **Tracker → EmoTracker (beta):** the official EmoTracker ALTTPR pack, running in the
