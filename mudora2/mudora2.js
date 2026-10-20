@@ -49,6 +49,26 @@
   function show(on) { over.classList.toggle('show', !!on); document.body.classList.toggle('mf-open', !!on); }
   Mudora2.show = show;
   Mudora2.newGame = function () { open('/'); show(true); };
+  // a new game straight from one of his presets: his launch page, his preset
+  // button, his Launch (so the preset's entrances and checks come with it)
+  Mudora2.startPreset = function (name) {
+    open('/'); show(true);
+    var t0 = Date.now(), picked = false;
+    var iv = setInterval(function () {
+      var d = null;
+      try { d = frame.contentDocument; } catch (e) {}
+      if (Date.now() - t0 > 20000) { clearInterval(iv); M.toast('Couldn’t pick the preset: pick it on Muffins’ page, then Launch Tracker.'); return; }
+      if (!d) return;
+      var btns = Array.prototype.slice.call(d.querySelectorAll('button'));
+      if (!picked) {
+        var b = btns.filter(function (x) { return x.textContent.trim() === name; })[0];
+        if (b) { b.click(); picked = true; }
+        return;
+      }
+      var go = btns.filter(function (x) { return /Launch Tracker/.test(x.textContent); })[0];
+      if (go) { clearInterval(iv); go.click(); }
+    }, 300);
+  };
   var saved = null;
   try { saved = localStorage.getItem(SKEY); } catch (e) {}
   if (saved) open('/tracker?id=' + saved); else { open('/'); show(true); }
@@ -439,8 +459,29 @@
   }
   function paintSettings() {
     setBody.textContent = '';
-    if (!store || !state) { setBody.appendChild(el('div', 's-note', launched ? 'Muffins’ tracker is still starting…' : 'Start a game first (New game).')); return; }
     if (!SET) { setBody.appendChild(el('div', 's-note', 'Loading…')); return; }
+    // a new game from one of his presets (OnlyADKD is "ADKDF")
+    if (SET.presets && SET.presets.length) {
+      setBody.appendChild(el('h4', null, 'New game from a preset'));
+      var pr = el('div', 's-row'), sel = el('select'), go = el('button', null, 'Start');
+      sel.appendChild(el('option', null, 'Pick a preset…')).value = '';
+      SET.presets.forEach(function (g) {
+        var og = document.createElement('optgroup'); og.label = g.title;
+        g.presets.forEach(function (p) { if (p.id === 'mystery') return; var o = el('option', null, p.name + (p.desc ? ' — ' + p.desc : '')); o.value = p.name; og.appendChild(o); });
+        sel.appendChild(og);
+      });
+      sel.style.maxWidth = '260px'; sel.style.flex = '1';
+      go.type = 'button';
+      go.addEventListener('click', function () {
+        if (!sel.value) return;
+        if (!confirm('Start a new game with Muffins’ “' + sel.value + '” preset? (Your current game stays in his list of sessions.)')) return;
+        Mudora2.settings(false); Mudora2.startPreset(sel.value);
+      });
+      pr.appendChild(sel); pr.appendChild(go); setBody.appendChild(pr);
+      setBody.appendChild(el('div', 's-note', 'Presets set everything for a mode at the start, including known entrances and checks it leaves out (OnlyADKD is “ADKDF”). The settings below change the game in progress.'));
+    }
+    setBody.appendChild(el('h4', null, 'This game'));
+    if (!store || !state) { setBody.appendChild(el('div', 's-note', launched ? 'Muffins’ tracker is still starting…' : 'Start a game first: pick a preset above, or New game.')); return; }
     var S = state.settings, n = 0;
     setBody.appendChild(el('div', 's-note', 'Muffins’ settings for this game. Changes apply right away, mid-game too, and stay with this game.'));
     function row(id, label, desc, input) {

@@ -707,5 +707,137 @@
     "Pyramid Hole"
    ]
   }
+ ],
+ "presets": [
+  {
+   "title": "Step Ladder",
+   "presets": [
+    {
+     "id": "casualboots",
+     "name": "Casual Boots",
+     "desc": "Standard 7/7, assured sword, boots start"
+    },
+    {
+     "id": "crosskeys",
+     "name": "Crosskeys",
+     "desc": "Crossed ER with full keysanity, fast Ganon"
+    },
+    {
+     "id": "crosskeys2024",
+     "name": "Crosskeys 2024/5/6",
+     "desc": "Crosskeys with pseudoboots"
+    },
+    {
+     "id": "crisscross",
+     "name": "Crisscross",
+     "desc": "Crosskeys, crossed doors, pseudoboots, shopsanity"
+    },
+    {
+     "id": "openkeysanity",
+     "name": "Open Keysanity",
+     "desc": "Open mode, defeat Ganon, all dungeon items wild"
+    },
+    {
+     "id": "adkeysanity",
+     "name": "AD Keysanity",
+     "desc": "All Dungeons with full keysanity"
+    },
+    {
+     "id": "mystery",
+     "name": "Mystery",
+     "desc": "Mystery/unknown settings"
+    }
+   ]
+  },
+  {
+   "title": "Glitched Presets",
+   "presets": [
+    {
+     "id": "owg",
+     "name": "OWG",
+     "desc": "Overworld glitches logic"
+    },
+    {
+     "id": "hmg",
+     "name": "HMG",
+     "desc": "Hybrid major glitches, start with boots"
+    },
+    {
+     "id": "nologic",
+     "name": "No Logic",
+     "desc": "No logic — anything goes, keysanity, start with boots"
+    }
+   ]
+  },
+  {
+   "title": "Tournament Presets",
+   "presets": [
+    {
+     "id": "open47keys",
+     "name": "4/7 Open Keys",
+     "desc": "Open keysanity, 4 crystals for tower, 7 for Ganon"
+    },
+    {
+     "id": "ad",
+     "name": "All Dungeons",
+     "desc": "Open, All Dungeons "
+    },
+    {
+     "id": "adkdf",
+     "name": "ADKDF",
+     "desc": "All Dungeons, keysanity, key drop, follower shuffle"
+    },
+    {
+     "id": "ambroz1a",
+     "name": "AmbroZ1a",
+     "desc": "Retro mode, Ganon hunt, ambrosia, activated flute"
+    },
+    {
+     "id": "casualboots",
+     "name": "Casual Boots",
+     "desc": "Standard 7/7, assured sword, boots start"
+    },
+    {
+     "id": "cabookeydrop",
+     "name": "Cabookeydrop",
+     "desc": "Standard mode, all dungeons, keysanity, key drop, assured sword, start with boots"
+    },
+    {
+     "id": "enemizer",
+     "name": "Enemizer",
+     "desc": "Open mode with boss and enemy shuffle"
+    },
+    {
+     "id": "inverted_startflute",
+     "name": "Inverted (Start Flute)",
+     "desc": "Inverted mode with activated starting flute"
+    },
+    {
+     "id": "enemizerboots",
+     "name": "Enemizer Boots",
+     "desc": "Enemizer with starting boots"
+    },
+    {
+     "id": "mystery",
+     "name": "Mystery",
+     "desc": "Mystery/unknown settings"
+    },
+    {
+     "id": "openboots",
+     "name": "Open Boots",
+     "desc": "Open 7/7, boots start"
+    },
+    {
+     "id": "standard",
+     "name": "Standard",
+     "desc": "Standard 7/7"
+    },
+    {
+     "id": "stanvertedkeys",
+     "name": "Stanverted Keys",
+     "desc": "Standard mode, overworld shuffle, keysanity, defeat Ganon"
+    }
+   ]
+  }
  ]
 }
