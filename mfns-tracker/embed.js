@@ -131,10 +131,28 @@
     return null;
   };
 
-  // ── autotracking through Rando Hub's emulator (first time only) ───────────
+  // ── autotracking through Rando Hub's emulator ─────────────────────────────
+  // Inside Rando Hub the only device is the built-in emulator, answered on
+  // QUsb2snes localhost:23074 by ../bridge/sni-shim.js: always point him there
+  // (a leftover SNI choice from his launch page would leave it unconnected).
   try {
-    if (!localStorage.getItem('muffins_autotrack_prefs')) {
-      localStorage.setItem('muffins_autotrack_prefs', JSON.stringify({ protocol: 'qusb2snes', host: 'localhost', port: 23074 }));
-    }
+    localStorage.setItem('muffins_autotrack_prefs', JSON.stringify({ protocol: 'qusb2snes', host: 'localhost', port: 23074 }));
   } catch (e) {}
+
+  // ── Launch Tracker: say it's on its way, and only once ────────────────────
+  // His launch saves the new game before opening it; with the game running
+  // alongside, that can take a few seconds, and a second click started a
+  // second game. Rando Hub shows "Launching…" and ignores repeat clicks.
+  var launching = 0;
+  document.addEventListener('click', function (e) {
+    var b = e.target && e.target.closest && e.target.closest('button');
+    if (!b || !/Launch Tracker/.test(b.textContent || '')) return;
+    if (launching && Date.now() - launching < 30000) { e.preventDefault(); e.stopImmediatePropagation(); return; }
+    launching = Date.now();
+    var o = document.createElement('div');
+    o.textContent = 'Launching… (a few seconds while the game runs)';
+    o.style.cssText = 'position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);color:#fff;font:600 18px system-ui,sans-serif;';
+    document.documentElement.appendChild(o);
+    setTimeout(function () { launching = 0; o.remove(); }, 30000);
+  }, true);
 })();

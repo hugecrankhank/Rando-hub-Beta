@@ -22,7 +22,7 @@ src = Path(sys.argv[1] if len(sys.argv) > 1 else '.') / 'src/components/launch/s
 TABS = [
     ('RandomizerTab.tsx', 'Randomizer', None),
     ('AdvancedTab.tsx', 'Dungeons, entrances and more', None),
-    ('TrackerSettingsTab.tsx', 'Tracker', {'includeDungeonItemsInCounter', 'assumeOldManOnCollect'}),
+    ('TrackerSettingsTab.tsx', 'Tracker', {'autotracking', 'includeDungeonItemsInCounter', 'assumeOldManOnCollect'}),
 ]
 
 

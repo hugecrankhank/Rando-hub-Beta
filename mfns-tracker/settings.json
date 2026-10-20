@@ -552,6 +552,13 @@
    "title": "Tracker",
    "items": [
     {
+     "key": "autotracking",
+     "label": "Enable Autotracking",
+     "type": "switch",
+     "group": "Autotracking",
+     "desc": "Read your items, keys, dungeon progress and checked locations from the running game through SNI or QUsb2snes, so you don't have to track by hand."
+    },
+    {
      "key": "assumeOldManOnCollect",
      "label": "Assume old man access on item collect",
      "type": "switch",

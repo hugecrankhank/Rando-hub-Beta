@@ -536,8 +536,8 @@
   M.linkText = function () {
     if (!launched) return 'Pick settings in Muffins’ tracker';
     if (!store) return 'Starting Muffins’ tracker…';
-    var at = state && state.autotracker;
-    var auto = at && at.isConnected ? ' · autotracking' : '';
+    var at = state && state.autotracker, on = state && state.settings.autotracking;
+    var auto = !on ? ' · autotracking off (⚙ Settings)' : at && at.isConnected ? ' · autotracking' : ' · autotracking: waiting for the game…';
     return (M.iconState === 'drawing' ? 'Drawing items from the game…' : 'Live') + auto;
   };
   M.helpText = 'Mudora 2.0 — Mudora’s look with Muffins’ logic.\n\n' +
