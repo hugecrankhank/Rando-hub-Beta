@@ -33,6 +33,9 @@ played again later.
   - Phone: a **Keys** tab of its own (the dungeons panel), so Items no longer scrolls.
   - Pins: Blind's Hut on its own doorway (the gap in the hedge left of the house), the Race Game on its heart piece,
     and a second Purple Chest pin on the man by the sign who opens it (Light World).
+  - Death Mountain's open sky is drawn in the game's dark teal instead of grass green
+    (the maps from the game, both trackers), and King Zora / Zora's Ledge sit where the
+    river leads north into Zora's area.
 
 ## Beta: EmoTracker (2026-10-19)
 

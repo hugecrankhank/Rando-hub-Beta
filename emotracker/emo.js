@@ -403,6 +403,7 @@
       "Lumberjack Cave|lightworld|633,117": [600, 145],
       "Blind's House|lightworld|307,840": [259, 841],
       "Race Game|lightworld|111,1354": [59, 1407],
+      "Zora Area|lightworld|1920,273": [1915, 260],
       "The Well|lightworld|47,833": [43, 851],
       "Bottle Vendor|lightworld|190,933": [192, 929],
       "Chicken House|lightworld|197,1066": [196, 1084],
@@ -898,7 +899,7 @@
   function loadRomMaps(b, g) {
     if (!Emo.romMapsOn || !window.RoMap || !g || romMapsFor === g) return;
     romMapsFor = g;
-    idbGet('v2-' + g).then(function (hit) {
+    idbGet('v3-' + g).then(function (hit) {
       if (romMapsFor !== g) return;
       if (hit && hit.light && hit.dark) { useRomMaps(hit); return; }
       var rom;
@@ -912,7 +913,7 @@
           if (romMapsFor !== g) return;
           if (!m.light.concat(m.dark).every(function (b) { return b && b.size > 0; })) { Emo.log.push('map from ROM: drawing failed, using the pack\'s maps'); return; }
           useRomMaps(m);
-          idbPut('v2-' + g, m);
+          idbPut('v3-' + g, m);
         });
       }, 300);
     });
