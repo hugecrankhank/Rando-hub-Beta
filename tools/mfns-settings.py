@@ -99,5 +99,13 @@ for m in re.finditer(r'<span[^>]*>([^<]+?):?</span>|getEntranceButton\(\s*"([^"]
         menu[-1]['to'].append(m.group(2))
 menu = [g for g in menu if g['to']]
 
-json.dump({'sections': sections, 'breaks': breaks, 'remembered': remembered, 'entranceMenu': menu}, sys.stdout, indent=1, ensure_ascii=False)
+# his presets: the ones his launch page shows as buttons, by section
+lp = uncomment((src.parents[2] / 'data/launcherPresets.ts').read_text())
+names = {i: (n, d) for i, n, d in re.findall(r'id:\s*"([^"]+)",\s*name:\s*"([^"]+)",\s*description:\s*"([^"]*)"', lp)}
+presets = []
+cm = re.search(r'presetCategories[^=]*=\s*\[(.*?)\n\];', lp, re.S)
+for title, ids in re.findall(r'title:\s*"([^"]+)".*?presetIds:\s*\[([^\]]*)\]', cm.group(1) if cm else '', re.S):
+    presets.append({'title': title, 'presets': [{'id': i, 'name': names[i][0], 'desc': names[i][1]} for i in re.findall(r'"([^"]+)"', ids) if i in names]})
+
+json.dump({'sections': sections, 'breaks': breaks, 'remembered': remembered, 'entranceMenu': menu, 'presets': presets}, sys.stdout, indent=1, ensure_ascii=False)
 print()

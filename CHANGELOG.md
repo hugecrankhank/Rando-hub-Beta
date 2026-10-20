@@ -5,6 +5,13 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta: Mudora 2.0 presets in Settings (2026-10-20)
+
+- **⚙ Settings → New game from a preset:** pick any of Muffins' presets (OnlyADKD is
+  "ADKDF") and Start: his launch page picks it and launches for you, so the preset's
+  known entrances and left-out checks come with it. (On his launch page the "ADKDF" next
+  to the Tournament Presets title is a Discord link; the preset is the button below.)
+
 ## Beta: entrance tracking in Mudora and Mudora 2.0 (2026-10-20)
 
 - **Entrances on the map:** on entrance-shuffle seeds every shuffled door and hole shows at
