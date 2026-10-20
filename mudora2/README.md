@@ -23,3 +23,13 @@ Not yet: entrance shuffle on the map (his own tracker does it: the "Muffins' tra
 button).
 
 Problems with the logic: Muffins (his Discord). Problems with how it's shown: Rando Hub.
+
+## Entrances
+
+On entrance-shuffle seeds (his Entrance Mode, in ⚙ Settings) the shuffled doors and holes
+are drawn where they are in the game, with his rules for which show (from his source,
+in `data.json`'s `ent`) and his colours. `../mudora/entrack.js` watches the emulator: when
+Link goes through a door it reads that door's row of the game's entrance table (or, on
+the way out, that exit's row) and links it with his own `setEntranceLink`, as his menu
+would. Right click: his destination list (from his entrance menu's source, in
+`settings.json`), "Pick on map…", or his own menu.

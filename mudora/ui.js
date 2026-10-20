@@ -351,7 +351,7 @@
         self.pins.appendChild(p);
       }
       var col = M.colors[c.id];
-      var cls = 'pin ' + (col === null ? 'gone' : M.cleared[c.id] ? 'done' : (col || 'red'));
+      var cls = 'pin ' + (col === null || c.hidden ? 'gone' : M.cleared[c.id] ? 'done' : (col || 'red'));
       if (p.className !== cls) p.className = cls;
       var mk = M.marks[c.id];
       var cur = p.querySelector('img');
@@ -375,7 +375,7 @@
       if (p.className !== cls) p.className = cls;
     });
     Object.keys(M.dungeons).forEach(function (k) {
-      var d = M.dungeons[k]; if (!d || d.world !== self.world) return;
+      var d = M.dungeons[k]; if (!d || d.world !== self.world || (M.dhidden && M.dhidden[k])) return;
       var at = M.dungeonAt(k); if (!at) return;
       var id = 'd' + k; seen[id] = 1;
       var p = self.pinEls[id];
@@ -387,6 +387,31 @@
       }
       var cls = 'pin dgn ' + (M.dcleared[k] ? 'done' : (M.dcolors[k] || 'red'));
       if (p.className !== cls) p.className = cls;
+    });
+    // entrances (entrance shuffle): every door and hole, where it leads
+    var pend = M.entPending ? M.entPending() : null;
+    (M.entrances || []).forEach(function (e) {
+      if (e.world !== self.world) return;
+      var id = 'e' + e.id; seen[id] = 1;
+      var p = self.pinEls[id];
+      if (!p) {
+        p = self.pinEls[id] = el('div', 'pin ent');
+        p.appendChild(el('i'));
+        hookEnt(p, e.id);
+        self.pins.appendChild(p);
+      }
+      if (p.__x !== e.at.x || p.__y !== e.at.y) self.place(p, e.at);
+      var cls = 'pin ent ' + (e.shape || 'round') + (e.done ? ' done' : '') + (e.color ? '' : ' ' + (e.cls || 'red')) + (pend === e.id ? ' pend' : '');
+      if (p.className !== cls) p.className = cls;
+      var bg = e.done ? '' : (e.color || '');
+      if (p.firstChild.style.background !== bg) p.firstChild.style.background = bg;
+      var tag = p.querySelector('.tag');
+      if (e.label) {
+        if (!tag) { tag = el('span', 'tag'); p.appendChild(tag); }
+        if (tag.textContent !== e.label) tag.textContent = e.label;
+        tag.style.borderColor = e.labelColor || '#888';
+      } else if (tag) tag.remove();
+      p.title = e.name + (e.to ? ' → ' + e.to : '');
     });
     Object.keys(this.pinEls).forEach(function (id) { if (!seen[id]) { self.pinEls[id].remove(); delete self.pinEls[id]; } });
   };
@@ -414,10 +439,23 @@
     p.addEventListener('contextmenu', function (e) { e.preventDefault(); e.stopPropagation(); var w = what(); showCard(w, p, true, w.kind === 'check'); });
     longPress(p, function () { var w = what(); showCard(w, p, true, w.kind === 'check'); });
   }
+  // An entrance: click marks it done (or, while joining a connector, picks
+  // its other end); right click (hold) opens its menu.
+  function hookEnt(p, id) {
+    p.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (M.entPending && M.entPending() && M.entPending() !== id) { M.entConnectTo(id); return; }
+      hideCard(); M.entClick(id);
+    });
+    function menu() { if (M.entMenu && M.entMenu(id, p)) return; showCard({ kind: 'ent', id: id }, p, true); }
+    p.addEventListener('contextmenu', function (e) { e.preventDefault(); e.stopPropagation(); menu(); });
+    longPress(p, menu);
+  }
+  function entById(id) { return (M.entrances || []).filter(function (x) { return x.id === id; })[0]; }
   card.addEventListener('mouseenter', function () { clearTimeout(cardTimer); });
   card.addEventListener('mouseleave', function () { if (!cardSticky) cardTimer = setTimeout(hideCard, 250); });
   document.addEventListener('pointerdown', function (e) { if (card.classList.contains('show') && !card.contains(e.target) && !e.target.closest('.pin')) hideCard(); });
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') hideCard(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { hideCard(); if (M.entPending && M.entPending()) M.entCancel(); } });
   function hideCard() { card.classList.remove('show'); cardFor = null; cardSticky = false; document.querySelectorAll('.pin.hl').forEach(function (p) { p.classList.remove('hl'); }); }
   function showCard(w, pin, sticky, picking) {
     clearTimeout(cardTimer);
@@ -439,6 +477,41 @@
     var x = el('button', 'x', '✕'); x.type = 'button'; x.title = 'Close (Esc)'; x.addEventListener('click', hideCard); card.appendChild(x);
     var btns = el('div', 'btns');
     function btn(label, fn, title) { var b = el('button', null, label); b.type = 'button'; if (title) b.title = title; b.addEventListener('click', function (e) { e.stopPropagation(); fn(); }); btns.appendChild(b); }
+    if (w.kind === 'ent') {
+      var en = entById(w.id); if (!en) { hideCard(); return; }
+      card.appendChild(el('h4', null, en.name));
+      var es = el('div', 'st'); var ei = el('i'); ei.style.background = en.done ? CSS.done : (en.color || CSS[en.cls] || '#555'); es.appendChild(ei);
+      es.appendChild(document.createTextNode(en.done ? 'Done' : en.to ? 'Leads to ' + en.to : en.label ? 'Marked ' + en.label : 'Not found yet'));
+      card.appendChild(es);
+      if (en.links && en.links.length) card.appendChild(el('div', 'st', 'Connector to: ' + en.links.join(', ')));
+      btn(en.done ? '↺ Not done' : '✓ Done', function () { M.entClick(en.id); hideCard(); });
+      if (M.entConnectStart) btn(M.entPending && M.entPending() === en.id ? 'Cancel' : (M.entConnectLabel || 'Connector…'), function () {
+        if (M.entPending() === en.id) M.entCancel(); else { M.entConnectStart(en.id); M.toast(M.entConnectHint || 'Now click the other end of the connector (Esc to cancel).'); }
+        hideCard();
+      }, M.entConnectTitle || 'Join this door to the other door of the same cave');
+      if (M.entMore) btn(M.entMoreLabel || 'More…', function () { hideCard(); M.entMore(en.id); }, M.entMoreTitle || '');
+      if (M.entClear && (en.label || en.to || (en.links && en.links.length))) btn('Clear', function () { M.entClear(en.id); hideCard(); }, 'Forget where it leads');
+      card.appendChild(btns);
+      (en.links || []).forEach(function (o) {
+        var r = el('div', 'btns'); var b2 = el('button', null, '✕ ' + o); b2.type = 'button'; b2.title = 'Remove this connector';
+        b2.addEventListener('click', function (e) { e.stopPropagation(); M.entUnlink(en.id, o); hideCard(); }); r.appendChild(b2); card.appendChild(r);
+      });
+      var groups = M.entCodes ? M.entCodes(en.id) : [];
+      groups.forEach(function (g) {
+        card.appendChild(el('div', 'sub', g.title));
+        var gr = el('div', 'codes');
+        g.codes.forEach(function (c) {
+          var b3 = el('button', 'code' + ((c.on != null ? c.on : en.label === c.text) ? ' on' : ''), c.text); b3.type = 'button';
+          if (c.color) b3.style.background = c.color;
+          if (c.title) b3.title = c.title;
+          if (c.disabled) { b3.disabled = true; b3.style.opacity = '.35'; }
+          b3.addEventListener('click', function (e) { e.stopPropagation(); M.entLabel(en.id, c.code); hideCard(); });
+          gr.appendChild(b3);
+        });
+        card.appendChild(gr);
+      });
+      return;
+    }
     if (w.kind === 'check') {
       var c = w.c, done = !!M.cleared[c.id], col = done ? 'done' : (M.colors[c.id] || 'red');
       card.appendChild(el('h4', null, w.label || c.name));

@@ -89,6 +89,25 @@
   .pin img { position: absolute; left: -2px; top: -22px; width: 20px; height: 20px; image-rendering: pixelated; pointer-events: none;
     filter: drop-shadow(0 0 2px #000); }
   .pin.hl { outline: 3px solid #fff; }
+  /* entrances (entrance shuffle) */
+  .pin.ent { width: 12px; height: 12px; margin: -6px 0 0 -6px; background: none; border: 0; border-radius: 0; z-index: 3; }
+  .pin.ent > i { position: absolute; inset: 0; border: 1.5px solid #000; background: var(--c-green); border-radius: 50%; }
+  .pin.ent.diamond > i { border-radius: 1px; transform: rotate(45deg); }
+  .pin.ent.square > i { border-radius: 2px; }
+  .pin.ent.red > i { background: var(--c-red); } .pin.ent.yellow > i { background: var(--c-yellow); } .pin.ent.purple > i { background: var(--c-purple); }
+  .pin.ent.orange > i { background: var(--c-orange); } .pin.ent.partial > i { background: var(--c-partial, #12a150); } .pin.ent.green > i { background: var(--c-green); }
+  .pin.ent.conn > i { background: #ED18E2; }
+  .pin.ent.done > i { background: #2a2d30 !important; border-color: #555; }
+  .pin.ent.done { z-index: 1; }
+  .pin.ent.pend > i { box-shadow: 0 0 0 3px #fff; }
+  .pin.ent .tag { position: absolute; left: 13px; top: -5px; padding: 0 3px; font: 700 9px/12px system-ui, sans-serif; color: #fff; background: #000c;
+    border: 1.5px solid #888; border-radius: 3px; white-space: nowrap; pointer-events: none; }
+  #card { max-height: 80vh; overflow-y: auto; }
+  #card .sub { margin: 8px 0 3px; font-size: 11px; color: var(--dim); }
+  #card .codes { display: flex; flex-wrap: wrap; gap: 3px; }
+  #card .codes .code { padding: 2px 6px; font-size: 11px; color: #fff; text-shadow: 0 1px 2px #000, 0 0 2px #000; border: 1px solid #0006; }
+  #card .codes .code.on { outline: 2px solid #fff; }
+
   .dg-view { flex: 1 1 auto; position: relative; overflow: hidden; background: #0a0a0a; min-height: 0; cursor: grab; }
   .dg-inner { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
   .dg-room { position: absolute; width: 512px; height: 512px; }
@@ -190,6 +209,7 @@
 <div id="toast"></div>
 <script src="../emotracker/romap.js"></script>
 <script src="mudora.js"></script>
+<script src="entrack.js"></script>
 <script src="../emotracker/dungeons.js"></script>
 <script src="ui.js"></script>
 </body>

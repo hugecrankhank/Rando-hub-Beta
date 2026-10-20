@@ -89,5 +89,15 @@ up = uncomment((src.parents[2] / 'data/userPreferences.ts').read_text())
 m = re.search(r'REMEMBERED_SETTINGS\s*=\s*\[(.*?)\]', up, re.S)
 remembered = re.findall(r'"(\w+)"', m.group(1)) if m else []
 
-json.dump({'sections': sections, 'breaks': breaks, 'remembered': remembered}, sys.stdout, indent=1, ensure_ascii=False)
+# his entrance menu: its sections and the destinations on each
+menu = []
+md = uncomment((src.parents[1] / 'tracker/EntranceSelectionModal.tsx').read_text())
+for m in re.finditer(r'<span[^>]*>([^<]+?):?</span>|getEntranceButton\(\s*"([^"]+)"\s*\)', md):
+    if m.group(1):
+        menu.append({'title': m.group(1).strip().rstrip(':'), 'to': []})
+    elif menu:
+        menu[-1]['to'].append(m.group(2))
+menu = [g for g in menu if g['to']]
+
+json.dump({'sections': sections, 'breaks': breaks, 'remembered': remembered, 'entranceMenu': menu}, sys.stdout, indent=1, ensure_ascii=False)
 print()

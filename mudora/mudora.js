@@ -89,6 +89,9 @@
     if (was !== M.linked) emit('link');
     if (!mw) return;
     var colors = {}, cleared = {}, list = [];
+    // Hutch's entrance-shuffle overlay: on when his map shows it
+    var mapsEl = mw.document && mw.document.getElementById('maps');
+    var entOn = !!(mapsEl && !mapsEl.classList.contains('entrances-hidden') && mw._entMarkers);
     try {
       var C = mw.CHECKS || [], st = mw.checkState || {};
       C.forEach(function (c) {
@@ -97,7 +100,8 @@
         try { col = mw.checkColor(id); } catch (e) { col = 'red'; }
         colors[id] = col;
         if (st[id]) cleared[id] = true;
-        list.push({ id: id, x: c[1], y: c[2], name: c[3], world: c[4] });
+        var dot = entOn && mw.dotById && mw.dotById[id];
+        list.push({ id: id, x: c[1], y: c[2], name: c[3], world: c[4], hidden: !!(dot && dot.dataset.entHidden === '1') });
       });
       var D = mw.DUNGEONS || {}, dc = {}, dd = {};
       Object.keys(D).forEach(function (k) {
@@ -105,10 +109,14 @@
         dd[k] = !!(D[k].cleared || D[k].fullyCleared);
       });
       M.dungeons = D;
-      var sig = JSON.stringify([colors, cleared, dc, dd]);
+      var dh = {};
+      if (entOn && mw.dngEls) Object.keys(D).forEach(function (k) { var e = mw.dngEls[k]; if (e && e.dataset.entHidden === '1') dh[k] = true; });
+      var ents = entOn ? hutchEntrances(mw) : [];
+      var sig = JSON.stringify([colors, cleared, dc, dd, ents, dh, list.map(function (c) { return c.hidden ? 1 : 0; }).join('')]);
       if (sig === lastSig && M.checks.length === list.length) return;
       lastSig = sig;
       M.checks = list; M.colors = colors; M.cleared = cleared; M.dcolors = dc; M.dcleared = dd;
+      M.entrances = ents; M.dhidden = dh;
       emit('checks');
     } catch (e) { console.warn('[mudora] reading the map', e); }
   }
@@ -116,6 +124,113 @@
     setInterval(poll, 400);
     setInterval(function () { if (!M.items) ask(); }, 1500);
     ask();
+  }
+
+  // ── entrances (Hutch's entrance-shuffle overlay) ──────────────────────────
+  // Each of his entrance markers, drawn at the door's real spot (entrances.json),
+  // in his colour; clicks and his entrance menu's choices go back to his map.
+  var CSSCOL = {};
+  function hutchEntrances(mw) {
+    var E = M.entranceData, out = [], labels = mw._entLabels || {}, conns = mw._entConnections || [];
+    var cols = hutchCodes(mw), byText = {};
+    cols.forEach(function (g) { g.codes.forEach(function (c) { byText[c.text] = c; }); });
+    Object.keys(mw._entMarkers).forEach(function (name) {
+      var m = mw._entMarkers[name], world = m.parentElement && m.parentElement.id === 'dw' ? 'dw' : null;
+      var real = E && E.doors[(E.aliases || {})[name] || name];
+      var at = real ? { x: real.x, y: real.y } : { x: parseFloat(m.style.left) * 40.96, y: parseFloat(m.style.top) * 40.96 };
+      var bg = '';
+      try { bg = mw.getComputedStyle(m).backgroundColor; } catch (e) {}
+      var lb = labels[name] || '';
+      var linked = conns.filter(function (p) { return p[0] === name || p[1] === name; }).map(function (p) { return p[0] === name ? p[1] : p[0]; });
+      out.push({ id: name, name: name, world: real ? real.world : (world || 'lw'), at: at, color: bg, done: m.classList.contains('cleared'),
+        label: lb, labelColor: (byText[lb] || {}).color || '', shape: 'diamond', links: linked,
+        pending: mw._entConnectPending === name });
+    });
+    return out;
+  }
+  var codeCache = null;
+  function hutchCodes(mw) {
+    if (codeCache && codeCache.w === mw) return codeCache.v;
+    var v = [];
+    try {
+      mw.document.querySelectorAll('#ent-popup-cols > div').forEach(function (col) {
+        var t = col.querySelector('.ent-popup-section-label'), g = { title: t ? t.textContent : '', codes: [] };
+        col.querySelectorAll('.ent-popup-btn').forEach(function (b) { g.codes.push({ code: b.dataset.code, text: b.textContent, color: b.dataset.markColor || '' }); });
+        v.push(g);
+      });
+    } catch (e) {}
+    codeCache = { w: mw, v: v };
+    return v;
+  }
+  if (HUTCH) {
+    M.entCodes = function () { var mw = M.mapWin(); return mw ? hutchCodes(mw) : []; };
+    function marker(mw, name) { return mw && mw._entMarkers && mw._entMarkers[name]; }
+    function popup(mw, name) { var mk = marker(mw, name); if (!mk || !mw._entOpenPopup) return false; mw._entOpenPopup(name, mk, 0, 0); return true; }
+    function after() { setTimeout(poll, 60); }
+    // click: done / not done (his marker's own click)
+    M.entClick = function (name) { var mw = M.mapWin(), mk = marker(mw, name); if (mk) fire(mk, 'click'); after(); };
+    // a code from his entrance menu
+    M.entLabel = function (name, code) {
+      var mw = M.mapWin(); if (!popup(mw, name)) return;
+      var b = mw.document.querySelector('#ent-popup-cols .ent-popup-btn[data-code="' + code + '"]');
+      if (b) b.click(); else { var p = mw.document.getElementById('ent-popup'); if (p) p.classList.remove('open'); }
+      after();
+    };
+    M.entClear = function (name) { var mw = M.mapWin(); if (!popup(mw, name)) return; var b = mw.document.getElementById('ent-popup-clear'); if (b) b.click(); after(); };
+    // a connector: one end, then the other
+    M.entConnectStart = function (name) {
+      var mw = M.mapWin(); if (!popup(mw, name)) return;
+      if (mw._entConnectPending !== name) { var b = mw.document.getElementById('ent-popup-connect'); if (b) b.click(); }
+      else { var p = mw.document.getElementById('ent-popup'); if (p) p.classList.remove('open'); }
+      after();
+    };
+    M.entPending = function () { var mw = M.mapWin(); return mw ? mw._entConnectPending : null; };
+    M.entConnectTo = function (name) { var mw = M.mapWin(); if (mw && mw._entConnectPending && mw._entConnectFinish) mw._entConnectFinish(name, marker(mw, name)); after(); };
+    M.entCancel = function () { var mw = M.mapWin(); var mk = mw && marker(mw, mw._entConnectPending); if (mk) mk.classList.remove('connect-pending'); if (mw) mw._entConnectPending = null; after(); };
+    M.entUnlink = function (name, other) {
+      var mw = M.mapWin(); if (!popup(mw, name)) return;
+      var rows = mw.document.querySelectorAll('#ent-popup-connections .ent-popup-conn-row');
+      for (var i = 0; i < rows.length; i++) {
+        var sp = rows[i].querySelector('span[style]');
+        if (sp && sp.textContent.indexOf(other) === 0) { var b = rows[i].querySelector('.danger'); if (b) b.click(); break; }
+      }
+      var p = mw.document.getElementById('ent-popup'); if (p) p.classList.remove('open');
+      after();
+    };
+
+    // automatic: where a door led (entrack.js) → his code, or a connector to
+    // the other door of the same cave once both are known
+    var known = {};
+    function knownKey() { return 'rhb-mudora-ent-' + (M.game || 'nogame'); }
+    M.on(function (w) { if (w === 'game') { try { known = JSON.parse(localStorage.getItem(knownKey()) || '{}'); } catch (e) { known = {}; } } });
+    M.on(function (w) {
+      if (!w || !w.entrance) return;
+      var ev = w.entrance, mw = M.mapWin(), E = M.entranceData;
+      if (!mw || !E || !marker(mw, hutchName(ev.door))) return;
+      var mapsEl = mw.document.getElementById('maps');
+      if (!mapsEl || mapsEl.classList.contains('entrances-hidden')) return;   // not an entrance seed
+      var door = hutchName(ev.door), inside = ev.to[0], info = E.insides[inside] || {};
+      known[door] = inside;
+      try { localStorage.setItem(knownKey(), JSON.stringify(known)); } catch (e) {}
+      if (info.cave) {
+        Object.keys(known).forEach(function (other) {
+          if (other === door || (E.insides[known[other]] || {}).cave !== info.cave) return;
+          var conns = mw._entConnections || [];
+          if (conns.some(function (p) { return (p[0] === door && p[1] === other) || (p[0] === other && p[1] === door); })) return;
+          if (!popup(mw, door)) return;
+          var b = mw.document.getElementById('ent-popup-connect'); if (b) b.click();
+          if (mw._entConnectPending === door) mw._entConnectFinish(other, marker(mw, other));
+        });
+      } else if (info.hutch && !(mw._entLabels || {})[door]) {
+        M.entLabel(door, info.hutch);
+      }
+      after();
+    });
+  }
+  function hutchName(n) {
+    var A = (M.entranceData && M.entranceData.aliases) || {};
+    for (var k in A) if (A[k] === n) return k;
+    return n;
   }
 
   // where a check sits, in game pixels
