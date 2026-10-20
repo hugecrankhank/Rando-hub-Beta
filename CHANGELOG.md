@@ -5,6 +5,24 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta: entrance tracking in Mudora and Mudora 2.0 (2026-10-20)
+
+- **Entrances on the map:** on entrance-shuffle seeds every shuffled door and hole shows at
+  its real spot in the game (from the ROM), in its tracker's logic colour, with a tag for
+  where it leads. Mudora uses Hutch's entrance system, Mudora 2.0 uses Muffins' (set his
+  Entrance Mode in ⚙ Settings); each stays in step with its own tracker.
+- **Automatic:** walk through a door (or drop down a hole) and Rando Hub reads where it
+  took you from the game and fills it in, the same way items are autotracked. Leaving a
+  cave by another exit fills in that door too, and in Mudora the two doors of a cave get
+  joined with a connector. Only the door you used is read, so nothing is given away
+  early. (Checked against a full entrance-shuffle seed from Kara's generator: every door
+  matched its spoiler.)
+- **By hand:** click an entrance to mark it done; right click (hold on a phone) to set
+  where it leads: Hutch's codes in Mudora, Muffins' destination list in Mudora 2.0 (his
+  rules for which can go where), "Pick on map…" to point at another entrance, Clear, and
+  in Mudora a connector to another door. Mudora 2.0's "Muffins' menu" opens his own
+  menu for connectors, notes and scouting.
+
 ## Beta: Mudora 2.0 settings mid-game (2026-10-20)
 
 - **⚙ Settings** in Mudora 2.0's bar: all of Muffins' game and logic settings (world

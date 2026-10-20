@@ -630,5 +630,82 @@
   "autotracking",
   "sequenceBreaks",
   "assumeOldManOnCollect"
+ ],
+ "entranceMenu": [
+  {
+   "title": "Light World Dungeons",
+   "to": [
+    "Hyrule Castle Entrance (South)",
+    "Hyrule Castle Entrance (East)",
+    "Hyrule Castle Entrance (West)",
+    "Agahnims Tower",
+    "Eastern Palace",
+    "Desert Palace Entrance (South)",
+    "Desert Palace Entrance (West)",
+    "Desert Palace Entrance (East)",
+    "Desert Palace Entrance (North)",
+    "Tower of Hera"
+   ]
+  },
+  {
+   "title": "Light Key Locations",
+   "to": [
+    "Potion Shop",
+    "Sick Kids House",
+    "Blacksmiths Hut",
+    "Bat Cave Drop",
+    "Library",
+    "Sahasrahlas Hut",
+    "Mimic Cave",
+    "Dam"
+   ]
+  },
+  {
+   "title": "General Key Locations",
+   "to": [
+    "Generic Rupee Cave",
+    "Generic Shop",
+    "Generic Dark Cave",
+    "Unknown Connector",
+    "Generic Item Cave"
+   ]
+  },
+  {
+   "title": "Starting Locations",
+   "to": [
+    "Links House",
+    "Sanctuary",
+    "Old Man House (Bottom)"
+   ]
+  },
+  {
+   "title": "Dark World Dungeons",
+   "to": [
+    "Palace of Darkness",
+    "Swamp Palace",
+    "Skull Woods First Section Door",
+    "Skull Woods Second Section Door (East)",
+    "Skull Woods Second Section Door (West)",
+    "Skull Woods Final Section",
+    "Thieves Town",
+    "Ice Palace",
+    "Misery Mire",
+    "Turtle Rock",
+    "Dark Death Mountain Ledge (East)",
+    "Dark Death Mountain Ledge (West)",
+    "Turtle Rock Isolated Ledge Entrance",
+    "Ganons Tower"
+   ]
+  },
+  {
+   "title": "Dark World Key Locations",
+   "to": [
+    "Big Bomb Shop",
+    "Bumper Cave (Top)",
+    "Spike Cave",
+    "Hookshot Cave",
+    "Pyramid Hole"
+   ]
+  }
  ]
 }

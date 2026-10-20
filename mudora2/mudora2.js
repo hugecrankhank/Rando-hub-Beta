@@ -138,9 +138,15 @@
     // squares on the map (his rule: not a second door, bonk spots only in bonk shuffle, something active inside)
     var checks = [], colors = {}, cleared = {}, dgs = {}, dcol = {}, ddone = {};
     squares = {}; sqLocs = {};
+    // entrance shuffle: his rules for which squares give way to entrances
+    var emode = S.entranceMode && S.entranceMode !== 'none' ? S.entranceMode : null;
+    var EG = emode && DATA.ent ? (DATA.ent.groups[emode + (S.zelgaWoods ? '|z' : '')] || {}) : null;
+    function givesWay(k, e) { return !!EG && (e.replaced || (e.entrance && EG[k] !== 'vanilla')); }
+    var dhid = {};
     Object.keys(DATA.entries).forEach(function (k) {
       var e = DATA.entries[k];
-      if (e.secondary || (e.bonk && !S.bonkShuffle)) return;
+      if (e.bonk && !S.bonkShuffle) return;
+      if (EG ? givesWay(k, e) : e.secondary) return;
       var names = locsFor(k, S);
       if (!names.length) return;
       if (e.isDungeon && e.dungeon) return;   // dungeons: below
@@ -151,7 +157,7 @@
     });
 
     // dungeons: their counters, as his own (dungeon items that aren't shuffled don't count)
-    var it = {};
+    var it = {}, remain = {};
     Object.keys(DATA.dungeons).forEach(function (dk) {
       var dd = DATA.dungeons[dk], ds = D[dk]; if (!ds) return;
       var names = locsFor(dd.name, S);
@@ -179,6 +185,8 @@
       var e = DATA.entries[dd.name] || {};
       var j = judge(names, LC);
       dgs[dk] = { world: e.world, name: dd.name };
+      if (EG && givesWay(dd.name, e)) dhid[dk] = true;
+      remain[dk] = remaining;
       dcol[dk] = j.color === 'done' || !j.color ? 'red' : j.color;
       ddone[dk] = j.done || (names.length > 0 && remaining === 0);
       sqLocs['dg:' + dk] = names;
@@ -197,10 +205,130 @@
     it.mmMedallion = MED[E['Misery Mire'] && E['Misery Mire'].medallion] || 0;
     it.trMedallion = MED[E['Turtle Rock'] && E['Turtle Rock'].medallion] || 0;
 
-    M.checks = checks; M.colors = colors; M.cleared = cleared;
+    // the entrances themselves: his markers, his colours
+    var ents = [];
+    entInfo = {};
+    if (EG) {
+      var hid = DATA.ent.hidden[emode + (S.zelgaWoods ? '|z' : '')] || [], EC = st.checks.entranceChecks || {};
+      var ED = M.entranceData;
+      DATA.ent.names.forEach(function (n) {
+        if (EG[n] === 'vanilla' || hid.indexOf(n) >= 0) return;
+        if (n.indexOf('Inverted') >= 0 && S.worldState === 'open') return;
+        var en = DATA.entries[n] || {}, x = E[n] || {}, to = x.to || null, ck = EC[n] || {};
+        var locs = [];
+        if (to) {
+          locs = locsFor(to, S);
+          var sd = DATA.ent.sides[to];
+          if (sd) sd.forEach(function (o) { if (o !== to) locs = locs.concat(locsFor(o, S)); });
+        }
+        var toD = to && DATA.entries[to] ? DATA.entries[to].dungeon : null;
+        var conn = !!to && (DATA.ent.connectors.indexOf(to) >= 0 || /^(Unknown|Generic) Connector/.test(to));
+        var diamond = conn && !toD;
+        var cls, done = false;
+        if (to && locs.length) {
+          var j = judge(locs, LC);
+          if (j.done) { if (diamond) cls = 'conn'; else done = true; }
+          else cls = j.color;
+          if (toD && remain[toD] === 0 && !j.done) done = true;
+        } else if (to) {
+          if (ck.checked) done = true; else cls = diamond ? 'conn' : COLOR[ck.logic] || 'red';
+        } else {
+          if (ck.checked) done = true; else cls = COLOR[ck.logic] || 'red';
+        }
+        var lab = to ? (DATA.ent.labels[to] || null) : null;
+        var p = ED && ED.doors[n];
+        ents.push({ id: n, name: n, world: p ? p.world : en.world, at: p ? { x: p.x, y: p.y } : { x: (en.x || 0) * 8, y: (en.y || 0) * 8 },
+          cls: cls || 'red', done: done, to: to, label: to ? (lab ? lab.label : to) : '', labelColor: lab ? lab.color : '',
+          shape: diamond ? 'diamond' : locs.length ? 'square' : 'round' });
+        entInfo[n] = { to: to, locs: locs, checked: !!ck.checked };
+      });
+    }
+
+    M.checks = checks; M.colors = colors; M.cleared = cleared; M.entrances = ents; M.dhidden = dhid;
     M.dungeons = dgs; M.dcolors = dcol; M.dcleared = ddone; M.items = it;
     M.emit('items'); M.emit('checks'); M.emit('dungeons'); M.emit('link');
   }
+
+  // ── entrances: his clicks, his entrance menu, and the emulator's finds ─────
+  var entInfo = {}, menuOpen = false, told = false;
+  M.entClick = function (n) {
+    if (!ready()) return;
+    var x = entInfo[n] || {}, LC = state.checks.locationsChecks;
+    if (x.to && x.locs.length) {
+      var all = x.locs.every(function (l) { return LC[l] && LC[l].checked; }), up = {};
+      x.locs.forEach(function (l) { up[l] = Object.assign({ checked: false, logic: 'unavailable', manuallyChecked: false, scoutedItems: [] }, LC[l] || {}, { checked: !all, manuallyChecked: true }); });
+      action('checks/updateMultipleLocations', up);
+    } else action('checks/setEntranceChecked', { entrance: n, checked: !x.checked, manual: true });
+  };
+  // right click: where it leads, picked from his entrance menu's list (his
+  // rules for which can go where); "Muffins' menu" opens his own over Mudora
+  // (connectors, notes, scouting)
+  function zkey() { return state.settings.zelgaWoods ? '1' : '0'; }
+  function pairOf(n) { var P = (DATA.ent.pairs || {})[zkey()] || []; for (var i = 0; i < P.length; i++) if (P[i][0] === n || P[i][1] === n) return { drop: P[i][0], partner: P[i][1] }; return null; }
+  function pool(n) {
+    var p = pairOf(n);
+    if (p && p.drop === n) return 'dropdown';
+    if (p && state.settings.entranceMode !== 'insanity') return 'pairedDoor';
+    return 'normal';
+  }
+  M.entMenu = function () { return !ready(); };
+  M.entCodes = function (n) {
+    if (!SET || !SET.entranceMenu || !state) return [];
+    var mine = pool(n), cur = (state.entrances[n] || {}).to, L = DATA.ent.labels || {};
+    var taken = {};
+    Object.keys(state.entrances).forEach(function (k) { var t2 = state.entrances[k].to; if (t2 && k !== n) taken[t2] = 1; });
+    return SET.entranceMenu.map(function (g) {
+      return { title: g.title, codes: g.to.map(function (t) {
+        var target = t, disabled = pool(t) !== mine, pr = pairOf(t);
+        if (pr && (mine === 'dropdown' || mine === 'pairedDoor')) { target = mine === 'dropdown' ? pr.drop : pr.partner; disabled = false; }
+        var lb = L[t] || { label: t, color: '#888888' };
+        return { code: target, text: lb.label, color: lb.color + '99', disabled: disabled, on: cur === target, title: t + (taken[target] ? ' (already placed)' : '') };
+      }) };
+    });
+  };
+  M.entLabel = function (n, to) { if (ready()) action('trackerEntrances/setEntranceLink', { entrance: n, to: to, zelgaWoods: !!state.settings.zelgaWoods, entranceMode: state.settings.entranceMode }); };
+  M.entClear = function (n) { M.entLabel(n, null); };
+  // "pick on map": the next entrance clicked is where this one leads
+  var pending = null;
+  M.entConnectLabel = 'Pick on map…'; M.entConnectTitle = 'Then click the entrance whose inside this one leads to';
+  M.entConnectHint = 'Now click the entrance it leads to (Esc to cancel).';
+  M.entConnectStart = function (n) { pending = n; M.emit('checks'); };
+  M.entPending = function () { return pending; };
+  M.entCancel = function () { pending = null; M.emit('checks'); };
+  M.entConnectTo = function (to) { var n = pending; pending = null; if (n) M.entLabel(n, to); M.emit('checks'); };
+  M.entMoreLabel = 'Muffins’ menu'; M.entMoreTitle = 'His own entrance menu: connectors, notes, scouting';
+  M.entMore = function (n) {
+    if (!ready()) return;
+    action('trackerState/setSelectedEntrance', [n, true]);
+    menuOpen = true; show(true);
+  };
+  setInterval(function () {
+    if (!menuOpen || !store) return;
+    var t = store.getState().trackerState || {};
+    if ((t.modalOpen === 'none' || !t.modalOpen) && (t.currentMode === 'none' || !t.currentMode)) { menuOpen = false; show(false); }
+  }, 250);
+  // the emulator saw where a door led (../mudora/entrack.js): link it, as his menu would
+  M.on(function (w) {
+    if (!w || !w.entrance || !store || !state) return;
+    var ev = w.entrance, S = state.settings;
+    if (!S.entranceMode || S.entranceMode === 'none') {
+      // a door led somewhere new: this seed shuffles entrances
+      if (ev.to.indexOf(ev.door) < 0 && !told) { told = true; M.toast('This seed shuffles entrances: pick its Entrance Mode in ⚙ Settings to track them.'); }
+      return;
+    }
+    if (ev.kind === 'out' && S.entranceMode === 'insanity') return;
+    var EG = DATA && DATA.ent && DATA.ent.groups[S.entranceMode + (S.zelgaWoods ? '|z' : '')];
+    if (!EG || EG[ev.door] === 'vanilla' || !state.entrances[ev.door]) return;
+    var inv = S.worldState !== 'open', used = {};
+    Object.keys(state.entrances).forEach(function (k) { var t2 = state.entrances[k].to; if (t2 && k !== ev.door) used[t2] = 1; });
+    var opts = ev.to.filter(function (t2) { return (t2.indexOf('Inverted') >= 0) === inv || ev.to.length === 1; });
+    if (!opts.length) opts = ev.to;
+    var cur = state.entrances[ev.door].to;
+    if (cur && opts.indexOf(cur) >= 0) return;   // already known
+    var pick = opts.filter(function (t2) { return !used[t2]; })[0] || opts[0];
+    action('trackerEntrances/setEntranceLink', { entrance: ev.door, to: pick, zelgaWoods: !!S.zelgaWoods, entranceMode: S.entranceMode });
+  });
+  M.on(function (w) { if (w === 'entrancedata') { state = null; read(); } });
 
   // ── where things are ──────────────────────────────────────────────────────
   M.checkAt = function (c) {
@@ -280,7 +408,10 @@
     Object.keys(sqLocs).forEach(function (k) { sqLocs[k].forEach(function (n) { if (seen[n]) return; seen[n] = 1; tot++; if (LC[n] && LC[n].checked) got++; }); });
     var out = [['Locations', got + '/' + tot]];
     var S = state.settings;
-    if (S.entranceMode && S.entranceMode !== 'none') out.push(['Entrance shuffle', 'use Muffins’ map']);
+    if (S.entranceMode && S.entranceMode !== 'none') {
+      var ents = M.entrances || [], kn = ents.filter(function (e) { return e.to; }).length;
+      out.push(['Entrances', kn + '/' + ents.length]);
+    }
     return out;
   };
   // ── settings, any time (mid-game too) ─────────────────────────────────────
@@ -334,7 +465,7 @@
           inp = el('input'); inp.type = 'checkbox'; inp.checked = !!S[it.key];
           inp.addEventListener('change', function () { var p = {}; p[it.key] = inp.checked; changeSetting(p); });
         }
-        var desc = it.desc || (it.key === 'entranceMode' ? 'Mudora 2.0 doesn’t draw entrances yet: use Muffins’ tracker for those.' : '');
+        var desc = it.desc || '';
         setBody.appendChild(row(id, it.label, desc, inp));
       });
     });
@@ -373,6 +504,6 @@
     'Items: click to go up, right click (hold on a phone) to go back. Right click Bombos, Ether or Quake to mark which of Misery Mire / Turtle Rock it opens.\n' +
     'Map: click (tap) a square to mark everything in it done; click again to open it again. Right click (hold) a square to see what’s inside, tick off places one by one, or mark which item is there. A darker green square has some places available and some not. ⟲ on a map, or Reset maps at the top, puts the maps back as they started.\n' +
     'Dungeons: click a dungeon to open its map. Chests, small keys, big key, map and compass: click to count, right click to undo. Prize: click when you have it, right click to change which it is.\n\n' +
-    'Entrance shuffle isn’t drawn here yet: open Muffins’ tracker (his button above) for that.\n\n' +
+    'Entrance shuffle: every shuffled door shows on the map. Walk through one and Rando Hub fills in where it leads, from the game itself. Click a door to mark it done; right click (hold) for Muffins’ entrance menu, to set where it leads by hand, make a connector or add a note.\n\n' +
     'Problems with the logic: Muffins (his Discord). Problems with how it looks here: Rando Hub.';
 })();
