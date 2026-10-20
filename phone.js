@@ -26,7 +26,7 @@
   var TAB_KEY = 'unified-phone-tab';
   // 'keys' is Mudora's own (its dungeons panel); the other trackers keep three tabs
   var TABS = [['items', 'Items / Keys'], ['keys', 'Keys'], ['lw', 'Light World'], ['dw', 'Dark World']];
-  function mudora() { return !!(window.UnifiedTracker && window.UnifiedTracker.mudora && window.UnifiedTracker.mudora()); }
+  function mudora() { var U = window.UnifiedTracker; return !!(U && (U.mudoraUi ? U.mudoraUi() : U.mudora && U.mudora())); }
   var on = false, tab = 'items';
 
   function pref() { try { return localStorage.getItem(KEY) || 'auto'; } catch (e) { return 'auto'; } }
