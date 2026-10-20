@@ -283,6 +283,84 @@
     if (S.entranceMode && S.entranceMode !== 'none') out.push(['Entrance shuffle', 'use Muffins’ map']);
     return out;
   };
+  // ── settings, any time (mid-game too) ─────────────────────────────────────
+  // His launch page's own choices (read from his source into
+  // ../mfns-tracker/settings.json by tools/mfns-settings.py), shown here for
+  // the game in progress and sent with his own setSettings action: his logic
+  // recomputes straight away and his tracker saves them with the game.
+  var SET = null, setBox = document.getElementById('set'), setBody = document.getElementById('set-body');
+  fetch('../mfns-tracker/settings.json').then(function (r) { return r.json(); }).then(function (d) { SET = d; if (setBox.classList.contains('show')) paintSettings(); }).catch(function () {});
+  function el(tag, cls, txt) { var e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
+  function changeSetting(patch) {
+    if (!ready()) return;
+    action('trackerSettings/setSettings', patch);
+    // the ones his launcher owns (logic breaks and a few more) are kept in his
+    // launcher prefs, which he puts back on every load: keep them there too
+    var keep = (SET && SET.remembered) || [];
+    var mine = Object.keys(patch).filter(function (k) { return keep.indexOf(k) >= 0; });
+    if (mine.length) {
+      try {
+        var ls = frame.contentWindow.localStorage, prefs = JSON.parse(ls.getItem('muffins_launcher_prefs') || '{}');
+        mine.forEach(function (k) { prefs[k] = patch[k]; });
+        ls.setItem('muffins_launcher_prefs', JSON.stringify(prefs));
+      } catch (e) {}
+    }
+  }
+  function paintSettings() {
+    setBody.textContent = '';
+    if (!store || !state) { setBody.appendChild(el('div', 's-note', launched ? 'Muffins’ tracker is still starting…' : 'Start a game first (New game).')); return; }
+    if (!SET) { setBody.appendChild(el('div', 's-note', 'Loading…')); return; }
+    var S = state.settings, n = 0;
+    setBody.appendChild(el('div', 's-note', 'Muffins’ settings for this game. Changes apply right away, mid-game too, and stay with this game.'));
+    function row(id, label, desc, input) {
+      var r = el('div', 's-row'), l = el('label'); l.htmlFor = id; l.textContent = label;
+      if (desc) { var sm = el('small', null, desc); l.appendChild(sm); }
+      input.id = id; r.appendChild(l); r.appendChild(input); return r;
+    }
+    SET.sections.forEach(function (sec) {
+      setBody.appendChild(el('h4', null, sec.title));
+      var g = null;
+      sec.items.forEach(function (it) {
+        if (it.group && it.group !== g && it.group !== sec.title && !/Settings$/.test(it.group)) { g = it.group; setBody.appendChild(el('h5', null, g)); }
+        var id = 'set-' + (n++), inp;
+        if (it.type === 'select') {
+          inp = el('select');
+          var cur = String(S[it.key]), has = false;
+          it.options.forEach(function (o) { var op = el('option', null, o.label); op.value = o.value; if (o.value === cur) has = true; inp.appendChild(op); });
+          if (!has) { var op = el('option', null, cur); op.value = cur; inp.appendChild(op); }
+          inp.value = cur;
+          inp.addEventListener('change', function () { var p = {}; p[it.key] = inp.value; changeSetting(p); });
+        } else {
+          inp = el('input'); inp.type = 'checkbox'; inp.checked = !!S[it.key];
+          inp.addEventListener('change', function () { var p = {}; p[it.key] = inp.checked; changeSetting(p); });
+        }
+        var desc = it.desc || (it.key === 'entranceMode' ? 'Mudora 2.0 doesn’t draw entrances yet: use Muffins’ tracker for those.' : '');
+        setBody.appendChild(row(id, it.label, desc, inp));
+      });
+    });
+    if (SET.breaks && SET.breaks.length) {
+      setBody.appendChild(el('h4', null, 'Logic breaks'));
+      var g2 = null, sb = S.sequenceBreaks || {};
+      SET.breaks.forEach(function (b) {
+        if (b.group !== g2) { g2 = b.group; setBody.appendChild(el('h5', null, g2)); }
+        var inp = el('input'); inp.type = 'checkbox'; inp.checked = !!sb[b.id];
+        inp.addEventListener('change', function () {
+          var cur = Object.assign({}, state.settings.sequenceBreaks || {}); cur[b.id] = inp.checked;
+          changeSetting({ sequenceBreaks: cur });
+        });
+        setBody.appendChild(row('set-' + (n++), b.label, b.desc, inp));
+      });
+    }
+  }
+  Mudora2.settings = function (on) {
+    if (on === undefined) on = !setBox.classList.contains('show');
+    setBox.classList.toggle('show', !!on);
+    if (on) paintSettings();
+  };
+  document.getElementById('b-set').addEventListener('click', function () { Mudora2.settings(); });
+  document.getElementById('set-close').addEventListener('click', function () { Mudora2.settings(false); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') Mudora2.settings(false); });
+
   M.linkText = function () {
     if (!launched) return 'Pick settings in Muffins’ tracker';
     if (!store) return 'Starting Muffins’ tracker…';
@@ -291,7 +369,7 @@
     return (M.iconState === 'drawing' ? 'Drawing items from the game…' : 'Live') + auto;
   };
   M.helpText = 'Mudora 2.0 — Mudora’s look with Muffins’ logic.\n\n' +
-    'Logic and settings: Muffins’ Tracker 2.0, unchanged. Pick your settings on his launch page (the Settings button brings it back); his tracker then runs out of sight and Mudora shows its answers. Pictures, maps and where each square sits come from your game itself.\n\n' +
+    'Logic and settings: Muffins’ Tracker 2.0, unchanged. Pick your settings on his launch page when you start (New game); his tracker then runs out of sight and Mudora shows its answers. ⚙ Settings changes them any time, mid-game too. Pictures, maps and where each square sits come from your game itself.\n\n' +
     'Items: click to go up, right click (hold on a phone) to go back. Right click Bombos, Ether or Quake to mark which of Misery Mire / Turtle Rock it opens.\n' +
     'Map: click (tap) a square to mark everything in it done; click again to open it again. Right click (hold) a square to see what’s inside, tick off places one by one, or mark which item is there. A darker green square has some places available and some not. ⟲ on a map, or Reset maps at the top, puts the maps back as they started.\n' +
     'Dungeons: click a dungeon to open its map. Chests, small keys, big key, map and compass: click to count, right click to undo. Prize: click when you have it, right click to change which it is.\n\n' +

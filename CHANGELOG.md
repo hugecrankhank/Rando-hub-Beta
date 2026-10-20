@@ -5,6 +5,14 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta: Mudora 2.0 settings mid-game (2026-10-20)
+
+- **⚙ Settings** in Mudora 2.0's bar: all of Muffins' game and logic settings (world
+  state, logic mode, goal, crystals, keys, pottery, shuffles, logic breaks and his two
+  logic-related tracker options), changeable any time, mid-game too. The logic updates
+  straight away and the settings stay with the game. The choices are read from his own
+  launch page's source (`tools/mfns-settings.py`), so they match his.
+
 ## Beta: Mudora map controls (2026-10-20)
 
 Suggestions from HydeOutGaming, for Mudora and Mudora 2.0:

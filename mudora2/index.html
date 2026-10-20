@@ -141,6 +141,25 @@
   #mf .mf-bar button { background: #1d2126; border: 1px solid var(--line); border-radius: 4px; padding: 2px 10px; cursor: pointer; color: var(--text); }
   #mf iframe { flex: 1 1 auto; border: 0; width: 100%; background: #000; }
 
+  /* settings: Muffins' settings for the game in progress */
+  #set { position: fixed; right: 0; top: 0; bottom: 0; width: min(420px, 100vw); z-index: 65; background: #15181b; border-left: 1px solid var(--line);
+    box-shadow: -10px 0 30px rgba(0,0,0,.5); display: none; flex-direction: column; }
+  #set.show { display: flex; }
+  #set .s-head { flex: none; display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  #set .s-head b { color: var(--gold); letter-spacing: .05em; }
+  #set .s-head .sp { flex: 1; }
+  #set .s-head button { background: #1d2126; border: 1px solid var(--line); border-radius: 4px; padding: 2px 10px; cursor: pointer; }
+  #set .s-body { flex: 1; overflow-y: auto; padding: 4px 12px 16px; }
+  #set .s-note { color: var(--dim); font-size: 12px; margin: 6px 0 4px; }
+  #set h4 { margin: 14px 0 4px; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--gold); }
+  #set h5 { margin: 10px 0 2px; font-size: 11px; color: var(--dim); font-weight: 600; }
+  #set .s-row { display: flex; align-items: center; gap: 8px; padding: 4px 0; border-bottom: 1px solid #1f2327; }
+  #set .s-row label { flex: 1; cursor: pointer; }
+  #set .s-row small { display: block; color: var(--dim); font-size: 11px; }
+  #set .s-row select { background: #1d2126; border: 1px solid var(--line); border-radius: 4px; padding: 2px 4px; max-width: 200px; }
+  #set .s-row input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--gold); }
+  #set .s-row.changed label { color: #fff; }
+
   #toast { position: fixed; left: 50%; top: 44px; transform: translateX(-50%); background: #1d2126; border: 1px solid var(--gold); border-radius: 8px;
     padding: 6px 12px; z-index: 60; display: none; max-width: 90%; }
 
@@ -172,7 +191,8 @@
     <label title="The game's screens as a grid on the maps"><input type="checkbox" id="o-grid"> Grid</label>
     <span id="link" title="Muffins' logic, read live from his tracker"><i></i><span id="link-t">Starting…</span></span>
     <span class="sp"></span>
-    <button id="b-mf" type="button" title="Muffins' own tracker: his settings, entrances and everything else">Muffins' tracker</button>
+    <button id="b-set" type="button" title="Tracker and logic settings: change them any time, mid-game too">⚙ Settings</button>
+    <button id="b-mf" type="button" title="Muffins' own tracker (entrances and everything else)">Muffins' tracker</button>
     <button id="b-new" type="button" title="New game: pick settings on Muffins' launch page">New game</button>
     <button id="b-reset" type="button" title="Put the maps back as they started (whole world, no zoom)">Reset maps</button>
     <button id="b-help" type="button" title="How to use it">?</button>
@@ -206,6 +226,10 @@
 <button id="gear" type="button" title="Options">&#9881;</button>
 <div id="card"></div>
 <div id="toast"></div>
+<div id="set">
+  <div class="s-head"><b>SETTINGS</b><span class="sp"></span><button id="set-close" type="button">Done</button></div>
+  <div class="s-body" id="set-body"></div>
+</div>
 <div id="mf">
   <div class="mf-bar"><b>Muffins' Tracker 2.0</b> <span>logic &amp; settings for Mudora 2.0 · his tracker, unchanged · logic problems: Muffins' Discord</span><span class="sp"></span><button id="mf-close" type="button">Back to Mudora</button></div>
   <iframe id="mf-frame" title="Muffins' Tracker 2.0"></iframe>
