@@ -18,9 +18,10 @@
   'use strict';
   var KEY = 'rhb-tracker';   // (this beta's own key: the main app's choice is left alone)
   var V = window.HUTCH_TRACKERS || { release: { path: 'tracker/', version: '' }, beta: null };
-  var mode = 'release';
-  try { mode = localStorage.getItem(KEY) || 'release'; } catch (e) {}
-  if (mode !== 'release' && mode !== 'beta' && mode !== 'off' && mode !== 'emo' && mode !== 'mudora') mode = 'release';
+  // Mudora is the starting choice; after that, whatever was picked last (saved by set())
+  var mode = 'mudora';
+  try { mode = localStorage.getItem(KEY) || 'mudora'; } catch (e) {}
+  if (mode !== 'release' && mode !== 'beta' && mode !== 'off' && mode !== 'emo' && mode !== 'mudora') mode = 'mudora';
 
   function off() { return mode === 'off'; }
   // emo(): a tracker in its own frame (emo-host.js) — EmoTracker, or Mudora
