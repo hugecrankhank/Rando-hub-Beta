@@ -5,6 +5,15 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta (hidden test): Muffins' Tracker 2.0
+
+- **Tracker → Muffins Tracker 2.0 (beta):** Muffins' (MFNS) new tracker, with his
+  permission, built unchanged from his `react_rewrite` source and run inside Rando Hub:
+  his launch page, presets and settings, his logic, maps and layouts. Autotracking
+  comes from the built-in emulator. Tip: his Map mode "Vertical" suits the side
+  panel. Hidden until his MIT license is out: only offered on a device that has
+  opened the beta with `?mfns-test=1` (`?mfns-test=0` hides it again).
+
 ## Beta: fixes (2026-10-19)
 
 - **Boss detour to Thieves' Town: Blind now appears.** He only shows up after the
