@@ -30,9 +30,8 @@
   function mudora() { return mode === 'mudora'; }
   function base() { return mode === 'beta' && V.beta ? V.beta.path : V.release.path; }
   function options() {
-    var rv = V.release.version ? ' (' + V.release.version + ')' : '';
-    var beta = V.beta ? 'Beta' + (V.beta.version ? ' (' + V.beta.version + ' beta)' : '') : 'Beta (same as release right now)';
-    return [['release', 'Newest release' + rv], ['beta', beta], ['mudora', 'Mudora (beta)'], ['emo', 'EmoTracker (beta)'], ['off', 'Off (game full screen)']];
+    var rv = V.release.version ? ' ' + V.release.version : '';
+    return [['release', 'Hutch' + rv], ['beta', 'Hutch Beta'], ['mudora', 'Mudora (beta)'], ['emo', 'EmoTracker (beta)'], ['off', 'Off (game full screen)']];
   }
   function applyBody() {
     if (!document.body) return;
