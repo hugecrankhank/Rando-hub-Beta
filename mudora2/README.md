@@ -11,6 +11,11 @@ Mudora's look with Muffins' logic (his tracker is MIT licensed: `../mfns-tracker
   his data (`../mfns-tracker/data.json`, made by `../tools/mfns-extract.ts` from his
   source at the commit in `../mfns-tracker/COMMIT`). Where each is drawn is moved to the
   game's own door / item spot from the ROM (the `AT` table), as in Mudora 1.
+- **Settings mid-game:** ⚙ Settings shows the choices of his launch page (read from his
+  source into `../mfns-tracker/settings.json` by `../tools/mfns-settings.py`) for the game
+  in progress, and sends changes with his own `setSettings` action. The ones his
+  launcher remembers for every game (logic breaks and a few more) are saved to his
+  launcher prefs too, as his launch page would.
 - **Everything else** is Mudora's: `../mudora/mudora.js` (with `MUDORA_LOGIC = 'mfns'`, so
   Hutch's tracker isn't read) and `../mudora/ui.js`.
 
