@@ -401,7 +401,8 @@
   var PIN_FIX = {
     alttpr_emosaru: {
       "Lumberjack Cave|lightworld|633,117": [600, 145],
-      "Blind's House|lightworld|307,840": [337, 841],
+      "Blind's House|lightworld|307,840": [306, 841],
+      "Race Game|lightworld|111,1354": [59, 1407],
       "The Well|lightworld|47,833": [43, 851],
       "Bottle Vendor|lightworld|190,933": [192, 929],
       "Chicken House|lightworld|197,1066": [196, 1084],

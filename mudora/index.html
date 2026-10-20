@@ -133,7 +133,13 @@
   body.phone #gear { display: block; }
   body.phone #side { width: 100%; max-width: none; border: 0; }
   body.phone.ph-lw #side, body.phone.ph-dw #side { display: none; }
-  body.phone.ph-items #maps { display: none; }
+  body.phone.ph-items #maps, body.phone.ph-keys #maps { display: none; }
+  body.phone.ph-items #side .h-dg, body.phone.ph-items #dungeons { display: none; }
+  body.phone.ph-keys #side .h-items, body.phone.ph-keys #items { display: none; }
+  body.phone.ph-keys #legend { display: none; }
+  body.phone.ph-keys .h-dg { display: none; }
+  body.phone.ph-keys #dungeons { padding: 4px 6px; gap: 2px; }
+  body.phone.ph-keys .dg { padding: 2px 8px; font-size: 14px; }
   body.phone #foot { padding-right: 44px; font-size: 11px; gap: 8px; }
   body.phone #foot #legend { margin-left: 0; gap: 8px; }
   body.phone.ph-items #legend { display: none; }
@@ -152,9 +158,9 @@
   </div>
   <div id="main">
     <div id="side">
-      <h3>Items</h3>
+      <h3 class="h-items">Items</h3>
       <div id="items"></div>
-      <h3>Dungeons</h3>
+      <h3 class="h-dg">Dungeons</h3>
       <div id="dungeons"></div>
     </div>
     <div id="maps">
