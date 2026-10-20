@@ -5,6 +5,18 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta: Mudora map controls (2026-10-20)
+
+Suggestions from HydeOutGaming, for Mudora and Mudora 2.0:
+
+- **Reset maps:** a ⟲ button on each world map, and "Reset maps" at the top, put the
+  maps back as they started (whole world, no zoom), so a stream layout can be restored.
+- **A map can't be lost any more:** dragging keeps part of the world on screen, and a
+  broken zoom snaps back to the whole world.
+- **Clicking a check marks it done** (click again to open it again). Right click (hold
+  on a phone) opens its card to mark which item is there, and in Mudora 2.0 to tick
+  off the places in a square one by one. Nothing pops up on mouse-over any more.
+
 ## Beta: Muffins' Tracker 2.0 and Mudora 2.0 (2026-10-20)
 
 - **Tracker → Muffins Tracker 2.0 (beta):** Muffins' (MFNS) new tracker, with his

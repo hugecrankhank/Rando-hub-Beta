@@ -293,7 +293,7 @@
   M.helpText = 'Mudora 2.0 — Mudora’s look with Muffins’ logic.\n\n' +
     'Logic and settings: Muffins’ Tracker 2.0, unchanged. Pick your settings on his launch page (the Settings button brings it back); his tracker then runs out of sight and Mudora shows its answers. Pictures, maps and where each square sits come from your game itself.\n\n' +
     'Items: click to go up, right click (hold on a phone) to go back. Right click Bombos, Ether or Quake to mark which of Misery Mire / Turtle Rock it opens.\n' +
-    'Map: point at a square (tap it) to see what’s inside. ✓ marks it all collected; or tick off each place in the list. Right click (hold) a square to mark which item is there. A darker green square has some places available and some not.\n' +
+    'Map: click (tap) a square to mark everything in it done; click again to open it again. Right click (hold) a square to see what’s inside, tick off places one by one, or mark which item is there. A darker green square has some places available and some not. ⟲ on a map, or Reset maps at the top, puts the maps back as they started.\n' +
     'Dungeons: click a dungeon to open its map. Chests, small keys, big key, map and compass: click to count, right click to undo. Prize: click when you have it, right click to change which it is.\n\n' +
     'Entrance shuffle isn’t drawn here yet: open Muffins’ tracker (his button above) for that.\n\n' +
     'Problems with the logic: Muffins (his Discord). Problems with how it looks here: Rando Hub.';
