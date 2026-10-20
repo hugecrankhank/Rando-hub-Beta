@@ -186,6 +186,10 @@
     this.pins = el('div', 'pins');
     this.box.appendChild(this.cv); this.box.appendChild(this.pins);
     this.box.appendChild(el('div', 'wname', world === 'lw' ? 'Light World' : 'Dark World'));
+    var rs = el('button', 'wreset', '⟲'); rs.type = 'button'; rs.title = 'Reset this map (whole world, as at the start)';
+    rs.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
+    rs.addEventListener('click', function (e) { e.stopPropagation(); self.fit(); });
+    this.box.appendChild(rs);
     this.zoom = 0.1; this.pan = [0, 0]; this.userMoved = false; this.pinEls = {};
     this.small = null; this.full = {}; this.used = []; this.raf = 0;
     // wheel / pinch zoom, drag to move, double-click / double-tap to fit
@@ -305,6 +309,15 @@
     this.apply();
   };
   WorldView.prototype.apply = function () {
+    var W = this.box.clientWidth, H = this.box.clientHeight;
+    // a broken zoom (or none yet): back to the whole world
+    if (!isFinite(this.zoom) || this.zoom <= 0 || !isFinite(this.pan[0]) || !isFinite(this.pan[1])) { if (W && H) { this.fit(); return; } }
+    // keep part of the world on screen: it can't be dragged away and lost
+    if (W && H) {
+      var m = Math.min(80, W / 3, H / 3), size = 4096 * this.zoom;
+      this.pan[0] = Math.max(m - size, Math.min(W - m, this.pan[0]));
+      this.pan[1] = Math.max(m - size, Math.min(H - m, this.pan[1]));
+    }
     var z = this.zoom, px = this.pan[0], py = this.pan[1], self = this;
     // pins keep their size on screen, a little bigger when zoomed in
     var ps = (this.box.clientWidth < 500 ? 0.85 : 1) * Math.min(1.8, Math.max(1, Math.sqrt(z / (this.fitZ || z))));
@@ -388,12 +401,16 @@
 
   // ── the card: what's at a check, and what to do about it ──────────────────
   var card = $('card'), cardFor = null, cardSticky = false, cardTimer = null;
+  // A check: click (tap) marks it done, or open again; right click (hold) opens
+  // its card, to mark which item is there (and, with several places in one
+  // square, tick them off one by one). A dungeon: click opens its card.
   function hookPin(p, what) {
-    if (!touch) {
-      p.addEventListener('mouseenter', function () { if (!cardSticky) showCard(what(), p, false); });
-      p.addEventListener('mouseleave', function () { if (!cardSticky) cardTimer = setTimeout(hideCard, 250); });
-    }
-    p.addEventListener('click', function (e) { e.stopPropagation(); showCard(what(), p, true); });
+    p.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var w = what();
+      if (w.kind === 'check') { hideCard(); M.toggleCheck(w.c.id, !M.cleared[w.c.id]); }
+      else showCard(w, p, true);
+    });
     p.addEventListener('contextmenu', function (e) { e.preventDefault(); e.stopPropagation(); var w = what(); showCard(w, p, true, w.kind === 'check'); });
     longPress(p, function () { var w = what(); showCard(w, p, true, w.kind === 'check'); });
   }
@@ -554,13 +571,22 @@
         'It gives away the layout, so if you like finding your own way, keep Explore.\n\nUse full maps?')) { this.value = D.mode(); return; }
     D.setMode(m);
   });
+  // put every map back as it started (both worlds, and the dungeon map)
+  function resetMaps() {
+    hideCard();
+    layoutWorlds();
+    views.forEach(function (v) { v.userMoved = false; v.fit(); });
+    if (dgView && dgView.fit) { try { dgView.fit(); } catch (e) {} }
+  }
+  window.MudoraResetMaps = resetMaps;
+  $('b-reset').addEventListener('click', resetMaps);
   $('gear').addEventListener('click', function () { document.body.classList.toggle('bar-open'); setTimeout(onResize, 30); });
   $('b-help').addEventListener('click', function () {
     if (M.helpText) { alert(M.helpText); return; }
     alert('Mudora — Rando Hub’s own tracker.\n\n' +
       'Logic: Hutch’s tracker, unchanged (it runs out of sight and Mudora shows its answers). Pictures, maps and where each check sits come from your game itself.\n\n' +
       'Items: click to go up, right click (hold on a phone) to go back. Right click Bombos, Ether or Quake to mark which of Misery Mire / Turtle Rock it opens.\n' +
-      'Map: point at a square (tap it) to see the check. ✓ Done marks it collected, ↺ opens it again. Right click (hold) a square to mark which item is there.\n' +
+      'Map: click (tap) a square to mark it done; click again to open it again. Right click (hold) a square to mark which item is there. ⟲ on a map, or Reset maps at the top, puts the maps back as they started.\n' +
       'Dungeons: click a dungeon to open its map (entering one in the game shows it too). Chests, small keys, big key, map and compass: click to count, right click to undo.\n\n' +
       'Zoom with the wheel or a pinch, drag to move, double-click (double-tap) to fit.');
   });

@@ -76,6 +76,9 @@
   .wv .wcv { position: absolute; inset: 0; width: 100%; height: 100%; }
   .wv .pins { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
   .wv .pins .pin { pointer-events: auto; }
+  .wv .wreset { position: absolute; right: 6px; top: 4px; z-index: 4; width: 28px; height: 26px; padding: 0; border-radius: 5px; cursor: pointer;
+    background: #1d2126d9; border: 1px solid #4a535c; color: #fff; font-size: 16px; line-height: 1; }
+  .wv .wreset:hover { background: #303840; }
   .wv .wname { position: absolute; left: 8px; top: 6px; z-index: 3; font-weight: 700; color: #fff; text-shadow: 0 1px 3px #000; pointer-events: none; }
   .pin { position: absolute; width: 16px; height: 16px; margin: -8px 0 0 -8px; transform: scale(var(--pz, 1)); border-radius: 3px;
     border: 2px solid #000; background: var(--c-red); cursor: pointer; z-index: 2; }
@@ -154,6 +157,7 @@
     <label title="The game's screens as a grid on the maps"><input type="checkbox" id="o-grid"> Grid</label>
     <span id="link" title="Hutch's logic, read live from the game"><i></i><span id="link-t">Starting…</span></span>
     <span class="sp"></span>
+    <button id="b-reset" type="button" title="Put the maps back as they started (whole world, no zoom)">Reset maps</button>
     <button id="b-help" type="button" title="How to use it">?</button>
   </div>
   <div id="main">
