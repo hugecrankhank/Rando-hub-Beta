@@ -30,27 +30,33 @@
   // Mudora is the starting choice; after that, whatever was picked last (saved by set())
   var mode = 'mudora';
   try { mode = localStorage.getItem(KEY) || 'mudora'; } catch (e) {}
-  if (mode !== 'release' && mode !== 'beta' && mode !== 'off' && mode !== 'emo' && mode !== 'mudora' && !(mode === 'mfns' && mfnsTest)) mode = 'mudora';
+  if (mode !== 'release' && mode !== 'beta' && mode !== 'off' && mode !== 'emo' && mode !== 'mudora' && !((mode === 'mfns' || mode === 'mudora2') && mfnsTest)) mode = 'mudora';
 
   function off() { return mode === 'off'; }
   // emo(): a tracker in its own frame (emo-host.js) — EmoTracker, or Mudora
-  function emo() { return mode === 'emo' || mode === 'mudora' || mode === 'mfns'; }
+  function emo() { return mode === 'emo' || mode === 'mudora' || mode === 'mudora2' || mode === 'mfns'; }
   // Muffins' Tracker 2.0 (mfns-tracker/): his own logic and autotracking
   function mfns() { return mode === 'mfns'; }
   // Mudora (mudora/): Rando Hub's own tracker. Hutch's release still runs,
   // out of sight, for its logic; Mudora shows the answers.
   function mudora() { return mode === 'mudora'; }
+  // Mudora 2.0 (mudora2/): Mudora's look with Muffins' logic (his tracker runs
+  // inside it). Test only, like his tracker, until his license is up.
+  function mudora2() { return mode === 'mudora2'; }
+  // either Mudora: same page layout, phone tabs and so on
+  function mudoraUi() { return mode === 'mudora' || mode === 'mudora2'; }
   function base() { return mode === 'beta' && V.beta ? V.beta.path : V.release.path; }
   function options() {
     var rv = V.release.version ? ' ' + V.release.version : '';
-    var mf = mfnsTest ? [['mfns', 'Muffins Tracker 2.0 (test)']] : [];
+    var mf = mfnsTest ? [['mudora2', 'Mudora 2.0 (test, Muffins logic)'], ['mfns', 'Muffins Tracker 2.0 (test)']] : [];
     return [['release', 'Hutch' + rv], ['beta', 'Hutch Beta'], ['mudora', 'Mudora (beta)']].concat(mf).concat([['emo', 'EmoTracker (beta)'], ['off', 'Off (game full screen)']]);
   }
   function applyBody() {
     if (!document.body) return;
     document.body.classList.toggle('tracker-off', off());
     document.body.classList.toggle('tracker-emo', emo());
-    document.body.classList.toggle('tracker-mudora', mudora());
+    document.body.classList.toggle('tracker-mudora', mudoraUi());
+    document.body.classList.toggle('tracker-mudora2', mudora2());
     document.body.classList.toggle('tracker-mfns', mfns());
   }
   function applyController() {
@@ -72,6 +78,6 @@
 
   window.UnifiedTracker = {
     mode: function () { return mode; },
-    off: off, emo: emo, mudora: mudora, mfns: mfns, base: base, set: set, options: options, versions: V,
+    off: off, emo: emo, mudora: mudora, mudora2: mudora2, mudoraUi: mudoraUi, mfns: mfns, base: base, set: set, options: options, versions: V,
   };
 })();

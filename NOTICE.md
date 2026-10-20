@@ -41,6 +41,7 @@ under their own licenses, and nothing here restricts what those licenses allow:
 | `tracker/` (item tracker and map) | Hutch (hutchch) | MIT, `tracker/LICENSE` |
 | Muffins' Tracker 2.0 (`mfns-tracker/app/`, built unchanged) | Muffins / KrisDavie (MFNS) | used with his permission; MIT (pending in his repo) |
 | Mudora's logic (`mudora/`, read from `tracker/` as it runs) | Hutch (hutchch) | MIT, `tracker/LICENSE` |
+| Mudora 2.0's logic and square list (`mudora2/`, read from `mfns-tracker/` as it runs; `mfns-tracker/data.json` extracted from his source) | Muffins / KrisDavie (MFNS) | used with his permission; MIT (pending in his repo) |
 | Snes9x emulator core (`emu/`) | Snes9x team | Snes9x non-commercial license, `emu/build/LICENSES/snes9x-LICENSE` |
 | Shaders (`emu/`) | libretro contributors | each file's header (xBRZ: GPL-3.0) |
 | Randomizer logic and base patch (`randomizer/`) | sporchia; KatDevsGames | MIT, `randomizer/LICENSE-THIRD-PARTY.md` |

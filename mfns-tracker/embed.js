@@ -99,14 +99,36 @@
 
   // ── opening the tracker: here; pop-outs: their own window ─────────────────
   var realOpen = window.open;
+  function inMudora2() { try { return !!(window.parent !== window && window.parent.Mudora2); } catch (e) { return false; } }
   window.open = function (u, name, feat) {
     if (typeof u === 'string' && ROUTES.test(u)) {
       var url = host + '?route=' + encodeURIComponent(u);
       var embedded = window.parent !== window;
       if (/^\/tracker/.test(u) && embedded) { location.assign(url); return window; }
+      // Mudora 2.0 is the map: his own pop-out map / event log aren't opened
+      if (inMudora2()) return null;
       return realOpen.call(window, url, name, feat);
     }
     return realOpen.apply(window, arguments);
+  };
+
+  // ── for Mudora 2.0: his tracker's state, read and changed the way his own
+  // buttons do (his Redux store, found on his page's React root) ──────────
+  var found = null;
+  window.__rhStore = function () {
+    if (found) return found;
+    var r = document.getElementById('root'); if (!r) return null;
+    var k = Object.keys(r).filter(function (x) { return x.indexOf('__reactContainer$') === 0; })[0];
+    if (!k) return null;
+    var stack = [r[k]], n = 0;
+    while (stack.length && n++ < 20000) {
+      var f = stack.pop(); if (!f) continue;
+      var p = f.memoizedProps;
+      if (p && p.store && typeof p.store.getState === 'function' && typeof p.store.dispatch === 'function') return (found = p.store);
+      if (f.sibling) stack.push(f.sibling);
+      if (f.child) stack.push(f.child);
+    }
+    return null;
   };
 
   // ── autotracking through Rando Hub's emulator (first time only) ───────────

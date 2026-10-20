@@ -27,6 +27,11 @@
   var subs = [];
   M.on = function (fn) { subs.push(fn); };
   function emit(what) { subs.forEach(function (fn) { try { fn(what); } catch (e) { console.warn('[mudora]', e); } }); }
+  M.emit = emit;
+  // Mudora 2.0 (../mudora2/) shares everything here but the logic: it sets
+  // MUDORA_LOGIC = 'mfns' first and brings its own (mudora2.js).
+  var HUTCH = window.MUDORA_LOGIC !== 'mfns';
+  M.base = HUTCH ? '' : '../mudora/';
 
   // Where each check is in the game (doors, holes, items and people on the
   // screen, from the ROM). Checks not listed keep Hutch's own spot.
@@ -64,7 +69,7 @@
 
   // ── Hutch's answers ───────────────────────────────────────────────────────
   var bc = null;
-  try { bc = new BroadcastChannel('alttp-tracker'); } catch (e) {}
+  if (HUTCH) try { bc = new BroadcastChannel('alttp-tracker'); } catch (e) {}
   if (bc) bc.onmessage = function (ev) {
     var d = ev.data;
     if (!d) return;
@@ -74,7 +79,7 @@
     else if (d.type === 'newgame') { M.items = null; poll(); emit('items'); }
   };
   function ask() { try { bc && bc.postMessage({ type: 'requestSnap' }); } catch (e) {} }
-  try { M.dcolors = JSON.parse(localStorage.getItem('alttp-dungeon-colors') || '{}'); } catch (e) {}
+  if (HUTCH) try { M.dcolors = JSON.parse(localStorage.getItem('alttp-dungeon-colors') || '{}'); } catch (e) {}
 
   var lastSig = '';
   function poll() {
@@ -107,9 +112,11 @@
       emit('checks');
     } catch (e) { console.warn('[mudora] reading the map', e); }
   }
-  setInterval(poll, 400);
-  setInterval(function () { if (!M.items) ask(); }, 1500);
-  ask();
+  if (HUTCH) {
+    setInterval(poll, 400);
+    setInterval(function () { if (!M.items) ask(); }, 1500);
+    ask();
+  }
 
   // where a check sits, in game pixels
   M.checkAt = function (c) { var p = CHECK_AT[c.id]; return p ? { x: p[0], y: p[1] } : { x: c.x * 40.96, y: c.y * 40.96 }; };
@@ -267,7 +274,7 @@
       if (iconJob) { try { iconJob.terminate(); } catch (e) {} }
       M.iconState = 'drawing'; emit('icons');
       var wk;
-      try { wk = iconJob = new Worker('iconworker.js'); } catch (e) { M.iconState = 'failed'; emit('icons'); return; }
+      try { wk = iconJob = new Worker(M.base + 'iconworker.js'); } catch (e) { M.iconState = 'failed'; emit('icons'); return; }
       wk.onmessage = function (ev) {
         try { wk.terminate(); } catch (e) {}
         if (iconJob === wk) iconJob = null;

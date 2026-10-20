@@ -27,6 +27,8 @@
  */
 (function () {
   'use strict';
+  // the worker sits next to this file (pages in other folders load it too)
+  var HERE = (function () { try { return new URL('.', document.currentScript.src).href; } catch (e) { return ''; } })();
   var E = window.EmoWeb;
   // per palace ($040C >> 1): entrance (to go in by), boss room, basement floors, layout size
   var PALACE = [
@@ -276,7 +278,7 @@
     building = { dg: dg, n: 0, total: 0 };
     status[dg] = 'Drawing ' + DUNGEONS[dg][2] + ' from the game…';
     paintAll();
-    try { worker = new Worker('dgworker.js'); } catch (e) { building = null; status[dg] = 'This browser can’t draw full maps (no Web Workers).'; paintAll(); return; }
+    try { worker = new Worker(HERE + 'dgworker.js'); } catch (e) { building = null; status[dg] = 'This browser can’t draw full maps (no Web Workers).'; paintAll(); return; }
     var finish = function (msg) {
       try { worker.terminate(); } catch (e) {}
       worker = null; building = null; status[dg] = msg || '';

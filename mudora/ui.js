@@ -8,8 +8,9 @@
   var M = window.Mudora, D = window.EmoDungeons;
   var $ = function (id) { return document.getElementById(id); };
   function el(tag, cls, txt) { var e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
-  var COLOR_WORD = { green: 'Available', yellow: 'Possible', orange: 'Visible (can see it, can’t get it yet)', purple: 'Out of logic (a trick gets it)', red: 'Not yet', done: 'Done' };
-  var CSS = { green: 'var(--c-green)', yellow: 'var(--c-yellow)', orange: 'var(--c-orange)', purple: 'var(--c-purple)', red: 'var(--c-red)', done: '#2a2d30' };
+  var COLOR_WORD = { green: 'Available', partial: 'Some available', yellow: 'Possible', orange: 'Visible (can see it, can’t get it yet)', purple: 'Out of logic (a trick gets it)', red: 'Not yet', done: 'Done' };
+  var CSS = { green: 'var(--c-green)', partial: 'var(--c-partial, #0b7a3a)', yellow: 'var(--c-yellow)', orange: 'var(--c-orange)', purple: 'var(--c-purple)', red: 'var(--c-red)', done: '#2a2d30' };
+  var LOGIC = M.logicName || 'Hutch’s';   // whose logic, in messages
   var touch = window.matchMedia && matchMedia('(pointer: coarse)').matches;
 
   // ── items ─────────────────────────────────────────────────────────────────
@@ -55,7 +56,7 @@
     var box = $('items'); box.textContent = '';
     ITEMS.forEach(function (key) {
       var b = el('div', 'it'); b.dataset.key = key; b.title = NAMES[key] || key;
-      b.addEventListener('click', function (e) { e.preventDefault(); if (!M.stepItem(key, 1)) M.toast('Hutch’s item tracker isn’t running yet.'); });
+      b.addEventListener('click', function (e) { e.preventDefault(); if (!M.stepItem(key, 1)) M.toast(LOGIC + ' tracker isn’t running yet.'); });
       b.addEventListener('contextmenu', function (e) {
         e.preventDefault();
         if (key === 'bombos' || key === 'ether' || key === 'quake') M.medallion(key);
@@ -426,9 +427,23 @@
       card.appendChild(el('h4', null, w.label || c.name));
       var st = el('div', 'st'); var i = el('i'); i.style.background = CSS[col] || '#555'; st.appendChild(i); st.appendChild(document.createTextNode(COLOR_WORD[col] || col)); card.appendChild(st);
       if (M.marks[c.id]) { var m = el('div', 'st', 'Marked: '); var mi = iconImg(M.marks[c.id]); if (mi) { mi.style.width = mi.style.height = '20px'; mi.style.verticalAlign = 'middle'; mi.style.imageRendering = 'pixelated'; m.appendChild(mi); } card.appendChild(m); }
-      btn(done ? '↺ Not done' : '✓ Done', function () { M.toggleCheck(c.id, !done); hideCard(); }, done ? 'Open it again' : 'Mark it collected');
+      btn(done ? '↺ Not done' : (M.locsOf && M.locsOf(c.id).length > 1 ? '✓ All done' : '✓ Done'), function () { M.toggleCheck(c.id, !done); hideCard(); }, done ? 'Open it again' : 'Mark it collected');
       btn('Mark an item…', function () { fillCard(true); }, 'Note which item is there (shows on the map)');
       card.appendChild(btns);
+      // a square with several places in it: each one, to tick off on its own
+      var locs = M.locsOf ? M.locsOf(c.id) : [];
+      if (locs.length > 1) {
+        var ul = el('div', 'locs');
+        locs.forEach(function (L) {
+          var row = el('button', 'loc' + (L.done ? ' done' : '')); row.type = 'button';
+          var d = el('i'); d.style.background = CSS[L.done ? 'done' : L.color] || '#555'; row.appendChild(d);
+          row.appendChild(document.createTextNode(L.label));
+          row.title = L.done ? 'Done: click to open it again' : (COLOR_WORD[L.color] || '') + ': click to mark it done';
+          row.addEventListener('click', function (e) { e.stopPropagation(); M.toggleLoc(L.name, !L.done); setTimeout(function () { fillCard(false); }, 120); });
+          ul.appendChild(row);
+        });
+        card.appendChild(ul);
+      }
       if (picking) {
         var pick = el('div', 'pick');
         var keys = ['bow2', 'boomerang1', 'boomerang2', 'hookshot', 'bomb', 'mushroom', 'powder', 'firerod', 'icerod', 'bombos', 'ether', 'quake', 'lamp', 'hammer',
@@ -492,7 +507,7 @@
   // ── footer: counters from the game ────────────────────────────────────────
   function paintStats() {
     var it = M.items || {}, g = it.gtBk || null, s = $('stats');
-    var parts = [['Checks', it.checks || 0], ['Deaths', it.deaths || 0], ['Bonks', it.bonks || 0]];
+    var parts = M.stats ? M.stats() : [['Checks', it.checks || 0], ['Deaths', it.deaths || 0], ['Bonks', it.bonks || 0]];
     var html = parts.map(function (p) { return '<span>' + p[0] + ' <b>' + p[1] + '</b></span>'; }).join('');
     if (g && g.enabled !== false) html += '<span title="Ganon’s Tower: chests opened, and which chest had the big key">GT chests <b>' + (g.chests || 0) + '</b>/26' + (g.found ? ' · big key at <b>' + (g.at != null ? g.at : '?') + '</b>' : '') + '</span>';
     s.innerHTML = html;
@@ -503,7 +518,7 @@
     var l = $('link'), t = $('link-t');
     var on = M.linked && !!M.items;
     l.classList.toggle('on', on);
-    t.textContent = !M.linked ? 'Waiting for Hutch’s logic…' : !M.items ? 'Waiting for the item tracker…' : M.iconState === 'drawing' ? 'Drawing items from the game…' : 'Live';
+    t.textContent = M.linkText ? M.linkText() : !M.linked ? 'Waiting for Hutch’s logic…' : !M.items ? 'Waiting for the item tracker…' : M.iconState === 'drawing' ? 'Drawing items from the game…' : 'Live';
   }
 
   // ── options ───────────────────────────────────────────────────────────────
@@ -541,6 +556,7 @@
   });
   $('gear').addEventListener('click', function () { document.body.classList.toggle('bar-open'); setTimeout(onResize, 30); });
   $('b-help').addEventListener('click', function () {
+    if (M.helpText) { alert(M.helpText); return; }
     alert('Mudora — Rando Hub’s own tracker.\n\n' +
       'Logic: Hutch’s tracker, unchanged (it runs out of sight and Mudora shows its answers). Pictures, maps and where each check sits come from your game itself.\n\n' +
       'Items: click to go up, right click (hold on a phone) to go back. Right click Bombos, Ether or Quake to mark which of Misery Mire / Turtle Rock it opens.\n' +

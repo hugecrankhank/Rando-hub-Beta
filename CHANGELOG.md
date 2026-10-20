@@ -13,6 +13,17 @@ played again later.
   comes from the built-in emulator. Tip: his Map mode "Vertical" suits the side
   panel. Hidden until his MIT license is out: only offered on a device that has
   opened the beta with `?mfns-test=1` (`?mfns-test=0` hides it again).
+- **Tracker → Mudora 2.0 (test, Muffins logic):** Mudora's look (the game's own items,
+  maps drawn from the ROM, dungeon maps, squares moved onto the game's real door and
+  item spots) with Muffins' logic and settings. Pick settings on his launch page (it
+  opens inside Mudora 2.0; "Muffins' tracker" and "New game" bring it back), then his
+  tracker runs out of sight and Mudora 2.0 shows its answers and sends clicks back as
+  his own buttons do. His squares hold several places each: the card lists them to
+  tick off one by one, and a darker green means some are available. Entrance shuffle
+  isn't drawn yet (use his tracker for that). Hidden the same way as his tracker.
+  Logic problems: Muffins' Discord; how it looks here: Rando Hub.
+- **Mudora: Full dungeon maps** now draw (the page was looking for the drawing worker
+  in its own folder).
 
 ## Beta: fixes (2026-10-19)
 
