@@ -20,20 +20,25 @@
   var V = window.HUTCH_TRACKERS || { release: { path: 'tracker/', version: '' }, beta: null };
   var mode = 'release';
   try { mode = localStorage.getItem(KEY) || 'release'; } catch (e) {}
-  if (mode !== 'release' && mode !== 'beta' && mode !== 'off' && mode !== 'emo') mode = 'release';
+  if (mode !== 'release' && mode !== 'beta' && mode !== 'off' && mode !== 'emo' && mode !== 'mudora') mode = 'release';
 
   function off() { return mode === 'off'; }
-  function emo() { return mode === 'emo'; }
+  // emo(): a tracker in its own frame (emo-host.js) — EmoTracker, or Mudora
+  function emo() { return mode === 'emo' || mode === 'mudora'; }
+  // Mudora (mudora/): Rando Hub's own tracker. Hutch's release still runs,
+  // out of sight, for its logic; Mudora shows the answers.
+  function mudora() { return mode === 'mudora'; }
   function base() { return mode === 'beta' && V.beta ? V.beta.path : V.release.path; }
   function options() {
     var rv = V.release.version ? ' (' + V.release.version + ')' : '';
     var beta = V.beta ? 'Beta' + (V.beta.version ? ' (' + V.beta.version + ' beta)' : '') : 'Beta (same as release right now)';
-    return [['release', 'Newest release' + rv], ['beta', beta], ['emo', 'EmoTracker (beta)'], ['off', 'Off (game full screen)']];
+    return [['release', 'Newest release' + rv], ['beta', beta], ['mudora', 'Mudora (beta)'], ['emo', 'EmoTracker (beta)'], ['off', 'Off (game full screen)']];
   }
   function applyBody() {
     if (!document.body) return;
     document.body.classList.toggle('tracker-off', off());
     document.body.classList.toggle('tracker-emo', emo());
+    document.body.classList.toggle('tracker-mudora', mudora());
   }
   function applyController() {
     var P = window.Snes9xPlayer;
@@ -54,6 +59,6 @@
 
   window.UnifiedTracker = {
     mode: function () { return mode; },
-    off: off, emo: emo, base: base, set: set, options: options, versions: V,
+    off: off, emo: emo, mudora: mudora, base: base, set: set, options: options, versions: V,
   };
 })();

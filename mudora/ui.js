@@ -1,0 +1,497 @@
+/*
+ * ui.js — what Mudora shows: items, dungeons, the two worlds with their
+ * checks, dungeon maps, counters. Everything comes from window.Mudora
+ * (mudora.js): Hutch's logic, and pictures from the game itself.
+ */
+(function () {
+  'use strict';
+  var M = window.Mudora, D = window.EmoDungeons;
+  var $ = function (id) { return document.getElementById(id); };
+  function el(tag, cls, txt) { var e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
+  var COLOR_WORD = { green: 'Available', yellow: 'Possible', orange: 'Visible (can see it, can’t get it yet)', purple: 'Out of logic (a trick gets it)', red: 'Not yet', done: 'Done' };
+  var CSS = { green: 'var(--c-green)', yellow: 'var(--c-yellow)', orange: 'var(--c-orange)', purple: 'var(--c-purple)', red: 'var(--c-red)', done: '#2a2d30' };
+  var touch = window.matchMedia && matchMedia('(pointer: coarse)').matches;
+
+  // ── items ─────────────────────────────────────────────────────────────────
+  // like the game's own menu: Y items, then equipment
+  var ITEMS = ['bow', 'boomerang', 'hookshot', 'bomb', 'mushroom', 'powder',
+    'firerod', 'icerod', 'bombos', 'ether', 'quake', 'lamp',
+    'hammer', 'shovel', 'flute', 'net', 'book', 'somaria',
+    'byrna', 'cape', 'mirror', 'boots', 'gloves', 'flippers',
+    'moonpearl', 'sword', 'shield', 'tunic', 'halfmagic', 'agahnim',
+    'bottle1', 'bottle2', 'bottle3', 'bottle4'];
+  var SINGLE = { hookshot: 1, bomb: 1, powder: 1, firerod: 1, icerod: 1, bombos: 1, ether: 1, quake: 1, lamp: 1, hammer: 1, shovel: 1, net: 1,
+    book: 1, somaria: 1, byrna: 1, cape: 1, mirror: 1, boots: 1, flippers: 1, moonpearl: 1 };
+  var NAMES = { bow: 'Bow', boomerang: 'Boomerang', hookshot: 'Hookshot', bomb: 'Bombs', mushroom: 'Mushroom', powder: 'Magic Powder',
+    firerod: 'Fire Rod', icerod: 'Ice Rod', bombos: 'Bombos', ether: 'Ether', quake: 'Quake', lamp: 'Lamp', hammer: 'Hammer', shovel: 'Shovel',
+    flute: 'Flute', net: 'Bug Net', book: 'Book of Mudora', somaria: 'Cane of Somaria', byrna: 'Cane of Byrna', cape: 'Magic Cape',
+    mirror: 'Magic Mirror', boots: 'Pegasus Boots', gloves: 'Gloves', flippers: 'Flippers', moonpearl: 'Moon Pearl', sword: 'Sword',
+    shield: 'Shield', tunic: 'Mail', halfmagic: 'Half Magic', agahnim: 'Agahnim', bottle1: 'Bottle', bottle2: 'Bottle', bottle3: 'Bottle', bottle4: 'Bottle' };
+  // the picture for an item at a state: [icon keys], dim
+  function look(key, s) {
+    var I = M.icons;
+    s = s || 0;
+    if (SINGLE[key]) return { ic: [key], off: !s };
+    switch (key) {
+      case 'bow': return { ic: ['bow' + (s || 2)], off: !s };
+      case 'boomerang': return { ic: s === 3 ? ['boomerang1', 'boomerang2'] : ['boomerang' + (s === 2 ? 2 : 1)], off: !s };
+      case 'mushroom': return { ic: ['mushroom'], off: !s, lbl: s === 2 ? '✓' : '' };
+      case 'flute': return { ic: ['flute'], off: !s, lbl: s === 2 ? 'bird' : '' };
+      case 'gloves': return { ic: ['gloves' + (s || 1)], off: !s };
+      case 'sword': return { ic: ['sword' + (s || 1)], off: !s };
+      case 'shield': return { ic: ['shield' + (s || 1)], off: !s };
+      case 'tunic': return { ic: ['tunic' + Math.min(2, s)], off: false };
+      case 'halfmagic': return { tx: '½', off: !s };
+      case 'agahnim': return { tx: s ? '☠' : 'A', off: !s, title: s ? 'Agahnim defeated' : 'Agahnim' };
+      default:
+        if (/^bottle/.test(key)) return { ic: ['bottle' + (s || 1)], off: !s };
+    }
+    return { ic: [key], off: !s };
+  }
+  M.look = look;
+  function iconImg(k) { var u = M.icons[k]; if (!u) return null; var i = new Image(); i.src = u; i.alt = ''; i.draggable = false; return i; }
+  var itemEls = {};
+  function buildItems() {
+    var box = $('items'); box.textContent = '';
+    ITEMS.forEach(function (key) {
+      var b = el('div', 'it'); b.dataset.key = key; b.title = NAMES[key] || key;
+      b.addEventListener('click', function (e) { e.preventDefault(); if (!M.stepItem(key, 1)) M.toast('Hutch’s item tracker isn’t running yet.'); });
+      b.addEventListener('contextmenu', function (e) {
+        e.preventDefault();
+        if (key === 'bombos' || key === 'ether' || key === 'quake') M.medallion(key);
+        else M.stepItem(key, -1);
+      });
+      longPress(b, function () { b.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true })); });
+      box.appendChild(b); itemEls[key] = b;
+    });
+    paintItems();
+  }
+  function itemState(key) {
+    var it = M.items || {};
+    var v = it[key];
+    return typeof v === 'number' ? v : 0;
+  }
+  function paintItems() {
+    var it = M.items || {};
+    ITEMS.forEach(function (key) {
+      var b = itemEls[key]; if (!b) return;
+      var s = itemState(key), L = look(key, s);
+      var sig = JSON.stringify([L, M.iconState, medLabel(key)]);
+      if (b.__sig === sig) return;
+      b.__sig = sig; b.textContent = '';
+      b.classList.toggle('off', !!L.off);
+      b.classList.toggle('two', !!(L.ic && L.ic.length > 1));
+      var drew = false;
+      (L.ic || []).forEach(function (k) { var i = iconImg(k); if (i) { b.appendChild(i); drew = true; } });
+      if (!drew) b.appendChild(el('span', 'tx', L.tx || (NAMES[key] || key).slice(0, 2)));
+      var ml = medLabel(key) || L.lbl;
+      if (ml) b.appendChild(el('span', 'lbl', ml));
+      if (L.title) b.title = L.title;
+    });
+  }
+  function medLabel(key) {
+    var it = M.items || {};
+    if (key !== 'bombos' && key !== 'ether' && key !== 'quake') return '';
+    var n = { bombos: 1, ether: 2, quake: 3 }[key], out = [];
+    if (it.mmMedallion === n) out.push('MM');
+    if (it.trMedallion === n) out.push('TR');
+    return out.join(' ');
+  }
+
+  // ── dungeons ──────────────────────────────────────────────────────────────
+  var DGS = [['hc', 'HC', 'Hyrule Castle'], ['ep', 'EP', 'Eastern Palace'], ['dp', 'DP', 'Desert Palace'], ['toh', 'ToH', 'Tower of Hera'],
+    ['ct', 'AT', 'Agahnim’s Tower'], ['pod', 'PoD', 'Palace of Darkness'], ['sp', 'SP', 'Swamp Palace'], ['sw', 'SW', 'Skull Woods'],
+    ['tt', 'TT', 'Thieves’ Town'], ['ip', 'IP', 'Ice Palace'], ['mm', 'MM', 'Misery Mire'], ['tr', 'TR', 'Turtle Rock'], ['gt', 'GT', 'Ganon’s Tower']];
+  // dungeons.js's list order, by short name
+  function dgIndex(short) { if (!D) return -1; for (var i = 0; i < D.list.length; i++) if (D.list[i][1] === short) return i; return -1; }
+  var dgEls = {};
+  function buildDungeons() {
+    var box = $('dungeons'); box.textContent = '';
+    DGS.forEach(function (d) {
+      var k = d[0], r = el('div', 'dg'); r.title = d[2] + '\nClick: open its map. Chests, keys and items: click to count, right click to undo.';
+      var nm = el('span', 'nm', d[1]), pz = el('span', 'pz'), mid = el('span', 'row'), end = el('span', 'row');
+      var chest = el('span', 'n'), key = el('span', 'key'), bk = el('img', 'ic'), mp = el('img', 'ic'), cp = el('img', 'ic');
+      [bk, mp, cp].forEach(function (i) { i.alt = ''; i.draggable = false; });
+      mid.appendChild(bk); mid.appendChild(mp); mid.appendChild(cp); mid.appendChild(key);
+      end.appendChild(chest);
+      r.appendChild(nm); r.appendChild(pz); r.appendChild(mid); r.appendChild(end);
+      function act(part) {
+        return function (e) { e.stopPropagation(); e.preventDefault(); M.dungeonAct(k, part, e.type === 'contextmenu' ? -1 : 1); };
+      }
+      [[chest, 'chest'], [key, 'key'], [bk, 'bigkey'], [mp, 'map'], [cp, 'compass'], [pz, 'prize']].forEach(function (p) {
+        p[0].style.cursor = 'pointer';
+        p[0].addEventListener('click', act(p[1])); p[0].addEventListener('contextmenu', act(p[1]));
+      });
+      r.addEventListener('click', function () { var i = dgIndex(d[1]); if (i >= 0) selectDg(i); });
+      box.appendChild(r);
+      dgEls[k] = { r: r, pz: pz, chest: chest, key: key, bk: bk, mp: mp, cp: cp };
+    });
+    paintDungeons();
+  }
+  function prizeIcon(name) {
+    return { crystal: 'crystal', redcrystal: 'crystal_red', pendant: 'pendant_blue', greenpendant: 'pendant_green', unknown: '' }[name] || '';
+  }
+  function setImg(img, k) { var u = k && M.icons[k]; if (u) { if (img.getAttribute('src') !== u) img.src = u; img.style.visibility = ''; } else img.style.visibility = 'hidden'; }
+  function paintDungeons() {
+    var it = M.items || {};
+    DGS.forEach(function (d) {
+      var k = d[0], E = dgEls[k]; if (!E) return;
+      var col = M.dcolors[k] || 'red', done = M.dcleared[k];
+      E.r.className = 'dg ' + (done ? 'done' : col);
+      var max = it[k + 'MaxChests'], got = it[k + 'Chests'];
+      var left = max === '?' ? '?' : Math.max(0, (max || 0) - (got || 0));
+      E.chest.textContent = max != null ? left : '';
+      E.chest.className = 'n' + (left === 0 ? ' zero' : '');
+      E.chest.title = max != null ? 'Chests left: ' + left + ' (' + (got || 0) + ' of ' + max + ' found)' : '';
+      var km = it[k + 'MaxSmallKeys'] != null ? it[k + 'MaxSmallKeys'] : it[k + 'SmallKeysMax'];
+      E.key.textContent = km ? '🗝' + (it[k + 'SmallKeys'] || 0) + '/' + km : '';
+      E.key.title = km ? 'Small keys: ' + (it[k + 'SmallKeys'] || 0) + ' of ' + km : '';
+      setImg(E.bk, 'bigkey'); E.bk.classList.toggle('off', !it[k + 'BigKey']);
+      setImg(E.mp, 'map'); E.mp.classList.toggle('off', !it[k + 'Map']);
+      setImg(E.cp, 'compass'); E.cp.classList.toggle('off', !it[k + 'Compass']);
+      var pn = it[k + 'Prize'];
+      E.mp.style.display = E.cp.style.display = k === 'ct' ? 'none' : '';
+      var pk = k === 'hc' || k === 'ct' || k === 'gt' ? null : prizeIcon(pn);
+      var psig = [pk, M.icons[pk] ? 1 : 0, !!it[k + 'PrizeObtained']].join();
+      if (E.pz.__sig !== psig) {
+        E.pz.__sig = psig; E.pz.textContent = '';
+        if (pk && M.icons[pk]) { var pi = iconImg(pk); if (!it[k + 'PrizeObtained']) pi.style.filter = 'grayscale(1) brightness(.45)'; E.pz.appendChild(pi); }
+        else if (pk === '') E.pz.textContent = '?';
+      }
+      E.pz.title = pn ? pn.replace('green', 'green ').replace('red', 'red ') : '';
+    });
+  }
+
+  // ── long press (phones): the same as a right click ────────────────────────
+  function longPress(node, fn) {
+    var t = null, sx = 0, sy = 0;
+    node.addEventListener('touchstart', function (e) { var p = e.touches[0]; sx = p.clientX; sy = p.clientY; t = setTimeout(function () { t = 'done'; fn(); }, 480); }, { passive: true });
+    node.addEventListener('touchmove', function (e) { var p = e.touches[0]; if (t && t !== 'done' && Math.abs(p.clientX - sx) + Math.abs(p.clientY - sy) > 10) { clearTimeout(t); t = null; } }, { passive: true });
+    node.addEventListener('touchend', function (e) { if (t === 'done') e.preventDefault(); else clearTimeout(t); t = null; });
+  }
+
+  // ── the two worlds ────────────────────────────────────────────────────────
+  var views = [];
+  function WorldView(world) {
+    var self = this;
+    this.world = world;
+    this.box = el('div', 'wv');
+    this.inner = el('div', 'inner');
+    this.tiles = el('div'); this.grid = el('div', 'grid'); this.pins = el('div');
+    this.inner.appendChild(this.tiles); this.inner.appendChild(this.grid); this.inner.appendChild(this.pins);
+    this.box.appendChild(this.inner);
+    this.box.appendChild(el('div', 'wname', world === 'lw' ? 'Light World' : 'Dark World'));
+    this.zoom = 0.1; this.pan = [0, 0]; this.userMoved = false; this.pinEls = {};
+    // wheel / pinch zoom, drag to move, double-click / double-tap to fit
+    var pts = new Map(), pinch = null, drag = null, lastTap = 0, box = this.box;
+    box.addEventListener('wheel', function (e) { e.preventDefault(); self.zoomAt(e.clientX, e.clientY, e.deltaY < 0 ? 1.2 : 1 / 1.2); }, { passive: false });
+    box.addEventListener('dblclick', function (e) { if (!e.target.closest('.pin')) self.fit(); });
+    box.addEventListener('pointerdown', function (e) {
+      if (e.isPrimary) { pts.clear(); pinch = null; drag = null; }
+      pts.set(e.pointerId, [e.clientX, e.clientY]);
+      if (e.pointerType === 'touch' && !e.target.closest('.pin')) { try { box.setPointerCapture(e.pointerId); } catch (x) {} }
+      if (pts.size === 2) { var a = Array.from(pts.values()), d = Math.hypot(a[0][0] - a[1][0], a[0][1] - a[1][1]); pinch = d > 20 ? { d: d, z: self.zoom, c: [(a[0][0] + a[1][0]) / 2, (a[0][1] + a[1][1]) / 2] } : null; drag = null; }
+      else drag = { x: e.clientX, y: e.clientY, p: self.pan.slice(), moved: false };
+    });
+    box.addEventListener('pointermove', function (e) {
+      if (!pts.has(e.pointerId)) return;
+      pts.set(e.pointerId, [e.clientX, e.clientY]);
+      if (pinch && pts.size === 2) {
+        var a = Array.from(pts.values()), d = Math.hypot(a[0][0] - a[1][0], a[0][1] - a[1][1]);
+        self.setZoomAt(pinch.c[0], pinch.c[1], self.clampZ(pinch.z * Math.max(0.25, Math.min(4, d / pinch.d))));
+      } else if (drag) {
+        if (Math.abs(e.clientX - drag.x) + Math.abs(e.clientY - drag.y) > 4) drag.moved = true;
+        if (drag.moved) { self.pan = [drag.p[0] + e.clientX - drag.x, drag.p[1] + e.clientY - drag.y]; self.userMoved = true; self.apply(); }
+      }
+    });
+    function upEv(e) {
+      pts.delete(e.pointerId); if (pts.size < 2) pinch = null;
+      if (!pts.size) {
+        if (e.pointerType === 'touch' && drag && !drag.moved && !e.target.closest('.pin')) {
+          var now = Date.now(); if (now - lastTap < 300) { self.fit(); lastTap = 0; } else lastTap = now;
+        }
+        drag = null;
+      }
+    }
+    box.addEventListener('pointerup', upEv); box.addEventListener('pointercancel', upEv);
+    views.push(this);
+    this.paintTiles();
+  }
+  WorldView.prototype.clampZ = function (z) { var f = this.fitZ || 0.05; return Math.max(f * 0.8, Math.min(4, z)); };
+  WorldView.prototype.paintTiles = function () {
+    var maps = M.romMaps && M.romMaps[this.world === 'lw' ? 'light' : 'dark'];
+    var key = maps ? maps[0] : 'none';
+    if (this.__tiles === key) return;
+    this.__tiles = key; this.tiles.textContent = '';
+    if (!maps) { this.tiles.appendChild(el('div', 'nomap')); return; }
+    var self = this;
+    maps.forEach(function (u, i) {
+      var im = el('img', 'tile'); im.src = u; im.alt = ''; im.draggable = false;
+      im.style.left = (i % 8) * 512 + 'px'; im.style.top = Math.floor(i / 8) * 512 + 'px';
+      self.tiles.appendChild(im);
+    });
+  };
+  WorldView.prototype.fit = function () {
+    var W = this.box.clientWidth, H = this.box.clientHeight;
+    if (!W || !H) return;
+    this.userMoved = false;
+    this.zoom = this.fitZ = Math.min(W, H) / 4096;
+    this.pan = [(W - 4096 * this.zoom) / 2, (H - 4096 * this.zoom) / 2];
+    this.apply();
+  };
+  WorldView.prototype.apply = function () {
+    this.inner.style.transform = 'translate(' + this.pan[0] + 'px,' + this.pan[1] + 'px) scale(' + this.zoom + ')';
+    // pins keep the same size on screen, a little bigger when zoomed in
+    this.inner.style.setProperty('--pz', (1 / this.zoom) * (this.box.clientWidth < 500 ? 0.85 : 1) * Math.min(1.8, Math.max(1, Math.sqrt(this.zoom / (this.fitZ || this.zoom)))));
+    this.box.style.imageRendering = this.zoom >= 0.5 ? 'pixelated' : '';
+  };
+  WorldView.prototype.zoomAt = function (cx, cy, f) { this.setZoomAt(cx, cy, this.clampZ(this.zoom * f)); };
+  WorldView.prototype.setZoomAt = function (cx, cy, z) {
+    var r = this.box.getBoundingClientRect(), x = cx - r.left, y = cy - r.top;
+    this.pan = [x - (x - this.pan[0]) * z / this.zoom, y - (y - this.pan[1]) * z / this.zoom];
+    this.zoom = z; this.userMoved = true; this.apply();
+  };
+  WorldView.prototype.paintPins = function () {
+    var self = this, seen = {};
+    M.checks.forEach(function (c) {
+      if (c.world !== self.world) return;
+      var id = 'c' + c.id; seen[id] = 1;
+      var p = self.pinEls[id];
+      if (!p) {
+        p = self.pinEls[id] = el('div', 'pin');
+        var at = M.checkAt(c); p.style.left = at.x + 'px'; p.style.top = at.y + 'px';
+        hookPin(p, function () { return { kind: 'check', c: c }; });
+        self.pins.appendChild(p);
+      }
+      var col = M.colors[c.id];
+      var cls = 'pin ' + (col === null ? 'gone' : M.cleared[c.id] ? 'done' : (col || 'red'));
+      if (p.className !== cls) p.className = cls;
+      var mk = M.marks[c.id];
+      var cur = p.querySelector('img');
+      if (mk && M.icons[mk]) { if (!cur) { cur = el('img'); cur.alt = ''; p.appendChild(cur); } if (cur.getAttribute('src') !== M.icons[mk]) cur.src = M.icons[mk]; }
+      else if (cur) cur.remove();
+    });
+    Object.keys(M.dungeons).forEach(function (k) {
+      var d = M.dungeons[k]; if (!d || d.world !== self.world) return;
+      var id = 'd' + k; seen[id] = 1;
+      var p = self.pinEls[id];
+      if (!p) {
+        p = self.pinEls[id] = el('div', 'pin dgn');
+        var at = M.dungeonAt(k); if (!at) return;
+        p.style.left = at.x + 'px'; p.style.top = at.y + 'px';
+        hookPin(p, function () { return { kind: 'dungeon', k: k }; });
+        self.pins.appendChild(p);
+      }
+      var cls = 'pin dgn ' + (M.dcleared[k] ? 'done' : (M.dcolors[k] || 'red'));
+      if (p.className !== cls) p.className = cls;
+    });
+    Object.keys(this.pinEls).forEach(function (id) { if (!seen[id]) { self.pinEls[id].remove(); delete self.pinEls[id]; } });
+  };
+
+  function layoutWorlds() {
+    var w = $('worlds'), W = w.clientWidth, H = w.clientHeight;
+    var stack = W && H && (H / 2 > W / 2 ? Math.min(W, H / 2) > Math.min(W / 2, H) : false);
+    w.classList.toggle('stack', !!stack);
+    views.forEach(function (v) { v.box.style.display = phoneTab && phoneTab !== 'items' ? (phoneTab === v.world ? '' : 'none') : ''; });
+    requestAnimationFrame(function () { views.forEach(function (v) { if (!v.userMoved || !v.fitZ) v.fit(); else v.apply(); }); });
+  }
+
+  // ── the card: what's at a check, and what to do about it ──────────────────
+  var card = $('card'), cardFor = null, cardSticky = false, cardTimer = null;
+  function hookPin(p, what) {
+    if (!touch) {
+      p.addEventListener('mouseenter', function () { if (!cardSticky) showCard(what(), p, false); });
+      p.addEventListener('mouseleave', function () { if (!cardSticky) cardTimer = setTimeout(hideCard, 250); });
+    }
+    p.addEventListener('click', function (e) { e.stopPropagation(); showCard(what(), p, true); });
+    p.addEventListener('contextmenu', function (e) { e.preventDefault(); e.stopPropagation(); var w = what(); showCard(w, p, true, w.kind === 'check'); });
+    longPress(p, function () { var w = what(); showCard(w, p, true, w.kind === 'check'); });
+  }
+  card.addEventListener('mouseenter', function () { clearTimeout(cardTimer); });
+  card.addEventListener('mouseleave', function () { if (!cardSticky) cardTimer = setTimeout(hideCard, 250); });
+  document.addEventListener('pointerdown', function (e) { if (card.classList.contains('show') && !card.contains(e.target) && !e.target.closest('.pin')) hideCard(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') hideCard(); });
+  function hideCard() { card.classList.remove('show'); cardFor = null; cardSticky = false; document.querySelectorAll('.pin.hl').forEach(function (p) { p.classList.remove('hl'); }); }
+  function showCard(w, pin, sticky, picking) {
+    clearTimeout(cardTimer);
+    cardFor = { w: w, pin: pin }; cardSticky = sticky;
+    document.querySelectorAll('.pin.hl').forEach(function (p) { p.classList.remove('hl'); });
+    pin.classList.add('hl');
+    fillCard(picking);
+    card.classList.add('show');
+    var r = pin.getBoundingClientRect(), cw = card.offsetWidth, ch = card.offsetHeight;
+    var x = r.right + 8, y = r.top - 8;
+    if (x + cw > innerWidth - 6) x = r.left - cw - 8;
+    if (x < 6) x = Math.max(6, Math.min(innerWidth - cw - 6, r.left - cw / 2));
+    if (y + ch > innerHeight - 6) y = innerHeight - ch - 6;
+    card.style.left = Math.max(6, x) + 'px'; card.style.top = Math.max(6, y) + 'px';
+  }
+  function fillCard(picking) {
+    if (!cardFor) return;
+    var w = cardFor.w; card.textContent = '';
+    var x = el('button', 'x', '✕'); x.type = 'button'; x.title = 'Close (Esc)'; x.addEventListener('click', hideCard); card.appendChild(x);
+    var btns = el('div', 'btns');
+    function btn(label, fn, title) { var b = el('button', null, label); b.type = 'button'; if (title) b.title = title; b.addEventListener('click', function (e) { e.stopPropagation(); fn(); }); btns.appendChild(b); }
+    if (w.kind === 'check') {
+      var c = w.c, done = !!M.cleared[c.id], col = done ? 'done' : (M.colors[c.id] || 'red');
+      card.appendChild(el('h4', null, c.name));
+      var st = el('div', 'st'); var i = el('i'); i.style.background = CSS[col] || '#555'; st.appendChild(i); st.appendChild(document.createTextNode(COLOR_WORD[col] || col)); card.appendChild(st);
+      if (M.marks[c.id]) { var m = el('div', 'st', 'Marked: '); var mi = iconImg(M.marks[c.id]); if (mi) { mi.style.width = mi.style.height = '20px'; mi.style.verticalAlign = 'middle'; mi.style.imageRendering = 'pixelated'; m.appendChild(mi); } card.appendChild(m); }
+      btn(done ? '↺ Not done' : '✓ Done', function () { M.toggleCheck(c.id, !done); hideCard(); }, done ? 'Open it again' : 'Mark it collected');
+      btn('Mark an item…', function () { fillCard(true); }, 'Note which item is there (shows on the map)');
+      card.appendChild(btns);
+      if (picking) {
+        var pick = el('div', 'pick');
+        var keys = ['bow2', 'boomerang1', 'boomerang2', 'hookshot', 'bomb', 'mushroom', 'powder', 'firerod', 'icerod', 'bombos', 'ether', 'quake', 'lamp', 'hammer',
+          'shovel', 'flute', 'net', 'book', 'bottle1', 'somaria', 'byrna', 'cape', 'mirror', 'boots', 'gloves1', 'gloves2', 'flippers', 'moonpearl',
+          'sword1', 'shield1', 'tunic1', 'bow3', 'bigkey', 'map', 'compass', 'crystal', 'pendant_green'];
+        keys.forEach(function (k) {
+          if (!M.icons[k]) return;
+          var b = el('button'); b.type = 'button'; b.title = k; var im = iconImg(k); b.appendChild(im);
+          b.addEventListener('click', function (e) { e.stopPropagation(); M.mark(c.id, k); fillCard(false); });
+          pick.appendChild(b);
+        });
+        if (M.marks[c.id]) { var cl = el('button', null, '✕'); cl.type = 'button'; cl.title = 'Clear the mark'; cl.addEventListener('click', function (e) { e.stopPropagation(); M.mark(c.id, null); fillCard(false); }); pick.appendChild(cl); }
+        if (!pick.children.length) pick.appendChild(el('span', null, 'Item pictures are still being drawn from the game…'));
+        card.appendChild(pick);
+      }
+    } else {
+      var k = w.k, nm = (DGS.filter(function (d) { return d[0] === k; })[0] || [k, k, k])[2], it = M.items || {};
+      card.appendChild(el('h4', null, nm));
+      var dc = M.dcleared[k] ? 'done' : (M.dcolors[k] || 'red');
+      var s2 = el('div', 'st'); var i2 = el('i'); i2.style.background = CSS[dc] || '#555'; s2.appendChild(i2); s2.appendChild(document.createTextNode(COLOR_WORD[dc] || dc)); card.appendChild(s2);
+      var max = it[k + 'MaxChests'];
+      if (max != null) card.appendChild(el('div', 'st', 'Chests: ' + (it[k + 'Chests'] || 0) + ' of ' + max + (it[k + 'BigKey'] ? ' · big key ✓' : '')));
+      var short = (DGS.filter(function (d) { return d[0] === k; })[0] || [])[1];
+      btn('Open its map', function () { var i = dgIndex(short); hideCard(); if (i >= 0) selectDg(i); });
+      card.appendChild(btns);
+    }
+  }
+
+  // ── World / dungeon buttons, and the dungeon map ──────────────────────────
+  var dgSel = -1, dgView = null, dgBtns = [];
+  function buildDgBar() {
+    var bar = $('dgbar'); bar.textContent = '';
+    function mk(i, label, title) {
+      var b = el('button', 'dg-btn', label); b.type = 'button'; b.title = title;
+      b.addEventListener('click', function () { selectDg(i); });
+      bar.appendChild(b); dgBtns.push(b);
+    }
+    mk(-1, 'World', 'The Light and Dark World');
+    if (D) {
+      D.list.forEach(function (d, i) { mk(i, d[1], d[2]); });
+      dgView = new D.View($('dgview'));
+      D.onEnter = function (dg) { selectDg(dg); };
+    }
+  }
+  function selectDg(i) { dgSel = i; paintDg(); }
+  function paintDg() {
+    var here = D ? D.where().dg : -1;
+    $('worlds').style.display = dgSel < 0 ? '' : 'none';
+    $('dgview').style.display = dgSel < 0 ? 'none' : '';
+    dgBtns.forEach(function (b, k) {
+      var i = k - 1;
+      b.classList.toggle('on', i === dgSel);
+      b.classList.toggle('here', i >= 0 && i === here);
+      b.classList.toggle('seen', i >= 0 && D && D.explored(i));
+    });
+    if (dgSel >= 0 && dgView && dgView.dg !== dgSel) dgView.show(dgSel);
+    if (dgSel < 0) layoutWorlds();
+  }
+  setInterval(paintDg, 1000);
+
+  // ── footer: counters from the game ────────────────────────────────────────
+  function paintStats() {
+    var it = M.items || {}, g = it.gtBk || null, s = $('stats');
+    var parts = [['Checks', it.checks || 0], ['Deaths', it.deaths || 0], ['Bonks', it.bonks || 0]];
+    var html = parts.map(function (p) { return '<span>' + p[0] + ' <b>' + p[1] + '</b></span>'; }).join('');
+    if (g && g.enabled !== false) html += '<span title="Ganon’s Tower: chests opened, and which chest had the big key">GT chests <b>' + (g.chests || 0) + '</b>/26' + (g.found ? ' · big key at <b>' + (g.at != null ? g.at : '?') + '</b>' : '') + '</span>';
+    s.innerHTML = html;
+  }
+
+  // ── link status ───────────────────────────────────────────────────────────
+  function paintLink() {
+    var l = $('link'), t = $('link-t');
+    var on = M.linked && !!M.items;
+    l.classList.toggle('on', on);
+    t.textContent = !M.linked ? 'Waiting for Hutch’s logic…' : !M.items ? 'Waiting for the item tracker…' : M.iconState === 'drawing' ? 'Drawing items from the game…' : 'Live';
+  }
+
+  // ── options ───────────────────────────────────────────────────────────────
+  var SIZE_KEY = 'rhb-mudora-isize', isize = 'auto';
+  try { isize = localStorage.getItem(SIZE_KEY) || 'auto'; } catch (e) {}
+  function applySize() {
+    var side = $('side'), px;
+    if (isize === 'auto') {
+      var W = phoneTab === 'items' ? innerWidth - 24 : Math.min(innerWidth * 0.32, 340);
+      px = Math.max(26, Math.min(phoneTab ? 48 : 64, Math.floor((W - 30 - 5 * 4) / 6)));
+    } else px = +isize;
+    document.documentElement.style.setProperty('--isz', px + 'px');
+  }
+  $('isize').value = isize;
+  $('isize').addEventListener('change', function () { isize = this.value; try { localStorage.setItem(SIZE_KEY, isize); } catch (e) {} applySize(); layoutWorlds(); });
+  var gridOn = true;
+  try { gridOn = localStorage.getItem('rhb-mudora-grid') !== '0'; } catch (e) {}
+  $('o-grid').checked = gridOn; document.body.classList.toggle('no-grid', !gridOn);
+  $('o-grid').addEventListener('change', function () { document.body.classList.toggle('no-grid', !this.checked); try { localStorage.setItem('rhb-mudora-grid', this.checked ? '1' : '0'); } catch (e) {} });
+  function dgModes() {
+    var sel = $('dgmode');
+    if (!D) { sel.parentNode.style.display = 'none'; return; }
+    var opts = [['explore', 'Explore (fog of war)'], ['map', 'Map (like the game)']];
+    if (!document.body.classList.contains('phone')) opts.push(['full', 'Full (every room)']);
+    var sig = opts.map(function (o) { return o[0]; }).join();
+    if (sel.__sig !== sig) { sel.__sig = sig; sel.textContent = ''; opts.forEach(function (o) { var e = el('option', null, o[1]); e.value = o[0]; sel.appendChild(e); }); }
+    sel.value = D.mode();
+  }
+  $('dgmode').addEventListener('change', function () {
+    var m = this.value;
+    if (m === 'full' && D.pref() !== 'full' && !confirm('Full dungeon maps show every room of every dungeon right away, before you’ve been there.\n\n' +
+        'That’s meant for players new to rando: seeing the whole dungeon helps find the way to each check (and the pots in pot shuffle). ' +
+        'It gives away the layout, so if you like finding your own way, keep Explore.\n\nUse full maps?')) { this.value = D.mode(); return; }
+    D.setMode(m);
+  });
+  $('gear').addEventListener('click', function () { document.body.classList.toggle('bar-open'); setTimeout(onResize, 30); });
+  $('b-help').addEventListener('click', function () {
+    alert('Mudora — Rando Hub’s own tracker.\n\n' +
+      'Logic: Hutch’s tracker, unchanged (it runs out of sight and Mudora shows its answers). Pictures, maps and where each check sits come from your game itself.\n\n' +
+      'Items: click to go up, right click (hold on a phone) to go back. Right click Bombos, Ether or Quake to mark which of Misery Mire / Turtle Rock it opens.\n' +
+      'Map: point at a square (tap it) to see the check. ✓ Done marks it collected, ↺ opens it again. Right click (hold) a square to mark which item is there.\n' +
+      'Dungeons: click a dungeon to open its map (entering one in the game shows it too). Chests, small keys, big key, map and compass: click to count, right click to undo.\n\n' +
+      'Zoom with the wheel or a pinch, drag to move, double-click (double-tap) to fit.');
+  });
+
+  // ── phone: Rando Hub's tabs (items / Light World / Dark World) ────────────
+  var phoneTab = null;
+  window.MudoraPhone = {
+    set: function (t) {
+      t = t === 'lw' || t === 'dw' || t === 'items' ? t : null;
+      phoneTab = t;
+      document.body.classList.toggle('phone', !!t);
+      ['items', 'lw', 'dw'].forEach(function (x) { document.body.classList.toggle('ph-' + x, t === x); });
+      dgModes(); applySize(); layoutWorlds();
+    },
+    zoom: function (dir) {
+      var v = views.filter(function (x) { return x.box.offsetParent; })[0];
+      if (v) { var r = v.box.getBoundingClientRect(); v.zoomAt(r.left + r.width / 2, r.top + r.height / 2, dir > 0 ? 1.4 : 1 / 1.4); }
+    },
+  };
+  var qs = new URLSearchParams(location.search);
+  if (qs.get('phone')) window.MudoraPhone.set(qs.get('phone'));
+
+  // ── start ─────────────────────────────────────────────────────────────────
+  function onResize() { applySize(); layoutWorlds(); }
+  var rt = null;
+  window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(onResize, 80); });
+  buildItems(); buildDungeons(); buildDgBar();
+  ['lw', 'dw'].forEach(function (w) { $('worlds').appendChild(new WorldView(w).box); });
+  applySize(); dgModes(); paintDg(); paintStats(); paintLink();
+  M.on(function (what) {
+    if (what === 'items') { paintItems(); paintDungeons(); paintStats(); paintLink(); }
+    else if (what === 'checks') { views.forEach(function (v) { v.paintPins(); }); paintDungeons(); if (cardFor && !cardSticky) fillCard(false); }
+    else if (what === 'dungeons') paintDungeons();
+    else if (what === 'maps') views.forEach(function (v) { v.paintTiles(); });
+    else if (what === 'icons') { paintItems(); paintDungeons(); views.forEach(function (v) { v.paintPins(); }); var bi = $('brand-ic'); if (M.icons.book) bi.src = M.icons.book; paintLink(); }
+    else if (what === 'link') paintLink();
+  });
+  setTimeout(onResize, 50);
+})();
