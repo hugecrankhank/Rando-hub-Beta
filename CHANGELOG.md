@@ -5,6 +5,17 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta: Mudora 2.0 launch and autotracking fixes (2026-10-20)
+
+- **Presets/Launch needing two tries:** launching saves the new game first, and with the
+  game running that took several seconds with nothing on screen, so it looked like the
+  first click did nothing (and a second click started a second game). Launch now shows
+  "Launching…" straight away and ignores repeat clicks.
+- **Autotracking:** Muffins' tracker is now always pointed at Rando Hub's emulator (a
+  leftover SNI choice from his launch page could leave it unconnected). Mudora 2.0's
+  status line says whether autotracking is on, waiting for the game, or switched off,
+  and ⚙ Settings has an Autotracking switch.
+
 ## Beta: dungeon maps without the magic meter (2026-10-20)
 
 - **Explore dungeon maps** no longer pick up the magic meter: it was copied from the game's
