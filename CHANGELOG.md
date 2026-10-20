@@ -5,6 +5,13 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta: fixes (2026-10-19)
+
+- **Boss detour to Thieves' Town: Blind now appears.** He only shows up after the
+  maiden has turned into him (a flag on his room) and with no maiden following Link;
+  the detour now sets that for the trip (the save state puts it back afterwards).
+  Tested on a vanilla and a randomized ROM: Blind spawns in his room.
+
 ## Beta: Mudora (2026-10-19)
 
 - **Tracker → Mudora (beta):** Rando Hub's own tracker, named after the Book of Mudora

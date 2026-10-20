@@ -864,6 +864,14 @@
     if (!snap || !snap.length) return 'Could not save the game first, so no detour';
     detour = { key: key, boss: b, by: job.user || '', state: 'entering', snap: snap.slice ? snap.slice() : snap, frames: 0,
       total: Math.round(detourSecs(job.id) * (core.fps || 60.1)), hpMax: ram[A.HP_MAX], wait: 0 };
+    // Blind only shows up once the maiden has turned into him: his room's
+    // flag (save word bit 0x0200, which the game moves to $0402 bit 0x2000;
+    // zelda3 SpritePrep_Blind_PrepareBattle) and no maiden following Link.
+    // Set for the trip only; the save state puts both back.
+    if (b.room === 0xAC) {
+      ram[0xF000 + 0xAC * 2 + 1] |= 0x02;
+      if (ram[0xF3CC] === 0x06) ram[0xF3CC] = 0;
+    }
     // 1. drop in through the entrance
     ram[0x10E] = b.entrance; ram[0x10F] = 0;
     ram[0x10] = 0x11; ram[0x11] = 0; ram[0xB0] = 0;
