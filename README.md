@@ -264,6 +264,11 @@ Hutch's trackers runs, and switches straight away, mid-game too:
   it. That repository only holds the files a beta changes, and is empty between
   betas (his v1.1.20 beta became the release on 8 Oct); then there's no
   `tracker-beta/` and Beta shows "same as release right now".
+- **Mudora (beta)**: Rando Hub's own tracker, with Hutch's logic (`mudora/`).
+- **Mudora 2.0 (beta, Muffins logic)**: Mudora's look with the logic and settings of
+  Muffins' Tracker 2.0 (`mudora2/`).
+- **Muffins Tracker 2.0 (beta)**: [his tracker](https://github.com/KrisDavie/alttptracker)
+  itself, built unchanged (`mfns-tracker/`).
 - **Off**: no tracker is loaded and the game fills the screen under the header,
   in every layout. With the on-screen controller showing it moves off the
   picture: under it when a phone or iPad is upright, on both sides when
@@ -785,6 +790,11 @@ Rando Hub wouldn't be what it is without these people. Thank you!
 
 - Tracker: [Hutch-ALTTPR Tracker](https://github.com/hutchch/ALTTPR-Tracker)
   by Hutch (hutchch), MIT License (see `tracker/LICENSE`).
+- Muffins' Tracker 2.0 (Tracker → Muffins Tracker 2.0, and the logic and settings of
+  Tracker → Mudora 2.0): [alttptracker](https://github.com/KrisDavie/alttptracker)
+  (`react_rewrite`) by Muffins / Kristofer Davie (MFNS), MIT License (see
+  `mfns-tracker/LICENSE`), built unchanged. Tracker or logic bugs: his Discord;
+  bugs in how it runs or looks inside Rando Hub: Rando Hub.
 - Emulator: [Snes9x](https://github.com/snes9xgit/snes9x) (libretro core), non-commercial
   license (`emu/build/LICENSES/snes9x-LICENSE`); libretro GLSL shaders, each under
   the license in its header (xBRZ is GPL-3.0).
