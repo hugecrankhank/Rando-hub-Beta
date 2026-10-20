@@ -322,6 +322,8 @@
     // pins keep their size on screen, a little bigger when zoomed in
     var ps = (this.box.clientWidth < 500 ? 0.85 : 1) * Math.min(1.8, Math.max(1, Math.sqrt(z / (this.fitZ || z))));
     this.pins.style.setProperty('--pz', ps);
+    // small screens: entrance tags only once zoomed in a little (they'd cover the map)
+    this.pins.classList.toggle('notag', this.box.clientWidth < 500 && z < (this.fitZ || z) * 1.5);
     Object.keys(this.pinEls).forEach(function (id) {
       var p = self.pinEls[id];
       p.style.left = (px + p.__x * z) + 'px'; p.style.top = (py + p.__y * z) + 'px';
@@ -653,7 +655,18 @@
   }
   window.MudoraResetMaps = resetMaps;
   $('b-reset').addEventListener('click', resetMaps);
-  $('gear').addEventListener('click', function () { document.body.classList.toggle('bar-open'); setTimeout(onResize, 30); });
+  $('gear').addEventListener('click', function (e) { e.stopPropagation(); document.body.classList.toggle('bar-open'); });
+  // phone: tapping anywhere else closes the options
+  document.addEventListener('pointerdown', function (e) {
+    if (!document.body.classList.contains('bar-open') || !document.body.classList.contains('phone')) return;
+    if (e.target.closest('#bar') || e.target.closest('#gear') || e.target.closest('#set') || e.target.closest('#card')) return;
+    document.body.classList.remove('bar-open');
+  });
+  // on a phone the colour key lives with the options, not under the map
+  function placeLegend() {
+    var lg = $('legend'), want = document.body.classList.contains('phone') ? $('bar') : $('foot');
+    if (lg && lg.parentNode !== want) want.appendChild(lg);
+  }
   $('b-help').addEventListener('click', function () {
     if (M.helpText) { alert(M.helpText); return; }
     alert('Mudora — Rando Hub’s own tracker.\n\n' +
@@ -672,7 +685,7 @@
       phoneTab = t;
       document.body.classList.toggle('phone', !!t);
       ['items', 'keys', 'lw', 'dw'].forEach(function (x) { document.body.classList.toggle('ph-' + x, t === x); });
-      dgModes(); applySize(); layoutWorlds();
+      dgModes(); applySize(); placeLegend(); layoutWorlds();
     },
     zoom: function (dir) {
       var v = views.filter(function (x) { return x.box.offsetParent; })[0];

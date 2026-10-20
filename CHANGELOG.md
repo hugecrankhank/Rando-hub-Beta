@@ -5,6 +5,15 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta: Mudora on phones: more room for the map (2026-10-20)
+
+- The options (dungeon maps, item size, grid, Settings, Reset maps, help, and on Mudora 2.0
+  Muffins' tracker / New game) and the colour key now sit behind the ⚙ at the bottom
+  right and open over the map instead of pushing it down; tap anywhere else to close
+  them. The map gets the whole width.
+- Entrance tags (where each door leads) show once you zoom in a little, so the zoomed-out
+  map isn't covered in labels.
+
 ## Beta: Mudora 2.0 presets in Settings (2026-10-20)
 
 - **⚙ Settings → New game from a preset:** pick any of Muffins' presets (OnlyADKD is
