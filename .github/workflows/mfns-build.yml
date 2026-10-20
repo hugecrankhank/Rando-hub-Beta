@@ -3,6 +3,8 @@ on:
   push:
     branches: [mfns-build]
   workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -20,7 +22,13 @@ jobs:
           bun install --frozen-lockfile || bun install
           bunx vite build --base=/Rando-hub-Beta/mfns-tracker/app/
           git rev-parse HEAD > dist/SOURCE_COMMIT
-      - uses: actions/upload-artifact@v4
-        with:
-          name: mfns-dist
-          path: src-mfns/dist
+      # the built files go back into this branch (mfns-tracker/app/), so they
+      # can be tested before anything is published
+      - name: Commit the build to this branch
+        run: |
+          rm -rf mfns-tracker/app && mkdir -p mfns-tracker && cp -r src-mfns/dist mfns-tracker/app
+          rm -rf src-mfns
+          git config user.name "github-actions" && git config user.email "github-actions@users.noreply.github.com"
+          git add mfns-tracker/app
+          git diff --cached --quiet || git commit -qm "MFNS tracker build $(cat mfns-tracker/app/SOURCE_COMMIT | cut -c1-7) [skip ci]"
+          git push -q origin HEAD:mfns-build
