@@ -335,7 +335,7 @@
       pts.set(e.pointerId, [e.clientX, e.clientY]);
       if (pinch && pts.size === 2) {
         var a = Array.from(pts.values()), d = Math.hypot(a[0][0] - a[1][0], a[0][1] - a[1][1]);
-        self.setZoomAt(pinch.c[0], pinch.c[1], Math.max(0.02, Math.min(20, pinch.z * d / pinch.d)));
+        self.setZoomAt(pinch.c[0], pinch.c[1], Math.max(0.02, Math.min(2.5, pinch.z * d / pinch.d)));
       } else if (drag) {
         if (Math.abs(e.clientX - drag.x) + Math.abs(e.clientY - drag.y) > 3) drag.moved = true;
         self.pan = [drag.p[0] + e.clientX - drag.x, drag.p[1] + e.clientY - drag.y]; self.userMoved = true; self.apply();
@@ -481,7 +481,7 @@
     this.inner.classList.toggle('sharp', this.zoom >= 1);
     this.dot.style.transform = 'translate(-50%,-50%) scale(' + (1 / this.zoom) + ')';
   };
-  View.prototype.zoomAt = function (cx, cy, f) { this.setZoomAt(cx, cy, Math.max(0.02, Math.min(20, this.zoom * f))); };
+  View.prototype.zoomAt = function (cx, cy, f) { this.setZoomAt(cx, cy, Math.max(0.02, Math.min(2.5, this.zoom * f))); };
   View.prototype.setZoomAt = function (cx, cy, z) {
     var r = this.box.getBoundingClientRect(), x = cx - r.left, y = cy - r.top;
     this.pan = [x - (x - this.pan[0]) * z / this.zoom, y - (y - this.pan[1]) * z / this.zoom];

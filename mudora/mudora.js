@@ -165,11 +165,17 @@
       return any ? ('00000000' + h.toString(16)).slice(-8) : null;
     } catch (e) { return null; }
   }
-  var lastSerial = -1;
+  // Hashing reads 2 MB, so only when the game itself may have changed: a new
+  // emulator core (a new ROM means a page reload or a new core), or a ROM
+  // that looks different at a few spots, checked cheaply.
+  var lastCore = null, lastPeek = '';
+  function peek(b) { try { var a = b.read(0x7FC0, 64), c = b.read(0x7FFC0, 32); return Array.prototype.join.call(a, ',') + '|' + Array.prototype.join.call(c, ','); } catch (e) { return ''; } }
   function checkGame() {
     var b = M.bridge(), P = M.player(), core = P && P.core;
     if (!b) return;
-    // the ROM only changes on a new game, so only hash when the core is new or a few seconds pass
+    var pk = peek(b);
+    if (core === lastCore && pk === lastPeek && M.game) return;
+    lastCore = core; lastPeek = pk;
     var g = romHash(b);
     if (!g || g === M.game) return;
     M.game = g;

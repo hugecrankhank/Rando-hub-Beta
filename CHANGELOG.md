@@ -26,6 +26,10 @@ played again later.
     Not done and marking which item is at a check, counters (checks, deaths, bonks,
     Ganon's Tower chests and where its big key was), the colour key, and the phone
     tabs (Items / Light World / Dark World). "⧉ Mudora" opens it in its own window.
+  - Fixed: zooming the map could crash iPhone Safari (out of memory). The worlds are now
+    drawn on a canvas the size of the screen: a small copy of the whole world when
+    zoomed out, only the screens in view at full detail when zoomed in. Dungeon maps
+    zoom in at most 2.5×.
 
 ## Beta: EmoTracker (2026-10-19)
 
