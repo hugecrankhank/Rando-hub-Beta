@@ -344,6 +344,22 @@
       if (mk && M.icons[mk]) { if (!cur) { cur = el('img'); cur.alt = ''; p.appendChild(cur); } if (cur.getAttribute('src') !== M.icons[mk]) cur.src = M.icons[mk]; }
       else if (cur) cur.remove();
     });
+    // a second spot for some checks (same state as the check itself)
+    (M.ALSO || []).forEach(function (a) {
+      if (a.world !== self.world) return;
+      var c = M.checks.filter(function (x) { return x.id === a.id; })[0]; if (!c) return;
+      var id = 'a' + a.id + a.world; seen[id] = 1;
+      var p = self.pinEls[id];
+      if (!p) {
+        p = self.pinEls[id] = el('div', 'pin');
+        self.place(p, { x: a.at[0], y: a.at[1] });
+        hookPin(p, function () { return { kind: 'check', c: c, label: a.name }; });
+        self.pins.appendChild(p);
+      }
+      var col = M.colors[c.id];
+      var cls = 'pin ' + (col === null ? 'gone' : M.cleared[c.id] ? 'done' : (col || 'red'));
+      if (p.className !== cls) p.className = cls;
+    });
     Object.keys(M.dungeons).forEach(function (k) {
       var d = M.dungeons[k]; if (!d || d.world !== self.world) return;
       var at = M.dungeonAt(k); if (!at) return;
@@ -365,7 +381,7 @@
     var w = $('worlds'), W = w.clientWidth, H = w.clientHeight;
     var stack = W && H && (H / 2 > W / 2 ? Math.min(W, H / 2) > Math.min(W / 2, H) : false);
     w.classList.toggle('stack', !!stack);
-    views.forEach(function (v) { v.box.style.display = phoneTab && phoneTab !== 'items' ? (phoneTab === v.world ? '' : 'none') : ''; });
+    views.forEach(function (v) { v.box.style.display = phoneTab === 'lw' || phoneTab === 'dw' ? (phoneTab === v.world ? '' : 'none') : ''; });
     requestAnimationFrame(function () { views.forEach(function (v) { if (!v.userMoved || !v.fitZ) v.fit(); else v.apply(); }); });
   }
 
@@ -407,7 +423,7 @@
     function btn(label, fn, title) { var b = el('button', null, label); b.type = 'button'; if (title) b.title = title; b.addEventListener('click', function (e) { e.stopPropagation(); fn(); }); btns.appendChild(b); }
     if (w.kind === 'check') {
       var c = w.c, done = !!M.cleared[c.id], col = done ? 'done' : (M.colors[c.id] || 'red');
-      card.appendChild(el('h4', null, c.name));
+      card.appendChild(el('h4', null, w.label || c.name));
       var st = el('div', 'st'); var i = el('i'); i.style.background = CSS[col] || '#555'; st.appendChild(i); st.appendChild(document.createTextNode(COLOR_WORD[col] || col)); card.appendChild(st);
       if (M.marks[c.id]) { var m = el('div', 'st', 'Marked: '); var mi = iconImg(M.marks[c.id]); if (mi) { mi.style.width = mi.style.height = '20px'; mi.style.verticalAlign = 'middle'; mi.style.imageRendering = 'pixelated'; m.appendChild(mi); } card.appendChild(m); }
       btn(done ? '↺ Not done' : '✓ Done', function () { M.toggleCheck(c.id, !done); hideCard(); }, done ? 'Open it again' : 'Mark it collected');
@@ -537,10 +553,10 @@
   var phoneTab = null;
   window.MudoraPhone = {
     set: function (t) {
-      t = t === 'lw' || t === 'dw' || t === 'items' ? t : null;
+      t = t === 'lw' || t === 'dw' || t === 'items' || t === 'keys' ? t : null;
       phoneTab = t;
       document.body.classList.toggle('phone', !!t);
-      ['items', 'lw', 'dw'].forEach(function (x) { document.body.classList.toggle('ph-' + x, t === x); });
+      ['items', 'keys', 'lw', 'dw'].forEach(function (x) { document.body.classList.toggle('ph-' + x, t === x); });
       dgModes(); applySize(); layoutWorlds();
     },
     zoom: function (dir) {

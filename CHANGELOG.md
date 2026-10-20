@@ -30,6 +30,9 @@ played again later.
     drawn on a canvas the size of the screen: a small copy of the whole world when
     zoomed out, only the screens in view at full detail when zoomed in. Dungeon maps
     zoom in at most 2.5×.
+  - Phone: a **Keys** tab of its own (the dungeons panel), so Items no longer scrolls.
+  - Pins: Blind's Hut on its own door (the west one), the Race Game on its heart piece,
+    and a second Purple Chest pin on the man by the sign who opens it (Light World).
 
 ## Beta: EmoTracker (2026-10-19)
 
