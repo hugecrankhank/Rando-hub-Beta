@@ -1,0 +1,26 @@
+name: Build MFNS tracker (test build, not deployed)
+on:
+  push:
+    branches: [mfns-build]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch the tracker (KrisDavie/alttptracker, react_rewrite)
+        run: |
+          COMMIT=$(cat mfns-tracker/COMMIT 2>/dev/null || echo react_rewrite)
+          git clone -q -b react_rewrite https://github.com/KrisDavie/alttptracker.git src-mfns
+          cd src-mfns && git checkout -q "$COMMIT" && git log -1 --format='%H %ad %s' --date=iso
+      - uses: oven-sh/setup-bun@v2
+      - name: Build (unchanged source; served from /Rando-hub-Beta/mfns-tracker/app/)
+        run: |
+          cd src-mfns
+          bun install --frozen-lockfile || bun install
+          bunx vite build --base=/Rando-hub-Beta/mfns-tracker/app/
+          git rev-parse HEAD > dist/SOURCE_COMMIT
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mfns-dist
+          path: src-mfns/dist
