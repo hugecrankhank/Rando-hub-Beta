@@ -18,15 +18,10 @@
   'use strict';
   var KEY = 'rhb-tracker';   // (this beta's own key: the main app's choice is left alone)
   var V = window.HUTCH_TRACKERS || { release: { path: 'tracker/', version: '' }, beta: null };
-  // Muffins' Tracker 2.0 is hidden until his license is out: it's only offered
-  // on a device that opened the beta once with ?mfns-test=1 (?mfns-test=0 hides it again).
-  var mfnsTest = false;
-  try {
-    var q = new URLSearchParams(location.search).get('mfns-test');
-    if (q === '1') localStorage.setItem('rhb-mfns-test', '1');
-    if (q === '0') localStorage.removeItem('rhb-mfns-test');
-    mfnsTest = localStorage.getItem('rhb-mfns-test') === '1';
-  } catch (e) {}
+  // Muffins' Tracker 2.0 and Mudora 2.0: offered to everyone now that his MIT
+  // license is out (they were test-only behind ?mfns-test=1 before).
+  var mfnsTest = true;
+  try { localStorage.removeItem('rhb-mfns-test'); } catch (e) {}
   // Mudora is the starting choice; after that, whatever was picked last (saved by set())
   var mode = 'mudora';
   try { mode = localStorage.getItem(KEY) || 'mudora'; } catch (e) {}
@@ -41,14 +36,14 @@
   // out of sight, for its logic; Mudora shows the answers.
   function mudora() { return mode === 'mudora'; }
   // Mudora 2.0 (mudora2/): Mudora's look with Muffins' logic (his tracker runs
-  // inside it). Test only, like his tracker, until his license is up.
+  // inside it).
   function mudora2() { return mode === 'mudora2'; }
   // either Mudora: same page layout, phone tabs and so on
   function mudoraUi() { return mode === 'mudora' || mode === 'mudora2'; }
   function base() { return mode === 'beta' && V.beta ? V.beta.path : V.release.path; }
   function options() {
     var rv = V.release.version ? ' ' + V.release.version : '';
-    var mf = mfnsTest ? [['mudora2', 'Mudora 2.0 (test, Muffins logic)'], ['mfns', 'Muffins Tracker 2.0 (test)']] : [];
+    var mf = mfnsTest ? [['mudora2', 'Mudora 2.0 (beta, Muffins logic)'], ['mfns', 'Muffins Tracker 2.0 (beta)']] : [];
     return [['release', 'Hutch' + rv], ['beta', 'Hutch Beta'], ['mudora', 'Mudora (beta)']].concat(mf).concat([['emo', 'EmoTracker (beta)'], ['off', 'Off (game full screen)']]);
   }
   function applyBody() {

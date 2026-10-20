@@ -1,7 +1,6 @@
 # Mudora 2.0
 
-Mudora's look with Muffins' logic. Test only (hidden behind `?mfns-test=1`) until
-Muffins' MIT license is up.
+Mudora's look with Muffins' logic (his tracker is MIT licensed: `../mfns-tracker/LICENSE`).
 
 - **Logic and settings:** Muffins' Tracker 2.0 (KrisDavie/alttptracker, `react_rewrite`),
   built unchanged into `../mfns-tracker/app/` and run in a frame on this page. His

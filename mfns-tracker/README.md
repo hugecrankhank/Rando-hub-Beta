@@ -2,7 +2,7 @@
 
 **The tracker is Muffins' (MFNS / KrisDavie):** https://github.com/KrisDavie/alttptracker
 (`react_rewrite` branch), also at https://volatile.alttprtracker.mfns.dev/. Used with
-his permission. Bugs in the tracker itself → his Discord. Bugs in running it inside
+his permission and under his MIT license (`LICENSE`, copied from his repo). Bugs in the tracker itself → his Discord. Bugs in running it inside
 Rando Hub → Rando Hub.
 
 - `app/` is his source **built unchanged** (by `.github/workflows/mfns-build.yml`,
