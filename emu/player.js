@@ -336,9 +336,6 @@
         '<button type="button" data-a="restart">Restart</button>' +
         (root.requestFullscreen ? '<button type="button" data-a="fs">Full screen</button>' : '') +
       '</div>' +
-      '<h4>Test: warp to a dungeon</h4><div class="row"><span>Dungeon</span><select data-x="dgwarp">' + opts(DG_WARPS.map(function (d, i) { return [i, d[0]]; }), lastWarp) + '</select></div>' +
-      '<div class="acts"><button type="button" data-a="dgwarp">Warp</button>' + (warpBack ? '<button type="button" data-a="dgback">Back to before the warp</button>' : '') + '</div>' +
-      '<p class="hint">For testing (dungeon maps, tracker): drops Link in at the dungeon’s entrance. The game is saved in memory first, so “Back to before the warp” undoes it.</p>' +
       '<p class="hint">Save and load states from the bar on the game screen (💾 / 📂, S1–S4 picks the slot). In-game saves are kept automatically for each seed. Keys: F5 save state, F8 load state, hold ` to fast-forward.</p>' +
       '<h4>Sound</h4><div class="row"><span>Volume</span><input type="range" min="0" max="1" step="0.05" data-s="volume" value="' + cfg.volume + '"></div>' +
       '<div class="row"><span>Mute</span><input type="checkbox" data-s="muted"' + (cfg.muted ? ' checked' : '') + '></div>' +
@@ -356,6 +353,9 @@
       '<div class="acts" style="margin-top:8px"><button type="button" data-a="resetmap">Reset controls</button></div>' +
       (input.padName ? '<p class="hint">Controller: ' + input.padName.replace(/</g, '&lt;') + '</p>' : '') +
       (hooks.menu ? hooks.menu.html(renderMenu) : '') +
+      '<div class="row" style="margin-top:6px"><span>Test: warp to a dungeon</span><span><select data-x="dgwarp">' + opts(DG_WARPS.map(function (d, i) { return [i, d[0]]; }), lastWarp) + '</select> <button type="button" data-a="dgwarp">Warp</button></span></div>' +
+      (warpBack ? '<div class="acts"><button type="button" data-a="dgback">Back to before the warp</button></div>' : '') +
+      '<p class="hint">Drops Link in at the dungeon’s entrance (for testing dungeon maps and the tracker). The game is saved in memory first, so “Back to before the warp” undoes it.</p>' +
       '<h4>Diagnostics</h4>' + diagnostics() +
       '</div>';
   }
