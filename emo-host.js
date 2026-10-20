@@ -28,7 +28,9 @@
   // the phone layout's tab (phone.js): Items, Light World or Dark World
   var phoneTab = null;
   function isMudora() { return !!(window.UnifiedTracker && window.UnifiedTracker.mudora && window.UnifiedTracker.mudora()); }
+  function isMfns() { return !!(window.UnifiedTracker && window.UnifiedTracker.mfns && window.UnifiedTracker.mfns()); }
   function url(v) {
+    if (isMfns()) return 'mfns-tracker/index.html';
     if (isMudora()) return 'mudora/index.html' + (phoneTab ? '?phone=' + phoneTab : '');
     return 'emotracker/index.html?variant=' + encodeURIComponent(v) + '&placement=' + placement() + (phoneTab ? '&phone=' + phoneTab : '');
   }
@@ -54,20 +56,20 @@
       if (f.getAttribute('src') && f.getAttribute('src') !== 'about:blank') f.src = 'about:blank';
       return;
     }
-    var v = (isMudora() ? 'mudora:' : '') + variantFor(gm, di);
+    var v = (isMfns() ? 'mfns:' : isMudora() ? 'mudora:' : '') + variantFor(gm, di);
     if (v === last && f.getAttribute('src') && f.getAttribute('src') !== 'about:blank') return;
     // a new choice in the app's settings wins over one picked in the tracker
-    if (last !== null && v !== last && !isMudora()) { try { localStorage.removeItem('rhb-emo-variant'); } catch (e) {} }
+    if (last !== null && v !== last && !isMudora() && !isMfns()) { try { localStorage.removeItem('rhb-emo-variant'); } catch (e) {} }
     last = v;
-    if (away()) { try { win.location.href = url(v.replace(/^mudora:/, '')); } catch (e) {} return; }
-    f.src = url(v.replace(/^mudora:/, ''));
+    if (away()) { try { win.location.href = url(v.replace(/^(mudora|mfns):/, '')); } catch (e) {} return; }
+    f.src = url(v.replace(/^(mudora|mfns):/, ''));
   }
 
   function popOut() {
     var f = $('emo-frame');
     if (away()) { try { win.close(); } catch (e) {} return; }
-    var v = (last || 'standard').replace(/^mudora:/, '');
-    win = window.open(url(v), isMudora() ? 'rh-mudora' : 'rh-emotracker', 'popup=yes,resizable=yes,width=1000,height=720');
+    var v = (last || 'standard').replace(/^(mudora|mfns):/, '');
+    win = window.open(url(v), isMfns() ? 'rh-mfns' : isMudora() ? 'rh-mudora' : 'rh-emotracker', 'popup=yes,resizable=yes,width=1000,height=720');
     if (!win) { var n = $('popup-note'); if (n) { n.hidden = false; setTimeout(function () { n.hidden = true; }, 9000); } return; }
     f.src = 'about:blank';          // one copy at a time
     document.body.classList.add('emo-away');
@@ -77,7 +79,7 @@
       clearInterval(t);
       win = null;
       document.body.classList.remove('emo-away');
-      if (on()) f.src = url((last || v).replace(/^mudora:/, ''));
+      if (on()) f.src = url((last || v).replace(/^(mudora|mfns):/, ''));
       paint();
       window.dispatchEvent(new Event('resize'));
     }, 500);
@@ -85,7 +87,7 @@
   }
   function paint() {
     var b = $('pop-emo');
-    if (b) { b.classList.toggle('on', away()); b.innerHTML = '&#10697; ' + (isMudora() ? 'Mudora' : 'EmoTracker'); }
+    if (b) { b.classList.toggle('on', away()); b.innerHTML = '&#10697; ' + (isMfns() ? 'Muffins Tracker' : isMudora() ? 'Mudora' : 'EmoTracker'); }
   }
 
   document.addEventListener('DOMContentLoaded', function () {

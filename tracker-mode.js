@@ -21,24 +21,27 @@
   // Mudora is the starting choice; after that, whatever was picked last (saved by set())
   var mode = 'mudora';
   try { mode = localStorage.getItem(KEY) || 'mudora'; } catch (e) {}
-  if (mode !== 'release' && mode !== 'beta' && mode !== 'off' && mode !== 'emo' && mode !== 'mudora') mode = 'mudora';
+  if (mode !== 'release' && mode !== 'beta' && mode !== 'off' && mode !== 'emo' && mode !== 'mudora' && mode !== 'mfns') mode = 'mudora';
 
   function off() { return mode === 'off'; }
   // emo(): a tracker in its own frame (emo-host.js) — EmoTracker, or Mudora
-  function emo() { return mode === 'emo' || mode === 'mudora'; }
+  function emo() { return mode === 'emo' || mode === 'mudora' || mode === 'mfns'; }
+  // Muffins' Tracker 2.0 (mfns-tracker/): his own logic and autotracking
+  function mfns() { return mode === 'mfns'; }
   // Mudora (mudora/): Rando Hub's own tracker. Hutch's release still runs,
   // out of sight, for its logic; Mudora shows the answers.
   function mudora() { return mode === 'mudora'; }
   function base() { return mode === 'beta' && V.beta ? V.beta.path : V.release.path; }
   function options() {
     var rv = V.release.version ? ' ' + V.release.version : '';
-    return [['release', 'Hutch' + rv], ['beta', 'Hutch Beta'], ['mudora', 'Mudora (beta)'], ['emo', 'EmoTracker (beta)'], ['off', 'Off (game full screen)']];
+    return [['release', 'Hutch' + rv], ['beta', 'Hutch Beta'], ['mudora', 'Mudora (beta)'], ['mfns', 'Muffins Tracker 2.0 (beta)'], ['emo', 'EmoTracker (beta)'], ['off', 'Off (game full screen)']];
   }
   function applyBody() {
     if (!document.body) return;
     document.body.classList.toggle('tracker-off', off());
     document.body.classList.toggle('tracker-emo', emo());
     document.body.classList.toggle('tracker-mudora', mudora());
+    document.body.classList.toggle('tracker-mfns', mfns());
   }
   function applyController() {
     var P = window.Snes9xPlayer;
@@ -59,6 +62,6 @@
 
   window.UnifiedTracker = {
     mode: function () { return mode; },
-    off: off, emo: emo, mudora: mudora, base: base, set: set, options: options, versions: V,
+    off: off, emo: emo, mudora: mudora, mfns: mfns, base: base, set: set, options: options, versions: V,
   };
 })();

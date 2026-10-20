@@ -28,7 +28,8 @@ jobs:
         run: |
           rm -rf mfns-tracker/app && mkdir -p mfns-tracker && cp -r src-mfns/dist mfns-tracker/app
           rm -rf src-mfns
+          python3 tools/mfns-page.py
           git config user.name "github-actions" && git config user.email "github-actions@users.noreply.github.com"
-          git add mfns-tracker/app
+          git add mfns-tracker/app mfns-tracker/index.html
           git diff --cached --quiet || git commit -qm "MFNS tracker build $(cat mfns-tracker/app/SOURCE_COMMIT | cut -c1-7) [skip ci]"
           git push -q origin HEAD:mfns-build
