@@ -5,6 +5,15 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta: Mudora 2.0 autotracking details (2026-10-21)
+
+- **⚙ Settings → Autotracking details:** what autotracking is doing right now (on/off,
+  connection, the game mode and ROM name Muffins' tracker last read, how many reads,
+  any errors on his page, and a log of anything the watchdog did). For a screenshot
+  when autotracking doesn't pick things up.
+- The watchdog now also notices when his tracker keeps reading but never gets as far
+  as the items and checks while you're playing, logs why, and reloads his tracker.
+
 ## Beta: text boxes keep the dungeon map; autotracking self-repair (2026-10-20)
 
 - **Text boxes and the pause menu** no longer flip Mudora's map back to the overworld

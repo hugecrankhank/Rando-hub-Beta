@@ -99,26 +99,40 @@
     if (launched && !store) {
       var s = null;
       try { s = w.__rhStore && w.__rhStore(); } catch (e) {}
-      if (s) { store = s; store.subscribe(soon); M.linked = true; M.emit('link'); read(); }
+      if (s) {
+        store = s; store.subscribe(soon); M.linked = true; M.emit('link'); read();
+      }
     }
   }, 300);
   // autotracking watchdog: while the game is being played (overworld or inside),
   // his tracker reads it a couple of times a second. If those reads stop for a
   // while, his tracker is reloaded on the same game (nothing is lost).
-  var lastReads = -1, quietSince = Date.now(), lastKick = 0;
+  // It also watches that what he reads gets used (his results keep coming): if
+  // he reads but nothing comes of it, that's logged (⚙ Settings → Autotracking
+  // details) and his tracker is reloaded too.
+  var lastReads = -1, quietSince = Date.now(), lastKick = 0, lastApplied = -1, idleSince = Date.now(), kicks = 0;
+  Mudora2.diag = [];
+  function note(msg) { Mudora2.diag.push(new Date().toLocaleTimeString() + ' ' + msg); if (Mudora2.diag.length > 30) Mudora2.diag.shift(); try { console.warn('[mudora2] ' + msg); } catch (e) {} }
   setInterval(function () {
-    if (!launched || !store || !state || !state.settings.autotracking) { quietSince = Date.now(); return; }
-    var w = null, n = 0;
-    try { w = frame.contentWindow; n = w.__rhShimReads || 0; } catch (e) { return; }
+    if (!launched || !store || !state || !state.settings.autotracking) { quietSince = idleSince = Date.now(); return; }
+    var w = null, n = 0, ap = 0;
+    try { w = frame.contentWindow; n = w.__rhShimReads || 0; ap = w.__rhShimSram || 0; } catch (e) { return; }
     var b = M.bridge && M.bridge(), mode = -1;
     try { mode = b ? b.read(0xF50010, 1)[0] : -1; } catch (e) {}
-    if (n !== lastReads || (mode !== 0x07 && mode !== 0x09)) { lastReads = n; quietSince = Date.now(); return; }
-    if (Date.now() - quietSince > 8000 && Date.now() - lastKick > 30000) {
-      lastKick = Date.now(); quietSince = Date.now();
+    var playing = mode === 0x07 || mode === 0x09;
+    if (n !== lastReads || !playing) { lastReads = n; quietSince = Date.now(); }
+    if (ap !== lastApplied || !playing) { lastApplied = ap; idleSince = Date.now(); }
+    var stalled = Date.now() - quietSince > 8000, unused = Date.now() - idleSince > 10000;
+    if ((stalled || unused) && Date.now() - lastKick > 30000) {
+      var lr = (w && w.__rhLastReads) || {}, gm = lr.f50010, rn = lr['7fc0'];
+      note((stalled ? 'his reads stopped' : 'his reads aren’t being used') + ' (game mode ' + mode + ', he saw ' + (gm ? gm.v[0] + (gm.ready ? '' : ' [emulator not ready]') : '–') +
+        ', ROM ' + (rn ? String.fromCharCode.apply(null, rn.v.filter(function (c) { return c >= 32 && c < 127; })) : '–') + ', status ' + ((state.autotracker || {}).status || '–') +
+        ((w && w.__rhErrors && w.__rhErrors.length) ? ', last error: ' + w.__rhErrors[w.__rhErrors.length - 1].msg : '') + ')');
+      lastKick = Date.now(); quietSince = idleSince = Date.now(); kicks++;
       var id = null;
       try { id = new URLSearchParams(w.location.search).get('id'); } catch (e) {}
       try { id = id || localStorage.getItem(SKEY); } catch (e) {}
-      if (id) { console.warn('[mudora2] autotracking went quiet: reloading Muffins’ tracker'); M.toast('Reconnecting autotracking…'); open('/tracker?id=' + id); }
+      if (id) { M.toast(kicks > 2 ? 'Autotracking keeps stopping: see ⚙ Settings → Autotracking details.' : 'Reconnecting autotracking…'); open('/tracker?id=' + id); }
     }
   }, 2000);
   var t = 0;
@@ -499,6 +513,22 @@
       pr.appendChild(sel); pr.appendChild(go); setBody.appendChild(pr);
       setBody.appendChild(el('div', 's-note', 'Presets set everything for a mode at the start, including known entrances and checks it leaves out (OnlyADKD is “ADKDF”). The settings below change the game in progress.'));
     }
+    // what autotracking is doing, for a screenshot when it doesn't work
+    var dt = el('details'), sm = el('summary', null, 'Autotracking details'); dt.appendChild(sm);
+    var pre = el('pre'); pre.style.cssText = 'white-space:pre-wrap;font-size:11px;color:var(--dim);margin:4px 0;';
+    try {
+      var fw = frame.contentWindow, at = state && state.autotracker || {}, lr = fw.__rhLastReads || {};
+      var b2 = M.bridge && M.bridge(), md = -1; try { md = b2 ? b2.read(0xF50010, 1)[0] : -1; } catch (e) {}
+      pre.textContent = [
+        'Autotracking: ' + (state ? (state.settings.autotracking ? 'on' : 'off') : '–') + ' · ' + (at.status || '–') + ' · ' + (at.connectionType || '') + ' ' + (at.host || '') + ':' + (at.port || ''),
+        'Game mode now: ' + md + ' · he last saw: ' + (lr.f50010 ? lr.f50010.v[0] + (lr.f50010.ready ? '' : ' (emulator not ready)') : '–'),
+        'ROM name he read: ' + (lr['7fc0'] ? String.fromCharCode.apply(null, lr['7fc0'].v.filter(function (c) { return c >= 32 && c < 127; })) : '–') + ' · stored: ' + (at.romName || '–').replace(/[^\x20-\x7e]/g, ''),
+        'Reads: ' + (fw.__rhShimReads || 0) + ' · save-data reads: ' + (fw.__rhShimSram || 0),
+        'Errors: ' + ((fw.__rhErrors || []).slice(-5).map(function (x) { return x.msg; }).join(' | ') || 'none'),
+        'Log: ' + (Mudora2.diag.join(' | ') || 'none'),
+      ].join('\n');
+    } catch (e) { pre.textContent = 'Not available yet.'; }
+    dt.appendChild(pre); setBody.appendChild(dt);
     setBody.appendChild(el('h4', null, 'This game'));
     if (!store || !state) { setBody.appendChild(el('div', 's-note', launched ? 'Muffins’ tracker is still starting…' : 'Start a game first: pick a preset above, or New game.')); return; }
     var S = state.settings, n = 0;

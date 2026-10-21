@@ -180,6 +180,15 @@
           // `event.data instanceof ArrayBuffer` check passes.
           var out = new Uint8Array(len);
           if (src) for (var k = 0; k < len; k++) out[k] = src[k];
+          // what the tracker last saw for the game mode and the ROM name (Mudora 2.0's
+          // autotracking details)
+          // reads of the save data (items, checks) only follow when the tracker
+          // accepted the game mode: Mudora 2.0 counts those as "results used"
+          if (addr >= 0xF5F000 && addr < 0xF60000) window.__rhShimSram = (window.__rhShimSram || 0) + 1;
+          if (addr === 0xF50010 || addr === 0x7FC0) {
+            var lr = window.__rhLastReads = window.__rhLastReads || {};
+            lr[addr.toString(16)] = { at: Date.now(), ready: ready, v: Array.prototype.slice.call(out, 0, addr === 0x7FC0 ? 21 : 2) };
+          }
           this._reply(this.binaryType === 'arraybuffer' ? out.buffer : new Blob([out]));
         }
         break;

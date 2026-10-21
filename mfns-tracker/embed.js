@@ -112,6 +112,14 @@
     return realOpen.apply(window, arguments);
   };
 
+  // ── for Mudora 2.0's autotracking details: errors on his page, kept ────────
+  var errs = window.__rhErrors = [];
+  function keep(msg) { try { errs.push({ at: Date.now(), msg: String(msg).slice(0, 300) }); if (errs.length > 20) errs.shift(); } catch (e) {} }
+  window.addEventListener('error', function (e) { keep((e.message || e.error) + (e.filename ? ' @' + e.filename.split('/').pop() + ':' + e.lineno : '')); });
+  window.addEventListener('unhandledrejection', function (e) { keep('promise: ' + (e.reason && (e.reason.message || e.reason))); });
+  var ce = console.error;
+  console.error = function () { keep(Array.prototype.map.call(arguments, function (a) { return a && a.message ? a.message : String(a); }).join(' ')); return ce.apply(console, arguments); };
+
   // ── for Mudora 2.0: his tracker's state, read and changed the way his own
   // buttons do (his Redux store, found on his page's React root) ──────────
   var found = null;
