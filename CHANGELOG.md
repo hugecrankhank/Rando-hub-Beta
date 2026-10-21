@@ -5,6 +5,15 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta: text boxes keep the dungeon map; autotracking self-repair (2026-10-20)
+
+- **Text boxes and the pause menu** no longer flip Mudora's map back to the overworld
+  while you're in a dungeon (the game is in its "message" mode then; Link hasn't moved).
+- **Mudora 2.0 autotracking watchdog:** while you're playing (overworld or inside), Muffins'
+  tracker reads the game a couple of times a second. If those reads stop for 8 seconds,
+  Mudora 2.0 reloads his tracker on the same game ("Reconnecting autotracking…"), so
+  nothing is lost.
+
 ## Beta: faster autotracking replies (2026-10-20)
 
 - The built-in emulator now answers the trackers' memory reads straight away instead of

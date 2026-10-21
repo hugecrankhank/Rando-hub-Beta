@@ -138,6 +138,9 @@
     var m = wram(0x10, 2), b1b = wram(0x1B, 1), bri = wram(0x13, 1), r = wram(0xA0, 2), d = wram(0x40C, 1),
       sx = wram(0xE2, 2), sy = wram(0xE8, 2), lk = wram(0x20, 4);
     if (!m || !r || !d || !sx || !sy) return;
+    // a text box or the pause menu ($10 = $0E) is drawn over the room: Link
+    // hasn't gone anywhere, so keep showing where he is
+    if (m[0] === 0x0E) return;
     flags = wram(0xF000, 0x250);
     var it = wram(0xF364, 6);
     if (it) dgItems = { compass: it[0] | it[1] << 8, map: it[4] | it[5] << 8 };
