@@ -171,6 +171,7 @@
       case 'Name':
         break;
       case 'GetAddress': {
+        window.__rhShimReads = (window.__rhShimReads || 0) + 1;   // Mudora 2.0's autotracking watchdog
         var ops = req.Operands || [];
         for (var i = 0; i + 1 < ops.length; i += 2) {
           var addr = parseInt(ops[i], 16), len = parseInt(ops[i + 1], 16);

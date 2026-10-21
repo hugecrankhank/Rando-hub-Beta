@@ -102,6 +102,25 @@
       if (s) { store = s; store.subscribe(soon); M.linked = true; M.emit('link'); read(); }
     }
   }, 300);
+  // autotracking watchdog: while the game is being played (overworld or inside),
+  // his tracker reads it a couple of times a second. If those reads stop for a
+  // while, his tracker is reloaded on the same game (nothing is lost).
+  var lastReads = -1, quietSince = Date.now(), lastKick = 0;
+  setInterval(function () {
+    if (!launched || !store || !state || !state.settings.autotracking) { quietSince = Date.now(); return; }
+    var w = null, n = 0;
+    try { w = frame.contentWindow; n = w.__rhShimReads || 0; } catch (e) { return; }
+    var b = M.bridge && M.bridge(), mode = -1;
+    try { mode = b ? b.read(0xF50010, 1)[0] : -1; } catch (e) {}
+    if (n !== lastReads || (mode !== 0x07 && mode !== 0x09)) { lastReads = n; quietSince = Date.now(); return; }
+    if (Date.now() - quietSince > 8000 && Date.now() - lastKick > 30000) {
+      lastKick = Date.now(); quietSince = Date.now();
+      var id = null;
+      try { id = new URLSearchParams(w.location.search).get('id'); } catch (e) {}
+      try { id = id || localStorage.getItem(SKEY); } catch (e) {}
+      if (id) { console.warn('[mudora2] autotracking went quiet: reloading Muffins’ tracker'); M.toast('Reconnecting autotracking…'); open('/tracker?id=' + id); }
+    }
+  }, 2000);
   var t = 0;
   function soon() { if (!t) t = setTimeout(function () { t = 0; read(); }, 60); }
 
