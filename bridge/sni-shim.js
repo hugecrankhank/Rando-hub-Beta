@@ -119,12 +119,18 @@
   BridgeSocket.prototype.CONNECTING = 0; BridgeSocket.prototype.OPEN = 1;
   BridgeSocket.prototype.CLOSING = 2; BridgeSocket.prototype.CLOSED = 3;
 
-  BridgeSocket.prototype.addEventListener = function (type, fn) {
+  BridgeSocket.prototype.addEventListener = function (type, fn, opts) {
+    if (opts && typeof opts === 'object' && opts.once) {   // { once: true }, as a real socket honours
+      var self = this, orig = fn, w = function (ev) { self.removeEventListener(type, w); orig.call(this, ev); };
+      w.__orig = orig; fn = w;
+    }
     (this._listeners[type] = this._listeners[type] || []).push(fn);
   };
   BridgeSocket.prototype.removeEventListener = function (type, fn) {
     var l = this._listeners[type]; if (!l) return;
-    var i = l.indexOf(fn); if (i >= 0) l.splice(i, 1);
+    var i = l.indexOf(fn);
+    if (i < 0) for (var j = 0; j < l.length; j++) if (l[j].__orig === fn) { i = j; break; }
+    if (i >= 0) l.splice(i, 1);
   };
   BridgeSocket.prototype._fire = function (type, ev) {
     ev.type = type; ev.target = this;
@@ -136,11 +142,13 @@
   };
   BridgeSocket.prototype._reply = function (data) {
     var self = this;
-    // Async, in order — same as a real socket.
-    setTimeout(function () {
+    // Async, in order — same as a real socket. A microtask, not a timer: with
+    // the emulator busy on the same thread a timer can wait a frame or more per
+    // reply, and a tracker reads a dozen ranges one after another per update.
+    Promise.resolve().then(function () {
       if (self.readyState !== 1) return;
       self._fire('message', { data: data });
-    }, 0);
+    });
   };
   BridgeSocket.prototype._json = function (obj) { this._reply(JSON.stringify(obj)); };
 

@@ -5,6 +5,13 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta: faster autotracking replies (2026-10-20)
+
+- The built-in emulator now answers the trackers' memory reads straight away instead of
+  waiting a turn per read, which mattered most on phones where the game keeps the page
+  busy (a tracker reads a dozen ranges per update). It also handles one-shot listeners
+  the way a real connection does. Both Hutch's and Muffins' trackers checked after.
+
 ## Beta: Mudora 2.0 launch and autotracking fixes (2026-10-20)
 
 - **Presets/Launch needing two tries:** launching saves the new game first, and with the
