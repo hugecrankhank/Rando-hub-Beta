@@ -41,8 +41,13 @@
     .catch(function () { M.toast('Couldn’t load Muffins’ tracker data.'); });
 
   // ── his tracker, in the frame ─────────────────────────────────────────────
+  var curId = null, unsub = null;
+  function drop() {
+    if (unsub) { try { unsub(); } catch (e) {} }
+    unsub = null; store = null; state = null; M.linked = false; M.emit('link');
+  }
   function open(route) {
-    store = null; state = null; launched = false;
+    drop(); launched = false; curId = null;
     frame.src = '../mfns-tracker/index.html?route=' + encodeURIComponent(route);
     M.linked = false; M.emit('link');
   }
@@ -91,17 +96,26 @@
     if (!w) return;
     var path = '';
     try { path = w.location.pathname; } catch (e) { return; }
-    if (path === '/tracker' && !launched) {
-      var id = null;
-      try { id = new URLSearchParams(w.location.search).get('id'); } catch (e) {}
-      if (id) { launched = true; try { localStorage.setItem(SKEY, id); } catch (e) {} show(false); }
+    // Follow whichever of his pages is in the frame now. Starting a new game
+    // (a preset, New game) loads his launch page and then a new tracker page,
+    // each with its own store; holding on to the old page's store would show a
+    // game that no longer updates (autotracking looked dead). So the store is
+    // checked on every tick, not just found once.
+    if (path !== '/tracker') {
+      if (launched || store) { launched = false; drop(); }
+      return;
     }
-    if (launched && !store) {
-      var s = null;
-      try { s = w.__rhStore && w.__rhStore(); } catch (e) {}
-      if (s) {
-        store = s; store.subscribe(soon); M.linked = true; M.emit('link'); read();
-      }
+    var id = null;
+    try { id = new URLSearchParams(w.location.search).get('id'); } catch (e) {}
+    if (!id) return;
+    if (!launched || id !== curId) { launched = true; curId = id; try { localStorage.setItem(SKEY, id); } catch (e) {} show(false); }
+    var s = null;
+    try { s = w.__rhStore && w.__rhStore(); } catch (e) {}
+    if (s && s !== store) {
+      drop();
+      store = s; unsub = store.subscribe(soon); M.linked = true; M.emit('link'); read();
+    } else if (!s && store) {
+      drop();
     }
   }, 300);
   // autotracking watchdog: while the game is being played (overworld or inside),
