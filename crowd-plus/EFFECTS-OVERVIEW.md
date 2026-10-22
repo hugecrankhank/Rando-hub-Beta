@@ -99,6 +99,8 @@ wins), so the run carries on exactly where it was. Length = `durations.boss_deto
 | `sprite_roll` | Random sprite from the whole library (changes Link right away) |
 | `sprite_fav` | Random sprite from your ★ favourites |
 | `msu_roll` | Random MSU-1 pack from your ★ favourite packs |
+| `sound_pack_next` | Next item sound pack (Off → each pack → Mix) |
+| `sound_pack_random` | Random different item sound pack |
 | `seed_roll` | **New seed** with the current Randomizer settings — ends the current game |
 
 `seed_roll` is off until you check **Allow seed reroll** in ⋯ menu → Crowd
