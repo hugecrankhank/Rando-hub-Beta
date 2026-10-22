@@ -5,6 +5,13 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta: Mudora 2.0 autotracking fix (2026-10-22)
+
+- **Fixed: autotracking looked dead after starting a game from a preset (or New game).**
+  Muffins' tracker was tracking fine, but Mudora 2.0 kept showing the page it had
+  before the new game, so nothing changed on the map. It now follows his new page
+  as soon as it loads. (This is also why a preset seemed to need starting twice.)
+
 ## Beta: Mudora 2.0 autotracking details (2026-10-21)
 
 - **⚙ Settings → Autotracking details:** what autotracking is doing right now (on/off,
