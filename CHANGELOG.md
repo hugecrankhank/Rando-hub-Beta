@@ -5,6 +5,22 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta: item sound packs and keys in hand (2026-10-22)
+
+- **Item sound packs.** A pack is a folder with one folder per item (hookshot,
+  fire rod, master sword…) holding as many sounds as you like; every pickup plays
+  one at random, never the same one twice in a row. In the broadcast view:
+  **♪ Item Sounds → Sound Pack** to pick a pack, import a pack folder from your
+  computer, or set the pack volume, and a **♪ Pack** button that steps through
+  Off → each pack → Mix. Items a pack doesn't cover use your profile's sound.
+  Built-in packs go in `sounds/packs/` (see the README there).
+- **Crowd Control:** `sound_pack_next` and `sound_pack_random` switch the item
+  sound pack from a gift.
+- **Small keys in hand.** Item tracker ⚙ → Dungeon Background → **Small keys:**
+  Found `1/6` (as before), In hand `0/6`, or Both `1(0)/6` — found, (in hand),
+  total. In hand drops as you open doors; it's read from the game while
+  autotracking.
+
 ## Beta: Mudora 2.0 autotracking fix (2026-10-22)
 
 - **Fixed: autotracking looked dead after starting a game from a preset (or New game).**

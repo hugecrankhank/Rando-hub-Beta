@@ -547,6 +547,8 @@ All effect names (use these on the right side):
     sprite_roll    Random Link sprite
     sprite_fav     Random sprite from your starred favourites
     msu_roll       Random MSU-1 pack from your starred packs
+    sound_pack_next    Next item sound pack
+    sound_pack_random  Random item sound pack
     seed_roll      New seed, same settings      } need "Allow seed
     seed_preset    New seed, random preset      }  reroll" ticked
     seed_chaos     New CHAOS seed               }

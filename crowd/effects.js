@@ -346,6 +346,12 @@
       app: function () { return press(['r-sprite-fav-roll', 'sprite-fav-btn'], 'the sprite buttons'); } },
     msu_roll:    { name: 'Random MSU pack', good: true,
       app: function () { return press(['music-roll-btn'], 'MSU packs (add some and star favourites in ♪)'); } },
+    // Item sound packs (addons/sound-packs.js): what plays on item pickups in
+    // the broadcast view. Off → each pack → Mix, or a random different one.
+    sound_pack_next:   { name: 'Next item sound pack', good: true,
+      app: function () { return soundPack('next'); } },
+    sound_pack_random: { name: 'Random item sound pack', good: true,
+      app: function () { return soundPack('random'); } },
     seed_roll:   { name: 'New seed!', good: false,
       app: function (job) { return startReroll(job, 'same'); } },
     seed_preset: { name: 'Random preset seed!', good: false,
@@ -368,6 +374,13 @@
       if (Date.now() < quietUntil) { feed(String(msg), 'info'); return; }
       return realAlert.call(window, msg);
     };
+  }
+  function soundPack(how) {
+    var sp = root.RandoSoundPacks;
+    if (!sp) { feed('Not available: item sound packs', 'info'); return false; }
+    if (!sp.packs().length) { feed('Add an item sound pack first (♪ Item Sounds in the broadcast view)', 'info'); return false; }
+    sp[how]().then(function (id) { if (id !== null) feed('Item sounds: ' + sp.activeName(id), 'info'); });
+    return true;
   }
   function press(ids, what) {
     if (typeof document === 'undefined') return false;

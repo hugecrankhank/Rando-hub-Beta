@@ -1,6 +1,6 @@
 {
  "edition": "full",
- "version": "36a8718df624",
+ "version": "26aa88796de9",
  "cache": "rando-hub-v1",
  "files": [
   "./",
@@ -321,6 +321,10 @@
   "emu/shaders/crt-pi.glsl",
   "emu/shaders/sharp-bilinear-simple.glsl",
   "emu/shaders/stock.glsl",
-  "tracker/hutch-versions.js"
+  "tracker/hutch-versions.js",
+  "addons/sound-packs.js",
+  "addons/sound-packs-ui.js",
+  "addons/key-display.js",
+  "sounds/packs/index.json"
  ]
 }

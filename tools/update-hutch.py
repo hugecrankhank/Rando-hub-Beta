@@ -19,6 +19,7 @@ removes the tracker-beta/ files in offline-files.json.
 
   python3 tools/update-hutch.py            # fetch from GitHub
   python3 tools/update-hutch.py --check    # say what would change, change nothing
+  python3 tools/update-hutch.py --addons   # only re-add the addon <script> lines
 
 Run by the deploy workflow too, so the site follows his updates; if GitHub
 can't be reached the copies already in the repository are used.
@@ -30,6 +31,16 @@ RELEASE_REPO = os.environ.get('HUTCH_RELEASE_REPO', 'https://github.com/hutchch/
 BETA_REPO = os.environ.get('HUTCH_BETA_REPO', 'https://github.com/hutchch/ALTTPR-Tracker-Beta')
 SHIM = '<script src="../bridge/sni-shim.js"></script> <!-- unified-app: routes SNI WebSocket to built-in emulator -->'
 SHIM_PAGES = ['itemtracker.html', 'map.html', 'timer.html', 'broadcast.html']
+# Rando Hub's own additions to his pages (addons/). His files are replaced on
+# every refresh, so instead of editing them each page gets these <script> lines
+# just before </body>; the scripts wrap his functions at runtime.
+ADDON_TAG = '<!-- rando-hub addon -->'
+SOUND_PACKS = ['../addons/sound-packs.js', '../addons/sound-packs-ui.js']
+ADDONS = {
+    'broadcast.html': SOUND_PACKS,        # item sound packs
+    'bcast-sounds.html': SOUND_PACKS,     # the pack picker in Item Sounds
+    'itemtracker.html': ['../addons/key-display.js'],   # small keys in hand
+}
 # his desktop-app (Electron) files and downloads: not part of the web tracker
 SKIP = {'.git', 'build', 'node_modules', 'main.js', 'preload.js', 'package.json', 'package-lock.json',
         'Racing_Overlay.zip', 'mobile.html', 'CHANGELOG.md'}
@@ -78,6 +89,22 @@ def add_shim(page):
     open(page, 'w', encoding='utf-8').write(html)
 
 
+def add_addons(page, scripts):
+    if not os.path.exists(page):
+        return
+    html = strip_addons(open(page, encoding='utf-8').read())
+    lines = ''.join('<script src="%s"></script> %s\n' % (src, ADDON_TAG) for src in scripts)
+    at = html.lower().rfind('</body>')
+    if at == -1:
+        at = len(html)
+    html = html[:at] + lines + html[at:]
+    open(page, 'w', encoding='utf-8').write(html)
+
+
+def strip_addons(html):
+    return ''.join(l for l in html.splitlines(True) if ADDON_TAG not in l)
+
+
 def sync(src, dst, overlay=None):
     """Make dst = src (+ overlay files on top), keeping our local-only files."""
     changes = []
@@ -96,7 +123,7 @@ def sync(src, dst, overlay=None):
     for f, p in want.items():
         out = os.path.join(dst, f)
         same = os.path.exists(out) and (filecmp.cmp(p, out, shallow=False) or
-                                         (f in SHIM_PAGES and strip_shim(out) == open(p, 'rb').read()))
+                                         ((f in SHIM_PAGES or f in ADDONS) and strip_shim(out) == open(p, 'rb').read()))
         if not same:
             changes.append(('~ ' if os.path.exists(out) else '+ ') + f)
             if not CHECK:
@@ -105,11 +132,14 @@ def sync(src, dst, overlay=None):
     if not CHECK:
         for page in SHIM_PAGES:
             add_shim(os.path.join(dst, page))
+        for page, scripts in ADDONS.items():
+            add_addons(os.path.join(dst, page), scripts)
     return changes
 
 
 def strip_shim(path):
     b = open(path, 'rb').read()
+    b = b''.join(l for l in b.splitlines(True) if ADDON_TAG.encode() not in l)
     return b.replace((SHIM + '\n').encode(), b'', 1)
 
 
@@ -123,6 +153,12 @@ def copy_local_extras(dst):
 
 
 def main():
+    if '--addons' in sys.argv:
+        # just (re)apply the addon lines to the copies already here, no download
+        for d in ('tracker', 'tracker-beta'):
+            for page, scripts in ADDONS.items():
+                add_addons(os.path.join(ROOT, d, page), scripts)
+        return
     tmp = tempfile.mkdtemp(prefix='hutch-')
     rel_dir, beta_dir = os.path.join(tmp, 'release'), os.path.join(tmp, 'beta')
     rel = clone(RELEASE_REPO, rel_dir)
