@@ -5,6 +5,12 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.9.1 (2026-10-22)
+
+Everything below down to "Mudora 2.0 autotracking fix", plus Crowd Control+ 1.9.1
+(the subathon clock fix). Download: Crowd-Control-Plus-v1.9.1.zip on this repository's
+Releases page.
+
 ## Beta: item sounds and keys in hand on every tracker (2026-10-22)
 
 - **Item sound packs now play with every tracker** (Hutch's, Mudora, Mudora 2.0,
