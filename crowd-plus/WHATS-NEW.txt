@@ -5,6 +5,15 @@ Crowd Control+ is Rando Hub's crowd control: the gift bridge with a
 control panel and stream overlays. Every gift effect, big-donation seed
 roll and the subathon clock work exactly as before.
 
+NEW IN 1.9.6
+------------
+- Ticker (scrolling gift list): when a reroll switches between Zelda 3
+  and Zelda 1, the list changes to the new game's effects within a few
+  seconds. Gifts whose effect that game doesn't have are left out.
+- Rerolls with "Rerolls can land on either game" on: "New seed (same
+  settings)" never changes games. "Random preset seed" and "CHAOS seed"
+  can, and roll the same kind in the other game.
+
 NEW IN 1.9.5
 ------------
 - Goals: a gifts goal can be for one gift. On the Goals tab set the type

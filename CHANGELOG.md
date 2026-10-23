@@ -5,6 +5,15 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.9.6 (2026-10-23)
+
+- **Which rerolls can switch games** (with "Rerolls can land on either game"): Crowd
+  Control's *New seed (same settings)* always stays in the game being played; *Random
+  preset seed* and *CHAOS seed* can switch, and stay that kind in the other game (a
+  random preset there). Zelda 1 gets Random preset and CHAOS seed effects too.
+- **The scrolling gift list follows the game**: after a switch it lists only what the
+  new game can do, with that game's names. Crowd Control+ 1.9.6.
+
 ## Beta v1.9.5 (2026-10-23)
 
 - **Gift goals for one gift**: a gifts goal can count a single gift (like 50 Roses)
