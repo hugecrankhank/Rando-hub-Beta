@@ -7,6 +7,8 @@ played again later.
 
 ## Beta v1.9.2 (2026-10-22)
 
+- **Fixed: controller buttons couldn't be remapped one after another** (Zelda 1 and
+  Zelda 3 emulators): only every other box took a press. Now each one does.
 - **Crowd Control+ 1.9.2: the crowd adds time to the subathon clock.** Seconds for
   each like (down to 0.01), follow, share, new Super Fan and new community member,
   set on the control panel's Subathon tab. Likes add up until they make a whole second.
