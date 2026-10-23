@@ -341,7 +341,7 @@
     emit('maps');
   }
   function loadMaps(b, g) {
-    get('rhb-emo-maps', 'maps', 'v3-' + g).then(function (hit) {
+    get('rhb-emo-maps', 'maps', 'v4-' + g).then(function (hit) {
       if (M.game !== g) return;
       if (hit && hit.light && hit.dark) { useMaps(hit); return; }
       var rom; try { rom = b.read(0, 0x200000); } catch (e) { return; }
@@ -352,7 +352,7 @@
         job.then(function (m) {
           if (M.game !== g) return;
           if (!m.light.concat(m.dark).every(function (x) { return x && x.size > 0; })) return;
-          useMaps(m); put('rhb-emo-maps', 'maps', 'v3-' + g, m);
+          useMaps(m); put('rhb-emo-maps', 'maps', 'v4-' + g, m);
         });
       }, 200);
     });
@@ -380,7 +380,7 @@
   }
   var iconJob = null;
   function loadIcons(g) {
-    get('rhb-mudora', 'icons', 'v3-' + g).then(function (hit) {
+    get('rhb-mudora', 'icons', 'v4-' + g).then(function (hit) {
       if (M.game !== g) return;
       if (hit && hit.crystal) { useIcons(hit); return; }
       var P = M.player(), core = P && P.core, rom = null;
@@ -398,7 +398,7 @@
         if (ev.data && ev.data.icons) {
           var copy = {};   // keep a copy: the canvases below don't need the originals
           Object.keys(ev.data.icons).forEach(function (k) { copy[k] = ev.data.icons[k].slice(0); });
-          put('rhb-mudora', 'icons', 'v3-' + g, copy);
+          put('rhb-mudora', 'icons', 'v4-' + g, copy);
           useIcons(ev.data.icons);
         } else { M.iconState = 'failed'; emit('icons'); console.warn('[mudora] icons', ev.data && ev.data.error); }
       };

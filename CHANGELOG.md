@@ -7,6 +7,9 @@ played again later.
 
 ## Beta v1.9.2 (2026-10-22)
 
+- **Fixed (Mudora, Mudora 2.0): the map and big key pictures were swapped** on the
+  dungeon rows, so a dungeon's map lit up looking like its big key.
+- Mudora's small-key count turns **green** once every key in the dungeon is found.
 - **⚙ Settings in the header** holds the tracker settings: Tracker world and Tracker
   dungeon items (only shown with trackers that use Hutch's logic: Hutch's, Mudora,
   EmoTracker), Tracker keys and Item sounds. On iPad and phone headers they sit in

@@ -26,7 +26,9 @@ var PASSES = [
       lamp: [32, 80], shovel: [80, 80], net: [104, 80], book: [128, 80],
       bottle1: [32, 104], somaria: [56, 104], byrna: [80, 104], cape: [104, 104], mirror: [128, 104],
       boots: [32, 192], gloves1: [64, 192], flippers: [96, 192], moonpearl: [128, 192],
-      sword1: [176, 160], shield1: [200, 160], tunic0: [224, 160], bigkey: [176, 192], compass: [200, 192], map: [224, 192],
+      sword1: [176, 160], shield1: [200, 160], tunic0: [224, 160], // the menu's dungeon row is map, compass, big key (they were swapped, so the
+      // map lit up as a big key: Hydro, Oct 2026)
+      map: [176, 192], compass: [200, 192], bigkey: [224, 192],
       pendant_red: [200, 88], pendant_blue: [184, 112], pendant_green: [216, 112] } },
   { sel: 14, set: { 0x340: 4, 0x341: 2, 0x344: 2, 0x34C: 2, 0x35C: 3, 0x354: 2, 0x359: 2, 0x35A: 2, 0x35B: 1, 0x3C5: 3 },
     cut: { hammer: [56, 80], bow3: [32, 32], boomerang2: [56, 32], powder: [128, 32], flute: [80, 80], bottle2: [32, 104],

@@ -149,6 +149,7 @@
       // Found / In hand / Both: the hub's "Tracker keys" setting (addons/keys-client.js)
       var KC = window.RandoKeysClient, kf = it[k + 'SmallKeys'] || 0, kh = KC ? KC.held(k) : null;
       E.key.textContent = km ? '🗝' + (KC ? KC.text(kf, k, km) : kf + '/' + km) : '';
+      E.key.classList.toggle('done', !!km && km !== '?' && kf >= km);   // every small key found: green, like Hutch's
       E.key.title = km ? 'Small keys: ' + kf + ' of ' + km + ' found' + (kh !== null ? ', ' + kh + ' in hand' : '') : '';
       setImg(E.bk, 'bigkey'); E.bk.classList.toggle('off', !it[k + 'BigKey']);
       setImg(E.mp, 'map'); E.mp.classList.toggle('off', !it[k + 'Map']);
