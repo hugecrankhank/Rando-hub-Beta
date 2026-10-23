@@ -5,6 +5,14 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta: subathon clock fix (2026-10-22)
+
+- **Fixed: the control panel's subathon clock ran fast.** It counted down about
+  twice as fast as the real clock (one second, then a jump of two or three), so
+  after a while it showed far less time than the game and the stream overlay.
+  Only the control panel's display was wrong: the real clock, the clock on the
+  game and the /timer overlay were right all along.
+
 ## Beta: Zelda 1 joins the hub (2026-10-22)
 
 - **Zelda 1 (Z1R) is in the hub** at `z1r/`: roll, play and track Zelda 1
