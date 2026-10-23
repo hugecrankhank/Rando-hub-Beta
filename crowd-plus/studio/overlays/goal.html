@@ -24,7 +24,7 @@
 <div class="offline-note">Waiting for the Crowd Control+ bridge…</div>
 <script src="/studio/common.js"></script>
 <script>
-const only = CC.q.get('id'); const els = {};
+const only = CC.q.get('id'); const els = {}; let catalog = [];
 function paint(goals) {
   const list = goals.filter((g) => only ? g.id === only : g.show);
   for (const id of Object.keys(els)) if (!list.some((g) => g.id === id)) { els[id].remove(); delete els[id]; }
@@ -38,7 +38,10 @@ function paint(goals) {
     const pct = Math.min(100, (g.current / g.target) * 100 || 0);
     const prev = el.dataset.cur;
     el.querySelector('.label').textContent = g.label;
-    el.querySelector('.count').innerHTML = CC.num(Math.min(g.current, g.target)) + ' <small>/ ' + CC.num(g.target) + ' <span class="unit">' + CC.esc(g.type) + '</span></small>';
+    const unit = g.type === 'gifts' && g.gift ? g.gift + (g.target === 1 || /s$/i.test(g.gift) ? '' : 's') : g.type;
+    const gi = g.type === 'gifts' && g.gift && catalog.find((c) => c.name.toLowerCase() === g.gift.toLowerCase() && c.icon);
+    el.querySelector('.die').src = gi ? gi.icon : '/studio/die.svg';
+    el.querySelector('.count').innerHTML = CC.num(Math.min(g.current, g.target)) + ' <small>/ ' + CC.num(g.target) + ' <span class="unit">' + CC.esc(unit) + '</span></small>';
     el.querySelector('.fill').style.width = pct + '%';
     el.querySelector('.pct').textContent = Math.floor(pct) + '%';
     el.classList.toggle('done', g.current >= g.target);
@@ -46,7 +49,7 @@ function paint(goals) {
     el.dataset.cur = g.current;
   }
 }
-CC.on('state', (d) => paint(d.settings.goals));
+CC.on('state', (d) => { if (d.catalog) catalog = d.catalog; paint(d.settings.goals); });
 CC.on('event', (d) => { if (d.goals) paint(d.goals); });
 </script>
 </body></html>

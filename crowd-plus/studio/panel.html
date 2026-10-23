@@ -216,7 +216,7 @@
 <!-- GOALS -->
 <section id="tab-goals">
   <h2>GOALS</h2>
-  <p class="hint">Goal bars fill up from the stream: coins, likes, follows, shares or gifts. Tick <b>On stream</b> for the ones the goal overlay should show (several stack).</p>
+  <p class="hint">Goal bars fill up from the stream: coins, likes, follows, shares or gifts. For a gifts goal, pick one gift (like 50 Roses) or leave it on <b>any gift</b>. Tick <b>On stream</b> for the ones the goal overlay should show (several stack).</p>
   <div class="grid g2" id="goals"></div>
   <div class="bar"><button id="goal-add">Add a goal</button></div>
 </section>
@@ -763,6 +763,11 @@ $('gifts-save').onclick = async () => {
 };
 
 // ── goals ──
+function giftOpts(cur) {
+  const names = (S.catalog || []).map((g) => g.name);
+  if (cur && !names.some((n) => n.toLowerCase() === cur.toLowerCase())) names.unshift(cur);
+  return '<option value="">any gift</option>' + names.map((n) => '<option value="' + esc(n) + '"' + (cur && n.toLowerCase() === cur.toLowerCase() ? ' selected' : '') + '>' + esc(n) + '</option>').join('');
+}
 function paintGoals() {
   $('goals').innerHTML = S.settings.goals.map((g) => {
     const pct = Math.min(100, (g.current / g.target) * 100 || 0);
@@ -770,13 +775,20 @@ function paintGoals() {
       '<div class="row" style="margin:0"><input value="' + esc(g.label) + '" data-gk="label" style="flex:1;font-weight:700">' +
       '<label><input type="checkbox" data-gk="show"' + (g.show ? ' checked' : '') + '> On stream</label></div>' +
       '<div class="row" style="margin:0"><select data-gk="type">' + ['coins', 'likes', 'follows', 'shares', 'gifts'].map((t) => '<option' + (t === g.type ? ' selected' : '') + '>' + t + '</option>').join('') + '</select>' +
-      '<span class="muted">target</span><input type="number" min="1" value="' + g.target + '" data-gk="target">' +
+      '<select data-gk="gift" title="Which gift counts"' + (g.type === 'gifts' ? '' : ' hidden') + '>' + giftOpts(g.gift) + '</select>' +
+      '<span class="muted">' + (g.type === 'gifts' ? 'how many' : 'target') + '</span><input type="number" min="1" value="' + g.target + '" data-gk="target">' +
       '<span class="muted">now</span><input type="number" min="0" value="' + g.current + '" data-gk="current"></div>' +
       '<div class="meter"><i style="width:' + pct + '%"></i></div>' +
       '<div class="row" style="margin:0"><b>' + CC.num(g.current) + ' / ' + CC.num(g.target) + '</b><span class="muted">' + Math.floor(pct) + '%</span>' +
       '<span style="margin-left:auto"></span><button class="small" data-gop="adjust" data-amt="100">+100</button><button class="small" data-gop="adjust" data-amt="-100">−100</button>' +
       '<button class="small" data-gop="reset">Reset</button><button class="small primary" data-gop="update">Save</button><button class="small danger" data-gop="remove">✕</button></div></div>';
   }).join('');
+  // the gift menu only matters for a gifts goal
+  $('goals').querySelectorAll('[data-gk="type"]').forEach((sel) => sel.onchange = () => {
+    const card = sel.closest('[data-goal]'), gifts = sel.value === 'gifts';
+    card.querySelector('[data-gk="gift"]').hidden = !gifts;
+    card.querySelector('[data-gk="target"]').previousElementSibling.textContent = gifts ? 'how many' : 'target';
+  });
   $('goals').querySelectorAll('[data-gop]').forEach((b) => b.onclick = () => {
     const card = b.closest('[data-goal]'), id = card.dataset.goal, op = b.dataset.gop;
     if (op === 'remove' && !confirm('Remove this goal?')) return;

@@ -161,9 +161,14 @@ export function createStudio(ctx) {
     const tiers = [...(settings.alerts.tiers || [])].filter((t) => +t.coins > 0).sort((a, b) => b.coins - a.coins);
     return tiers.find((t) => coins >= +t.coins) || null;
   }
-  function moveGoals(type, amount) {
+  // a "gifts" goal can be for one gift only (g.gift, e.g. "Rose"): only that gift moves it
+  function moveGoals(type, amount, gift) {
     let moved = false;
-    for (const g of settings.goals) if (g.type === type && amount > 0) { g.current = (+g.current || 0) + amount; moved = true; }
+    for (const g of settings.goals) {
+      if (g.type !== type || !(amount > 0)) continue;
+      if (type === 'gifts' && g.gift && String(gift || '').toLowerCase() !== g.gift.toLowerCase()) continue;
+      g.current = (+g.current || 0) + amount; moved = true;
+    }
     if (moved) saveSettings();
   }
   const clean = (s, max) => String(s ?? '').replace(/[\u0000-\u001f]/g, '').slice(0, max);
@@ -179,7 +184,7 @@ export function createStudio(ctx) {
         stats.gifts += e.count || 1; stats.coins += e.coins || 0;
         const g = stats.gifters[e.user] || (stats.gifters[e.user] = { coins: 0, gifts: 0, nickname: e.nickname || '', avatar: '' });
         g.coins += e.coins || 0; g.gifts += e.count || 1; if (e.avatar) g.avatar = e.avatar; if (e.nickname) g.nickname = e.nickname;
-        moveGoals('coins', e.coins || 0); moveGoals('gifts', e.count || 1);
+        moveGoals('coins', e.coins || 0); moveGoals('gifts', e.count || 1, e.gift);
         if (e.gift && !e.test) {
           const each = e.count ? Math.round((e.coins || 0) / e.count) : 0;
           seen[e.gift] = { coins: each || seen[e.gift]?.coins || null, id: e.giftId ?? null, last: Date.now() };
@@ -332,6 +337,7 @@ export function createStudio(ctx) {
         else if (g && a.op === 'update') Object.assign(g, {
           label: clean(a.goal.label ?? g.label, 40), type: ['coins', 'likes', 'follows', 'shares', 'gifts'].includes(a.goal.type) ? a.goal.type : g.type,
           target: Math.max(1, Math.round(+a.goal.target || g.target)), current: Math.max(0, Math.round(+(a.goal.current ?? g.current) || 0)), show: !!a.goal.show,
+          gift: clean(a.goal.gift ?? g.gift ?? '', 60),
         });
         saveSettings(); return;
       }
