@@ -5,6 +5,19 @@ Crowd Control+ is Rando Hub's crowd control: the gift bridge with a
 control panel and stream overlays. Every gift effect, big-donation seed
 roll and the subathon clock work exactly as before.
 
+NEW IN 1.9.1
+------------
+- Fixed: the subathon clock on the control panel ran about twice as fast
+  as the real clock (one second, then a jump of two or three), so after a
+  while it showed far less time than the game and the stream overlay.
+  The real clock, the clock on the game and the /timer overlay were right
+  all along; only the control panel's display was off.
+- New effects for the item sound packs: sound_pack_next and
+  sound_pack_random switch which pack plays on item pickups.
+- Works with Zelda 1 (Z1R) in Rando Hub too: same bridge, same
+  mapping.json. Effects that only exist in ALTTP are skipped while
+  Zelda 1 is playing.
+
 NEW IN 1.9.0
 ------------
 - GT big key guessing game (Live games tab): chat guesses which Ganon's
