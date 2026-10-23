@@ -97,7 +97,7 @@ function show(ev) {
   el.className = 'alert box ' + kind;
   const art = ev.type === 'gift'
     ? (ev.icon ? '<img class="gift" src="' + CC.esc(ev.icon) + '" alt="">' : '<span class="emoji">🎁</span>')
-    : '<span class="emoji">' + (ev.type === 'follow' ? '💖' : ev.type === 'superfan' ? '⭐' : ev.type === 'community' ? '🤝' : ev.type === 'death' ? '☠️' : ev.type === 'detour' ? '⚔️' : ev.type === 'boss' ? '🏆' : ev.type === 'gtkey' ? '🔑' : ev.type === 'detour-end' ? (ev.result === 'won' ? '🏆' : ev.result === 'survived' ? '🛡️' : '💫') : '📣') + '</span>';
+    : '<span class="emoji">' + (ev.type === 'follow' ? '💖' : ev.type === 'superfan' ? '⭐' : ev.type === 'community' ? '🤝' : ev.type === 'death' ? '☠️' : ev.type === 'detour' ? '⚔️' : ev.type === 'boss' ? '🏆' : ev.type === 'gtkey' ? '🔑' : ev.type === 'digprize' ? '⛏️' : ev.type === 'detour-end' ? (ev.result === 'won' ? '🏆' : ev.result === 'survived' ? '🛡️' : '💫') : '📣') + '</span>';
   const avatar = ev.avatar && /^https:\/\//.test(ev.avatar) ? '<img class="avatar" src="' + CC.esc(ev.avatar) + '" alt="" onerror="this.remove()">' : '';
   let what = '';
   if (ev.type === 'gift') what = 'sent <b>' + (ev.count > 1 ? ev.count + 'x ' : '') + CC.esc(ev.gift) + '</b>' + (ev.coins ? ' · ' + CC.num(ev.coins) + ' coins' : '');
@@ -106,11 +106,11 @@ function show(ev) {
   else if (ev.type === 'community') what = 'joined the community!';
   else if (ev.type === 'detour') what = 'sent Link to fight <b>' + CC.esc(ev.text) + '</b>! ' + (ev.secs || 60) + ' seconds…';
   else if (ev.type === 'detour-end') what = CC.esc(ev.text) + (ev.bonus ? ' · bonus: ' + CC.esc(ev.bonus) : ' · back to the run');
-  else if (ev.type === 'gtkey') what = CC.esc(ev.text) + (ev.bonus ? ' · ' + CC.esc(ev.bonus) : '');
+  else if (ev.type === 'gtkey' || ev.type === 'digprize') what = CC.esc(ev.text) + (ev.bonus ? ' · ' + CC.esc(ev.bonus) : '');
   else if (ev.type === 'boss') what = 'beat <b>' + CC.esc(ev.text) + '</b>!' + (ev.bonus ? ' · ' + CC.esc(ev.bonus) : '');
   else if (ev.type === 'death') what = 'died! That\'s death #' + (ev.deaths || 1) + (ev.text ? ' · ' + CC.esc(ev.text) : '');
   else what = 'shared the LIVE!';
-  const fx = !/^(death|detour|boss|gtkey)/.test(ev.type) && A.showEffect && (ev.effectName || ev.tier) ? '<div class="fx pix"><img class="die" src="/studio/die.svg" alt="" style="width:1.6em;height:1.6em">' + CC.esc(ev.effectName || ev.tier) + '</div>' : '';
+  const fx = !/^(death|detour|boss|gtkey|digprize)/.test(ev.type) && A.showEffect && (ev.effectName || ev.tier) ? '<div class="fx pix"><img class="die" src="/studio/die.svg" alt="" style="width:1.6em;height:1.6em">' + CC.esc(ev.effectName || ev.tier) + '</div>' : '';
   el.innerHTML = '<div class="art">' + art + avatar + '</div><div class="txt"><div class="title pix">' + CC.esc(ev.alert.title || '') + '</div>' +
     '<div class="who shadow">' + CC.esc(CC.name(ev)) + '</div><div class="what">' + what + '</div>' + fx + '</div>' +
     '<div class="bar"><i style="animation: shrink ' + secs + 's linear forwards"></i></div>';

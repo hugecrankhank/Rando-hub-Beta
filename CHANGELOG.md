@@ -5,6 +5,14 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.9.11 (2026-10-23)
+
+- **Digging Game guessing** (Crowd Control+ 1.9.7, Live games tab): chat guesses which
+  dig gives the Digging Game's prize (`!dig 1-30`); the game reads the seed's dig number
+  and says which it was when the prize is picked up. New "Digging Game" overlay.
+- **The seed reroll banner moved to the top of the game** (over the HUD) so it no longer
+  covers the play area.
+
 ## Beta v1.9.10 (2026-10-23)
 
 - **Mudora's crystal pictures**: the crystal was found by taking away Misery Mire's,

@@ -591,14 +591,15 @@
   // player rebuilds its screen when the new ROM starts.
   var bannerEl = null, bannerHideT = null;
   var BANNER_CSS =
-    '.cc-reroll { position: absolute; left: 50%; top: 14%; transform: translateX(-50%); z-index: 26; pointer-events: none;' +
-    ' min-width: 58%; max-width: 92%; box-sizing: border-box; padding: 10px 16px 12px; border-radius: 10px; text-align: center;' +
+    // at the very top, over the HUD (it covered the play area just below: HydeOut, Oct 2026)
+    '.cc-reroll { position: absolute; left: 50%; top: 4px; transform: translateX(-50%); z-index: 26; pointer-events: none;' +
+    ' min-width: 58%; max-width: 92%; box-sizing: border-box; padding: 6px 14px 8px; border-radius: 10px; text-align: center;' +
     ' background: rgba(10,12,16,.86); color: #fff; font: 700 13px/1.3 system-ui, sans-serif; text-shadow: 0 1px 2px #000;' +
     ' border: 2px solid #e5534b; box-shadow: 0 4px 18px rgba(0,0,0,.5); transition: opacity .5s; }' +
-    '.cc-reroll .t { font-size: clamp(15px, 3.6vw, 28px); letter-spacing: .04em; }' +
+    '.cc-reroll .t { font-size: clamp(14px, 3vw, 24px); letter-spacing: .04em; }' +
     '.cc-reroll .s { margin-top: 3px; font-weight: 600; opacity: .9; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }' +
     '.cc-reroll .d { margin-top: 5px; font-weight: 700; font-size: 13px; color: #f0c674; line-height: 1.35; }' +
-    '.cc-reroll .bar { margin-top: 8px; height: 5px; border-radius: 3px; background: rgba(255,255,255,.18); overflow: hidden; }' +
+    '.cc-reroll .bar { margin-top: 6px; height: 4px; border-radius: 3px; background: rgba(255,255,255,.18); overflow: hidden; }' +
     '.cc-reroll .bar i { display: block; height: 100%; background: #e5534b; transition: width 1s linear; }' +
     '.cc-reroll.roll { border-color: #e3b341; } .cc-reroll.roll .bar i { width: 35% !important; background: #e3b341; animation: cc-slide 1.1s ease-in-out infinite alternate; }' +
     '.cc-reroll.done-ok { border-color: #3fb950; } .cc-reroll.done-bad { border-color: #8b95a3; }' +
@@ -1038,8 +1039,22 @@
     return n;
   }
   var gtArmed = false;
+  // The Digging Game (Dark World): which dig gives the prize? The randomizer
+  // sets it per seed (ROM 0x180020, DiggingGameRNG, up to ~30 digs) and the
+  // game counts the digs at $7FFE01. The prize is the "Digging Game" check
+  // ($7EF2E8 bit 0x40, like Hutch's tracker). For the guessing game: dig.digs
+  // is the count in the current game, dig.at the dig the prize came on, known
+  // once it's collected (and it was seen not collected first).
+  var DIG_MAX = 30, digArmed = false;
+  function digRng() {
+    var P = root.Snes9xPlayer, core = P && P.core, rom = null;
+    try { rom = core && core.rom(); } catch (e) {}
+    var v = rom && rom.length > 0x180020 ? rom[0x180020] : 0;
+    return v >= 1 && v <= DIG_MAX ? v : 0;
+  }
   var run = { deaths: -1, checks: 0, bonks: 0, place: '', seed: '', music: '', bosses: [],
-    gt: { opened: 0, total: 22, found: false, at: null } }, runSent = '', runT = 0;
+    gt: { opened: 0, total: 22, found: false, at: null },
+    dig: { digs: 0, total: DIG_MAX, found: false, at: null, here: false } }, runSent = '', runT = 0;
   function readRun(ram) {
     if (ram.length < 0x20000) return;
     var mode = ram[A.MODE];
@@ -1049,6 +1064,7 @@
       // doesn't count the drop as anything)
       run.checks = 0; run.bonks = 0; run.deaths = -1; run.bosses = [];
       run.gt = { opened: 0, total: 22, found: false, at: null }; gtArmed = false;
+      run.dig = { digs: 0, total: DIG_MAX, found: false, at: null, here: false }; digArmed = false;
     }
     if (PLAY_MODES[mode]) {
       var gtFound = !!(ram[0xF366] & 0x04), gtNow = gtOpened(ram);
@@ -1058,6 +1074,18 @@
         // (if it came from a GT chest; $040C 0x1A = in Ganon's Tower)
         if (gtArmed && run.gt.at === null && !run.gt.found) run.gt.at = ram[0x40C] === 0x1A ? gtNow : null;
         run.gt.opened = gtNow; run.gt.found = true;
+      }
+      // the digging game: outdoors on screen 0x68
+      var digHere = mode === 0x09 && !ram[0x1B] && ram[0x8A] === 0x68, digs = ram[0x1FE01];
+      run.dig.here = digHere;
+      if (digHere && digs <= 60) run.dig.digs = digs;
+      var digFound = !!(ram[0xF2E8] & 0x40);
+      if (!digFound) { digArmed = true; run.dig.found = false; run.dig.at = null; }
+      else if (!run.dig.found) {
+        // just collected: the prize came on the seed's dig (the count, if the ROM doesn't say)
+        var r = digRng();
+        if (digArmed) run.dig.at = r && run.dig.digs >= r ? r : (run.dig.digs >= 1 && run.dig.digs <= DIG_MAX ? run.dig.digs : null);
+        run.dig.found = true;
       }
       if (ram[0xF3C5] >= 3 && run.bosses.indexOf('aga1') < 0) run.bosses.push('aga1');
       BOSS_ROOMS.forEach(function (b) {

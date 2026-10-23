@@ -5,6 +5,14 @@ Crowd Control+ is Rando Hub's crowd control: the gift bridge with a
 control panel and stream overlays. Every gift effect, big-donation seed
 roll and the subathon clock work exactly as before.
 
+NEW IN 1.9.7
+------------
+- Digging Game guessing (Live games tab): like the GT big key game.
+  Chat guesses which dig gives the Digging Game's prize (!dig 1-30);
+  the game says which dig it was. New "Digging Game" overlay.
+- The seed reroll banner on the game sits at the very top now (over
+  the hearts and rupees), so it doesn't cover the play area.
+
 NEW IN 1.9.6
 ------------
 - Ticker (scrolling gift list): when a reroll switches between Zelda 3
