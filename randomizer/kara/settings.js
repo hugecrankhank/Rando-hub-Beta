@@ -161,6 +161,9 @@ export function trackerFor(settings) {
       pseudoboots: yes(s.boots === 'pseudoboots'),
       mirrorscroll: yes(s.mirror === 'scroll'),
     },
+    // the rest of the seed, for trackers with more settings (Mudora 2.0)
+    seed: { goal: s.goal, ganon: s.crystals_ganon, gt: s.crystals_gt, swords: s.weapons, entrances: s.entrance_shuffle,
+      links: s.links_house, prizes: s.prize_shuffle, followers: s.follower_shuffle, flute: s.flute, inverted: 2 },
   };
 }
 

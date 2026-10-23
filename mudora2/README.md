@@ -33,3 +33,11 @@ Link goes through a door it reads that door's row of the game's entrance table (
 the way out, that exit's row) and links it with his own `setEntranceLink`, as his menu
 would. Right click: his destination list (from his entrance menu's source, in
 `settings.json`), "Pick on map…", or his own menu.
+
+## New seeds
+
+When the hub starts a seed it rolled itself, it writes the seed's settings to
+`localStorage['rhb-seed-tracker']` (index.html, `playRom`). Mudora 2.0 then starts
+a new game on Muffins' launch page and sends his `trackerSettings/setSettings`
+with the matching values (`Mudora2.fromSeed` in mudora2.js). Each seed is set up
+once (`rhb-mudora2-seed`); seeds loaded from a file are left alone.

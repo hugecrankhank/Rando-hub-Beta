@@ -22,10 +22,16 @@
   // license is out (they were test-only behind ?mfns-test=1 before).
   var mfnsTest = true;
   try { localStorage.removeItem('rhb-mfns-test'); } catch (e) {}
-  // Mudora is the starting choice; after that, whatever was picked last (saved by set())
-  var mode = 'mudora';
-  try { mode = localStorage.getItem(KEY) || 'mudora'; } catch (e) {}
-  if (mode !== 'release' && mode !== 'beta' && mode !== 'off' && mode !== 'emo' && mode !== 'mudora' && !((mode === 'mfns' || mode === 'mudora2') && mfnsTest)) mode = 'mudora';
+  // Mudora 2.0 is the starting choice; after that, whatever was picked last
+  // (saved by set()). Mudora was the starting choice before: anyone still on it
+  // is moved to Mudora 2.0 once (picking Mudora again after that is kept).
+  var mode = 'mudora2';
+  try {
+    mode = localStorage.getItem(KEY) || 'mudora2';
+    if (mode === 'mudora' && !localStorage.getItem('rhb-tracker-m2')) { mode = 'mudora2'; localStorage.setItem(KEY, mode); }
+    localStorage.setItem('rhb-tracker-m2', '1');
+  } catch (e) {}
+  if (mode !== 'release' && mode !== 'beta' && mode !== 'off' && mode !== 'emo' && mode !== 'mudora' && !((mode === 'mfns' || mode === 'mudora2') && mfnsTest)) mode = 'mudora2';
 
   function off() { return mode === 'off'; }
   // emo(): a tracker in its own frame (emo-host.js) — EmoTracker, or Mudora

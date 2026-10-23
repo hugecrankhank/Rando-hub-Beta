@@ -469,6 +469,9 @@ async function generateAndPlay() {
         : TRACKER_DI[settings.dungeon_items] || 'standard',
       swordless: settings.weapons === 'swordless' ? 'yes' : 'no',
       gtcrystals: String(m.crystals_tower ?? 7),
+      // the rest of the seed, for trackers with more settings (Mudora 2.0)
+      seed: { goal: settings.goal, ganon: String(m.entry_crystals_ganon ?? m.crystals_ganon ?? settings.crystals.ganon),
+        gt: String(m.crystals_tower ?? settings.crystals.tower), logic: m.logic || 'noglitches', swords: settings.weapons, inverted: 1 },
     });
   } catch (e) {
     console.error(e);
@@ -705,6 +708,8 @@ async function playAlttprSeed(id) {
       gtcrystals: String(m.entry_crystals_tower ?? 7),
       bossshuffle: m['enemizer.boss_shuffle'] && m['enemizer.boss_shuffle'] !== 'none' ? 'yes' : 'no',
       enemizer: m['enemizer.enemy_shuffle'] && m['enemizer.enemy_shuffle'] !== 'none' ? 'yes' : 'no',
+      seed: { goal: m.goal, ganon: String(m.entry_crystals_ganon ?? m.crystals_ganon ?? 7), gt: String(m.entry_crystals_tower ?? 7),
+        logic: m.logic, swords: m.weapons, entrances: m.shuffle || m.entrances, inverted: 1 },
     });
   } catch (e) {
     console.error(e);
