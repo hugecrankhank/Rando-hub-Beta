@@ -565,10 +565,12 @@ Other settings in mapping.json:
                    effect name works here, not just seeds.
   "timer": { "enabled": true, "coinsPerSecond": 1,
              "likeSeconds": 0.01, "followSeconds": 30, "shareSeconds": 15,
-             "superfanSeconds": 300, "communitySeconds": 120 }
+             "superfanSeconds": 300, "communitySeconds": 120,
+             "chatSeconds": 1, "chatCooldown": 30 }
                    the subathon clock: how many coins add 1 second, and
-                   the seconds each like, follow, share, new Super Fan and
-                   new community member adds (0 or left out = none; likes
+                   the seconds each like, follow, share, new Super Fan,
+                   new community member and comment adds (chatCooldown:
+                   seconds before the same viewer's next comment counts) (0 or left out = none; likes
                    add up until they make a whole second). Easiest to set
                    on the control panel's Subathon tab. (Part 8)
   "giftCoins": { "Galaxy": 1000 }

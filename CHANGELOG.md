@@ -5,6 +5,11 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.9.3 (2026-10-23)
+
+- **Crowd Control+ 1.9.3: comments add time to the subathon clock**, with an optional
+  per-viewer wait so one viewer can't spam it up (control panel → Subathon).
+
 ## Beta v1.9.2 (2026-10-22)
 
 - **Mudora 2.0: "Visible" (orange) checks.** Muffins' logic has no visible state, so

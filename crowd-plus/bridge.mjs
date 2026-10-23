@@ -282,6 +282,7 @@ function onSocial(kind, user, extra = {}) {
 function onChat(user, text, extra = {}) {
   const e = studio.record({ type: 'chat', user, nickname: extra.nickname, avatar: extra.avatar, text, test: !!extra.test });
   if (e.command) log(`chat command ${e.command.cmd} from ${user}`);
+  if (!extra.test || extra.runEffect) timerAddChat(user);
 }
 
 // ── durations and the scrolling gift list ──────────────────────────────────
@@ -471,6 +472,22 @@ function timerAddFor(kind, user) {
   if (!secs || secs < 0 || !timerOpen()) return;
   timerAdd(secs, user, SOCIAL_LABEL[kind] || kind);
   log(`  ⏱ +${fmtTime(secs)} from ${user} (${SOCIAL_LABEL[kind] || kind}), clock: ${fmtTime(timerLeft())}`);
+}
+// Comments: "chatSeconds" each, and "chatCooldown" seconds before the same
+// viewer's next comment counts again (0 = every comment), so a spammer can't
+// run the clock up on their own. Small amounts add up like likes do.
+const chatLast = new Map();
+let chatFrac = 0;
+function timerAddChat(user) {
+  const tm = cfg.timer || {}, per = +tm.chatSeconds || 0;
+  if (per <= 0 || !timerOpen()) return;
+  const wait = Math.max(0, +tm.chatCooldown || 0) * 1000, now = Date.now();
+  if (wait && now - (chatLast.get(user) || 0) < wait) return;
+  chatLast.set(user, now);
+  if (chatLast.size > 5000) chatLast.clear();
+  chatFrac += per;
+  const whole = Math.floor(chatFrac + 1e-9);
+  if (whole >= 1) { chatFrac -= whole; timerAdd(whole, user, 'comment'); }
 }
 let likeFrac = 0, likeBy = '';
 function timerAddLikes(user, n) {
@@ -959,7 +976,7 @@ const studio = createStudio({
   simulate: (kind, user, a) => {
     if (kind === 'like') onLike(user, Math.max(1, +a.count || 50), { test: true, runEffect: !!a.runEffect });
     else if (kind === 'follow' || kind === 'share' || kind === 'superfan' || kind === 'community') { cooldown.delete(kind + ':' + user); onSocial(kind, user, { test: true, runEffect: !!a.runEffect }); }
-    else if (kind === 'chat') onChat(user, String(a.text || 'hello!'), { test: true });
+    else if (kind === 'chat') onChat(user, String(a.text || 'hello!'), { test: true, runEffect: !!a.runEffect });
   },
   effectList: () => {
     const virtual = ['mystery_box', 'detour_rescue'];

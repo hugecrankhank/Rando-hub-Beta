@@ -5,6 +5,14 @@ Crowd Control+ is Rando Hub's crowd control: the gift bridge with a
 control panel and stream overlays. Every gift effect, big-donation seed
 roll and the subathon clock work exactly as before.
 
+NEW IN 1.9.3
+------------
+- Comments add time to the subathon clock too: set seconds per comment on
+  the control panel's Subathon tab, plus an optional wait before the same
+  viewer's next comment counts again (stops one viewer spamming the clock).
+- Test chats on the control panel add time when "Also run the game
+  effect" is ticked, like the other test buttons.
+
 NEW IN 1.9.2
 ------------
 - Time on the subathon clock from the crowd, not just coins: set seconds
