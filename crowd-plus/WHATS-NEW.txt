@@ -5,7 +5,7 @@ Crowd Control+ is Rando Hub's crowd control: the gift bridge with a
 control panel and stream overlays. Every gift effect, big-donation seed
 roll and the subathon clock work exactly as before.
 
-NEW IN 1.9.7
+NEW IN 1.9.11
 ------------
 - Digging Game guessing (Live games tab): like the GT big key game.
   Chat guesses which dig gives the Digging Game's prize (!dig 1-30);
