@@ -5,6 +5,12 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.9.10 (2026-10-23)
+
+- **Mudora's crystal pictures**: the crystal was found by taking away Misery Mire's,
+  a red one, so the crystal came out red. It's now found with Palace of Darkness's
+  (blue), and the red crystal is the game's own red one. Pictures are drawn again once.
+
 ## Beta v1.9.9 (2026-10-23)
 
 - **Mudora's item pictures with the randomizer's newer pause menu**: boots, gloves,

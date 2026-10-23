@@ -368,8 +368,8 @@
       cx.putImageData(new ImageData(new Uint8ClampedArray(raw[k]), 16, 16), 0, 0);
       out[k] = cv.toDataURL('image/png');
     });
-    // a red crystal: the crystal with its blues turned red
-    if (raw.crystal) {
+    // a red crystal: the game's own (found in its menu), or else the crystal with its blues turned red
+    if (raw.crystal && !raw.crystal_red) {
       var px = new Uint8ClampedArray(raw.crystal.slice ? raw.crystal.slice(0) : raw.crystal);
       for (var i = 0; i < px.length; i += 4) { if (px[i + 3] && px[i + 2] > px[i] + 20) { var t = px[i]; px[i] = px[i + 2]; px[i + 2] = t; } }
       cx.clearRect(0, 0, 16, 16); cx.putImageData(new ImageData(px, 16, 16), 0, 0);
@@ -380,7 +380,7 @@
   }
   var iconJob = null;
   function loadIcons(g) {
-    get('rhb-mudora', 'icons', 'v5-' + g).then(function (hit) {
+    get('rhb-mudora', 'icons', 'v6-' + g).then(function (hit) {
       if (M.game !== g) return;
       if (hit && hit.crystal) { useIcons(hit); return; }
       var P = M.player(), core = P && P.core, rom = null;
@@ -398,7 +398,7 @@
         if (ev.data && ev.data.icons) {
           var copy = {};   // keep a copy: the canvases below don't need the originals
           Object.keys(ev.data.icons).forEach(function (k) { copy[k] = ev.data.icons[k].slice(0); });
-          put('rhb-mudora', 'icons', 'v5-' + g, copy);
+          put('rhb-mudora', 'icons', 'v6-' + g, copy);
           useIcons(ev.data.icons);
         } else { M.iconState = 'failed'; emit('icons'); console.warn('[mudora] icons', ev.data && ev.data.error); }
       };
