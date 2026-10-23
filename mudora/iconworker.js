@@ -47,7 +47,78 @@ var MENU_TOP = 15;
 // from the picture (are there boots at the randomizer's spot?).
 var RANDO = { boots: [32, 168], gloves1: [64, 168], flippers: [96, 168], moonpearl: [128, 168], gloves2: [64, 168],
   pendant_green: [200, 72], pendant_blue: [184, 88], pendant_red: [216, 88], crystal: [187, 105] };
-var core = null;
+// [name, which pass's inventory, what to take away]
+var FIND = [
+  ['boots', 0, { 0x34B: 0 }], ['gloves1', 0, { 0x354: 0 }], ['flippers', 0, { 0x356: 0 }], ['moonpearl', 0, { 0x357: 0 }],
+  ['gloves2', 1, { 0x354: 0 }],
+  // pendants: - - - - - green blue red
+  ['pendant_red', 0, { 0x374: 6 }], ['pendant_blue', 0, { 0x374: 5 }], ['pendant_green', 0, { 0x374: 3 }],
+  ['crystal', 1, { 0x37A: 0x7E }],
+];
+var core = null, base = null;
+// the pause menu with a pass's inventory (and anything in `less` changed), as a copied picture
+function shot(p, less) {
+  core.loadState(base);
+  var w = core.wram(), k;
+  for (k in ALL) w[0xF000 + +k] = ALL[k];
+  for (k in p.set) w[0xF000 + +k] = p.set[k];
+  for (k = 0xF364; k <= 0xF369; k++) w[k] = 0xFF;
+  w[0xF374] = 7; w[0xF37A] = 0x7F;
+  for (k in (less || {})) w[0xF000 + +k] = less[k];
+  w[0x202] = p.sel;
+  frames(10); frames(4, START); frames(70);
+  var f = core.frame(), W = f.w, step = W >= 512 ? 2 : 1, ys = f.h >= 448 ? 2 : 1;
+  // one value per game pixel (256 x 224)
+  var out = new Uint16Array(256 * 224);
+  for (var y = 0; y < 224 && y * ys < f.h; y++) for (var x = 0; x < 256; x++) out[y * 256 + x] = f.data[(y * ys) * W + x * step];
+  return out;
+}
+// Where the item is: the pixels that changed, grouped into blobs (pixels
+// within 3 of each other). The blob most like an item picture wins: the most
+// colours (a check mark or a number is one colour), then the biggest.
+function findIcon(a, b) {
+  var pts = [];
+  for (var i = 0; i < a.length; i++) if (a[i] !== b[i]) pts.push(i);
+  if (!pts.length || pts.length > 4000) return null;
+  var group = new Int32Array(pts.length).fill(-1), groups = [];
+  for (var p = 0; p < pts.length; p++) {
+    if (group[p] >= 0) continue;
+    var g = groups.length, q = [p]; group[p] = g;
+    var box = { x0: 999, y0: 999, x1: -1, y1: -1, n: 0, cols: {} };
+    while (q.length) {
+      var c = q.pop(), cx = pts[c] % 256, cy = (pts[c] / 256) | 0;
+      box.n++; box.cols[a[pts[c]]] = 1;
+      if (cx < box.x0) box.x0 = cx; if (cx > box.x1) box.x1 = cx; if (cy < box.y0) box.y0 = cy; if (cy > box.y1) box.y1 = cy;
+      for (var o = 0; o < pts.length; o++) {
+        if (group[o] >= 0) continue;
+        var ox = pts[o] % 256, oy = (pts[o] / 256) | 0;
+        if (Math.abs(ox - cx) <= 3 && Math.abs(oy - cy) <= 3) { group[o] = g; q.push(o); }
+      }
+    }
+    groups.push(box);
+  }
+  var best = null, bestScore = -1;
+  groups.forEach(function (g) {
+    var w = g.x1 - g.x0 + 1, h = g.y1 - g.y0 + 1;
+    if (w > 18 || h > 18 || g.n < 6) return;
+    var score = Object.keys(g.cols).length * 1000 + g.n;
+    if (score > bestScore) { bestScore = score; best = g; }
+  });
+  if (!best) return null;
+  // the 16 x 16 square around it
+  var x0 = Math.round((best.x0 + best.x1 + 1) / 2 - 8), y0 = Math.round((best.y0 + best.y1 + 1) / 2 - 8);
+  return [Math.max(0, Math.min(240, x0)), Math.max(0, Math.min(208, y0))];
+}
+function cutAt(pic, x0, y0) {
+  var px = new Uint8ClampedArray(16 * 16 * 4);
+  for (var y = 0; y < 16; y++) for (var x = 0; x < 16; x++) {
+    var v = pic[(y0 + y) * 256 + x0 + x], o = (y * 16 + x) * 4;
+    if (!v) continue;
+    var r = v >> 11, g = (v >> 5) & 63, b = v & 31;
+    px[o] = r << 3 | r >> 2; px[o + 1] = g << 2 | g >> 4; px[o + 2] = b << 3 | b >> 2; px[o + 3] = 255;
+  }
+  return px;
+}
 function frames(n, pad) { for (var i = 0; i < n; i++) { core.runFrame(pad || 0, 0); core.audio(); } }
 function until(test, max) { for (var i = 0; i < max; i++) { core.runFrame(0, 0); core.audio(); if (test(core.wram())) return true; } return false; }
 
@@ -59,7 +130,8 @@ onmessage = function (ev) {
     var w = core.wram();
     w[0x10E] = 0x08; w[0x10F] = 0; w[0x10] = 0x11; w[0x11] = 0; w[0xB0] = 0;     // in through Eastern Palace's door
     if (!until(function (x) { return x[0x10] === 7 && x[0x11] === 0 && (x[0x13] & 15) === 15; }, 1500)) throw new Error('couldn\'t get into the game');
-    var base = core.saveState(), icons = {}, dims = [], rando = null;
+    base = core.saveState();
+    var icons = {}, dims = [], rando = null;
     PASSES.forEach(function (p) {
       core.loadState(base);
       var w = core.wram(), k;
@@ -94,6 +166,20 @@ onmessage = function (ev) {
         icons[name] = px.buffer;
       });
     });
+    // The randomizer's newer menus move the A-button items, pendants and
+    // crystals again (check marks and level numbers where the boots used to
+    // be: Robert, Oct 2026). So each of these is found, not assumed: the menu
+    // with the item and without it, and the picture is wherever they differ.
+    // Not found (or nothing that looks like an item): the fixed spot above stays.
+    var found = 0;
+    FIND.forEach(function (fd) {
+      var on = shot(PASSES[fd[1]]), off = shot(PASSES[fd[1]], fd[2]);
+      var at = findIcon(on, off);
+      if (!at) return;
+      icons[fd[0]] = cutAt(on, at[0], at[1]).buffer;
+      found++;
+    });
+    dims.push(['found', found]);
     var list = Object.keys(icons).map(function (k) { return icons[k]; });
     postMessage({ icons: icons, dims: dims, rando: rando }, list);
   }).catch(function (e) { postMessage({ error: String(e && e.message || e) }); });

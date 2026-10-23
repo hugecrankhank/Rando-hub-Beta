@@ -5,6 +5,13 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.9.9 (2026-10-23)
+
+- **Mudora's item pictures with the randomizer's newer pause menu**: boots, gloves,
+  flippers and Moon Pearl showed as check marks, and pendants as pieces. Their place
+  in the menu is now found from the game itself (the menu with and without each item)
+  instead of fixed spots. Pictures are drawn again once.
+
 ## Beta v1.9.8 (2026-10-23)
 
 - **Mudora and Mudora 2.0: a + on the red crystal and green pendant** in the dungeon
