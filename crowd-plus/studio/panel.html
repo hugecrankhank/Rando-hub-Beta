@@ -138,7 +138,7 @@
         <input id="t-coins" type="number" min="0" placeholder="coins" title="Total coins for this donation" style="width:90px">
         <button class="primary" id="t-send">Send gift</button></div>
       <label class="check"><input type="checkbox" id="t-run"> Also run the game effect (and count it in stats, goals and the subathon clock)</label>
-      <div class="row"><button data-sim="follow">Follow</button><button data-sim="share">Share</button><button data-sim="like">50 likes</button></div>
+      <div class="row"><button data-sim="follow">Follow</button><button data-sim="share">Share</button><button data-sim="like">50 likes</button><button data-sim="superfan">Super Fan</button><button data-sim="community">Community member</button></div>
       <div class="row"><input id="t-chat" placeholder="Chat message, e.g. !rules" style="flex:1"><button id="t-chat-send">Send chat</button></div>
       <h3 style="margin-top:18px">Stream</h3>
       <div class="row"><button id="clear-alerts">Clear alerts on screen</button><button class="danger" id="reset-stats">Reset stream stats</button></div>
@@ -167,13 +167,15 @@
   <div class="card"><table><thead><tr><th>Coins</th><th>Effect</th><th>Name on the gift list</th><th></th></tr></thead><tbody id="tier-rows"></tbody></table>
     <div class="bar"><button id="tier-add">Add a level</button></div></div>
 
-  <h2>LIKES, FOLLOWS, SHARES</h2>
+  <h2>LIKES, FOLLOWS, SHARES, SUPER FANS</h2>
   <div class="card">
     <div id="like-rows"></div>
     <div class="row"><button class="small" id="like-add">Add a like trigger</button> <span class="hint">Each one counts on its own, e.g. +1 heart every 300, magic every 500, full heal every 2000.</span></div>
     <div class="row"><span style="min-width:170px" class="muted">A follow</span><select id="follow-effect"></select></div>
     <div class="row"><span style="min-width:170px" class="muted">A share</span><select id="share-effect"></select></div>
-    <p class="hint">Follows and shares count once per viewer every 10 minutes.</p>
+    <div class="row"><span style="min-width:170px" class="muted">A new Super Fan</span><select id="superfan-effect"></select></div>
+    <div class="row"><span style="min-width:170px" class="muted">A new community member</span><select id="community-effect"></select></div>
+    <p class="hint">Follows, shares, Super Fans and community members count once per viewer every 10 minutes. Time they add to the subathon clock is set on the Subathon tab.</p>
   </div>
 
   <h2>TIMED EFFECTS</h2>
@@ -197,6 +199,8 @@
       <label class="row"><span>Show the game effect</span><input type="checkbox" data-s="alerts.showEffect"></label>
       <label class="row"><span>Alert for follows</span><input type="checkbox" data-s="alerts.follows"></label>
       <label class="row"><span>Alert for shares</span><input type="checkbox" data-s="alerts.shares"></label>
+      <label class="row"><span>Alert for new Super Fans</span><input type="checkbox" data-s="alerts.superfans"></label>
+      <label class="row"><span>Alert for new community members</span><input type="checkbox" data-s="alerts.community"></label>
       <label class="row"><span>Sound</span><input type="checkbox" data-s="alerts.sound"> <input type="range" min="0" max="1" step=".05" data-s="alerts.volume" style="width:140px"></label>
     </div>
     <div class="card">
@@ -286,6 +290,13 @@
       <label class="row"><span>Coins per second</span><input id="tm-cps" type="number" min="0.05" step="0.05"></label>
       <p class="hint" id="tm-rate"></p>
       <label class="row"><span>Clock on</span><input type="checkbox" id="tm-enabled"></label>
+      <h3 style="margin-top:12px">Time from the crowd</h3>
+      <p class="hint">Seconds added to the clock. 0 = none. Likes add up: at 0.01 a like, 100 likes make a second.</p>
+      <label class="row"><span>Each like</span><input id="tm-like" type="number" min="0" step="0.01" style="width:90px"> s</label>
+      <label class="row"><span>A follow</span><input id="tm-follow" type="number" min="0" step="0.01" style="width:90px"> s</label>
+      <label class="row"><span>A share</span><input id="tm-share" type="number" min="0" step="0.01" style="width:90px"> s</label>
+      <label class="row"><span>A new Super Fan</span><input id="tm-superfan" type="number" min="0" step="0.01" style="width:90px"> s</label>
+      <label class="row"><span>A new community member</span><input id="tm-community" type="number" min="0" step="0.01" style="width:90px"> s</label>
       <div class="row"><button class="primary" id="tm-save">Save</button></div>
       <h3 style="margin-top:12px">Recent</h3>
       <div id="tm-log" class="muted" style="font-size:12.5px"></div>
@@ -536,7 +547,7 @@ CC.on('tick', (d) => {
   chips(CC.state); if (S) paintConn(); const n = d.overlays || 0; $('chip-ov').className = 'chip ' + (n ? 'ok' : ''); $('chip-ov').lastElementChild.textContent = n + ' overlay' + (n === 1 ? '' : 's') + ' on stream'; paintClock(); });
 
 // ── dashboard ──
-const ICON = { gift: '🎁', like: '❤', follow: '➕', share: '↗', chat: '💬', death: '☠', music: '♪', detour: '⚔', 'detour-end': '⚔', 'detour-rescue': '🛟', boss: '🏆', gtkey: '🔑' };
+const ICON = { gift: '🎁', like: '❤', follow: '➕', share: '↗', superfan: '⭐', community: '🤝', chat: '💬', death: '☠', music: '♪', detour: '⚔', 'detour-end': '⚔', 'detour-rescue': '🛟', boss: '🏆', gtkey: '🔑' };
 function paintStats() {
   const s = S.stats;
   $('stats').innerHTML = [['Coins', s.coins], ['Gifts', s.gifts], ['Likes', s.likes], ['Follows', s.follows], ['Shares', s.shares], ['Chat', s.chats]]
@@ -551,6 +562,8 @@ function evRow(e) {
   else if (e.type === 'like') what += 'liked x' + e.count;
   else if (e.type === 'follow') what += 'followed';
   else if (e.type === 'share') what += 'shared the LIVE';
+  else if (e.type === 'superfan') what += 'became a Super Fan';
+  else if (e.type === 'community') what += 'joined the community';
   else if (e.type === 'chat') what += '<span class="muted">' + esc(e.text) + '</span>' + (e.command ? ' <span class="pill">command</span>' : '') + (e.speak ? ' <span class="pill">read aloud</span>' : '') +
     (e.vote ? ' <span class="pill">voted ' + e.vote + '</span>' : '') + (e.predict ? ' <span class="pill">' + esc(e.predict) + '</span>' : '') + (e.gtguess ? ' <span class="pill">GT guess #' + e.gtguess + '</span>' : '') + (e.team ? ' <span class="pill">joined ' + esc(e.team) + '</span>' : '') + (e.clipped ? ' <span class="pill">clip marked</span>' : '');
   else if (e.type === 'death') what = '<b>Link</b> died (death #' + (e.deaths || '?') + ')' + (e.text ? ' <span class="muted">' + esc(e.text) + '</span>' : '');
@@ -677,7 +690,7 @@ function newGDraft() {
     gifts: Object.entries(m.gifts).map(([name, effect]) => ({ name, effect, coins: m.giftCoins[name] ?? '' })),
     coinTiers: JSON.parse(JSON.stringify(m.coinTiers || [])),
     likes: (Array.isArray(m.likes) ? m.likes : m.likes && m.likes.every ? [m.likes] : []).map((t) => ({ every: +t.every || 0, effect: t.effect || '' })),
-    follow: m.follow || '', share: m.share || '', durations: { ...(m.durations || {}) }, maxPerGift: m.maxPerGift ?? 5,
+    follow: m.follow || '', share: m.share || '', superfan: m.superfan || '', community: m.community || '', durations: { ...(m.durations || {}) }, maxPerGift: m.maxPerGift ?? 5,
   };
   gDirty = false; $('gifts-dirty').textContent = '';
 }
@@ -711,6 +724,8 @@ function paintGifts() {
   $('like-rows').querySelectorAll('[data-ldel]').forEach((b) => b.onclick = () => { gdraft.likes.splice(+b.dataset.ldel, 1); markG(); paintGifts(); });
   $('follow-effect').innerHTML = effectOptions(gdraft.follow, true);
   $('share-effect').innerHTML = effectOptions(gdraft.share, true);
+  $('superfan-effect').innerHTML = effectOptions(gdraft.superfan, true);
+  $('community-effect').innerHTML = effectOptions(gdraft.community, true);
   $('max-per').value = gdraft.maxPerGift;
   // durations
   $('durations').innerHTML = (S.effects || []).filter((e) => e.secs).map((e) => '<label class="row" style="margin:3px 0"><span style="min-width:150px" class="muted">' + esc(e.name) + '</span><input type="number" min="1" value="' + (gdraft.durations[e.id] ?? e.secs) + '" data-dur="' + esc(e.id) + '" style="width:72px"> s</label>').join('') || '<p class="hint">Open the game and turn on Crowd effects to list them.</p>';
@@ -725,6 +740,8 @@ function paintGifts() {
 $('like-add').onclick = () => { const last = gdraft.likes[gdraft.likes.length - 1]; gdraft.likes.push({ every: last ? last.every * 2 : 300, effect: 'heal_1' }); markG(); paintGifts(); };
 $('follow-effect').onchange = () => { gdraft.follow = $('follow-effect').value; markG(); };
 $('share-effect').onchange = () => { gdraft.share = $('share-effect').value; markG(); };
+$('superfan-effect').onchange = () => { gdraft.superfan = $('superfan-effect').value; markG(); };
+$('community-effect').onchange = () => { gdraft.community = $('community-effect').value; markG(); };
 $('max-per').oninput = () => { gdraft.maxPerGift = Math.max(1, +$('max-per').value || 1); markG(); };
 $('gift-add').onclick = () => { const n = $('gift-new').value.trim(); if (!n) return; if (gdraft.gifts.some((g) => g.name.toLowerCase() === n.toLowerCase())) { toast(n + ' is already in the list', true); return; } gdraft.gifts.push({ name: n, effect: (S.effects[0] || {}).id || '', coins: '' }); $('gift-new').value = ''; markG(); paintGifts(); };
 $('tier-add').onclick = () => { gdraft.coinTiers.push({ coins: 500, effect: 'seed_roll', label: '' }); markG(); paintGifts(); };
@@ -736,7 +753,7 @@ $('gifts-save').onclick = async () => {
   const mapping = {
     gifts, giftCoins, coinTiers: gdraft.coinTiers.filter((t) => +t.coins > 0 && t.effect).map((t) => ({ coins: +t.coins, effect: t.effect, ...(t.label ? { label: t.label } : {}) })),
     likes: gdraft.likes.filter((t) => +t.every > 0 && t.effect).map((t) => ({ every: +t.every, effect: t.effect })),
-    follow: gdraft.follow, share: gdraft.share, durations, maxPerGift: gdraft.maxPerGift,
+    follow: gdraft.follow, share: gdraft.share, superfan: gdraft.superfan, community: gdraft.community, durations, maxPerGift: gdraft.maxPerGift,
   };
   await call('mapping', { mapping }, 'Gift setup saved. The bridge uses it right away.');
   gDirty = false; $('gifts-dirty').textContent = ''; gdraft = null;
@@ -810,6 +827,7 @@ function paintTimerSide() {
   const t = S.timer || {};
   if (document.activeElement !== $('tm-cps')) $('tm-cps').value = t.coinsPerSecond ?? (S.mapping.timer.coinsPerSecond || 1);
   $('tm-enabled').checked = S.mapping.timer.enabled !== false;
+  TM_CROWD.forEach(([id, k]) => { if (document.activeElement !== $(id)) $(id).value = +(S.mapping.timer[k] || 0); });
   $('tm-rate').textContent = (t.rate || '') + (t.coinsPerSecond ? ' · ' + CC.num(Math.round(3600 * t.coinsPerSecond)) + ' coins per hour' : '');
   $('tm-log').innerHTML = (t.log || []).slice(0, 8).map((l) => '<div>' + esc(l.user || '') + ' <b style="color:' + (l.seconds < 0 ? '#ff8a92' : '#3fb950') + '">' + (l.seconds < 0 ? '−' : '+') + CC.fmt(Math.abs(l.seconds)) + '</b> <span>' + esc(l.why || '') + '</span></div>').join('') || 'Nothing yet';
 }
@@ -819,7 +837,12 @@ $('tm-start').onclick = () => tm('start');
 $('tm-pause').onclick = () => tm('pause');
 $('tm-off').onclick = () => { if (confirm('Turn the clock off? It disappears from the stream.')) tm('off'); };
 document.querySelectorAll('[data-tm]').forEach((b) => b.onclick = () => tm('add', +b.dataset.tm));
-$('tm-save').onclick = () => call('mapping', { mapping: { timer: { ...(S.mapping.timer || {}), enabled: $('tm-enabled').checked, coinsPerSecond: Math.max(0.05, +$('tm-cps').value || 1) } } }, 'Saved');
+const TM_CROWD = [['tm-like', 'likeSeconds'], ['tm-follow', 'followSeconds'], ['tm-share', 'shareSeconds'], ['tm-superfan', 'superfanSeconds'], ['tm-community', 'communitySeconds']];
+$('tm-save').onclick = () => {
+  const crowd = {};
+  TM_CROWD.forEach(([id, k]) => { crowd[k] = Math.max(0, Math.round((+$(id).value || 0) * 100) / 100); });
+  call('mapping', { mapping: { timer: { ...(S.mapping.timer || {}), ...crowd, enabled: $('tm-enabled').checked, coinsPerSecond: Math.max(0.05, +$('tm-cps').value || 1) } } }, 'Saved');
+};
 
 // ── profiles ──
 function paintProfiles() {

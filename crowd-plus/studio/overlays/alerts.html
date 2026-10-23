@@ -97,11 +97,13 @@ function show(ev) {
   el.className = 'alert box ' + kind;
   const art = ev.type === 'gift'
     ? (ev.icon ? '<img class="gift" src="' + CC.esc(ev.icon) + '" alt="">' : '<span class="emoji">🎁</span>')
-    : '<span class="emoji">' + (ev.type === 'follow' ? '💖' : ev.type === 'death' ? '☠️' : ev.type === 'detour' ? '⚔️' : ev.type === 'boss' ? '🏆' : ev.type === 'gtkey' ? '🔑' : ev.type === 'detour-end' ? (ev.result === 'won' ? '🏆' : ev.result === 'survived' ? '🛡️' : '💫') : '📣') + '</span>';
+    : '<span class="emoji">' + (ev.type === 'follow' ? '💖' : ev.type === 'superfan' ? '⭐' : ev.type === 'community' ? '🤝' : ev.type === 'death' ? '☠️' : ev.type === 'detour' ? '⚔️' : ev.type === 'boss' ? '🏆' : ev.type === 'gtkey' ? '🔑' : ev.type === 'detour-end' ? (ev.result === 'won' ? '🏆' : ev.result === 'survived' ? '🛡️' : '💫') : '📣') + '</span>';
   const avatar = ev.avatar && /^https:\/\//.test(ev.avatar) ? '<img class="avatar" src="' + CC.esc(ev.avatar) + '" alt="" onerror="this.remove()">' : '';
   let what = '';
   if (ev.type === 'gift') what = 'sent <b>' + (ev.count > 1 ? ev.count + 'x ' : '') + CC.esc(ev.gift) + '</b>' + (ev.coins ? ' · ' + CC.num(ev.coins) + ' coins' : '');
   else if (ev.type === 'follow') what = 'just followed!';
+  else if (ev.type === 'superfan') what = 'is a new Super Fan!';
+  else if (ev.type === 'community') what = 'joined the community!';
   else if (ev.type === 'detour') what = 'sent Link to fight <b>' + CC.esc(ev.text) + '</b>! ' + (ev.secs || 60) + ' seconds…';
   else if (ev.type === 'detour-end') what = CC.esc(ev.text) + (ev.bonus ? ' · bonus: ' + CC.esc(ev.bonus) : ' · back to the run');
   else if (ev.type === 'gtkey') what = CC.esc(ev.text) + (ev.bonus ? ' · ' + CC.esc(ev.bonus) : '');

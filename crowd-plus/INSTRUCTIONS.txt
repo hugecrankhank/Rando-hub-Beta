@@ -563,9 +563,14 @@ Other settings in mapping.json:
                    effect instead of its gift's own (highest one reached
                    wins). Change the numbers or effects as you like; any
                    effect name works here, not just seeds.
-  "timer": { "enabled": true, "coinsPerSecond": 1 }
-                   the subathon clock: how many coins add 1 second
-                   (Part 8)
+  "timer": { "enabled": true, "coinsPerSecond": 1,
+             "likeSeconds": 0.01, "followSeconds": 30, "shareSeconds": 15,
+             "superfanSeconds": 300, "communitySeconds": 120 }
+                   the subathon clock: how many coins add 1 second, and
+                   the seconds each like, follow, share, new Super Fan and
+                   new community member adds (0 or left out = none; likes
+                   add up until they make a whole second). Easiest to set
+                   on the control panel's Subathon tab. (Part 8)
   "giftCoins": { "Galaxy": 1000 }
                    only needed if the black window doesn't show
                    "= N coins" for a gift: tells the bridge what it's worth
@@ -578,6 +583,8 @@ Other settings in mapping.json:
                    them on the Gifts & effects tab)
   "follow": "rupees_plus"     effect for a follow
   "share": "bombs_plus"       effect for a share
+  "superfan": "heal_full"     effect for a new Super Fan
+  "community": "rupees_plus"  effect for a new community member
   "maxPerGift": 5             cap for gift streaks (20 Roses = 5 hearts)
   "ticker": { "title": "GIFT EFFECTS", "speed": 70,
               "labels": { "one_hit": "OHKO mode" } }

@@ -33,7 +33,7 @@ export function createStudio(ctx) {
   const DEFAULTS = {
     alerts: {
       enabled: true, minCoins: 1, seconds: 6, sound: true, volume: 0.7, showEffect: true,
-      follows: true, shares: false,
+      follows: true, shares: false, superfans: true, community: true,
       // bigger donations get bigger alerts: the highest tier reached is used
       tiers: [
         { coins: 1, name: 'small', title: 'THANK YOU!' },
@@ -118,7 +118,7 @@ export function createStudio(ctx) {
       settings, stats: { ...stats, gifters: undefined, top: topGifters(Math.max(10, settings.leaderboard.size)) },
       status: ctx.status(), timer: ctx.timerView(true),
       mapping: {
-        gifts: cfg.gifts || {}, coinTiers: cfg.coinTiers || [], likes: cfg.likes || {}, follow: cfg.follow || '', share: cfg.share || '',
+        gifts: cfg.gifts || {}, coinTiers: cfg.coinTiers || [], likes: cfg.likes || {}, follow: cfg.follow || '', share: cfg.share || '', superfan: cfg.superfan || '', community: cfg.community || '',
         durations: cfg.durations || {}, maxPerGift: cfg.maxPerGift ?? 5, giftCoins: cfg.giftCoins || {}, timer: cfg.timer || {}, source: cfg.source,
       },
       effects: ctx.effectList(), catalog: giftCatalog(), profiles: listProfiles(),
@@ -196,6 +196,8 @@ export function createStudio(ctx) {
       if (e.type === 'gift' && (e.coins || 0) >= (+A.minCoins || 0)) { const t = alertTier(e.coins || 0) || { name: 'small', title: 'THANK YOU!' }; e.alert = { tier: t.name, title: t.title }; }
       else if (e.type === 'follow' && A.follows) e.alert = { tier: 'follow', title: 'NEW FOLLOWER' };
       else if (e.type === 'share' && A.shares) e.alert = { tier: 'share', title: 'SHARED THE LIVE' };
+      else if (e.type === 'superfan' && A.superfans !== false) e.alert = { tier: 'follow', title: 'NEW SUPER FAN' };
+      else if (e.type === 'community' && A.community !== false) e.alert = { tier: 'follow', title: 'NEW COMMUNITY MEMBER' };
     }
     // text-to-speech (spoken by the panel page, so it uses this PC's voices)
     if (e.type === 'chat' && e.text) {
@@ -244,7 +246,7 @@ export function createStudio(ctx) {
   function listProfiles() {
     try { return fs.readdirSync(PROFILES).filter((f) => f.endsWith('.json')).map((f) => f.slice(0, -5)).sort(); } catch { return []; }
   }
-  const MAPPING_KEYS = ['gifts', 'coinTiers', 'likes', 'follow', 'share', 'durations', 'maxPerGift', 'giftCoins', 'timer', 'ticker'];
+  const MAPPING_KEYS = ['gifts', 'coinTiers', 'likes', 'follow', 'share', 'superfan', 'community', 'durations', 'maxPerGift', 'giftCoins', 'timer', 'ticker'];
 
   // ── HTTP ─────────────────────────────────────────────────────────────────
   const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8',
