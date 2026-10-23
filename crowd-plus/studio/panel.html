@@ -528,6 +528,11 @@ CC.on('tick', (d) => {
     if (!w) { w = document.createElement('div'); w.id = 'tabs-warn'; w.style.cssText = 'background:#7a1d24;color:#fff;padding:8px 14px;font:600 13px system-ui;text-align:center'; document.body.prepend(w); }
     w.textContent = 'The control panel is open in ' + d.studioTabs + ' tabs. Close the extra ones: too many open pages can make buttons wait minutes before they work.';
   } else if (w) w.remove();
+  // The tick carries a fresh "remaining" (common.js merges it into S.timer), so
+  // count down from now. Keeping the older anchor took the time since the last
+  // full refresh off a second time: the clock here ran fast, jumped 2-3 s at a
+  // time and ended up an hour behind the real one (HydeOut, Oct 2026).
+  if (d.timer) tmAt = Date.now();
   chips(CC.state); if (S) paintConn(); const n = d.overlays || 0; $('chip-ov').className = 'chip ' + (n ? 'ok' : ''); $('chip-ov').lastElementChild.textContent = n + ' overlay' + (n === 1 ? '' : 's') + ' on stream'; paintClock(); });
 
 // ── dashboard ──
