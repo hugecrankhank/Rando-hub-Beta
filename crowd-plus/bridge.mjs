@@ -72,6 +72,7 @@ function log(...m) { console.log(new Date().toLocaleTimeString(), ...m); }
 // ── tiny WebSocket server (text frames only, which is all we need) ─────────
 const clients = new Set();
 let knownEffects = null;   // ids the game reported in its hello
+let gameName = '';         // 'Zelda 3' or 'Zelda 1', from that hello
 
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, 'http://localhost');
@@ -154,6 +155,9 @@ process.on('unhandledRejection', (e) => { try { log(`! error, still running: ${e
 function onGameMessage(text) {
   let m; try { m = JSON.parse(text); } catch { return; }
   if (m.type === 'hello') {
+    const app = m.app === 'z1r' ? 'Zelda 1' : 'Zelda 3';
+    if (gameName && gameName !== app) log(`🎮 game switched to ${app}: the ticker now lists ${app}'s effects`);
+    gameName = app;
     knownEffects = new Set((m.effects || []).map((e) => e.id));
     for (const e of m.effects || []) if (e.name) effectNames[e.id] = e.name;
     sendDurations();
@@ -318,20 +322,30 @@ function tickerData() {
     const want = gift.toLowerCase();
     return icons.find((f) => f.replace(/\.[^.]+$/, '').toLowerCase() === want) || null;
   };
+  // Only what the game that's connected now can do (Zelda 3 and Zelda 1 have
+  // different effects), named the way that game names them: when a reroll
+  // switches games, the new game's hello changes the list within a few seconds.
+  const can = (id) => {
+    if (!knownEffects || id === 'mystery_box') return true;
+    if (id === 'detour_rescue') return knownEffects.has('boss_random') || knownEffects.has('boss_ganon');
+    return knownEffects.has(id);
+  };
   const items = [];
   for (const [gift, raw] of Object.entries(cfg.gifts || {})) {
     const id = resolveEffect(raw) || raw;
+    if (!can(id)) continue;
     const secs = id in defaultSecs ? (+(cfg.durations || {})[id] > 0 ? +cfg.durations[id] : defaultSecs[id]) : 0;
     items.push({ gift, label: labels[id] || effectNames[id] || id, secs, icon: iconFor(gift) ? '/icons/' + encodeURIComponent(iconFor(gift)) : null });
   }
-  if (t.showLikes !== false) for (const l of cfg.likeTiers)
+  if (t.showLikes !== false) for (const l of cfg.likeTiers) if (can(resolveEffect(l.effect) || l.effect))
     items.push({ gift: `${l.every} likes`, label: labels[l.effect] || effectNames[l.effect] || l.effect, secs: 0, icon: null, emoji: '❤' });
   const SOCIAL_TICK = { follow: ['Follow', '➕'], share: ['Share', '↗'], superfan: ['Super Fan', '⭐'], community: ['New community member', '🤝'] };
-  for (const kind of Object.keys(SOCIAL_TICK)) if (t.showSocial !== false && cfg[kind])
+  for (const kind of Object.keys(SOCIAL_TICK)) if (t.showSocial !== false && cfg[kind] && can(resolveEffect(cfg[kind]) || cfg[kind]))
     items.push({ gift: SOCIAL_TICK[kind][0], label: labels[cfg[kind]] || effectNames[cfg[kind]] || cfg[kind], secs: 0, icon: null, emoji: SOCIAL_TICK[kind][1] });
   const tiers = (Array.isArray(cfg.coinTiers) ? cfg.coinTiers : []).filter((x) => x && +x.coins > 0 && x.effect).sort((a, b) => a.coins - b.coins);
   for (const x of tiers) {
     const id = resolveEffect(x.effect) || x.effect;
+    if (!can(id)) continue;
     items.push({ gift: `${Number(x.coins).toLocaleString('en-US')}+ coins`, label: x.label || labels[id] || effectNames[id] || id, secs: 0, icon: null, emoji: '🪙' });
   }
   const tm = cfg.timer || {};

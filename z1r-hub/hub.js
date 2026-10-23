@@ -5,8 +5,9 @@
  *
  *  - "◂ Zelda 3" back to the hub, and a 🎲 Reroll button in the header
  *  - "Rerolls can land on either game" (set in the hub's Randomizer bar):
- *    every Zelda 1 reroll, the button or Crowd Control's "New seed!", may
- *    go to the hub instead, which rolls an ALTTP seed (../?roll=1)
+ *    the 🎲 Reroll button and Crowd Control's Random preset / CHAOS seed may
+ *    go to the hub instead, which rolls an ALTTP seed of that kind
+ *    (../?roll=1&mode=…). Crowd Control's "New seed (same flags)" stays here.
  *  - ?roll=1 (from the hub): roll a Zelda 1 seed right away
  *  - Crowd effects on/off and the bridge address follow the hub's
  */
@@ -33,10 +34,10 @@
 
   var roll = null;     // Z1R's own rollAndPlay, kept for ?roll=1
 
-  function rollHere() {
+  function rollHere(mode) {
     var dlg = document.getElementById('seed-dlg');
     try { window.Z1Seed.open(); } catch (e) {}       // shows the progress
-    return roll().then(function (seed) {
+    return roll(mode ? { mode: mode } : undefined).then(function (seed) {
       if (dlg && dlg.open) dlg.close();
       return seed;
     }, function (e) {
@@ -49,9 +50,12 @@
     if (!window.Z1Seed || !window.Z1Seed.rollAndPlay) return;
     roll = window.Z1Seed.rollAndPlay;
     // Every reroll goes through here: maybe it's ALTTP's turn.
-    window.Z1Seed.rollAndPlay = function () {
-      if (either() && Math.random() < 0.5) {
-        location.href = HUB + '?roll=1';
+    // Crowd Control passes { mode }: "same" flags never leaves Zelda 1; a random
+    // preset or CHAOS seed may, and stays that kind in Zelda 3.
+    window.Z1Seed.rollAndPlay = function (opts) {
+      var mode = opts && opts.mode;
+      if (mode !== 'same' && either() && Math.random() < 0.5) {
+        location.href = HUB + '?roll=1' + (mode ? '&mode=' + mode : '');
         return new Promise(function () {});           // the page is leaving
       }
       return roll.apply(this, arguments);
@@ -83,9 +87,10 @@
 
     var q = new URLSearchParams(location.search);
     if (q.get('roll') === '1') {
-      q.delete('roll'); q.delete('by');
+      var mode = /^(preset|chaos)$/.test(q.get('mode') || '') ? q.get('mode') : '';
+      q.delete('roll'); q.delete('by'); q.delete('mode');
       try { history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q : '') + location.hash); } catch (e) {}
-      setTimeout(function () { rollHere().catch(function () {}); }, 300);
+      setTimeout(function () { rollHere(mode).catch(function () {}); }, 300);
     }
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

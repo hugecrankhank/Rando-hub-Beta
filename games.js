@@ -4,11 +4,14 @@
  *
  *  - A "Game" row at the top of the Randomizer bar switches between them.
  *  - "Rerolls can land on either game": the 🎲 Reroll button and Crowd
- *    Control's "New seed!" pick a game at random; Zelda 1 opens z1r/ and
- *    rolls a seed there with the flags last used in its New seed dialog.
- *    Zelda 1's own reroll does the same in the other direction.
+ *    Control's "Random preset seed" and "CHAOS seed" pick a game at random;
+ *    Zelda 1 opens z1r/ and rolls a seed there (the button: the flags last
+ *    used in its New seed dialog; a random preset or CHAOS seed: a random
+ *    Zelda 1 preset). Crowd Control's "New seed (same settings)" never
+ *    switches games. Zelda 1 does the same in the other direction.
  *  - Arriving with ?roll=1 (from Zelda 1) rolls a new ALTTP seed with the
- *    Randomizer bar's current settings, without asking.
+ *    Randomizer bar's current settings, without asking (&mode=preset or
+ *    &mode=chaos: a random preset or a CHAOS seed instead).
  *
  * The setting is shared with z1r/ through localStorage (same site).
  */
@@ -21,8 +24,9 @@
   function setEither(on) { try { localStorage.setItem(EITHER_KEY, on ? '1' : '0'); } catch (e) {} }
   // For a reroll: true = this one goes to Zelda 1.
   function pickZ1() { return either() && Math.random() < 0.5; }
-  function goZ1(by) {
-    location.href = Z1_URL + '?roll=1' + (by ? '&by=' + encodeURIComponent(by) : '');
+  // mode: 'preset' or 'chaos' from Crowd Control (Zelda 1 then rolls a random preset)
+  function goZ1(by, mode) {
+    location.href = Z1_URL + '?roll=1' + (mode && mode !== 'same' ? '&mode=' + mode : '') + (by ? '&by=' + encodeURIComponent(by) : '');
   }
 
   window.RandoGames = { either: either, setEither: setEither, pickZ1: pickZ1, goZ1: goZ1, Z1_URL: Z1_URL };
@@ -55,7 +59,7 @@
     row.id = 'game-row';
     row.innerHTML = '<span>Game</span><span class="gm"><span aria-current="page">Zelda 3 · ALTTP</span>' +
       '<a href="' + Z1_URL + '" title="Zelda 1 randomizer (Z1R): roll, play and track Zelda 1 seeds">Zelda 1 ▸</a></span>' +
-      '<label title="The 🎲 Reroll button and Crowd Control’s New seed! pick Zelda 3 or Zelda 1 at random">' +
+      '<label title="The 🎲 Reroll button and Crowd Control’s Random preset and CHAOS seeds pick Zelda 3 or Zelda 1 at random. Crowd Control’s New seed (same settings) stays in the game you’re playing.">' +
       '<input type="checkbox" id="either-game"> Rerolls can land on either game</label>';
     var after = document.getElementById('r-shared');
     bar.insertBefore(row, after ? after.nextSibling : bar.firstChild);
@@ -69,18 +73,32 @@
   function autoRoll() {
     var q = new URLSearchParams(location.search);
     if (q.get('roll') !== '1') return;
-    q.delete('roll'); q.delete('by');
+    var mode = q.get('mode');
+    q.delete('roll'); q.delete('by'); q.delete('mode');
     try { history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q : '') + location.hash); } catch (e) {}
     var tries = 0;
     var t = setInterval(function () {
       var gen = document.getElementById('r-generate'), seed = document.getElementById('r-seed');
       if (++tries > 120) { clearInterval(t); return; }          // ~60 s: give up quietly
       if (!gen || !seed || gen.disabled) return;
+      // a random preset or CHAOS seed from Zelda 1's Crowd Control stays that kind here
+      var api = window.UnifiedRando && window.UnifiedRando.crowd;
+      if ((mode === 'preset' || mode === 'chaos') && !api) return;   // wait for the randomizer
       clearInterval(t);
-      seed.value = '';
-      seed.dispatchEvent(new Event('input', { bubbles: true }));
-      seed.dispatchEvent(new Event('change', { bubbles: true }));
-      gen.click();
+      var setup = Promise.resolve();
+      try {
+        if (mode === 'preset') {
+          var list = api.pool ? api.pool() : api.presets();
+          if (list.length) setup = api.usePreset(list[Math.floor(Math.random() * list.length)].value);
+        } else if (mode === 'chaos') setup = api.chaos();
+      } catch (e) {}
+      setup.catch(function () {}).then(function () {
+        if (gen.disabled) return;
+        seed.value = '';
+        seed.dispatchEvent(new Event('input', { bubbles: true }));
+        seed.dispatchEvent(new Event('change', { bubbles: true }));
+        gen.click();
+      });
     }, 500);
   }
 

@@ -595,7 +595,9 @@ Other settings in mapping.json:
   "ticker": { "title": "GIFT EFFECTS", "speed": 70,
               "labels": { "one_hit": "OHKO mode" } }
                    title, speed, and nicer effect names for the
-                   scrolling gift list
+                   scrolling gift list. The list shows only what the
+                   game that's open can do (Zelda 3 or Zelda 1), and
+                   changes on its own when a reroll switches games.
 
 
 =========================================================================
