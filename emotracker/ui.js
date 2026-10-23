@@ -77,11 +77,25 @@
     paintItem(view);
     return v;
   }
+  // A dungeon's small keys follow the hub's "Tracker keys" setting:
+  // found, in hand, or both as found(in hand) (addons/keys-client.js).
+  function keyDungeon(it) {
+    if (it.__kd !== undefined) return it.__kd;
+    var k = null;
+    if (it.codes) it.codes.forEach(function (c) { var m = /^([a-z]+)_smallkey$/.exec(c); if (m) k = m[1]; });
+    return (it.__kd = k);
+  }
   function paintItem(view) {
     var it = view.it;
     paintIcon(view.pic, it.icon(), view.size);
     var b = it.badgeOf ? it.badgeOf() : null;
     var t = b ? b.text : '';
+    var KC = window.RandoKeysClient, kd = KC && KC.mode() !== 'found' ? keyDungeon(it) : null;
+    if (kd && KC.held(kd) !== null && typeof it.AcquiredCount === 'number') {
+      var h = KC.held(kd), f = it.AcquiredCount;
+      t = !f && !h ? '' : KC.mode() === 'held' ? String(h) : f + '(' + h + ')';
+      b = b || { color: 'whitesmoke' };
+    }
     if (view.badge.textContent !== t) view.badge.textContent = t;
     view.badge.style.color = b ? b.color : '';
   }
@@ -797,5 +811,6 @@
     if (window.ResizeObserver) new ResizeObserver(function () { refitMaps(); }).observe(root);
   };
   E.onChange = repaint;
+  if (window.RandoKeysClient) window.RandoKeysClient.onChange(function () { itemViews.forEach(paintItem); });
   E.refitMaps = refitMaps;
 })();

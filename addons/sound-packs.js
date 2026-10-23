@@ -335,9 +335,15 @@
   // still mute everything: those checks run before ours.
   function raceMode() { try { return typeof RACE_MODE !== 'undefined' && !!RACE_MODE; } catch (e) { return false; } }
   function muted() { try { return parseInt(localStorage.getItem('alttp-sound-profile') || '1', 10) === 5; } catch (e) { return false; } }
+  // The hub page (addons/hub-items.js) plays pack sounds for every tracker
+  // while it's open and says so once a second; then this view leaves the
+  // pack's item sounds to it, so nothing plays twice.
+  var hubAt = 0;
+  try { new BroadcastChannel('rando-hub-sound-packs-hub').onmessage = function () { hubAt = Date.now(); }; } catch (e) {}
   if (typeof root.playItemSound === 'function') {
     var origItem = root.playItemSound;
     root.playItemSound = function (key, val) {
+      if (key !== 'gomode' && Date.now() - hubAt < 3000 && getActive() && pick(key, val)) return;
       if (!raceMode() && !muted() && play(key, val)) return;
       return origItem.apply(this, arguments);
     };

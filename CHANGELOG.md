@@ -5,6 +5,17 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta: item sounds and keys in hand on every tracker (2026-10-22)
+
+- **Item sound packs now play with every tracker** (Hutch's, Mudora, Mudora 2.0,
+  Muffins', EmoTracker): the hub reads new items straight from the game. Pick a
+  pack, or import a pack folder, with the new **Item sounds** menu in the header.
+  Hutch's broadcast view no longer plays pack sounds itself while the hub is
+  open, so nothing plays twice.
+- **Tracker keys** in the header: Found `1/6`, In hand `0/6` or Both `1(0)/6`,
+  on Hutch's tracker, Mudora, Mudora 2.0 and EmoTracker. (Muffins' own tracker
+  keeps its usual count; its code is his.)
+
 ## Beta: subathon clock fix (2026-10-22)
 
 - **Fixed: the control panel's subathon clock ran fast.** It counted down about
