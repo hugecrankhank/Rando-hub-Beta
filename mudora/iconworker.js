@@ -53,7 +53,9 @@ var FIND = [
   ['gloves2', 1, { 0x354: 0 }],
   // pendants: - - - - - green blue red
   ['pendant_red', 0, { 0x374: 6 }], ['pendant_blue', 0, { 0x374: 5 }], ['pendant_green', 0, { 0x374: 3 }],
-  ['crystal', 1, { 0x37A: 0x7E }],
+  // crystals: - w b s t i p m. Take away PoD's (a blue one) for the crystal,
+  // and Misery Mire's (red) for the red crystal
+  ['crystal', 1, { 0x37A: 0x7D }], ['crystal_red', 1, { 0x37A: 0x7E }],
 ];
 var core = null, base = null;
 // the pause menu with a pass's inventory (and anything in `less` changed), as a copied picture
