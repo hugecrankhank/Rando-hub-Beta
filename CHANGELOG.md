@@ -7,6 +7,11 @@ played again later.
 
 ## Beta v1.9.2 (2026-10-22)
 
+- **Mudora 2.0: "Visible" (orange) checks.** Muffins' logic has no visible state, so
+  items you can see but not reach yet (Lake Hylia Island, Lumberjack Tree, Zora's Ledge,
+  Desert Ledge, Spectacle Rock, Floating Island, Bumper Cave Ledge) stayed red. Rando Hub
+  now turns them orange using Hutch's rules for when each one is visible. Our addition,
+  not Muffins' logic; off in inverted and entrance shuffle.
 - **Fixed (Mudora, Mudora 2.0): the map and big key pictures were swapped** on the
   dungeon rows, so a dungeon's map lit up looking like its big key.
 - Mudora's small-key count turns **green** once every key in the dungeon is found.

@@ -261,6 +261,23 @@
 
     // items, the way Mudora's item grid counts them
     function a(n) { return (I[n] && I[n].amount) || 0; }
+
+    // ── "Visible": Rando Hub's addition, not Muffins' logic ──────────────────
+    // His logic has no state for an item you can see but not reach yet, so
+    // these classic ones stayed red. Hutch's rules (tracker/map.html) decide
+    // when each counts as seen; only a red square ever turns orange. Off in
+    // inverted and entrance shuffle, where the ways to see them change.
+    var climbDM = a('flute') || a('glove');
+    var VISIBLE = {
+      'Lumberjack Tree': true, 'Lake Hylia Island': true, "Zora's Ledge": true, 'Desert Ledge': true,
+      'Spectacle Rock': climbDM,
+      'Floating Island': climbDM && (a('hookshot') || (a('mirror') && a('hammer'))),
+      'Bumper Cave Ledge': !!a('moonpearl') && ((a('hammer') && a('glove')) || a('glove') >= 2 ||
+        (a('agahnim') && a('hookshot') && (a('hammer') || a('glove') || a('flippers')))),
+    };
+    if (!EG && S.worldState !== 'inverted') Object.keys(VISIBLE).forEach(function (k) {
+      if (VISIBLE[k] && colors[k] === 'red' && !cleared[k]) colors[k] = 'orange';
+    });
     var bow = [0, 1, 3, 2, 3][a('bow')] || 0;   // his: bow, silvers, bow and arrows, bow and silvers
     var single = ['hookshot', 'bomb', 'powder', 'firerod', 'icerod', 'bombos', 'ether', 'quake', 'hammer', 'shovel', 'net', 'book', 'somaria', 'byrna', 'cape', 'mirror', 'boots', 'flippers', 'moonpearl'];
     single.forEach(function (k) { it[k] = a(k) ? 1 : 0; });
