@@ -261,7 +261,7 @@ export function createStudio(ctx) {
     res.writeHead(200, { 'content-type': TYPES[path.extname(file).toLowerCase()] || 'application/octet-stream', 'cache-control': 'no-cache' });
     fs.createReadStream(file).pipe(res);
   }
-  const OVERLAYS = ['alerts', 'goal', 'leaderboard', 'feed', 'commands', 'vote', 'battle', 'mystery', 'combo', 'run', 'predict', 'gtkey', 'halloffame', 'welcome'];
+  const OVERLAYS = ['alerts', 'goal', 'leaderboard', 'feed', 'commands', 'vote', 'battle', 'mystery', 'combo', 'run', 'predict', 'gtkey', 'dig', 'halloffame', 'welcome'];
 
   function handle(req, res, url) {
     const p = url.pathname;

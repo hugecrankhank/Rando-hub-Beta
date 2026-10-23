@@ -663,6 +663,18 @@ GT BIG KEY (Live games tab)
   If the game couldn't count it (the game was loaded with the key
   already found), type the chest number and press Set.
 
+DIGGING GAME (Live games tab)
+  "Which dig gives the prize?" The Digging Game (Dark World, the shovel
+  guy south of the Village of Outcasts) gives its prize on one dig, set
+  by the randomizer for each seed. Press Start guessing; chat types
+  !dig 1 to !dig 30 (one guess each). Guesses close at the first dig
+  (or press Close guesses). When the prize is picked up, the game says
+  which dig it came on: exact guesses win, or the closest. Add the
+  "Digging Game" overlay to show the guesses, the digs so far and the
+  winners. Needs Crowd effects on in the game. If the game couldn't
+  tell (the prize was already collected when the game was loaded),
+  type the dig number and press Set.
+
 Votes and predictions only count chat messages that are exactly the
 number or word (1, !vote 2, !yes ...), so normal chat isn't affected.
 

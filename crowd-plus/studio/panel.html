@@ -403,6 +403,19 @@
     </div>
     <div class="card"><h3>Now</h3><div id="gt-now" class="muted">Not running.</div></div>
   </div>
+  <h2>DIGGING GAME</h2>
+  <div class="grid g2">
+    <div class="card">
+      <p class="hint">Which dig gives the Digging Game's prize (Dark World, the shovel guy south of the Village of Outcasts)? Chat types <span class="kbd">!dig 15</span> (1 to 30). The randomizer picks the dig for each seed and the game counts the digs; when the prize is picked up, the game says which dig it came on. Exact guesses win, or the closest if nobody's exact. Needs Crowd effects on in the game.</p>
+      <label class="row"><span>Chat command</span><input data-s="digGuess.command" style="width:110px"></label>
+      <label class="check"><input type="checkbox" data-s="digGuess.lockOnFirstDig"> Close guesses at the first dig</label>
+      <label class="check"><input type="checkbox" data-s="digGuess.alert"> Show a "DIG PRIZE FOUND!" alert</label>
+      <div class="row"><button class="primary" id="dig-start">Start guessing</button><button id="dig-lock">Close guesses</button><button class="danger" id="dig-cancel">Cancel</button></div>
+      <div class="row"><span class="muted">If the game couldn't count it: the prize came on dig #</span><input id="dig-at" type="number" min="1" max="30" style="width:70px"><button id="dig-set">Set</button></div>
+      <div class="row"><button class="small" id="dig-test">Test (5 fake guesses, prize on dig #15)</button></div>
+    </div>
+    <div class="card"><h3>Now</h3><div id="dig-now" class="muted">Not running.</div></div>
+  </div>
   <div class="savebar"><button class="primary" data-save-settings>Save settings</button><span class="dirty" data-dirty></span></div>
 </section>
 
@@ -550,7 +563,7 @@ CC.on('tick', (d) => {
   chips(CC.state); if (S) paintConn(); const n = d.overlays || 0; $('chip-ov').className = 'chip ' + (n ? 'ok' : ''); $('chip-ov').lastElementChild.textContent = n + ' overlay' + (n === 1 ? '' : 's') + ' on stream'; paintClock(); });
 
 // ── dashboard ──
-const ICON = { gift: '🎁', like: '❤', follow: '➕', share: '↗', superfan: '⭐', community: '🤝', chat: '💬', death: '☠', music: '♪', detour: '⚔', 'detour-end': '⚔', 'detour-rescue': '🛟', boss: '🏆', gtkey: '🔑' };
+const ICON = { gift: '🎁', like: '❤', follow: '➕', share: '↗', superfan: '⭐', community: '🤝', chat: '💬', death: '☠', music: '♪', detour: '⚔', 'detour-end': '⚔', 'detour-rescue': '🛟', boss: '🏆', gtkey: '🔑', digprize: '⛏' };
 function paintStats() {
   const s = S.stats;
   $('stats').innerHTML = [['Coins', s.coins], ['Gifts', s.gifts], ['Likes', s.likes], ['Follows', s.follows], ['Shares', s.shares], ['Chat', s.chats]]
@@ -568,12 +581,12 @@ function evRow(e) {
   else if (e.type === 'superfan') what += 'became a Super Fan';
   else if (e.type === 'community') what += 'joined the community';
   else if (e.type === 'chat') what += '<span class="muted">' + esc(e.text) + '</span>' + (e.command ? ' <span class="pill">command</span>' : '') + (e.speak ? ' <span class="pill">read aloud</span>' : '') +
-    (e.vote ? ' <span class="pill">voted ' + e.vote + '</span>' : '') + (e.predict ? ' <span class="pill">' + esc(e.predict) + '</span>' : '') + (e.gtguess ? ' <span class="pill">GT guess #' + e.gtguess + '</span>' : '') + (e.team ? ' <span class="pill">joined ' + esc(e.team) + '</span>' : '') + (e.clipped ? ' <span class="pill">clip marked</span>' : '');
+    (e.vote ? ' <span class="pill">voted ' + e.vote + '</span>' : '') + (e.predict ? ' <span class="pill">' + esc(e.predict) + '</span>' : '') + (e.gtguess ? ' <span class="pill">GT guess #' + e.gtguess + '</span>' : '') + (e.digguess ? ' <span class="pill">dig guess #' + e.digguess + '</span>' : '') + (e.team ? ' <span class="pill">joined ' + esc(e.team) + '</span>' : '') + (e.clipped ? ' <span class="pill">clip marked</span>' : '');
   else if (e.type === 'death') what = '<b>Link</b> died (death #' + (e.deaths || '?') + ')' + (e.text ? ' <span class="muted">' + esc(e.text) + '</span>' : '');
   else if (e.type === 'music') what = '<b>Music</b> <span class="muted">now ' + esc(e.text) + '</span>';
   else if (e.type === 'detour') what = '<b>' + esc(CC.name(e)) + '</b> sent Link to fight ' + esc(e.text);
   else if (e.type === 'detour-end') what = '<b>Boss detour</b> ' + esc(e.text) + ': ' + esc(e.result) + (e.bonus ? ' <span class="muted">(bonus: ' + esc(e.bonus) + ')</span>' : '');
-  else if (e.type === 'gtkey') what = '<b>' + esc(e.text) + '</b>' + (e.bonus ? ' <span class="muted">' + esc(e.bonus) + '</span>' : '');
+  else if (e.type === 'gtkey' || e.type === 'digprize') what = '<b>' + esc(e.text) + '</b>' + (e.bonus ? ' <span class="muted">' + esc(e.bonus) + '</span>' : '');
   else if (e.type === 'boss') what = '<b>Link</b> beat ' + esc(e.text) + (e.bonus ? ' <span class="muted">(' + esc(e.bonus) + ')</span>' : '');
   else if (e.type === 'detour-rescue') what = '<b>' + esc(CC.name(e)) + '</b> rescued Link from the boss';
   if (e.welcome) what += ' <span class="pill">regular · stream #' + e.welcome.streams + '</span>';
@@ -628,7 +641,7 @@ document.addEventListener('change', (ev) => { if (ev.target.type === 'checkbox' 
 $('tts-banned').oninput = () => { draft.tts.bannedWords = $('tts-banned').value.split('\n').map((x) => x.trim()).filter(Boolean); markS(); };
 function markS() { sDirty = true; document.querySelectorAll('[data-dirty]').forEach((x) => x.textContent = 'Unsaved changes'); }
 document.querySelectorAll('[data-save-settings]').forEach((b) => b.onclick = async () => {
-  const keys = ['alerts', 'leaderboard', 'feed', 'tts', 'commands', 'votes', 'battle', 'mystery', 'combo', 'deathTax', 'runClock', 'predict', 'gtGuess', 'clips', 'hallOfFame', 'welcome', 'detour'];
+  const keys = ['alerts', 'leaderboard', 'feed', 'tts', 'commands', 'votes', 'battle', 'mystery', 'combo', 'deathTax', 'runClock', 'predict', 'gtGuess', 'digGuess', 'clips', 'hallOfFame', 'welcome', 'detour'];
   await call('settings', { settings: Object.fromEntries(keys.map((k) => [k, draft[k]])) }, 'Saved');
   sDirty = false; document.querySelectorAll('[data-dirty]').forEach((x) => x.textContent = '');
 });
@@ -807,6 +820,7 @@ const OVS = [
   ['combo', 'Combo meter', 'The gift combo while it lasts.', '360 x 200'],
   ['predict', 'Prediction', 'The question, the votes, and who called it.', '620 x 300'],
   ['gtkey', 'GT big key', 'Which Ganon\'s Tower chest has the big key: the guesses, the chests opened, and who called it.', '620 x 300'],
+  ['dig', 'Digging Game', 'Which dig gives the Digging Game\'s prize: the guesses, the digs so far, and who called it.', '620 x 300'],
   ['halloffame', 'Hall of fame', 'All-time top gifters.', '420 x 420'],
   ['welcome', 'Welcome back', 'Pops up when a regular shows up.', '520 x 140'],
   ['alerts', 'Gift alerts', 'Pops up with the viewer, the gift and what it did in the game, with a sound. Bigger donations get bigger alerts.', '1920 x 1080 (full screen, it centers itself)'],
@@ -929,12 +943,26 @@ $('gt-lock').onclick = () => call('gt-lock', {}, 'Guesses closed');
 $('gt-cancel').onclick = () => call('gt-cancel', {}, 'Cancelled');
 $('gt-set').onclick = () => { const n = +$('gt-at').value; if (n >= 1 && n <= 22) call('gt-resolve', { at: n }, 'Set'); };
 $('gt-test').onclick = () => call('gt-test', {}, 'Test running');
+$('dig-start').onclick = () => call('dig-start', {}, 'Dig guessing open');
+$('dig-lock').onclick = () => call('dig-lock', {}, 'Guesses closed');
+$('dig-cancel').onclick = () => call('dig-cancel', {}, 'Cancelled');
+$('dig-set').onclick = () => { const n = +$('dig-at').value; if (n >= 1 && n <= 30) call('dig-resolve', { at: n }, 'Set'); };
+$('dig-test').onclick = () => call('dig-test', {}, 'Test running');
+function paintDigNow(G, live) {
+  const L = live || {};
+  const now = '<p class="hint">' + (L.here ? 'Digging now: <b>' + (L.digs || 0) + '</b> digs' : 'Not at the Digging Game') + (L.found ? ' · prize found' + (L.at != null ? ' on dig #' + L.at : '') : '') + '</p>';
+  if (!G) { $('dig-now').innerHTML = '<span class="muted">Not running.</span>' + now; return; }
+  const top = Object.entries(G.counts || {}).sort((a, b) => b[1] - a[1] || a[0] - b[0]).slice(0, 8).map(([n, c]) => '<span class="pill">#' + n + ' × ' + c + '</span>').join(' ');
+  let h = '<span class="pill">' + (G.result ? 'done' : G.open ? 'open: chat types ' + esc(G.command) + ' 1-30' : 'guesses closed') + '</span> <b>' + G.guesses + '</b> guesses<div style="margin:6px 0">' + (top || '<span class="muted">No guesses yet.</span>') + '</div>';
+  if (G.result) h += '<p><b>Prize: dig #' + G.result.at + '</b>. ' + (G.result.winners.length ? (G.result.exact ? 'Called it: ' : 'Closest (' + G.result.off + ' off): ') + G.result.winners.map(esc).join(', ') : 'Nobody guessed.') + '</p>';
+  $('dig-now').innerHTML = h + now;
+}
 function paintGtNow(G, live) {
   const L = live || {};
   const opened = '<p class="hint">GT chests opened: <b>' + (L.opened || 0) + '</b> / 22' + (L.found ? ' · big key found' + (L.at != null ? ' in chest #' + L.at : '') : '') + '</p>';
   if (!G) { $('gt-now').innerHTML = '<span class="muted">Not running.</span>' + opened; return; }
   const top = Object.entries(G.counts || {}).sort((a, b) => b[1] - a[1] || a[0] - b[0]).slice(0, 8).map(([n, c]) => '<span class="pill">#' + n + ' × ' + c + '</span>').join(' ');
-  let h = '<span class="pill">' + (G.result ? 'done' : G.open ? 'open: chat types ' + esc(G.command) + ' 1-26' : 'guesses closed') + '</span> <b>' + G.guesses + '</b> guesses<div style="margin:6px 0">' + (top || '<span class="muted">No guesses yet.</span>') + '</div>';
+  let h = '<span class="pill">' + (G.result ? 'done' : G.open ? 'open: chat types ' + esc(G.command) + ' 1-22' : 'guesses closed') + '</span> <b>' + G.guesses + '</b> guesses<div style="margin:6px 0">' + (top || '<span class="muted">No guesses yet.</span>') + '</div>';
   if (G.result) h += '<p><b>Big key: chest #' + G.result.at + '</b>. ' + (G.result.winners.length ? (G.result.exact ? 'Called it: ' : 'Closest (' + G.result.off + ' off): ') + G.result.winners.map(esc).join(', ') : 'Nobody guessed.') + '</p>';
   $('gt-now').innerHTML = h + opened;
 }
@@ -957,7 +985,7 @@ $('dt-test').onclick = () => call('death-test', {}, 'Test death sent');
 $('rc-test-check').onclick = () => call('run-test', {}, '7 test checks sent');
 $('rc-test-boss').onclick = () => call('boss-test', {}, 'Test boss sent');
 const fmtElapsed = (s) => Math.floor(s / 3600) + ':' + String(Math.floor(s / 60) % 60).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
-const CLIP_ICON = { detour: '⚔', gift: '🎁', seed: '🎲', death: '☠', vote: '🗳', battle: '⚔', combo: '🔥', predict: '🔮', chat: '💬', manual: '📌' };
+const CLIP_ICON = { dig: '⛏', gtkey: '🔑', detour: '⚔', gift: '🎁', seed: '🎲', death: '☠', vote: '🗳', battle: '⚔', combo: '🔥', predict: '🔮', chat: '💬', manual: '📌' };
 function paintClips() {
   const list = ((S.live && S.live.clips) || []).slice().reverse();
   $('cl-list').innerHTML = list.length ? list.map((c) => '<div class="ev" style="grid-template-columns:80px 26px 1fr auto"><time title="' + new Date(c.at).toLocaleString() + '">' + fmtElapsed(c.elapsed) + '</time><span class="ic">' + (CLIP_ICON[c.kind] || '📌') + '</span><div>' + esc(c.label) +
@@ -980,11 +1008,13 @@ function paintFame() {
 }
 $('hf-reset').onclick = () => { if (confirm('Reset the all-time hall of fame? This can\'t be undone.')) call('fame-reset', {}, 'Hall of fame reset'); };
 $('wb-test').onclick = () => call('welcome-test', { user: $('t-user').value || 'RegularViewer' });
-function paintLive() { const L = S.live || {}; paintPollNow(L.poll); paintBattleNow(L.battle); paintPredNow(L.predict); paintGtNow(L.gtguess, L.gt); paintRunNow(L.run); paintClips(); paintFame(); }
+function paintLive() { const L = S.live || {}; paintPollNow(L.poll); paintBattleNow(L.battle); paintPredNow(L.predict); paintGtNow(L.gtguess, L.gt); paintDigNow(L.digguess, L.dig); paintRunNow(L.run); paintClips(); paintFame(); }
 setInterval(() => { if (S && S.live) { paintPollNow(S.live.poll); paintPredNow(S.live.predict); } }, 1000);
 CC.on('live', (d) => {
   if (!S || !S.live) return;
   if (d.fame) S.live.fame = d.fame;
+  if ('gtguess' in d) S.live.gtguess = d.gtguess; if (d.gt) S.live.gt = d.gt;
+  if ('digguess' in d) S.live.digguess = d.digguess; if (d.dig) S.live.dig = d.dig;
   paintLive();
 });
 let pvPainted = false;
