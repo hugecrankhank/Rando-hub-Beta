@@ -279,31 +279,31 @@ export function createLive(ctx) {
   }
 
   // ── GT big key: which Ganon's Tower chest has it? ──────────────────────
-  // Chat guesses a chest number (!gt 9, 1-26: GT's 26 chests, not Bob's
+  // Chat guesses a chest number (!gt 9, 1-22: the 22 places GT's big key can be, Bob's Torch included; not
   // Torch). The game counts the GT chests opened and reports the count at the
   // moment the big key arrived (that chest included). Exact guesses win; if
   // nobody's exact, the closest do. Guesses close when the first GT chest is
   // opened (or by hand).
   let gtg = null;           // { id, open, guesses: Map(user → { n, nick }), opened0, opened, result }
-  let gtLive = { opened: 0, total: 26, found: false, at: null };
+  let gtLive = { opened: 0, total: 22, found: false, at: null };
   function gtView() {
     if (!gtg) return null;
     const counts = {};
     for (const g of gtg.guesses.values()) counts[g.n] = (counts[g.n] || 0) + 1;
-    return { id: gtg.id, open: gtg.open, total: gtLive.total || 26, opened: gtLive.opened, guesses: gtg.guesses.size, counts,
+    return { id: gtg.id, open: gtg.open, total: gtLive.total || 22, opened: gtLive.opened, guesses: gtg.guesses.size, counts,
       command: S().gtGuess.command || '!gt', result: gtg.result };
   }
   const gtSend = () => send('gtguess', { gtguess: gtView(), gt: gtLive });
   function gtStart() {
     gtg = { id: Date.now(), open: true, guesses: new Map(), opened0: gtLive.opened, result: null };
-    log(`GT big key guessing open (${S().gtGuess.command || '!gt'} 1-26)`);
+    log(`GT big key guessing open (${S().gtGuess.command || '!gt'} 1-22)`);
     gtSend();
   }
   function gtLock() { if (gtg && gtg.open) { gtg.open = false; log(`GT big key guesses closed (${gtg.guesses.size})`); gtSend(); } }
   function gtResolve(at, how) {
     if (!gtg || gtg.result) return;
     at = Math.round(+at);
-    if (!(at >= 1 && at <= 26)) return;
+    if (!(at >= 1 && at <= 22)) return;
     gtg.open = false;
     const all = [...gtg.guesses.entries()].map(([u, g]) => ({ user: u, nick: g.nick, n: g.n, off: Math.abs(g.n - at) }));
     const best = all.length ? Math.min(...all.map((g) => g.off)) : null;
@@ -319,7 +319,7 @@ export function createLive(ctx) {
   }
   function onGt(g) {
     const prev = JSON.stringify(gtLive), prevOpened = gtLive.opened;
-    gtLive = { opened: Math.max(0, Math.min(26, +g.opened || 0)), total: 26, found: !!g.found, at: g.at == null ? null : +g.at };
+    gtLive = { opened: Math.max(0, Math.min(22, +g.opened || 0)), total: 22, found: !!g.found, at: g.at == null ? null : +g.at };
     if (JSON.stringify(gtLive) !== prev) send('gt', { gt: gtLive });
     if (!gtg) return;
     if (gtg.open && S().gtGuess.lockOnFirstChest && gtLive.opened > gtg.opened0) gtLock();
@@ -333,7 +333,7 @@ export function createLive(ctx) {
     const m = t.match(new RegExp('^' + esc + '\\s*#?(\\d{1,2})$'));
     if (!m) return;
     const n = +m[1];
-    if (n < 1 || n > 26) return;
+    if (n < 1 || n > 22) return;
     gtg.guesses.set(e.user, { n, nick: e.nickname || '' });
     e.gtguess = n;
     gtSend();

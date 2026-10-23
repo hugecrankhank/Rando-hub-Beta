@@ -5,6 +5,12 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.9.4 (2026-10-23)
+
+- **GT big key game counts 1-22**: only the places the big key can be (Bob's Torch and
+  every GT chest except the Big Chest and the four behind the big key door), so the
+  chest numbers match what chat can guess. Crowd Control+ 1.9.4 and the game both updated.
+
 ## Beta v1.9.3 (2026-10-23)
 
 - **Crowd Control+ 1.9.3: comments add time to the subathon clock**, with an optional
