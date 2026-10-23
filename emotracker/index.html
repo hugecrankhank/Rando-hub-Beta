@@ -10,6 +10,12 @@
   ui.js = the layouts. Credits and licenses: README.md in this folder.
 -->
 <style>
+  /* iPad / iPhone: holding a finger on a check opens its card (long press);
+     without this iOS selected text or showed "Copy" instead. Typing boxes keep it. */
+  @media (pointer: coarse) {
+    body *:not(input):not(textarea):not([contenteditable]) { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+  }
+  html { touch-action: manipulation; }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; background: #1b1b1b; color: #e8e8e8;
     font: 12px/1.3 system-ui, -apple-system, "Segoe UI", sans-serif; overflow: hidden; }

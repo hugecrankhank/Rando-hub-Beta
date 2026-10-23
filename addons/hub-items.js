@@ -76,13 +76,39 @@
     return { held: held, found: found };
   }
 
+  // ── run counters, for trackers without their own (Mudora 2.0) ───────────
+  // z3randomizer's counters: total checks $7EF423 (2 bytes), deaths $7EF449,
+  // bonks $7EF420. GT big key game: Ganon's Tower chests opened (room flags,
+  // the same table as crowd/effects.js) and how many were open when the big
+  // key ($7EF366 bit 0x04) turned up, if it came from a GT chest.
+  var GT_CHESTS = [[0x118, 0x20], [0x118, 0x40], [0x11a, 0x10], [0x13a, 0x10], [0x13a, 0x20], [0x13a, 0x40], [0x13a, 0x80],
+    [0x0f6, 0x10], [0x0f6, 0x20], [0x0f6, 0x40], [0x0f6, 0x80], [0x116, 0x10], [0x0fa, 0x10], [0x0f8, 0x10], [0x0f8, 0x20],
+    [0x0f8, 0x40], [0x0f8, 0x80], [0x118, 0x80], [0x118, 0x10], [0x038, 0x20], [0x038, 0x40], [0x038, 0x10], [0x07a, 0x10],
+    [0x07a, 0x20], [0x07a, 0x40], [0x09a, 0x10]];
+  var gt = { armed: false, at: null }, stats = null;
+  function readStats(r) {
+    var opened = 0;
+    GT_CHESTS.forEach(function (c) { if (r[0xF000 + c[0]] & c[1]) opened++; });
+    var found = !!(r[0xF366] & 0x04);
+    if (!found) gt = { armed: true, at: null };
+    else if (gt.armed && gt.at === null) { gt.at = r[0x040C] === 0x1A ? opened : '?'; gt.armed = false; }
+    var checks = r[0xF423] | (r[0xF424] << 8);
+    var prev = stats || {};
+    stats = {
+      checks: checks < 2000 ? Math.max(checks, prev.checks || 0) : (prev.checks || 0),
+      deaths: Math.max(r[0xF449], prev.deaths || 0),
+      bonks: Math.max(r[0xF420], prev.bonks || 0),
+      gt: { chests: opened, found: found, at: found ? gt.at : null },
+    };
+  }
+
   // ── watching the game ─────────────────────────────────────────────────────
   var best = null, gameKey = '', keys = { held: {}, found: {} }, keysSent = '';
   var bc = null;
   try { bc = new BroadcastChannel('rando-hub-keys'); } catch (e) {}
   function mode() { try { var m = localStorage.getItem(KEY_MODE); return MODES[m] ? m : 'found'; } catch (e) { return 'found'; } }
   function publish(force) {
-    var msg = { type: 'keys', held: keys.held, found: keys.found, mode: mode(), live: !!best };
+    var msg = { type: 'keys', held: keys.held, found: keys.found, mode: mode(), live: !!best, stats: stats };
     var j = JSON.stringify(msg);
     if (!force && j === keysSent) return;
     keysSent = j;
@@ -101,7 +127,7 @@
     var r = core.wram();
     if (!r || r.length < 0x20000) return;
     var name = P.gameName || '';
-    if (name !== gameKey) { gameKey = name; best = null; }   // a new seed: start from what it has
+    if (name !== gameKey) { gameKey = name; best = null; stats = null; gt = { armed: false, at: null }; }   // a new seed: start from what it has
     if (!playable(r)) return;
     var any = false;
     for (var i = 0; i < 0x40 && !any; i++) if (r[INV + i]) any = true;
@@ -122,6 +148,7 @@
       });
     }
     keys = readKeys(r);
+    readStats(r);
     publish();
   }
   setInterval(tick, 250);

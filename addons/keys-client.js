@@ -39,5 +39,7 @@
     bc.postMessage({ type: 'ask' });
   } catch (e) {}
   window.addEventListener('storage', function (e) { if (e.key === KEY) notify(); });
-  window.RandoKeysClient = { mode: mode, held: held, text: text, onChange: function (fn) { subs.push(fn); } };
+  // deaths, bonks, checks and the GT big key game, read from the game by the hub
+  function stats() { var d = latest(); return d && d.live && d.stats ? d.stats : null; }
+  window.RandoKeysClient = { mode: mode, held: held, text: text, stats: stats, onChange: function (fn) { subs.push(fn); } };
 })();

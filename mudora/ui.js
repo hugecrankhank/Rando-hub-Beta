@@ -133,7 +133,7 @@
     return { crystal: 'crystal', redcrystal: 'crystal_red', pendant: 'pendant_blue', greenpendant: 'pendant_green', unknown: '' }[name] || '';
   }
   function setImg(img, k) { var u = k && M.icons[k]; if (u) { if (img.getAttribute('src') !== u) img.src = u; img.style.visibility = ''; } else img.style.visibility = 'hidden'; }
-  if (window.RandoKeysClient) window.RandoKeysClient.onChange(function () { paintDungeons(); });
+  if (window.RandoKeysClient) window.RandoKeysClient.onChange(function () { paintDungeons(); paintStats(); });
   function paintDungeons() {
     var it = M.items || {};
     DGS.forEach(function (d) {
@@ -601,7 +601,8 @@
 
   // ── footer: counters from the game ────────────────────────────────────────
   function paintStats() {
-    var it = M.items || {}, g = it.gtBk || null, s = $('stats');
+    var KS = window.RandoKeysClient && window.RandoKeysClient.stats();
+    var it = M.items || {}, g = it.gtBk || (KS && KS.gt) || null, s = $('stats');
     var parts = M.stats ? M.stats() : [['Checks', it.checks || 0], ['Deaths', it.deaths || 0], ['Bonks', it.bonks || 0]];
     var html = parts.map(function (p) { return '<span>' + p[0] + ' <b>' + p[1] + '</b></span>'; }).join('');
     if (g && g.enabled !== false) html += '<span title="Ganon’s Tower: chests opened, and which chest had the big key">GT chests <b>' + (g.chests || 0) + '</b>/26' + (g.found ? ' · big key at <b>' + (g.at != null ? g.at : '?') + '</b>' : '') + '</span>';
