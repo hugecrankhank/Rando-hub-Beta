@@ -22,6 +22,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="Rando Hub">
 <style>
+  /* iPad / iPhone: no double-tap zoom (taps, scrolling and pinch still work) */
+  html { touch-action: manipulation; }
   :root {
     --bg: #0e1116; --panel: #161b22; --line: #2a313c; --text: #e6e9ee;
     --dim: #8b95a3; --accent: #5fbf6f; --warn: #e3b341; --bad: #e5534b;

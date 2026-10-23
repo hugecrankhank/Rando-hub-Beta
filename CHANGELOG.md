@@ -7,6 +7,8 @@ played again later.
 
 ## Beta v1.9.2 (2026-10-22)
 
+- **Fixed: a double tap zoomed the page in on iPad / iPhone** (Zelda 1 and Zelda 3),
+  with no easy way back out.
 - **Fixed: controller buttons couldn't be remapped one after another** (Zelda 1 and
   Zelda 3 emulators): only every other box took a press. Now each one does.
 - **Crowd Control+ 1.9.2: the crowd adds time to the subathon clock.** Seconds for
