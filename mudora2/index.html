@@ -62,6 +62,9 @@
   .dg .pz { width: 18px; height: 18px; image-rendering: pixelated; display: flex; align-items: center; justify-content: center; color: var(--dim); font-weight: 700; }
   .dg .pz img { width: 18px; height: 18px; image-rendering: pixelated; }
   .dg .pz.off { filter: grayscale(1) brightness(.45); }
+  .dg .pz { position: relative; }
+  .dg .pz .plus { position: absolute; right: -4px; top: -5px; font: 900 12px/1 system-ui, sans-serif; color: #fff; text-shadow: 0 0 2px #000, 0 0 2px #000, 0 0 3px #000; pointer-events: none; }
+  .dg .pz .plus.red { color: #ff6b6b; } .dg .pz .plus.green { color: #5ee37a; }
   .dg .row { display: flex; align-items: center; gap: 4px; min-width: 0; }
   .dg .ic { width: 18px; height: 18px; image-rendering: pixelated; }
   .dg .ic.off { filter: grayscale(1) brightness(.35); }

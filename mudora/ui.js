@@ -160,7 +160,11 @@
       var psig = [pk, M.icons[pk] ? 1 : 0, !!it[k + 'PrizeObtained']].join();
       if (E.pz.__sig !== psig) {
         E.pz.__sig = psig; E.pz.textContent = '';
-        if (pk && M.icons[pk]) { var pi = iconImg(pk); if (!it[k + 'PrizeObtained']) pi.style.filter = 'grayscale(1) brightness(.45)'; E.pz.appendChild(pi); }
+        if (pk && M.icons[pk]) {
+          var pi = iconImg(pk); if (!it[k + 'PrizeObtained']) pi.style.filter = 'grayscale(1) brightness(.45)'; E.pz.appendChild(pi);
+          // red crystal and green pendant look like the others once grayed out: a + marks them
+          if (pk === 'crystal_red' || pk === 'pendant_green') E.pz.appendChild(el('b', 'plus' + (pk === 'crystal_red' ? ' red' : ' green'), '+'));
+        }
         else if (pk === '') E.pz.textContent = '?';
       }
       E.pz.title = pn ? pn.replace('green', 'green ').replace('red', 'red ') : '';

@@ -5,6 +5,11 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.9.8 (2026-10-23)
+
+- **Mudora and Mudora 2.0: a + on the red crystal and green pendant** in the dungeon
+  list (red and green), so they can be told apart while still grayed out.
+
 ## Beta v1.9.7 (2026-10-23)
 
 - **Mudora 2.0 is the default tracker** (anyone still on Mudora is moved over once;
