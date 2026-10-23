@@ -133,6 +133,7 @@
     return { crystal: 'crystal', redcrystal: 'crystal_red', pendant: 'pendant_blue', greenpendant: 'pendant_green', unknown: '' }[name] || '';
   }
   function setImg(img, k) { var u = k && M.icons[k]; if (u) { if (img.getAttribute('src') !== u) img.src = u; img.style.visibility = ''; } else img.style.visibility = 'hidden'; }
+  if (window.RandoKeysClient) window.RandoKeysClient.onChange(function () { paintDungeons(); });
   function paintDungeons() {
     var it = M.items || {};
     DGS.forEach(function (d) {
@@ -145,8 +146,10 @@
       E.chest.className = 'n' + (left === 0 ? ' zero' : '');
       E.chest.title = max != null ? 'Chests left: ' + left + ' (' + (got || 0) + ' of ' + max + ' found)' : '';
       var km = it[k + 'MaxSmallKeys'] != null ? it[k + 'MaxSmallKeys'] : it[k + 'SmallKeysMax'];
-      E.key.textContent = km ? '🗝' + (it[k + 'SmallKeys'] || 0) + '/' + km : '';
-      E.key.title = km ? 'Small keys: ' + (it[k + 'SmallKeys'] || 0) + ' of ' + km : '';
+      // Found / In hand / Both: the hub's "Tracker keys" setting (addons/keys-client.js)
+      var KC = window.RandoKeysClient, kf = it[k + 'SmallKeys'] || 0, kh = KC ? KC.held(k) : null;
+      E.key.textContent = km ? '🗝' + (KC ? KC.text(kf, k, km) : kf + '/' + km) : '';
+      E.key.title = km ? 'Small keys: ' + kf + ' of ' + km + ' found' + (kh !== null ? ', ' + kh + ' in hand' : '') : '';
       setImg(E.bk, 'bigkey'); E.bk.classList.toggle('off', !it[k + 'BigKey']);
       setImg(E.mp, 'map'); E.mp.classList.toggle('off', !it[k + 'Map']);
       setImg(E.cp, 'compass'); E.cp.classList.toggle('off', !it[k + 'Compass']);
