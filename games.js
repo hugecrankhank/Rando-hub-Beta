@@ -1,0 +1,90 @@
+/*
+ * Rando Hub's games: A Link to the Past (this page) and Zelda 1 (z1r/, the
+ * Z1R app from hugecrankhank/Zelda-1-Rando, copied in by tools/update-z1r.py).
+ *
+ *  - A "Game" row at the top of the Randomizer bar switches between them.
+ *  - "Rerolls can land on either game": the 🎲 Reroll button and Crowd
+ *    Control's "New seed!" pick a game at random; Zelda 1 opens z1r/ and
+ *    rolls a seed there with the flags last used in its New seed dialog.
+ *    Zelda 1's own reroll does the same in the other direction.
+ *  - Arriving with ?roll=1 (from Zelda 1) rolls a new ALTTP seed with the
+ *    Randomizer bar's current settings, without asking.
+ *
+ * The setting is shared with z1r/ through localStorage (same site).
+ */
+(function () {
+  'use strict';
+  var EITHER_KEY = 'rando-hub-either-game';
+  var Z1_URL = 'z1r/';
+
+  function either() { try { return localStorage.getItem(EITHER_KEY) === '1'; } catch (e) { return false; } }
+  function setEither(on) { try { localStorage.setItem(EITHER_KEY, on ? '1' : '0'); } catch (e) {} }
+  // For a reroll: true = this one goes to Zelda 1.
+  function pickZ1() { return either() && Math.random() < 0.5; }
+  function goZ1(by) {
+    location.href = Z1_URL + '?roll=1' + (by ? '&by=' + encodeURIComponent(by) : '');
+  }
+
+  window.RandoGames = { either: either, setEither: setEither, pickZ1: pickZ1, goZ1: goZ1, Z1_URL: Z1_URL };
+
+  // ── the 🎲 Reroll button: maybe Zelda 1 instead ───────────────────────────
+  // Runs before reroll.js's own click handler (capture phase on the document).
+  document.addEventListener('click', function (e) {
+    var b = e.target && e.target.closest ? e.target.closest('#reroll-btn') : null;
+    if (!b || !either()) return;
+    if (!pickZ1()) return;                 // ALTTP this time: reroll.js carries on
+    e.stopPropagation(); e.preventDefault();
+    if (window.EJS_emulator && !confirm('Reroll landed on Zelda 1!\n\nThe current game will be closed.')) return;
+    goZ1();
+  }, true);
+
+  // ── the Game row ──────────────────────────────────────────────────────────
+  function addRow() {
+    var bar = document.getElementById('rando-bar');
+    if (!bar || document.getElementById('game-row')) return;
+    var css = document.createElement('style');
+    css.textContent =
+      '#game-row { flex-basis: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: 12px; color: var(--dim, #8b95a3); }' +
+      '#game-row .gm { display: inline-flex; border: 1px solid var(--line, #30363d); border-radius: 8px; overflow: hidden; }' +
+      '#game-row .gm a, #game-row .gm span { padding: 4px 10px; color: var(--text, #e6edf3); text-decoration: none; font-weight: 600; }' +
+      '#game-row .gm span { background: #1f6feb; color: #fff; }' +
+      '#game-row .gm a:hover { background: rgba(255,255,255,.06); }' +
+      '#game-row label { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; }';
+    document.head.appendChild(css);
+    var row = document.createElement('div');
+    row.id = 'game-row';
+    row.innerHTML = '<span>Game</span><span class="gm"><span aria-current="page">Zelda 3 · ALTTP</span>' +
+      '<a href="' + Z1_URL + '" title="Zelda 1 randomizer (Z1R): roll, play and track Zelda 1 seeds">Zelda 1 ▸</a></span>' +
+      '<label title="The 🎲 Reroll button and Crowd Control’s New seed! pick Zelda 3 or Zelda 1 at random">' +
+      '<input type="checkbox" id="either-game"> Rerolls can land on either game</label>';
+    var after = document.getElementById('r-shared');
+    bar.insertBefore(row, after ? after.nextSibling : bar.firstChild);
+    var cb = row.querySelector('#either-game');
+    cb.checked = either();
+    cb.addEventListener('change', function () { setEither(cb.checked); });
+    window.addEventListener('storage', function (e) { if (e.key === EITHER_KEY) cb.checked = either(); });
+  }
+
+  // ── ?roll=1: arrived from Zelda 1's reroll ────────────────────────────────
+  function autoRoll() {
+    var q = new URLSearchParams(location.search);
+    if (q.get('roll') !== '1') return;
+    q.delete('roll'); q.delete('by');
+    try { history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q : '') + location.hash); } catch (e) {}
+    var tries = 0;
+    var t = setInterval(function () {
+      var gen = document.getElementById('r-generate'), seed = document.getElementById('r-seed');
+      if (++tries > 120) { clearInterval(t); return; }          // ~60 s: give up quietly
+      if (!gen || !seed || gen.disabled) return;
+      clearInterval(t);
+      seed.value = '';
+      seed.dispatchEvent(new Event('input', { bubbles: true }));
+      seed.dispatchEvent(new Event('change', { bubbles: true }));
+      gen.click();
+    }, 500);
+  }
+
+  function init() { addRow(); setTimeout(autoRoll, 800); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();

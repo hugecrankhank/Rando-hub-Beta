@@ -5,6 +5,21 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta: Zelda 1 joins the hub (2026-10-22)
+
+- **Zelda 1 (Z1R) is in the hub** at `z1r/`: roll, play and track Zelda 1
+  randomizer seeds. Switch games from the new **Game** row at the top of the
+  Randomizer bar; Zelda 1 has a **◂ Zelda 3** button to come back.
+- **Rerolls can land on either game** (checkbox in the same row): the 🎲 Reroll
+  button and Crowd Control's *New seed!* pick Zelda 3 or Zelda 1 at random,
+  both ways. A Zelda 1 roll uses the flags last used in its New seed dialog;
+  a Zelda 3 roll uses the Randomizer bar's settings.
+- **Crowd Control in Zelda 1:** the same Crowd Control+ bridge and mapping.json.
+  Effects that exist in both games keep their names; ALTTP-only ones are skipped
+  while Zelda 1 is playing. On/off and the bridge address carry over from here.
+- Zelda 1 needs your own Legend of Zelda (USA) ROM, picked once in its New seed
+  dialog.
+
 ## Beta: item sound packs and keys in hand (2026-10-22)
 
 - **Item sound packs.** A pack is a folder with one folder per item (hookshot,
