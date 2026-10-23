@@ -297,6 +297,9 @@
       <label class="row"><span>A share</span><input id="tm-share" type="number" min="0" step="0.01" style="width:90px"> s</label>
       <label class="row"><span>A new Super Fan</span><input id="tm-superfan" type="number" min="0" step="0.01" style="width:90px"> s</label>
       <label class="row"><span>A new community member</span><input id="tm-community" type="number" min="0" step="0.01" style="width:90px"> s</label>
+      <label class="row"><span>Each comment</span><input id="tm-chat" type="number" min="0" step="0.01" style="width:90px"> s</label>
+      <label class="row"><span>Same viewer's next comment counts after</span><input id="tm-chatcd" type="number" min="0" step="1" style="width:90px"> s</label>
+      <p class="hint">0 = every comment counts. A wait (say 30) stops one viewer spamming the clock up.</p>
       <div class="row"><button class="primary" id="tm-save">Save</button></div>
       <h3 style="margin-top:12px">Recent</h3>
       <div id="tm-log" class="muted" style="font-size:12.5px"></div>
@@ -594,7 +597,7 @@ $('t-send').onclick = () => {
   call('simulate', { kind: 'gift', user: $('t-user').value || 'TestViewer', gift: $('t-gift').value, count, coins, runEffect: $('t-run').checked });
 };
 document.querySelectorAll('[data-sim]').forEach((b) => b.onclick = () => call('simulate', { kind: b.dataset.sim, user: $('t-user').value || 'TestViewer', count: 50, runEffect: $('t-run').checked }));
-$('t-chat-send').onclick = () => { if ($('t-chat').value.trim()) call('simulate', { kind: 'chat', user: $('t-user').value || 'TestViewer', text: $('t-chat').value }); };
+$('t-chat-send').onclick = () => { if ($('t-chat').value.trim()) call('simulate', { kind: 'chat', user: $('t-user').value || 'TestViewer', text: $('t-chat').value, runEffect: $('t-run').checked }); };
 $('t-chat').onkeydown = (e) => { if (e.key === 'Enter') $('t-chat-send').click(); };
 $('clear-alerts').onclick = () => call('clear-alerts', {}, 'Cleared');
 $('reset-stats').onclick = () => { if (confirm('Reset coins, gifts, likes, the top-gifters board and the event log?')) call('reset-stats', {}, 'Stream stats reset'); };
@@ -837,7 +840,7 @@ $('tm-start').onclick = () => tm('start');
 $('tm-pause').onclick = () => tm('pause');
 $('tm-off').onclick = () => { if (confirm('Turn the clock off? It disappears from the stream.')) tm('off'); };
 document.querySelectorAll('[data-tm]').forEach((b) => b.onclick = () => tm('add', +b.dataset.tm));
-const TM_CROWD = [['tm-like', 'likeSeconds'], ['tm-follow', 'followSeconds'], ['tm-share', 'shareSeconds'], ['tm-superfan', 'superfanSeconds'], ['tm-community', 'communitySeconds']];
+const TM_CROWD = [['tm-like', 'likeSeconds'], ['tm-follow', 'followSeconds'], ['tm-share', 'shareSeconds'], ['tm-superfan', 'superfanSeconds'], ['tm-community', 'communitySeconds'], ['tm-chat', 'chatSeconds'], ['tm-chatcd', 'chatCooldown']];
 $('tm-save').onclick = () => {
   const crowd = {};
   TM_CROWD.forEach(([id, k]) => { crowd[k] = Math.max(0, Math.round((+$(id).value || 0) * 100) / 100); });
