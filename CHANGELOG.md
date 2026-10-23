@@ -7,6 +7,11 @@ played again later.
 
 ## Beta v1.9.2 (2026-10-22)
 
+- **⚙ Settings in the header** holds the tracker settings: Tracker world and Tracker
+  dungeon items (only shown with trackers that use Hutch's logic: Hutch's, Mudora,
+  EmoTracker), Tracker keys and Item sounds. On iPad and phone headers they sit in
+  the existing ⚙ menu.
+- **Zelda 1 ▸** button in the header, next to Reroll.
 - **Mudora 2.0 shows deaths, bonks and the GT big key game** (GT chests opened, and
   which one had the big key), read from the game like Mudora's.
 - **Fixed: long press on a check selected text on iPad / iPhone** (Mudora, Mudora 2.0,

@@ -1,6 +1,6 @@
 {
  "edition": "full",
- "version": "71a3124937b3",
+ "version": "b0dfd01b0ad4",
  "cache": "rando-hub-v1",
  "files": [
   "./",
@@ -328,6 +328,7 @@
   "sounds/packs/index.json",
   "games.js",
   "addons/hub-items.js",
-  "addons/keys-client.js"
+  "addons/keys-client.js",
+  "tracker-settings.js"
  ]
 }
