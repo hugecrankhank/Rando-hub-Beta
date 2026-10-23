@@ -441,6 +441,15 @@
 
   // Set up the settings for this kind of roll, then press Generate & Play.
   function rollNow() {
+    // "Rerolls can land on either game" (games.js): this one may be Zelda 1,
+    // which rolls in z1r/ with the flags last used there.
+    var G = root.RandoGames;
+    if (G && rerollTry === 0 && G.pickZ1()) {
+      feed('The new seed is Zelda 1!', 'bad');
+      banner('roll', 'Zelda 1 seed!', (rerollBy ? 'Courtesy of ' + rerollBy + ' · ' : '') + 'switching games', 0);
+      setTimeout(function () { G.goZ1(rerollBy); }, 1500);
+      return;
+    }
     var gen = document.getElementById('r-generate');
     if (!gen || gen.disabled) { feed('A seed is already being made', 'info'); banner('done-bad', 'No new seed', 'A seed was already being made', 4000); return; }
     rerollTry++;
