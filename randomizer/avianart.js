@@ -402,6 +402,11 @@ export function trackerFor(m) {
       pseudoboots: yes(on(pick(m, 'pseudoboots'))),
       mirrorscroll: yes(on(pick(m, 'mirrorscroll'))),
     },
+    // the rest of the seed, for trackers with more settings (Mudora 2.0)
+    seed: { goal: pick(m, 'goal'), ganon: String(pick(m, 'crystals_ganon', 'ganon_crystals', 'entry_crystals_ganon') ?? '7'), gt,
+      logic: pick(m, 'logic', 'glitches_required'), swords: pick(m, 'weapons', 'swords'), entrances: pick(m, 'shuffle', 'entrance_shuffle'),
+      links: on(pick(m, 'shufflelinks', 'shuffle_links')) ? 'shuffled' : 'vanilla', prizes: pick(m, 'prizeshuffle', 'prize_shuffle'),
+      followers: on(pick(m, 'shuffle_followers', 'follower_shuffle')) ? 'shuffled' : 'vanilla', flute: pick(m, 'flute_mode', 'flute'), inverted: 2 },
   };
 }
 

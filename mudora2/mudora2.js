@@ -74,9 +74,98 @@
       if (go) { clearInterval(iv); go.click(); }
     }, 300);
   };
+  // ── a new seed rolled in Rando Hub: a new game with its settings ──────────
+  // The hub writes the seed's settings to rhb-seed-tracker when it starts one
+  // (index.html, playRom). Each seed is set up once: a new game from his launch
+  // page, then his own setSettings with everything the seed says.
+  var SEED_KEY = 'rhb-seed-tracker', DONE_KEY = 'rhb-mudora2-seed';
+  function norm(v) { return String(v == null ? '' : v).toLowerCase().replace(/[\s_-]+/g, ''); }
+  function crystals(v, d) { v = norm(v); return /^[0-7]$/.test(v) ? v : /random/.test(v) ? 'random' : d; }
+  Mudora2.fromSeed = function (t) {
+    var x = t.seed || {}, more = t.more || {}, gm = norm(t.gamemode), di = t.dungeonitems || 'standard';
+    var dsh = more.dungeonshuffle != null ? String(more.dungeonshuffle) : (di === 'keysanity' ? 'mcbk' : di === 'mapcompasskeys' ? 'mck' : di === 'mapcompass' ? 'mc' : '');
+    var keys = more.universalkeys === 'yes' || gm === 'retro' ? 'universal' : dsh.indexOf('k') >= 0 ? 'wild' : 'inDungeon';
+    var goal = norm(x.goal), ganon = crystals(x.ganon, '7');
+    var G = { ganon: 'ganon', fastganon: 'fast_ganon', crystals: 'fast_ganon', pedestal: 'pedestal', triforcehunt: 'triforce_hunt',
+      ganonhunt: 'ganonhunt', completionist: 'completionist', trinity: 'trinity' }[goal];
+    if (goal === 'dungeons' || goal === 'alldungeons') { G = 'ganon'; ganon = 'ad'; }
+    if (G === 'ganonhunt') ganon = 'triforce';
+    if (G === 'completionist') ganon = 'completionist';
+    var lg = norm(x.logic);
+    var ENT = ['none', 'dungeonssimple', 'dungeonsfull', 'lite', 'lean', 'simple', 'restricted', 'full', 'district', 'swapped', 'crossed', 'insanity'];
+    var ent = norm(x.entrances || (more.entranceshuffle === 'yes' ? 'full' : 'none'));
+    ent = ent === 'decoupled' ? 'insanity' : ent === 'vanilla' || ent === 'off' || ent === 'no' ? 'none' : ENT.indexOf(ent) >= 0 ? ent : (more.entranceshuffle === 'yes' ? 'full' : 'none');
+    var pot = norm(more.pottery || 'none');
+    pot = pot === 'vanilla' ? 'none' : pot === 'all' ? 'lottery' : pot;
+    var prz = norm(x.prizes);
+    var sw = norm(x.swords);
+    var out = {
+      worldState: gm === 'standard' ? 'standard' : gm === 'inverted' ? (x.inverted === 2 ? 'inverted' : 'inverted_1') : 'open',
+      logicMode: /overworld|owg/.test(lg) ? 'overworldglitches' : /hybrid|major|hmg/.test(lg) ? 'hybridglitches' : /nologic|none$/.test(lg) && lg ? 'nologic' : 'noglitches',
+      goal: G || 'ganon',
+      ganonVulnerable: ganon,
+      gtOpen: crystals(x.gt != null ? x.gt : t.gtcrystals, '7'),
+      swords: sw === 'swordless' || t.swordless === 'yes' ? 'swordless' : /assured/.test(sw) ? 'assured' : 'randomized',
+      wildSmallKeys: keys,
+      wildBigKeys: dsh.indexOf('b') >= 0,
+      wildMaps: dsh.indexOf('m') >= 0,
+      wildCompasses: dsh.indexOf('c') >= 0,
+      entranceMode: ent,
+      shuffleLinks: norm(x.links) === 'shuffled',
+      bossShuffle: t.bossshuffle === 'yes' ? 'random' : 'none',
+      enemyShuffle: t.enemizer === 'yes' ? 'random' : 'none',
+      pottery: ['none', 'keys', 'cave', 'cavekeys', 'reduced', 'clustered', 'nonempty', 'dungeon', 'lottery'].indexOf(pot) >= 0 ? pot : 'none',
+      enemyDrop: more.enemydrops === 'yes' ? 'underworld' : more.enemykeydrop === 'yes' ? 'keys' : 'none',
+      prizeShuffle: prz === 'dungeon' || prz === 'indungeon' ? 'inDungeon' : prz === 'wild' || prz === 'nearby' ? 'wild' : 'vanilla',
+      followerShuffle: norm(x.followers) === 'shuffled',
+      activatedFlute: /preactivated|active/.test(norm(x.flute)),
+      shopsanity: more.shopsanity === 'yes',
+      pseudoboots: more.pseudoboots === 'yes',
+      mirrorScroll: more.mirrorscroll === 'yes',
+    };
+    return out;
+  };
+  function pendingSeed() {
+    var r = null, done = '';
+    try { r = JSON.parse(localStorage.getItem(SEED_KEY) || 'null'); done = localStorage.getItem(DONE_KEY) || ''; } catch (e) {}
+    // only a seed started in the last 10 minutes (not an old one, the first time this runs)
+    if (!r || !r.at || !r.flags || String(r.at) === done || Date.now() - r.at > 600000) return null;
+    return r;
+  }
+  var seedJob = null;
+  Mudora2.matchSeed = function () {
+    var r = pendingSeed();
+    if (!r || seedJob === r.at) return false;
+    seedJob = r.at;
+    var patch = Mudora2.fromSeed(r.flags);
+    try { localStorage.setItem(DONE_KEY, String(r.at)); } catch (e) {}
+    open('/');
+    var t0 = Date.now(), clicked = false;
+    var iv = setInterval(function () {
+      if (Date.now() - t0 > 30000) { clearInterval(iv); M.toast('Couldn’t start a new game for this seed: press New game.'); show(true); return; }
+      var d = null, w = null;
+      try { d = frame.contentDocument; w = frame.contentWindow; } catch (e) {}
+      if (!d || !w) return;
+      var path = ''; try { path = w.location.pathname; } catch (e) {}
+      if (path !== '/tracker') {
+        var go = Array.prototype.slice.call(d.querySelectorAll('button')).filter(function (x) { return /Launch Tracker/.test(x.textContent); })[0];
+        if (go && !go.dataset.rh) { go.dataset.rh = '1'; go.click(); clicked = true; }
+        return;
+      }
+      // (the old game's page can still be in the frame for a moment: wait for the new one)
+      if (!clicked || !store) return;
+      clearInterval(iv);
+      action('trackerSettings/setSettings', patch);
+      M.toast('New seed: Muffins’ settings set to match it' + (r.name ? ' (' + String(r.name).replace(/\.sfc$/i, '') + ')' : '') + '. ⚙ Settings to check or change.');
+    }, 300);
+    return true;
+  };
+  window.addEventListener('storage', function (e) { if (e.key === SEED_KEY) Mudora2.matchSeed(); });
+
   var saved = null;
   try { saved = localStorage.getItem(SKEY); } catch (e) {}
-  if (saved) open('/tracker?id=' + saved); else { open('/'); show(true); }
+  if (Mudora2.matchSeed()) {}
+  else if (saved) open('/tracker?id=' + saved); else { open('/'); show(true); }
   document.getElementById('b-mf').addEventListener('click', function () { show(!over.classList.contains('show')); });
   document.getElementById('b-new').addEventListener('click', function () {
     if (confirm('Start a new game? Muffins’ launch page opens to pick the settings (your current game stays in his list of sessions).')) Mudora2.newGame();

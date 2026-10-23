@@ -5,6 +5,17 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.9.7 (2026-10-23)
+
+- **Mudora 2.0 is the default tracker** (anyone still on Mudora is moved over once;
+  the Tracker menu still has every choice).
+- **Mudora 2.0 follows each new seed**: a seed rolled in the hub (the bar, a reroll,
+  a random preset or CHAOS seed from Crowd Control) starts a new game in Muffins'
+  tracker with the seed's settings: world state, goal and crystals, logic, swords,
+  dungeon item shuffle, entrance shuffle, boss/enemy shuffle, pottery, drops, shops,
+  pseudoboots, mirror scroll, prizes and followers. A ROM loaded from a file keeps the
+  game in progress.
+
 ## Beta v1.9.6 (2026-10-23)
 
 - **Which rerolls can switch games** (with "Rerolls can land on either game"): Crowd
