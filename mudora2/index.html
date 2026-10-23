@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Mudora 2.0</title>
 <style>
+  /* iPad / iPhone: holding a finger on a check opens its card (long press);
+     without this iOS selected text or showed "Copy" instead. Typing boxes keep it. */
+  @media (pointer: coarse) {
+    body *:not(input):not(textarea):not([contenteditable]) { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+  }
+  html { touch-action: manipulation; }
   :root { --bg: #101214; --panel: #171a1d; --line: #2a2f35; --text: #d7dde3; --dim: #7d8791; --gold: #e8c45a;
     --c-green: #4dff88; --c-yellow: #ffe14d; --c-orange: #ff8c00; --c-purple: #a35cf0; --c-red: #ff4b4b; --c-partial: #12a150; --c-done: #3a3f44;
     --isz: 32px; }

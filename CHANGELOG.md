@@ -7,6 +7,10 @@ played again later.
 
 ## Beta v1.9.2 (2026-10-22)
 
+- **Mudora 2.0 shows deaths, bonks and the GT big key game** (GT chests opened, and
+  which one had the big key), read from the game like Mudora's.
+- **Fixed: long press on a check selected text on iPad / iPhone** (Mudora, Mudora 2.0,
+  EmoTracker). Holding a finger on a check opens its card again.
 - **Fixed: a double tap zoomed the page in on iPad / iPhone** (Zelda 1 and Zelda 3),
   with no easy way back out.
 - **Fixed: controller buttons couldn't be remapped one after another** (Zelda 1 and

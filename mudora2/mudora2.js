@@ -470,10 +470,13 @@
 
   // ── words ─────────────────────────────────────────────────────────────────
   M.stats = function () {
-    if (!state || !DATA) return [];
+    // Muffins' tracker doesn't count deaths or bonks; the hub reads them from the game
+    var RS0 = window.RandoKeysClient && window.RandoKeysClient.stats();
+    if (!state || !DATA) return RS0 ? [['Deaths', RS0.deaths || 0], ['Bonks', RS0.bonks || 0]] : [];
     var LC = state.checks.locationsChecks, seen = {}, tot = 0, got = 0;
     Object.keys(sqLocs).forEach(function (k) { sqLocs[k].forEach(function (n) { if (seen[n]) return; seen[n] = 1; tot++; if (LC[n] && LC[n].checked) got++; }); });
     var out = [['Locations', got + '/' + tot]];
+    if (RS0) out.push(['Deaths', RS0.deaths || 0], ['Bonks', RS0.bonks || 0]);
     var S = state.settings;
     if (S.entranceMode && S.entranceMode !== 'none') {
       var ents = M.entrances || [], kn = ents.filter(function (e) { return e.to; }).length;
