@@ -393,12 +393,12 @@
   <h2>GT BIG KEY</h2>
   <div class="grid g2">
     <div class="card">
-      <p class="hint">Which Ganon's Tower chest has the big key? Chat types <span class="kbd" id="gt-cmd-show">!gt 9</span> (1 to 26: GT's 26 chests, not Bob's Torch). The game counts the GT chests you open; when the big key turns up, that chest's number wins. Exact guesses win, or the closest if nobody's exact. Needs Crowd effects on in the game. Not for shuffled big keys (keysanity).</p>
+      <p class="hint">Which Ganon's Tower chest has the big key? Chat types <span class="kbd" id="gt-cmd-show">!gt 9</span> (1 to 22: the 22 places GT's big key can be, Bob's Torch included; not the Big Chest or the four chests behind the big key door). The game counts the GT chests you open; when the big key turns up, that chest's number wins. Exact guesses win, or the closest if nobody's exact. Needs Crowd effects on in the game. Not for shuffled big keys (keysanity).</p>
       <label class="row"><span>Chat command</span><input data-s="gtGuess.command" style="width:110px"></label>
       <label class="check"><input type="checkbox" data-s="gtGuess.lockOnFirstChest"> Close guesses when the first GT chest is opened</label>
       <label class="check"><input type="checkbox" data-s="gtGuess.alert"> Show a "BIG KEY FOUND!" alert</label>
       <div class="row"><button class="primary" id="gt-start">Start guessing</button><button id="gt-lock">Close guesses</button><button class="danger" id="gt-cancel">Cancel</button></div>
-      <div class="row"><span class="muted">If the game couldn't count it: the big key was chest #</span><input id="gt-at" type="number" min="1" max="26" style="width:70px"><button id="gt-set">Set</button></div>
+      <div class="row"><span class="muted">If the game couldn't count it: the big key was chest #</span><input id="gt-at" type="number" min="1" max="22" style="width:70px"><button id="gt-set">Set</button></div>
       <div class="row"><button class="small" id="gt-test">Test (5 fake guesses, key in chest #9)</button></div>
     </div>
     <div class="card"><h3>Now</h3><div id="gt-now" class="muted">Not running.</div></div>
@@ -915,11 +915,11 @@ $('pd-cancel').onclick = () => call('predict-cancel', {}, 'Prediction cancelled'
 $('gt-start').onclick = () => call('gt-start', {}, 'GT guessing open');
 $('gt-lock').onclick = () => call('gt-lock', {}, 'Guesses closed');
 $('gt-cancel').onclick = () => call('gt-cancel', {}, 'Cancelled');
-$('gt-set').onclick = () => { const n = +$('gt-at').value; if (n >= 1 && n <= 26) call('gt-resolve', { at: n }, 'Set'); };
+$('gt-set').onclick = () => { const n = +$('gt-at').value; if (n >= 1 && n <= 22) call('gt-resolve', { at: n }, 'Set'); };
 $('gt-test').onclick = () => call('gt-test', {}, 'Test running');
 function paintGtNow(G, live) {
   const L = live || {};
-  const opened = '<p class="hint">GT chests opened: <b>' + (L.opened || 0) + '</b> / 26' + (L.found ? ' · big key found' + (L.at != null ? ' in chest #' + L.at : '') : '') + '</p>';
+  const opened = '<p class="hint">GT chests opened: <b>' + (L.opened || 0) + '</b> / 22' + (L.found ? ' · big key found' + (L.at != null ? ' in chest #' + L.at : '') : '') + '</p>';
   if (!G) { $('gt-now').innerHTML = '<span class="muted">Not running.</span>' + opened; return; }
   const top = Object.entries(G.counts || {}).sort((a, b) => b[1] - a[1] || a[0] - b[0]).slice(0, 8).map(([n, c]) => '<span class="pill">#' + n + ' × ' + c + '</span>').join(' ');
   let h = '<span class="pill">' + (G.result ? 'done' : G.open ? 'open: chat types ' + esc(G.command) + ' 1-26' : 'guesses closed') + '</span> <b>' + G.guesses + '</b> guesses<div style="margin:6px 0">' + (top || '<span class="muted">No guesses yet.</span>') + '</div>';

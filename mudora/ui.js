@@ -603,10 +603,10 @@
   // ── footer: counters from the game ────────────────────────────────────────
   function paintStats() {
     var KS = window.RandoKeysClient && window.RandoKeysClient.stats();
-    var it = M.items || {}, g = it.gtBk || (KS && KS.gt) || null, s = $('stats');
+    var it = M.items || {}, g = (KS && KS.gt) || it.gtBk || null, s = $('stats');
     var parts = M.stats ? M.stats() : [['Checks', it.checks || 0], ['Deaths', it.deaths || 0], ['Bonks', it.bonks || 0]];
     var html = parts.map(function (p) { return '<span>' + p[0] + ' <b>' + p[1] + '</b></span>'; }).join('');
-    if (g && g.enabled !== false) html += '<span title="Ganon’s Tower: chests opened, and which chest had the big key">GT chests <b>' + (g.chests || 0) + '</b>/26' + (g.found ? ' · big key at <b>' + (g.at != null ? g.at : '?') + '</b>' : '') + '</span>';
+    if (g && g.enabled !== false) html += '<span title="Ganon’s Tower: chests opened, and which chest had the big key">GT chests <b>' + (g.chests || 0) + '</b>/' + (g.total || 22) + (g.found ? ' · big key at <b>' + (g.at != null ? g.at : '?') + '</b>' : '') + '</span>';
     s.innerHTML = html;
   }
 

@@ -40,7 +40,7 @@ function paint() {
   if (!G) { $('card').classList.remove('on'); shown = null; return; }
   if (shown !== G.id) { shown = G.id; $('card').classList.remove('on'); void $('card').offsetWidth; $('card').classList.add('on'); }
   const R = G.result;
-  $('how').innerHTML = R ? 'The big key was in chest <b>#' + R.at + '</b>!' : G.open ? 'Type <b>' + CC.esc(G.command) + ' 1</b> to <b>' + CC.esc(G.command) + ' 26</b> · ' + CC.num(G.guesses) + ' guesses' : 'Guesses are in (' + CC.num(G.guesses) + '). Here we go…';
+  $('how').innerHTML = R ? 'The big key was in chest <b>#' + R.at + '</b>!' : G.open ? 'Type <b>' + CC.esc(G.command) + ' 1</b> to <b>' + CC.esc(G.command) + ' 22</b> · ' + CC.num(G.guesses) + ' guesses' : 'Guesses are in (' + CC.num(G.guesses) + '). Here we go…';
   $('state').textContent = R ? 'FOUND!' : G.open ? 'GUESS NOW' : 'LOCKED';
   const opened = R ? R.at : (live.opened != null ? live.opened : G.opened || 0);
   $('op-n').textContent = R ? '#' + R.at : opened;
@@ -48,7 +48,7 @@ function paint() {
   $('opened').classList.toggle('key', !!R);
   const counts = G.counts || {}, max = Math.max(1, ...Object.values(counts));
   let h = '';
-  for (let n = 1; n <= 26; n++) {
+  for (let n = 1; n <= 22; n++) {
     const c = counts[n] || 0, cls = R && n === R.at ? ' win' : !R && n <= opened ? ' open' : '';
     h += '<div class="bar' + cls + '" style="height:' + Math.max(3, Math.round(c / max * 100)) + '%" title="#' + n + ': ' + c + '">' + (n % 5 === 0 || n === 1 ? '<span>' + n + '</span>' : '') + '</div>';
   }
