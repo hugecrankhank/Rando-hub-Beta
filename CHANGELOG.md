@@ -5,6 +5,12 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.9.5 (2026-10-23)
+
+- **Gift goals for one gift**: a gifts goal can count a single gift (like 50 Roses)
+  instead of any gift. Pick the gift and how many on the Goals tab; the goal bar
+  overlay shows that gift's picture and name. Crowd Control+ 1.9.5.
+
 ## Beta v1.9.4 (2026-10-23)
 
 - **GT big key game counts 1-22**: only the places the big key can be (Bob's Torch and

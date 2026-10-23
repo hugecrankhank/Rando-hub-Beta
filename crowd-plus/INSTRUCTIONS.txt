@@ -232,6 +232,10 @@ GOALS
   Goal overlay (several can show at once). +100 / -100 and Reset adjust
   it by hand. Example: "CHAOS SEED" at 5,000 coins, then roll a chaos
   seed when it fills.
+  A gifts goal can count one gift only: set the type to "gifts", pick
+  the gift in the menu next to it and enter how many (e.g. "ROSE RAIN",
+  Rose, 50). "any gift" counts every gift. The overlay shows that
+  gift's picture and name ("12 / 50 Roses").
 
 OVERLAYS
   Addresses, sizes and live previews of every overlay, plus settings for

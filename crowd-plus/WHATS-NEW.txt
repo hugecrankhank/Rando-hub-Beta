@@ -5,6 +5,13 @@ Crowd Control+ is Rando Hub's crowd control: the gift bridge with a
 control panel and stream overlays. Every gift effect, big-donation seed
 roll and the subathon clock work exactly as before.
 
+NEW IN 1.9.5
+------------
+- Goals: a gifts goal can be for one gift. On the Goals tab set the type
+  to "gifts", pick the gift (or leave "any gift") and enter how many,
+  e.g. 50 Roses. Only that gift fills the bar, and the goal bar overlay
+  shows the gift's picture and name.
+
 NEW IN 1.9.4
 ------------
 - GT big key game: guesses are now 1-22, the places Ganon's Tower's big
