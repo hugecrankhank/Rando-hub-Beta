@@ -111,8 +111,33 @@ export function parseMessage(method, payload) {
       const a = num(m, 2);
       return a === 3 || a === 4 ? { kind: 'end', id } : null;
     }
-    default: return null;
+    case 'WebcastSubNotifyMessage':   // a new subscriber, now called a Super Fan (user = 2)
+      return { kind: 'superfan', id, ...user(findUser(m)) };
+    default: {
+      // Others are told apart by the label TikTok shows for them
+      // (common.displayText.key). Super Fan and community / fan club joins
+      // are matched by name; anything else with a label is reported as
+      // "other" (the bridge logs each new one once).
+      const t = common ? sub(common, 8) : null, key = (t ? str(t, 1) : '').toLowerCase();
+      if (!key) return null;
+      if (/super_?fan|subscri/.test(key)) return { kind: 'superfan', id, ...user(findUser(m)) };
+      if (/fan_?club|fans_?club|fanteam|join_?team|team_?join|community/.test(key)) return { kind: 'community', id, ...user(findUser(m)) };
+      if (method === 'WebcastMemberMessage' || method === 'WebcastRoomUserSeqMessage') return null;   // viewers coming and going
+      return { kind: 'other', id, method, key };
+    }
   }
+}
+// The viewer in a message we don't know the layout of: the first nested
+// message that looks like a User (has an @name, field 38).
+function findUser(m) {
+  for (const f of [2, 5, 7, 3, 4, 6, 8, 9, 10]) {
+    for (const v of (m.get(f) || [])) {
+      if (!Buffer.isBuffer(v)) continue;
+      let u; try { u = decode(v); } catch { continue; }
+      if (u.has(38) && Buffer.isBuffer(one(u, 38))) return u;
+    }
+  }
+  return null;
 }
 
 // A fetch result / push payload: messages = 1 (each: method = 1, payload = 2).

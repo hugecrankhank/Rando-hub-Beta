@@ -5,6 +5,15 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.9.2 (2026-10-22)
+
+- **Crowd Control+ 1.9.2: the crowd adds time to the subathon clock.** Seconds for
+  each like (down to 0.01), follow, share, new Super Fan and new community member,
+  set on the control panel's Subathon tab. Likes add up until they make a whole second.
+- **Effects and alerts for new Super Fans and new community members** (Gifts &
+  effects and Alerts tabs), with test buttons.
+- Item sounds and keys in hand on every tracker (below).
+
 ## Beta v1.9.1 (2026-10-22)
 
 Everything below down to "Mudora 2.0 autotracking fix", plus Crowd Control+ 1.9.1

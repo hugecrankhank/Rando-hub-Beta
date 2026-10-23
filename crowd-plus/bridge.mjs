@@ -159,7 +159,7 @@ function onGameMessage(text) {
     sendDurations();
     broadcast({ type: 'timer', ...timerView() });
     studio.pushState();
-    const named = [...new Set(Object.values(cfg.gifts).concat(cfg.follow, cfg.share, ...cfg.likeTiers.map((t) => t.effect)).filter(Boolean))];
+    const named = [...new Set(Object.values(cfg.gifts).concat(cfg.follow, cfg.share, cfg.superfan, cfg.community, ...cfg.likeTiers.map((t) => t.effect)).filter(Boolean))];
     for (const id of named) {
       if (knownEffects.has(id) || id === 'mystery_box' || id === 'detour_rescue') continue;
       const fix = resolveEffect(id);
@@ -259,6 +259,7 @@ const extraIcons = new Map();   // gift pictures TikTok sends with the gift (whe
 let likeTotal = 0;   // likes this session (each like trigger fires when it passes a multiple)
 function onLike(user, n, extra = {}) {
   studio.record({ type: 'like', user, nickname: extra.nickname, count: n, test: !!extra.test });
+  if (!extra.test || extra.runEffect) timerAddLikes(user, n);
   // every trigger counts on its own: 300 → +1 heart, 500 → magic, 2000 → full heal…
   const before = likeTotal; likeTotal += n;
   for (const t of cfg.likeTiers) {
@@ -266,13 +267,16 @@ function onLike(user, n, extra = {}) {
     for (let i = 0; i < times; i++) fire(t.effect, user, `${t.every} likes`);
   }
 }
+// follow, share, superfan (a new Super Fan), community (a new community / fan club member)
+const SOCIAL_LABEL = { follow: 'Followed', share: 'Shared', superfan: 'Super Fan', community: 'Joined the community' };
 function onSocial(kind, user, extra = {}) {
   const key = kind + ':' + user, now = Date.now();
   if (now - (cooldown.get(key) || 0) < 10 * 60 * 1000) return;   // once per viewer per 10 min
   cooldown.set(key, now);
   log(`${kind}: ${user}`);
+  if (!extra.test || extra.runEffect) timerAddFor(kind, user);
   const effect = cfg[kind];
-  const done = effect && (!extra.test || extra.runEffect) ? fire(effect, user, kind === 'follow' ? 'Followed' : 'Shared') : effect || null;
+  const done = effect && (!extra.test || extra.runEffect) ? fire(effect, user, SOCIAL_LABEL[kind] || kind) : effect || null;
   studio.record({ type: kind, user, nickname: extra.nickname, avatar: extra.avatar, effect: done, effectName: done ? (effectNames[done] || done) : '', test: !!extra.test });
 }
 function onChat(user, text, extra = {}) {
@@ -321,8 +325,9 @@ function tickerData() {
   }
   if (t.showLikes !== false) for (const l of cfg.likeTiers)
     items.push({ gift: `${l.every} likes`, label: labels[l.effect] || effectNames[l.effect] || l.effect, secs: 0, icon: null, emoji: '❤' });
-  for (const kind of ['follow', 'share']) if (t.showSocial !== false && cfg[kind])
-    items.push({ gift: kind === 'follow' ? 'Follow' : 'Share', label: labels[cfg[kind]] || effectNames[cfg[kind]] || cfg[kind], secs: 0, icon: null, emoji: kind === 'follow' ? '➕' : '↗' });
+  const SOCIAL_TICK = { follow: ['Follow', '➕'], share: ['Share', '↗'], superfan: ['Super Fan', '⭐'], community: ['New community member', '🤝'] };
+  for (const kind of Object.keys(SOCIAL_TICK)) if (t.showSocial !== false && cfg[kind])
+    items.push({ gift: SOCIAL_TICK[kind][0], label: labels[cfg[kind]] || effectNames[cfg[kind]] || cfg[kind], secs: 0, icon: null, emoji: SOCIAL_TICK[kind][1] });
   const tiers = (Array.isArray(cfg.coinTiers) ? cfg.coinTiers : []).filter((x) => x && +x.coins > 0 && x.effect).sort((a, b) => a.coins - b.coins);
   for (const x of tiers) {
     const id = resolveEffect(x.effect) || x.effect;
@@ -456,6 +461,30 @@ function rateText() {
   if (c < 1) { const s = Math.round(1 / c * 100) / 100; return `Every coin = +${s} seconds`; }
   return `Every ${Math.round(c * 100) / 100} coins = +1 second`;
 }
+// mapping.json "timer": time for likes, follows, shares, Super Fans and new
+// community members, in seconds ("likeSeconds" is per like and can be as
+// small as 0.01; likes add up until they make a whole second).
+const SOCIAL_SECS = { follow: 'followSeconds', share: 'shareSeconds', superfan: 'superfanSeconds', community: 'communitySeconds' };
+function timerOpen() { const tm = cfg.timer || {}; return tm.enabled !== false && timer.active && !timer.ended; }
+function timerAddFor(kind, user) {
+  const secs = Math.round((+(cfg.timer || {})[SOCIAL_SECS[kind]] || 0) * 100) / 100;
+  if (!secs || secs < 0 || !timerOpen()) return;
+  timerAdd(secs, user, SOCIAL_LABEL[kind] || kind);
+  log(`  ⏱ +${fmtTime(secs)} from ${user} (${SOCIAL_LABEL[kind] || kind}), clock: ${fmtTime(timerLeft())}`);
+}
+let likeFrac = 0, likeBy = '';
+function timerAddLikes(user, n) {
+  const per = +(cfg.timer || {}).likeSeconds || 0;
+  if (per <= 0 || !n || !timerOpen()) return;
+  likeFrac += n * per; likeBy = user;
+  const whole = Math.floor(likeFrac + 1e-9);
+  if (whole >= 1) {
+    likeFrac -= whole;
+    timerAdd(whole, likeBy, 'likes');
+    log(`  ⏱ +${fmtTime(whole)} from likes (clock: ${fmtTime(timerLeft())})`);
+  }
+}
+
 let timerFrac = 0;
 function timerAddCoins(user, coins) {
   const tm = cfg.timer || {};
@@ -730,12 +759,23 @@ function startLocal() {
         if (ev.gift && ev.picture) extraIcons.set(ev.gift.toLowerCase(), ev.picture);
         onGift(ev.user, ev.gift, ev.giftId, ev.count, ev.diamonds, who);
       } else if (ev.kind === 'like') onLike(ev.user, ev.count, who);
-      else if (ev.kind === 'follow' || ev.kind === 'share') onSocial(ev.kind, ev.user, who);
+      else if (ev.kind === 'follow' || ev.kind === 'share' || ev.kind === 'superfan' || ev.kind === 'community') onSocial(ev.kind, ev.user, who);
       else if (ev.kind === 'chat') onChat(ev.user, ev.text || '', who);
+      else if (ev.kind === 'other') noteUnknown(ev.method, ev.key);
       else if (ev.kind === 'end') { liveText = 'TikTok LIVE ended'; broadcast({ type: 'status', text: liveText }); log(liveText); }
     },
   });
   return src;
+}
+
+// TikTok messages with a label we don't use yet, logged once each: if TikTok
+// names Super Fans or community joins differently, the log shows what to match.
+const unknownSeen = new Set();
+function noteUnknown(method, key) {
+  const k = method + '|' + key;
+  if (unknownSeen.has(k) || unknownSeen.size > 200) return;
+  unknownSeen.add(k);
+  log(`  (TikTok event not used: ${method}${key ? ' / ' + key : ''})`);
 }
 
 // Start (or switch to) the source in mapping.json; the control panel calls this too.
@@ -792,6 +832,8 @@ function onTikFinity(text) {
   } else if (ev === 'like') onLike(user, d.likeCount || 1, who);
   else if (ev === 'follow') onSocial('follow', user, who);
   else if (ev === 'share') onSocial('share', user, who);
+  else if (/subscri|super_?fan/.test(ev)) onSocial('superfan', user, who);
+  else if (/fan_?club|fanteam|team_?join|join_?team|community/.test(ev)) onSocial('community', user, who);
   else if (ev === 'chat') onChat(user, d.comment || '', who);
   else if (ev === 'social') {
     const kind = String(d.displayType || d.label || '').toLowerCase();
@@ -846,6 +888,8 @@ async function startTikTok() {
   conn.on('like', (d) => onLike(d.user?.uniqueId || 'someone', d.likeCount || 1, who(d)));
   conn.on('follow', (d) => onSocial('follow', d.user?.uniqueId || 'someone', who(d)));
   conn.on('share', (d) => onSocial('share', d.user?.uniqueId || 'someone', who(d)));
+  conn.on('subscribe', (d) => onSocial('superfan', d.user?.uniqueId || 'someone', who(d)));
+  conn.on('superFan', (d) => onSocial('superfan', d.user?.uniqueId || 'someone', who(d)));
   conn.on('chat', (d) => onChat(d.user?.uniqueId || 'someone', d.comment || '', who(d)));
   conn.on('disconnected', () => { liveText = 'TikTok disconnected'; broadcast({ type: 'status', text: liveText }); log(liveText + ', retrying in 30s'); setTimeout(go, 30000); });
   conn.on('streamEnd', () => { liveText = 'TikTok LIVE ended'; broadcast({ type: 'status', text: liveText }); log(liveText); });
@@ -888,7 +932,7 @@ function startTest() {
       onGift('tester', rest.join(' '), 0, count);
     } else if (cmd === 'coins') onGift('tester', '(test donation)', 0, 1, +(rest[0] || 0));
     else if (cmd === 'like') onLike('tester', +(rest[0] || 1));
-    else if (cmd === 'follow' || cmd === 'share') { cooldown.clear(); onSocial(cmd, 'tester'); }
+    else if (cmd === 'follow' || cmd === 'share' || cmd === 'superfan' || cmd === 'community') { cooldown.clear(); onSocial(cmd, 'tester'); }
     else if (cmd === 'chat') onChat('tester', rest.join(' '));
     else if (cmd === 'list') log(knownEffects ? [...knownEffects].join(', ') : 'connect the game first to see its effects');
     else fire(cmd, 'tester', '');
@@ -913,8 +957,8 @@ const studio = createStudio({
   },
   simulateGift: (user, name, count, coins, runEffect) => onGift(user, name, 0, count, coins / Math.max(1, count), { test: true, runEffect }),
   simulate: (kind, user, a) => {
-    if (kind === 'like') onLike(user, Math.max(1, +a.count || 50), { test: true });
-    else if (kind === 'follow' || kind === 'share') { cooldown.delete(kind + ':' + user); onSocial(kind, user, { test: true, runEffect: !!a.runEffect }); }
+    if (kind === 'like') onLike(user, Math.max(1, +a.count || 50), { test: true, runEffect: !!a.runEffect });
+    else if (kind === 'follow' || kind === 'share' || kind === 'superfan' || kind === 'community') { cooldown.delete(kind + ':' + user); onSocial(kind, user, { test: true, runEffect: !!a.runEffect }); }
     else if (kind === 'chat') onChat(user, String(a.text || 'hello!'), { test: true });
   },
   effectList: () => {

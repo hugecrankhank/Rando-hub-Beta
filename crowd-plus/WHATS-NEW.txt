@@ -5,6 +5,17 @@ Crowd Control+ is Rando Hub's crowd control: the gift bridge with a
 control panel and stream overlays. Every gift effect, big-donation seed
 roll and the subathon clock work exactly as before.
 
+NEW IN 1.9.2
+------------
+- Time on the subathon clock from the crowd, not just coins: set seconds
+  for each like (as small as 0.01), follow, share, new Super Fan and new
+  community member on the control panel's Subathon tab.
+- Effects for new Super Fans and new community members (Gifts & effects
+  tab), with their own alerts (Alerts tab) and test buttons.
+- TikTok events Crowd Control+ doesn't use yet are listed once each in
+  the black window ("TikTok event not used: ..."), so a renamed event can
+  be spotted and added.
+
 NEW IN 1.9.1
 ------------
 - Fixed: the subathon clock on the control panel ran about twice as fast
