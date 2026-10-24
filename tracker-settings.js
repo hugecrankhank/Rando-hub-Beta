@@ -64,8 +64,16 @@
     row(gm, 'hutch-only'); row(di, 'hutch-only');
     row($('key-display'), 'keys-only'); row($('sound-pack-sel'));
     var note = document.createElement('p'); note.className = 'trk-note no-hutch';
-    note.textContent = 'Tracker world and dungeon items are set in this tracker’s own Settings (Muffins’ logic).';
+    note.textContent = 'Tracker world and dungeon items follow each seed rolled here; change them in this tracker’s own Settings (Muffins’ logic).';
     panel.appendChild(note);
+    // every seed started here (seed-log.js)
+    if (window.RandoSeedLog) {
+      var hist = document.createElement('button');
+      hist.type = 'button'; hist.id = 'seed-history-btn'; hist.textContent = '📜 Seed history';
+      hist.title = 'Every seed started here: when, the seed, its code, who rolled it and how, with links to play it again';
+      hist.addEventListener('click', function () { setOpen(false); window.RandoSeedLog.open(); });
+      panel.appendChild(hist);
+    }
 
     function setOpen(on) { panel.classList.toggle('open', on); btn.classList.toggle('on', on); btn.setAttribute('aria-expanded', String(on)); }
     btn.addEventListener('click', function (e) { e.stopPropagation(); setOpen(!panel.classList.contains('open')); });

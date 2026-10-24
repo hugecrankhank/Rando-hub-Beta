@@ -5,6 +5,15 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.9.14 (2026-10-23)
+
+- **Seed history**: every seed the hub starts (Zelda 3 and Zelda 1) is logged with when,
+  the seed and its code, generator and preset, who rolled it and how (Generate & Play,
+  🎲 Reroll, Crowd Control's new seed / random preset / CHAOS, or handed over from the
+  other game) and a link to play it again. ⚙ Settings → Seed history, with Download
+  (CSV). Crowd Control+ 1.9.14 keeps the same list on the streaming PC (seeds.json, Live
+  games tab).
+
 ## Beta v1.9.13 (2026-10-23)
 
 - **Halloween effects** (Crowd Control+ 1.9.13): Spooky night, Ghost Link, Pumpkin Link,

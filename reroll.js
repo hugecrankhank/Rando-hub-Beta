@@ -20,6 +20,7 @@
     seed.value = '';
     seed.dispatchEvent(new Event('input', { bubbles: true }));
     seed.dispatchEvent(new Event('change', { bubbles: true }));
+    if (window.RandoSeedLog) window.RandoSeedLog.next({ kind: 'reroll' });
     gen.click();
   }
 

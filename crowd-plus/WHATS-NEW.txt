@@ -5,6 +5,13 @@ Crowd Control+ is Rando Hub's crowd control: the gift bridge with a
 control panel and stream overlays. Every gift effect, big-donation seed
 roll and the subathon clock work exactly as before.
 
+NEW IN 1.9.14
+------------
+- Seed history: every seed played, with when, its code, which game,
+  who rolled it and how, and a link to play it again. In the control
+  panel (Live games tab, saved in seeds.json, Download as CSV) and in
+  the hub (Settings menu > Seed history).
+
 NEW IN 1.9.13
 ------------
 - Halloween effects: spooky_night (everything purple and orange),

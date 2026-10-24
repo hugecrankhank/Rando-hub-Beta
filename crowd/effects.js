@@ -586,6 +586,7 @@
         seed.dispatchEvent(new Event('input', { bubbles: true }));
         seed.dispatchEvent(new Event('change', { bubbles: true }));
       }
+      if (root.RandoSeedLog) root.RandoSeedLog.next({ kind: rerollMode, by: rerollBy, pick: pickText });
       feed(rerollMode === 'preset' ? 'Random preset: ' + pickText : rerollMode === 'chaos' ? 'CHAOS seed: ' + pickText.split(':')[0] : 'Rolling a new seed…', 'bad');
       g.click();
       watchRoll();
@@ -1209,10 +1210,24 @@
     run.music = m && m.count ? m.pack || 'MSU-1' : '';
     run.hearts = ram[A.HP_MAX] >> 3;
   }
+  // A new seed in the game: tell Crowd Control+ (its seed history, seeds.json),
+  // with what the hub's seed history knows about it (seed-log.js).
+  var seedSent = '';
+  function sendSeed() {
+    if (!run.seed || run.seed === seedSent) return;
+    seedSent = run.seed;
+    var L = root.RandoSeedLog, e = null;
+    if (L) { var l = L.list(); for (var i = l.length - 1; i >= 0 && i >= l.length - 30; i--) if (String(l[i].name || '').replace(/\.[^.]+$/, '') === run.seed) { e = l[i]; break; } }
+    var info = { name: run.seed, game: 'Zelda 3' };
+    if (e) ['at', 'what', 'generator', 'preset', 'pick', 'code', 'race', 'link', 'kind', 'by', 'from'].forEach(function (k) { if (e[k] != null && e[k] !== '') info[k] = e[k]; });
+    if (e && L.kindText) info.how = L.kindText(e);
+    send({ type: 'seed', seed: info });
+  }
   function sendRun(ram) {
     if (status !== 'connected') return;
     if (++runT % 60) return;                                       // about once a second
     readRun(ram);
+    sendSeed();
     var j = JSON.stringify(run);
     if (j !== runSent) {
       if (run.music !== JSON.parse(runSent || '{}').music && runSent) send({ type: 'music', pack: run.music });
