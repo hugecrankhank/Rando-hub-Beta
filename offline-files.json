@@ -1,11 +1,12 @@
 {
  "edition": "full",
- "version": "1fb630f452fc",
+ "version": "c974d5280d89",
  "cache": "rando-hub-v1",
  "files": [
   "./",
   "bridge/sni-bridge.js",
   "bridge/sni-shim.js",
+  "addons/reveal.js",
   "crowd/effects.js",
   "compact-header.js",
   "desktop.js",

@@ -170,7 +170,8 @@ function onGameMessage(text) {
       log(fix ? `mapping.json: "${id}" isn't an effect name, using "${fix}" (fix the spelling to silence this)`
               : `mapping.json: "${id}" isn't an effect the game has. Type "list" in --test mode to see them all.`);
     }
-  } else if (m.type === 'run' || m.type === 'death' || m.type === 'music' || m.type === 'detour' || m.type === 'seed') {
+  } else if (m.type === 'run' || m.type === 'death' || m.type === 'music' || m.type === 'detour' || m.type === 'seed' || m.type === 'reveal') {
+    if (m.type === 'reveal') log(`🔮 revealed: ${m.item} at ${m.loc}${m.user ? ' (' + m.user + ')' : ''}`);
     if (m.type === 'seed' && m.seed) log(`🎲 seed: ${m.seed.what || m.seed.name}${m.seed.how ? ' (' + m.seed.how + (m.seed.by ? ', ' + m.seed.by : '') + ')' : ''}`);
     if (m.type === 'detour') log(m.phase === 'start' ? `⚔ boss detour: ${m.boss}${m.user ? ' (sent by ' + m.user + ')' : ''}` : `⚔ boss detour over: ${m.result}`);
     if (m.type === 'death') log(`☠ Link died (death #${m.deaths})`);
@@ -310,7 +311,7 @@ const effectNames = {
   speed_up: 'Speed up (1.5x)', slow_mo: 'Slow motion', freeze: 'Freeze!', fairy: 'Fairy in a bottle', bee_bottle: 'Bee in a bottle',
   pink_link: 'Pink Link', music_roulette: 'Music roulette', mystery_box: 'Mystery box (random effect)',
   spooky_night: 'Spooky night', ghost_link: 'Ghost Link', pumpkin_link: 'Pumpkin Link', haunted_lights: 'Haunted lights',
-  spooky_monster: 'Spooky monster', haunting: 'Haunting! (3 spooky monsters)', trick_or_treat: 'Trick or treat!', spooky_sprite: 'Spooky sprite',
+  reveal_item: 'Reveal a go-mode item', spooky_monster: 'Spooky monster', haunting: 'Haunting! (3 spooky monsters)', trick_or_treat: 'Trick or treat!', spooky_sprite: 'Spooky sprite',
   boss_ganon: 'Boss detour: Ganon', boss_aga: 'Boss detour: Agahnim', boss_random: 'Boss detour: random boss', detour_rescue: 'Rescue Link from a boss detour',
 };
 const defaultSecs = { ice: 20, cucco_storm: 30, invert: 20, no_sword: 20, no_item: 20, swap_by: 20, one_hit: 30, no_magic: 30,

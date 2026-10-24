@@ -992,7 +992,7 @@ $('dt-test').onclick = () => call('death-test', {}, 'Test death sent');
 $('rc-test-check').onclick = () => call('run-test', {}, '7 test checks sent');
 $('rc-test-boss').onclick = () => call('boss-test', {}, 'Test boss sent');
 const fmtElapsed = (s) => Math.floor(s / 3600) + ':' + String(Math.floor(s / 60) % 60).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
-const CLIP_ICON = { dig: '⛏', gtkey: '🔑', detour: '⚔', gift: '🎁', seed: '🎲', death: '☠', vote: '🗳', battle: '⚔', combo: '🔥', predict: '🔮', chat: '💬', manual: '📌' };
+const CLIP_ICON = { reveal: '🔮', dig: '⛏', gtkey: '🔑', detour: '⚔', gift: '🎁', seed: '🎲', death: '☠', vote: '🗳', battle: '⚔', combo: '🔥', predict: '🔮', chat: '💬', manual: '📌' };
 function paintClips() {
   const list = ((S.live && S.live.clips) || []).slice().reverse();
   $('cl-list').innerHTML = list.length ? list.map((c) => '<div class="ev" style="grid-template-columns:80px 26px 1fr auto"><time title="' + new Date(c.at).toLocaleString() + '">' + fmtElapsed(c.elapsed) + '</time><span class="ic">' + (CLIP_ICON[c.kind] || '📌') + '</span><div>' + esc(c.label) +

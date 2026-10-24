@@ -5,6 +5,13 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.9.15 (2026-10-23)
+
+- **Reveal a go-mode item** (Crowd Control+ 1.9.15, HydeOut's idea): a gift shows where one
+  item the run still needs is, from the seed's spoiler (its playthrough). Skips items Link
+  already has and spots already shown; a banner on the game and a mark on Mudora 2.0's
+  map. Seeds made in the hub only; race seeds keep their spoiler hidden.
+
 ## Beta v1.9.14 (2026-10-23)
 
 - **Seed history**: every seed the hub starts (Zelda 3 and Zelda 1) is logged with when,

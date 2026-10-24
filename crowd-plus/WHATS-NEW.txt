@@ -5,6 +5,13 @@ Crowd Control+ is Rando Hub's crowd control: the gift bridge with a
 control panel and stream overlays. Every gift effect, big-donation seed
 roll and the subathon clock work exactly as before.
 
+NEW IN 1.9.15
+------------
+- reveal_item (HydeOut's idea): a gift shows where one item the run
+  still needs is, read from the seed's spoiler. A banner on the game,
+  a mark on Mudora 2.0's map, and a clip marker. Seeds made in the hub
+  only; race seeds keep their spoiler hidden.
+
 NEW IN 1.9.14
 ------------
 - Seed history: every seed played, with when, its code, which game,

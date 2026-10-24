@@ -420,6 +420,25 @@
         trigger(pick, job.user, treat ? 'Treat!' : 'Trick!');
         return true;
       } },
+    // HydeOut's idea: a gift shows where one item the run still needs is
+    // (addons/reveal.js reads the seed's spoiler). A banner on the game says
+    // it, and Mudora 2.0 marks that spot on its map.
+    reveal_item:   { name: 'Reveal a go-mode item', good: true,
+      app: function (job) {
+        var R = root.UnifiedRando && root.UnifiedRando.crowd, RV = root.RandoReveal, c = core();
+        var sp = R && R.spoiler && R.spoiler();
+        if (!RV || !sp) { feed('Reveal: no spoiler for this game (only seeds made here have one)', 'info'); return false; }
+        if (sp.race) { feed('Reveal: race seed, its spoiler stays hidden', 'info'); return false; }
+        var e = RV.pick(RV.parse(sp.spoiler), c && c.wram(), sp.name);
+        if (!e) { feed('Reveal: nothing left to reveal (Link has everything it needs)', 'info'); return false; }
+        var where = e.loc + (/^(Light|Dark) World$/.test(e.region) ? ' (' + e.region + ')' : '');
+        banner('done-ok', '\ud83d\udd2e ' + e.name + ' is at ' + e.loc, (job.user && job.user !== 'test' ? 'Revealed by ' + job.user : 'Revealed') +
+          (/^(Light|Dark) World$/.test(e.region) ? ' \u00b7 ' + e.region : ''), 9000);
+        feed('\ud83d\udd2e ' + e.name + ': ' + where, 'good');
+        try { var bc = new BroadcastChannel('rando-hub-reveal'); bc.postMessage({ type: 'reveal', loc: e.loc, item: e.name, icon: e.icon, seed: sp.name }); bc.close(); } catch (x) {}
+        send({ type: 'reveal', item: e.name, loc: e.loc, region: e.region, user: job.user || '' });
+        return true;
+      } },
     spooky_sprite: { name: 'Spooky sprite', good: true,
       app: function () {
         var R = root.UnifiedRando && root.UnifiedRando.crowd;

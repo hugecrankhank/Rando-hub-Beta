@@ -503,6 +503,26 @@
   });
   M.on(function (w) { if (w === 'entrancedata') { state = null; read(); } });
 
+  // ── Crowd Control's "Reveal a go-mode item" (crowd/effects.js) ────────────
+  // Marks the square that holds the revealed spot with the item. Spoiler
+  // names are alttpr.com's; his are mostly the same without punctuation, and
+  // these few differ.
+  var REVEAL_ALIAS = { hyrulecastlezeldascell: "Hyrule Castle - Zelda's Chest", ganonstowermoldormchest: 'Ganons Tower - Validation Chest',
+    bumpercave: 'Bumper Cave Ledge', pegasusrocks: 'Bonk Rock Cave', hypecavenpc: 'Hype Cave - Generous Guy',
+    minimoldormcavenpc: 'Mini Moldorm Cave - Generous Guy', hammerpegs: 'Peg Cave', graveyardledge: 'Graveyard Cave' };
+  var revealQ = [];
+  function nrm(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
+  function revealNow(m) {
+    if (!state) { revealQ.push(m); return; }
+    var want = nrm(REVEAL_ALIAS[nrm(m.loc)] || m.loc), sq = null;
+    Object.keys(sqLocs).some(function (k) { if (sqLocs[k].some(function (n) { return nrm(n) === want; })) { sq = k; return true; } return false; });
+    // overworld squares take a mark; inside a dungeon, the note says where
+    if (sq && sq.indexOf('dg:') !== 0 && m.icon) M.mark(sq, m.icon);
+    M.toast('\ud83d\udd2e ' + m.item + ' is at ' + m.loc);
+  }
+  try { new BroadcastChannel('rando-hub-reveal').onmessage = function (ev) { if (ev.data && ev.data.type === 'reveal') revealNow(ev.data); }; } catch (e) {}
+  M.on(function (w) { if (revealQ.length && state) { var q = revealQ; revealQ = []; q.forEach(revealNow); } });
+
   // ── where things are ──────────────────────────────────────────────────────
   M.checkAt = function (c) {
     var p = AT[c.id]; if (p) return { x: p[0], y: p[1] };
