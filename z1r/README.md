@@ -143,7 +143,7 @@ Z1Tracker._state()          // tracker data for this seed
 
 Rebuild the wheel from a ZORA checkout and replace `zora/zora-*.whl`, then
 update `zora/wheel.json` (and `zora/flag-tabs.json` from ZORA's `web/`).
-Bundled: ZORA 2.0 beta 5 (commit 67a24be). ZORA is in beta: its author notes
+Bundled: ZORA 2.0 beta 8 (commit 33ac807), which produces nearly every setting (13 choices across 7 settings still "Not produced by ZORA yet", down from 275 in beta 5). ZORA is in beta: its author notes
 seeds are checked by automated tests and may be unbeatable, so report odd
 seeds with the seed, flags and spoiler log in the ZORA Discord.
 

@@ -5,6 +5,15 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.10.0 (2026-10-24)
+
+- **Zelda 1 seeds: ZORA 2.0 beta 8** (from beta 5). Nearly every setting in the New seed
+  popup can now be chosen: 13 choices across 7 settings are still "Not produced by ZORA
+  yet", down from 275 across 77. That includes vanilla dungeon room layouts (Dungeon Room
+  Shuffle: Vanilla), Level 9 entry and triforce counts, armos / coast / white sword items,
+  starting items and hearts, swords, hint types, OHKO, Permanent Sword Beam and more, plus
+  a "Vanilla" preset. Same popup and look.
+
 ## Beta v1.9.20 (2026-10-24)
 
 - **More Halloween effects** (Crowd Control+ 1.9.20): *Blood drip* (blood runs down from the
