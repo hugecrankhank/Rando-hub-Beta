@@ -81,6 +81,13 @@ speed ones, so they work on any seed):
 | | | | `freeze` | Link can't move, 3 s |
 | | | | `pink_link` | Pink Link, 60 s |
 
+**Room lights** (1.9.16)
+
+| id | effect |
+|---|---|
+| `lights_on` | A dark room as bright as with all its torches lit, 60 s (the clock runs indoors only) |
+| `lights_out` | Any room nearly black (no lamp cone), outdoors the screen dims, 30 s |
+
 **Reveal** (1.9.15, HydeOut's idea)
 
 | id | effect |

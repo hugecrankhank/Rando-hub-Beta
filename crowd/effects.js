@@ -149,6 +149,56 @@
   }
   function hauntEnd() { var c = core(); if (c) c.wram()[0x13] = 0x0F; haunt = { t: 0, flash: 0, next: 0, level: 6 }; }
 
+  // Room lights (HydeOut, Oct 2026). How the game draws dark rooms (zelda3:
+  // dungeon.c, load_gfx.c): a dark room ($7EC005 dung_want_lights_out) turns
+  // on colour math that subtracts a fixed colour from the picture (CGADSUB
+  // copy $9A = $B3, COLDATA copies $9C-$9E). How much ($7EC017) depends on
+  // the torches lit ($045A): 31, 8, 4, then 0 with three, which is a lit room.
+  //   Lights on:  a dark room as if three torches were lit (0).
+  //   Lights out: a lit room gets a dark room's colour math, nearly black
+  //               (outdoors, where that doesn't work, the screen dims).
+  // The room's own values are kept when Link enters it and put back when the
+  // effect ends, so leaving or ending always gives the game's own lighting.
+  var TORCH_DARK = [31, 8, 4, 0], LIGHTS_OUT = 24;   // nearly black: a little stays visible (there's no lamp cone in a faked dark room)
+  var lightRoom = { room: -1, sub: 0, col: [0, 0, 0], dark: 0 };
+  function roomKey(r) { return r[0x1B] ? (r[0xA0] | (r[0xA1] << 8)) : -2; }
+  function roomSave(r) {
+    var k = roomKey(r);
+    if (lightRoom.room === k) return;
+    lightRoom = { room: k, sub: r[0x9A], col: [r[0x9C], r[0x9D], r[0x9E]], dark: r[0xC017] };
+  }
+  function coldata(r, v) { r[0x9C] = v | 0x20; r[0x9D] = v | 0x40; r[0x9E] = v | 0x80; }
+  function lightsOnFrame(r) {
+    if (!r[0x1B] || !r[0xC005]) return;                 // a lit room (or outdoors): nothing to do
+    roomSave(r);
+    r[0xC017] = 0; coldata(r, 0);
+  }
+  function lightsOnEnd() {
+    var c = core(); if (!c) return;
+    var r = c.wram();
+    if (r[0x1B] && r[0xC005]) { var v = TORCH_DARK[Math.min(3, r[0x45A])]; r[0xC017] = v; coldata(r, v); }
+    lightRoom.room = -1;
+  }
+  function lightsOutFrame(r) {
+    if (!r[0x1B]) { r[0x13] = 0x04; return; }          // outdoors: dim the screen instead
+    roomSave(r);
+    r[0x9A] = 0xB3; coldata(r, Math.max(LIGHTS_OUT, lightRoom.col[0] & 31));   // never lighter than the room already was
+  }
+  // one at a time: the newest wins
+  function lightsCancel(other, endFn) {
+    if (!active[other]) return;
+    delete active[other]; delete paused[other];
+    try { endFn(); } catch (e) {}
+    feed(EFFECTS[other].name + ' ended', 'end');
+  }
+  function lightsOutEnd() {
+    var c = core(); if (!c) return;
+    var r = c.wram();
+    if (!r[0x1B]) r[0x13] = 0x0F;
+    else if (lightRoom.room === roomKey(r)) { r[0x9A] = lightRoom.sub; r[0x9C] = lightRoom.col[0]; r[0x9D] = lightRoom.col[1]; r[0x9E] = lightRoom.col[2]; }
+    lightRoom.room = -1;
+  }
+
   // SNES pad bits, same order as Snes9xCore.BTN
   var B = { B: 1 << 0, Y: 1 << 1, UP: 1 << 4, DOWN: 1 << 5, LEFT: 1 << 6, RIGHT: 1 << 7 };
   function swapBits(pad, a, b) {
@@ -395,6 +445,12 @@
     bee_bottle:  { name: 'Bee in a bottle', good: true,
       apply: function (r) { return fillBottle(r, 7); } },
     pink_link:   Object.assign({ name: 'Pink Link', good: true, secs: 60 }, linkTint('pink_link')),
+
+    // ── room lights ──
+    lights_on:     { name: 'Lights on!', good: true, secs: 60, indoors: true, frame: lightsOnFrame, end: lightsOnEnd,
+      start: function () { lightsCancel('lights_out', lightsOutEnd); } },
+    lights_out:    { name: 'Lights out!', good: false, secs: 30, frame: lightsOutFrame, end: lightsOutEnd,
+      start: function () { lightsCancel('lights_on', lightsOnEnd); } },
 
     // ── Halloween ──
     spooky_night:  { name: 'Spooky night', good: false, secs: 45, frame: nightFrame, end: nightEnd },
@@ -837,10 +893,11 @@
     for (var id in active) {
       var fx = EFFECTS[id];
       if (fx.frame) fx.frame(ram);
-      if (fx.outdoors) {
-        // Outdoor-only effects pause their clock indoors and pick up again outside.
-        if (!outside) {
-          if (!paused[id]) { paused[id] = true; feed(fx.name + ' paused indoors (' + Math.ceil(active[id] / 60) + 's left)', 'info'); render(); }
+      if (fx.outdoors || fx.indoors) {
+        // Outdoor-only effects pause their clock indoors and pick up again
+        // outside; indoor-only ones (Lights on!) the other way round.
+        if (fx.outdoors ? !outside : outside) {
+          if (!paused[id]) { paused[id] = true; feed(fx.name + ' waits ' + (fx.outdoors ? 'until Link is outside' : 'for the next dungeon or cave') + ' (' + Math.ceil(active[id] / 60) + 's left)', 'info'); render(); }
           continue;
         }
         if (paused[id]) { delete paused[id]; feed(fx.name + ' resumed', 'bad'); render(); }
@@ -1394,7 +1451,7 @@
   function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;'); }
   function menuHtml(rr) {
     if (rr) rerender = rr;
-    var timed = Object.keys(active).map(function (id) { return EFFECTS[id].name + ' ' + Math.ceil(active[id] / 60) + 's' + (paused[id] ? ' (paused indoors)' : ''); });
+    var timed = Object.keys(active).map(function (id) { return EFFECTS[id].name + ' ' + Math.ceil(active[id] / 60) + 's' + (paused[id] ? ' (paused)' : ''); });
     var tests = Object.keys(EFFECTS).filter(function (id) { return id.charAt(0) !== '_'; }).map(function (id) {
       return '<button type="button" data-ext="cc-test" data-id="' + id + '">' + esc(EFFECTS[id].name) + '</button>';
     }).join('');

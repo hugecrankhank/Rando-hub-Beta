@@ -5,6 +5,13 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.9.16 (2026-10-23)
+
+- **Room lights** (Crowd Control+ 1.9.16): *Lights on!* lights up a dark room as if every
+  torch were lit (60 s, waits for the next dungeon if given outside); *Lights out!* makes
+  any room nearly black (30 s; outdoors the screen dims). Uses the game's own dark-room
+  colour math, and the room's own lighting comes back when they end.
+
 ## Beta v1.9.15 (2026-10-23)
 
 - **Reveal a go-mode item** (Crowd Control+ 1.9.15, HydeOut's idea): a gift shows where one
