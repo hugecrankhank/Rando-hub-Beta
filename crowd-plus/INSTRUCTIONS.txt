@@ -541,6 +541,17 @@ All effect names (use these on the right side):
     bee_bottle     Bee in the first empty bottle
     music_roulette A random song from your MSU-1 pack
 
+  ROOM LIGHTS
+    lights_on      Lights on! A dark room as bright as with every
+                   torch lit (no lamp needed) ........ 60s
+                   Counts down only indoors: given outside, it waits
+                   for the next dungeon or cave.
+    lights_out     Lights out! Any room goes nearly black (no lamp
+                   cone: it's not really a dark room); outdoors the
+                   screen dims instead ................ 30s
+                   The newest of the two wins. When one ends the room
+                   gets its own lighting back.
+
   REVEAL (HydeOut's idea)
     reveal_item    Shows where one item the run still needs is: a
                    banner on the game ("Hammer is at Catfish"), and a

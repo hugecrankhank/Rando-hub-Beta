@@ -5,6 +5,12 @@ Crowd Control+ is Rando Hub's crowd control: the gift bridge with a
 control panel and stream overlays. Every gift effect, big-donation seed
 roll and the subathon clock work exactly as before.
 
+NEW IN 1.9.16
+------------
+- Room lights: lights_on (a dark room lit up as if every torch were
+  lit, 60s) and lights_out (any room nearly black, 30s; outdoors the
+  screen dims). Pick them for gifts on the Gifts & effects tab.
+
 NEW IN 1.9.15
 ------------
 - reveal_item (HydeOut's idea): a gift shows where one item the run
