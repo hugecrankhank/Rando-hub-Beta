@@ -541,6 +541,22 @@ All effect names (use these on the right side):
     bee_bottle     Bee in the first empty bottle
     music_roulette A random song from your MSU-1 pack
 
+  HALLOWEEN
+    spooky_night   Everything purple and orange (not Link) ... 45s
+    ghost_link     Pale, ghostly Link .............. 60s
+    pumpkin_link   Orange Link ..................... 60s
+    haunted_lights Screen dims and flickers, with
+                   a lightning flash now and then .. 20s
+    spooky_monster A ghost, bat, mummy, skeleton or
+                   raven near Link (a random enemy if none fits here)
+    haunting       Three of them at once
+    trick_or_treat 50/50: a treat (heal, rupees, bombs, arrows, magic,
+                   fairy, Pumpkin Link) or a trick (hurt, lose rupees,
+                   drain magic, monster, haunted lights, spooky night,
+                   Ghost Link)
+    spooky_sprite  Random Halloween-ish Link sprite (skeletons, ghosts,
+                   pumpkins, witches... by name or tag)
+
   BOSS DETOURS (the game saves first and loads it back afterwards)
     boss_ganon     Fight Ganon ..................... 60s
     boss_aga       Fight Agahnim ................... 60s

@@ -925,7 +925,7 @@ function crowdApi() {
     Saved.edited();
     return `${GEN_NAME[gen]}: ${parts.filter(Boolean).join(' · ')}`;
   }
-  return { presets, pool, usePreset, chaos };
+  return { presets, pool, usePreset, chaos, spookySprite: () => randomSprite('spooky') };
 }
 
 // ── "Load a seed": paste a link or a number ──────────────────────────────────
@@ -1079,6 +1079,7 @@ function spriteStatus(label, live) {
 
 // 🎲 rolls the whole library plus your own sprites; 🎲★ only your favourites.
 // Neither gives you the sprite you already have when there's another.
+const SPOOKY_RE = /skele|skull|ghost|ghoul|zombie|pumpkin|jack.?o|witch|vampire|dracula|frankenstein|mummy|reaper|spook|halloween|haunt|boo\b|poe\b|stalfos|gibdo|redead|undead|phantom|shade|specter|spectre|wraith|demon|devil|bat\b|werewolf|monster|creep|horror|corpse|dead/i;
 async function randomSprite(mode) {
   const favs = mode === 'fav';
   const btns = [$('r-sprite-random'), $('r-sprite-fav-roll'), $('sprite-btn'), $('sprite-fav-btn')].filter(Boolean);
@@ -1102,6 +1103,11 @@ async function randomSprite(mode) {
         throw e;
       })).filter((e) => !isPlainLink(e));
       pool = coll.ownEntries().concat(list);
+      // Crowd Control's "Spooky sprite": only the Halloween-ish ones (by name or tag)
+      if (mode === 'spooky') {
+        const spooky = pool.filter((e) => SPOOKY_RE.test(e.name + ' ' + (e.tags || []).join(' ')));
+        if (spooky.length) pool = spooky;
+      }
     }
     const entry = pickFrom(pool, cur && cur.key);
     await useLibrarySprite(entry);
