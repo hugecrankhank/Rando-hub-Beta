@@ -629,10 +629,14 @@ Other settings in mapping.json:
   "superfan": "heal_full"     effect for a new Super Fan
   "community": "rupees_plus"  effect for a new community member
   "maxPerGift": 5             cap for gift streaks (20 Roses = 5 hearts)
-  "ticker": { "title": "GIFT EFFECTS", "speed": 70,
+  "ticker": { "title": "GIFT EFFECTS", "speed": 70, "rows": 2,
               "labels": { "one_hit": "OHKO mode" } }
-                   title, speed, and nicer effect names for the
-                   scrolling gift list. The list shows only what the
+                   title, speed, rows (1-4: more gifts on screen at
+                   once; 72 px of height per row) and nicer effect names
+                   for the scrolling gift list. Rows, title and speed are
+                   also on the Gifts & effects tab. The list shows the
+                   gifts in their order on that tab (drag or use the
+                   arrows to change it). The list shows only what the
                    game that's open can do (Zelda 3 or Zelda 1), and
                    changes on its own when a reroll switches games.
 

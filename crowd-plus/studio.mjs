@@ -119,7 +119,7 @@ export function createStudio(ctx) {
       status: ctx.status(), timer: ctx.timerView(true),
       mapping: {
         gifts: cfg.gifts || {}, coinTiers: cfg.coinTiers || [], likes: cfg.likes || {}, follow: cfg.follow || '', share: cfg.share || '', superfan: cfg.superfan || '', community: cfg.community || '',
-        durations: cfg.durations || {}, maxPerGift: cfg.maxPerGift ?? 5, giftCoins: cfg.giftCoins || {}, timer: cfg.timer || {}, source: cfg.source,
+        durations: cfg.durations || {}, maxPerGift: cfg.maxPerGift ?? 5, giftCoins: cfg.giftCoins || {}, timer: cfg.timer || {}, ticker: cfg.ticker || {}, source: cfg.source,
       },
       effects: ctx.effectList(), catalog: giftCatalog(), profiles: listProfiles(),
       recent: events.slice(-40),

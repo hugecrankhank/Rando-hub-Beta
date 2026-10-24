@@ -357,60 +357,86 @@ function tickerData() {
     const [g, l] = rateText().split(' = ');
     items.push({ gift: g, label: l + ' on the clock', secs: 0, icon: null, emoji: '⏱' });
   }
-  return { title: t.title ?? 'GIFT EFFECTS', speed: t.speed || 70, items };
+  return { title: t.title ?? 'GIFT EFFECTS', speed: t.speed || 70, rows: Math.max(1, Math.min(4, +t.rows || 1)), items };
 }
 
 const TICKER_HTML = `<!doctype html><html><head><meta charset="utf-8"><title>Gift effects</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
-  /* For OBS / TikTok LIVE Studio browser sources. ?height=80 sets the bar
+  /* For OBS / TikTok LIVE Studio browser sources. ?height=80 sets each row's
      height, ?bg=0 makes the bar background transparent, ?speed=90 overrides
-     the scroll speed (pixels per second). */
+     the scroll speed (pixels per second), ?rows=2 overrides the rows set on
+     the Gifts tab. Each row is 72 px high by default: make the source as tall. */
   html, body { margin: 0; background: transparent; overflow: hidden; }
-  body { font: 700 calc(var(--h) * .36)/1 system-ui, "Segoe UI", sans-serif; color: #fff; --h: 72px; }
-  .bar { display: flex; align-items: center; height: var(--h); background: rgba(8,10,14,.88); border-top: 2px solid #e63946; border-bottom: 2px solid #e63946; box-sizing: border-box; }
+  body { font: 700 calc(var(--h) * .36)/1 system-ui, "Segoe UI", sans-serif; color: #fff; --h: 72px; --rows: 1; }
+  .bar { display: flex; align-items: stretch; height: calc(var(--h) * var(--rows)); background: rgba(8,10,14,.88); border-top: 2px solid #e63946; border-bottom: 2px solid #e63946; box-sizing: border-box; }
   .bar.clear { background: transparent; border-color: transparent; }
-  .title { flex: none; height: 100%; display: flex; align-items: center; padding: 0 .7em; background: #e63946; color: #fff; letter-spacing: .06em; font-size: .8em; z-index: 1; }
-  .view { flex: 1; overflow: hidden; height: 100%; }
+  .title { flex: none; display: flex; align-items: center; padding: 0 .7em; background: #e63946; color: #fff; letter-spacing: .06em; font-size: .8em; z-index: 1; }
+  .view { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+  .lane { flex: 1; overflow: hidden; position: relative; }
+  .lane + .lane { border-top: 1px solid rgba(230,57,70,.35); }
   .track { display: flex; width: max-content; height: 100%; align-items: center; will-change: transform; }
   .item { display: flex; align-items: center; gap: .35em; padding: 0 1.1em; white-space: nowrap; text-shadow: 0 2px 3px #000; }
-  .item img { height: calc(var(--h) * .78); width: auto; }
+  .item img { height: calc(var(--h) * .74); width: auto; }
   .item .em { font-size: 1.3em; }
   .item .eq { color: #e63946; }
   .item .secs { color: #9fb3c8; font-size: .75em; font-weight: 600; }
   .dot { color: #e63946; opacity: .6; }
   .off { color: #9fb3c8; padding: 0 1em; font-size: .7em; }
 </style></head><body>
-<div class="bar" id="bar"><div class="title" id="title"></div><div class="view"><div class="track" id="track"></div></div></div>
+<div class="bar" id="bar"><div class="title" id="title"></div><div class="view" id="view"></div></div>
 <script>
 const q = new URLSearchParams(location.search);
-if (q.get('height')) document.body.style.setProperty('--h', (+q.get('height') || 72) + 'px');
+const rowH = +q.get('height') || 72;
+document.body.style.setProperty('--h', rowH + 'px');
 if (q.get('bg') === '0') document.getElementById('bar').classList.add('clear');
-const track = document.getElementById('track'), titleEl = document.getElementById('title');
-let last = '', x = 0, speed = 70, half = 0, prev = performance.now();
+const view = document.getElementById('view'), titleEl = document.getElementById('title');
+let last = '', speed = 70, lanes = [], prev = performance.now();
 function esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+function itemHtml(i) {
+  return '<span class="item">' + (i.icon ? '<img src="' + i.icon + '" alt="">' : '<span class="em">' + esc(i.emoji || '🎁') + '</span>') +
+    esc(i.gift) + ' <span class="eq">=</span> ' + esc(i.label) + (i.secs ? ' <span class="secs">' + i.secs + 's</span>' : '') +
+    '</span><span class="dot">◆</span>';
+}
 function build(d) {
   speed = +q.get('speed') || d.speed || 70;
+  const rows = Math.max(1, Math.min(4, +q.get('rows') || d.rows || 1));
+  document.body.style.setProperty('--rows', rows);
   titleEl.textContent = d.title || ''; titleEl.style.display = d.title ? '' : 'none';
-  const one = d.items.map((i) => '<span class="item">' +
-    (i.icon ? '<img src="' + i.icon + '" alt="">' : '<span class="em">' + esc(i.emoji || '🎁') + '</span>') +
-    esc(i.gift) + ' <span class="eq">=</span> ' + esc(i.label) + (i.secs ? ' <span class="secs">' + i.secs + 's</span>' : '') +
-    '</span><span class="dot">◆</span>').join('');
-  // two copies side by side, so the loop is seamless
-  track.innerHTML = one + one;
-  requestAnimationFrame(() => { half = track.scrollWidth / 2; });
+  // the gifts dealt out across the rows in order: 1st row gets 1, 1+rows, ...
+  const per = Array.from({ length: rows }, () => []);
+  d.items.forEach((it, n) => per[n % rows].push(it));
+  view.innerHTML = '';
+  lanes = per.filter((l) => l.length).map((list, r) => {
+    const lane = document.createElement('div'); lane.className = 'lane';
+    const track = document.createElement('div'); track.className = 'track';
+    lane.appendChild(track); view.appendChild(lane);
+    const one = list.map(itemHtml).join('');
+    track.innerHTML = one;
+    const L = { track, one, x: 0, half: 0 };
+    requestAnimationFrame(() => {
+      // enough copies that the row is never empty, doubled so the loop is seamless
+      const w = track.scrollWidth || 1, n = Math.max(1, Math.ceil(view.clientWidth / w));
+      track.innerHTML = one.repeat(n * 2);
+      L.half = w * n;
+      L.x = -(L.half * r / Math.max(1, rows)) % L.half;   // rows don't all start at the same place
+    });
+    return L;
+  });
 }
 async function poll() {
   try {
     const r = await fetch('/ticker.json', { cache: 'no-store' });
     const t = await r.text();
     if (t !== last) { last = t; build(JSON.parse(t)); }
-  } catch (e) { if (!last) track.innerHTML = '<span class="off">Waiting for the bridge…</span>'; }
+  } catch (e) { if (!last) view.innerHTML = '<span class="off">Waiting for the bridge…</span>'; }
   setTimeout(poll, 4000);
 }
 function step(now) {
   const dt = Math.min(0.1, (now - prev) / 1000); prev = now;
-  if (half > 0) { x -= speed * dt; if (-x >= half) x += half; track.style.transform = 'translateX(' + x.toFixed(1) + 'px)'; }
+  for (const L of lanes) {
+    if (L.half > 0) { L.x -= speed * dt; if (-L.x >= L.half) L.x += L.half; L.track.style.transform = 'translateX(' + L.x.toFixed(1) + 'px)'; }
+  }
   requestAnimationFrame(step);
 }
 poll(); requestAnimationFrame(step);

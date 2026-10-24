@@ -81,6 +81,11 @@
   label.check { display: flex; align-items: flex-start; gap: 8px; margin: 10px 0; color: var(--text); cursor: pointer; } label.check input { margin-top: 2px; flex: none; }
   .pill { display: inline-block; padding: 1px 7px; border-radius: 99px; font-size: 11px; background: var(--panel2); border: 1px solid var(--line); color: var(--dim); }
   @media (max-width: 860px) { .ov { grid-template-columns: 1fr; } nav { top: 0; position: static; } header { position: static; } }
+  #gift-rows td.drag { cursor: grab; color: var(--dim, #8b8fa3); font-size: 18px; text-align: center; user-select: none; }
+  #gift-rows tr.dragging { opacity: .45; }
+  #gift-rows tr.drop-above td { box-shadow: inset 0 2px 0 #e63946; }
+  #gift-rows tr.drop-below td { box-shadow: inset 0 -2px 0 #e63946; }
+  [data-gmove] { padding: 2px 6px; }
 </style>
 </head>
 <body>
@@ -150,10 +155,17 @@
 <!-- GIFTS -->
 <section id="tab-gifts">
   <h2>GIFTS</h2>
-  <p class="hint">Which gift does what in the game. The coin value is only needed if the bridge window doesn't show "= N coins" for that gift. Gifts seen on stream show up at the bottom so you can add them.</p>
-  <div class="card"><table><thead><tr><th style="width:44px"></th><th>Gift</th><th>Coins</th><th>Effect in the game</th><th></th></tr></thead><tbody id="gift-rows"></tbody></table>
+  <p class="hint">Which gift does what in the game. The coin value is only needed if the bridge window doesn't show "= N coins" for that gift. Gifts seen on stream show up at the bottom so you can add them. The scrolling gift list shows them in this order: drag a row by its ⠿ handle, or use ▲ ▼, then Save.</p>
+  <div class="card"><table><thead><tr><th style="width:30px"></th><th style="width:44px"></th><th>Gift</th><th>Coins</th><th>Effect in the game</th><th></th></tr></thead><tbody id="gift-rows"></tbody></table>
     <div class="bar"><input id="gift-new" list="gift-catalog" placeholder="Gift name (exactly as TikTok spells it)" style="min-width:260px"><datalist id="gift-catalog"></datalist><button id="gift-add">Add gift</button></div>
     <div id="unmapped"></div>
+  </div>
+  <div class="card">
+    <h3>Scrolling gift list</h3>
+    <p class="hint">The ticker overlay (Overlays tab). More rows show more gifts at once: the gifts are dealt out across the rows in the order above, and each row scrolls on its own. Make the browser source taller to match (72 px per row at the default size).</p>
+    <label class="row"><span style="min-width:150px">Rows</span><select id="tk-rows"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select></label>
+    <label class="row"><span style="min-width:150px">Title</span><input id="tk-title" placeholder="GIFT EFFECTS (empty: no title)" style="width:220px"></label>
+    <label class="row"><span style="min-width:150px">Speed</span><input id="tk-speed" type="number" min="10" max="400" style="width:90px"> pixels a second</label>
   </div>
 
   <h2>TEST ANY EFFECT</h2>
@@ -714,6 +726,7 @@ function newGDraft() {
     coinTiers: JSON.parse(JSON.stringify(m.coinTiers || [])),
     likes: (Array.isArray(m.likes) ? m.likes : m.likes && m.likes.every ? [m.likes] : []).map((t) => ({ every: +t.every || 0, effect: t.effect || '' })),
     follow: m.follow || '', share: m.share || '', superfan: m.superfan || '', community: m.community || '', durations: { ...(m.durations || {}) }, maxPerGift: m.maxPerGift ?? 5,
+    ticker: JSON.parse(JSON.stringify(m.ticker || {})),
   };
   gDirty = false; $('gifts-dirty').textContent = '';
 }
@@ -723,11 +736,39 @@ function paintGifts() {
   $('gift-rows').innerHTML = gdraft.gifts.map((g, i) => {
     const c = catalogFor(g.name);
     const icon = c && c.icon ? '<img class="gi" src="' + esc(c.icon) + '" alt="">' : '<div class="noicon">🎁</div>';
-    return '<tr><td>' + icon + '</td><td><input value="' + esc(g.name) + '" data-gi="' + i + '" data-k="name" style="width:200px"></td>' +
+    return '<tr draggable="true" data-row="' + i + '"><td class="drag" title="Drag to move">⠿</td><td>' + icon + '</td><td><input value="' + esc(g.name) + '" data-gi="' + i + '" data-k="name" style="width:200px"></td>' +
       '<td><input type="number" min="0" value="' + esc(g.coins) + '" placeholder="' + (c && c.coins ? c.coins : 'auto') + '" data-gi="' + i + '" data-k="coins"></td>' +
       '<td><select data-gi="' + i + '" data-k="effect">' + effectOptions(g.effect) + '</select></td>' +
-      '<td style="white-space:nowrap"><button class="small" data-gtest="' + i + '">Test</button> <button class="small danger" data-gdel="' + i + '">✕</button></td></tr>';
+      '<td style="white-space:nowrap"><button class="small" data-gmove="' + i + ',-1" title="Move up"' + (i ? '' : ' disabled') + '>▲</button><button class="small" data-gmove="' + i + ',1" title="Move down"' + (i < gdraft.gifts.length - 1 ? '' : ' disabled') + '>▼</button> ' +
+      '<button class="small" data-gtest="' + i + '">Test</button> <button class="small danger" data-gdel="' + i + '">✕</button></td></tr>';
   }).join('');
+  const moveGift = (from, to) => {
+    if (to < 0 || to >= gdraft.gifts.length || from === to) return;
+    const [g] = gdraft.gifts.splice(from, 1); gdraft.gifts.splice(to, 0, g); markG(); paintGifts();
+  };
+  $('gift-rows').querySelectorAll('[data-gmove]').forEach((b) => b.onclick = () => { const [i, d] = b.dataset.gmove.split(',').map(Number); moveGift(i, i + d); });
+  // drag and drop (by the row; inputs still take clicks and typing)
+  let dragFrom = -1;
+  $('gift-rows').querySelectorAll('tr[data-row]').forEach((tr) => {
+    tr.ondragstart = (e) => { if (/INPUT|SELECT/.test(document.activeElement && document.activeElement.tagName) && tr.contains(document.activeElement)) { e.preventDefault(); return; } dragFrom = +tr.dataset.row; tr.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', String(dragFrom)); } catch (x) {} };
+    tr.ondragend = () => { tr.classList.remove('dragging'); $('gift-rows').querySelectorAll('.drop-above,.drop-below').forEach((x) => x.classList.remove('drop-above', 'drop-below')); };
+    tr.ondragover = (e) => { if (dragFrom < 0) return; e.preventDefault(); const r = tr.getBoundingClientRect(), below = e.clientY > r.top + r.height / 2; tr.classList.toggle('drop-below', below); tr.classList.toggle('drop-above', !below); };
+    tr.ondragleave = () => tr.classList.remove('drop-above', 'drop-below');
+    tr.ondrop = (e) => {
+      e.preventDefault(); if (dragFrom < 0) return;
+      const r = tr.getBoundingClientRect(), below = e.clientY > r.top + r.height / 2;
+      let to = +tr.dataset.row + (below ? 1 : 0); if (to > dragFrom) to--;
+      const f = dragFrom; dragFrom = -1; moveGift(f, to);
+    };
+  });
+  // the ticker's own settings
+  const T = gdraft.ticker;
+  $('tk-rows').value = String(Math.max(1, Math.min(4, +T.rows || 1)));
+  $('tk-title').value = T.title ?? 'GIFT EFFECTS';
+  $('tk-speed').value = T.speed || 70;
+  $('tk-rows').onchange = () => { T.rows = +$('tk-rows').value; markG(); };
+  $('tk-title').oninput = () => { T.title = $('tk-title').value; markG(); };
+  $('tk-speed').oninput = () => { T.speed = Math.max(10, Math.min(400, +$('tk-speed').value || 70)); markG(); };
   $('gift-rows').querySelectorAll('[data-gi]').forEach((el) => el[el.tagName === 'SELECT' ? 'onchange' : 'oninput'] = () => { gdraft.gifts[+el.dataset.gi][el.dataset.k] = el.value; markG(); });
   $('gift-rows').querySelectorAll('[data-gdel]').forEach((b) => b.onclick = () => { gdraft.gifts.splice(+b.dataset.gdel, 1); markG(); paintGifts(); });
   $('gift-rows').querySelectorAll('[data-gtest]').forEach((b) => b.onclick = () => { const g = gdraft.gifts[+b.dataset.gtest]; call('test-effect', { effect: g.effect, user: 'test' }, 'Sent ' + g.effect + ' to the game'); });
@@ -777,6 +818,7 @@ $('gifts-save').onclick = async () => {
     gifts, giftCoins, coinTiers: gdraft.coinTiers.filter((t) => +t.coins > 0 && t.effect).map((t) => ({ coins: +t.coins, effect: t.effect, ...(t.label ? { label: t.label } : {}) })),
     likes: gdraft.likes.filter((t) => +t.every > 0 && t.effect).map((t) => ({ every: +t.every, effect: t.effect })),
     follow: gdraft.follow, share: gdraft.share, superfan: gdraft.superfan, community: gdraft.community, durations, maxPerGift: gdraft.maxPerGift,
+    ticker: gdraft.ticker,
   };
   await call('mapping', { mapping }, 'Gift setup saved. The bridge uses it right away.');
   gDirty = false; $('gifts-dirty').textContent = ''; gdraft = null;
@@ -835,7 +877,7 @@ const OVS = [
   ['leaderboard', 'Top gifters', 'This stream\'s biggest gifters.', '420 x 420'],
   ['feed', 'Recent events', 'The latest gifts, follows and shares, newest on top.', '460 x 420'],
   ['commands', 'Chat commands', 'Shows the reply when a viewer types a command like !rules.', '900 x 220'],
-  ['ticker', 'Scrolling gift list', 'Every gift and what it does, scrolling.', '1920 x 72'],
+  ['ticker', 'Scrolling gift list', 'Every gift and what it does, scrolling (rows and order: Gifts tab).', '1920 x 72 per row'],
   ['timer', 'Subathon clock', 'The subathon countdown.', '600 x 190'],
 ];
 function paintOverlays() {
