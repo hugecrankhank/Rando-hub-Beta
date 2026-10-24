@@ -13,6 +13,9 @@ played again later.
   Shuffle: Vanilla), Level 9 entry and triforce counts, armos / coast / white sword items,
   starting items and hearts, swords, hint types, OHKO, Permanent Sword Beam and more, plus
   a "Vanilla" preset. Same popup and look.
+- **Mudora: the boots showed a hammer** (HydeOut). Finding the boots' picture in the
+  pause menu took away the hammer ($7EF34B) instead of the boots ($7EF355). Fixed;
+  Mudora draws its pictures again once.
 
 ## Beta v1.9.20 (2026-10-24)
 

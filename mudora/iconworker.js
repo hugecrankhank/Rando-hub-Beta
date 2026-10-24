@@ -49,7 +49,7 @@ var RANDO = { boots: [32, 168], gloves1: [64, 168], flippers: [96, 168], moonpea
   pendant_green: [200, 72], pendant_blue: [184, 88], pendant_red: [216, 88], crystal: [187, 105] };
 // [name, which pass's inventory, what to take away]
 var FIND = [
-  ['boots', 0, { 0x34B: 0 }], ['gloves1', 0, { 0x354: 0 }], ['flippers', 0, { 0x356: 0 }], ['moonpearl', 0, { 0x357: 0 }],
+  ['boots', 0, { 0x355: 0 }], ['gloves1', 0, { 0x354: 0 }], ['flippers', 0, { 0x356: 0 }], ['moonpearl', 0, { 0x357: 0 }],
   ['gloves2', 1, { 0x354: 0 }],
   // pendants: - - - - - green blue red
   ['pendant_red', 0, { 0x374: 6 }], ['pendant_blue', 0, { 0x374: 5 }], ['pendant_green', 0, { 0x374: 3 }],
