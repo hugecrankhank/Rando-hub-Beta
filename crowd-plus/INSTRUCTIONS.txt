@@ -716,6 +716,15 @@ CLIP MARKERS
   at the start of each stream and the times match your recording.
   "Download list" saves them as a text file.
 
+SEED HISTORY (Live games tab)
+  Every seed played while the bridge runs, kept across streams in
+  seeds.json (this folder): when, the seed and its code, which game,
+  who rolled it and how (Generate & Play, the dice Reroll button, a
+  gift's new seed / random preset / CHAOS seed, or a roll handed over
+  from the other game) and a link to play it again. Download (CSV)
+  opens in Excel or Google Sheets. The hub keeps its own list in the
+  browser too: Settings menu > Seed history.
+
 HALL OF FAME
   All-time top gifters across every stream (hall-of-fame.json). Reset
   stream stats doesn't clear it; it has its own reset button.

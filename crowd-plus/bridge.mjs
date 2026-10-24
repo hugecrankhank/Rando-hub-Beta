@@ -170,7 +170,8 @@ function onGameMessage(text) {
       log(fix ? `mapping.json: "${id}" isn't an effect name, using "${fix}" (fix the spelling to silence this)`
               : `mapping.json: "${id}" isn't an effect the game has. Type "list" in --test mode to see them all.`);
     }
-  } else if (m.type === 'run' || m.type === 'death' || m.type === 'music' || m.type === 'detour') {
+  } else if (m.type === 'run' || m.type === 'death' || m.type === 'music' || m.type === 'detour' || m.type === 'seed') {
+    if (m.type === 'seed' && m.seed) log(`🎲 seed: ${m.seed.what || m.seed.name}${m.seed.how ? ' (' + m.seed.how + (m.seed.by ? ', ' + m.seed.by : '') + ')' : ''}`);
     if (m.type === 'detour') log(m.phase === 'start' ? `⚔ boss detour: ${m.boss}${m.user ? ' (sent by ' + m.user + ')' : ''}` : `⚔ boss detour over: ${m.result}`);
     if (m.type === 'death') log(`☠ Link died (death #${m.deaths})`);
     if (m.type === 'music') log(`♪ music: ${m.pack || "the game's own"}`);

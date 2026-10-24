@@ -73,7 +73,7 @@
   function autoRoll() {
     var q = new URLSearchParams(location.search);
     if (q.get('roll') !== '1') return;
-    var mode = q.get('mode');
+    var mode = q.get('mode'), by = q.get('by') || '';
     q.delete('roll'); q.delete('by'); q.delete('mode');
     try { history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q : '') + location.hash); } catch (e) {}
     var tries = 0;
@@ -92,8 +92,9 @@
           if (list.length) setup = api.usePreset(list[Math.floor(Math.random() * list.length)].value);
         } else if (mode === 'chaos') setup = api.chaos();
       } catch (e) {}
-      setup.catch(function () {}).then(function () {
+      setup.catch(function (e) { return ''; }).then(function (pick) {
         if (gen.disabled) return;
+        if (window.RandoSeedLog) window.RandoSeedLog.next({ kind: mode === 'preset' || mode === 'chaos' ? mode : 'reroll', by: by, from: 'Zelda 1', pick: typeof pick === 'string' ? pick : '' });
         seed.value = '';
         seed.dispatchEvent(new Event('input', { bubbles: true }));
         seed.dispatchEvent(new Event('change', { bubbles: true }));

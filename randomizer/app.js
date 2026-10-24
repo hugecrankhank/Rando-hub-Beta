@@ -298,13 +298,36 @@ function noteRom(bytes, name) {
   showLast();
 }
 
+function linkFor(l, race) {
+  if (!l || (!l.fields && !l.alttpr && !l.kara && !l.gwaa && !l.avian)) return '';
+  return l.alttpr ? `https://alttpr.com/h/${l.alttpr}`
+    : l.avian ? Avian.permLink(l.avian)
+    : l.gwaa ? Kara.siteLink(l.gwaa)
+    : l.kara ? Kara.buildLink(l.spoiler.seed, l.kara, race)
+      : buildLink(l.spoiler.seed, l.fields, race);
+}
+
+// The seed history (seed-log.js): one entry each time a seed is started here.
+// Who asked for it and how (Crowd Control, 🎲 Reroll…) is added by seed-log.js.
+function logSeed({ fromLink = false } = {}) {
+  const L = window.RandoSeedLog;
+  if (!L || !last) return;
+  try {
+    const code = last.code || (last.alttpr || last.avian ? null : codeForSeed(last.spoiler.seed));
+    const sel = $('r-saved'), opt = sel && sel.value ? sel.options[sel.selectedIndex] : null;
+    L.add({
+      name: last.name, game: 'Zelda 3', what: $('r-seed-out').textContent || last.name,
+      generator: last.alttpr ? 'alttpr.com' : last.avian ? 'AVIANART' + (last.avianPreset ? ': ' + last.avianPreset : '') : last.gwaa ? 'Kara (her server)' : last.kara ? 'Kara' : last.custom ? 'Customizer' : 'Rando Hub',
+      preset: opt ? opt.textContent.replace(/^★\s*/, '').trim() : '',
+      code: code ? codeNames(code).join(' / ') : '', race: !!last.race, link: linkFor(last, !!last.race),
+      ...(fromLink ? { kind: 'link' } : {}),
+    });
+  } catch (e) { console.warn('[randomizer] seed log', e); }
+}
+
 async function copyLink(race) {
   if (!last || (!last.fields && !last.alttpr && !last.kara && !last.gwaa && !last.avian)) return;
-  const url = last.alttpr ? `https://alttpr.com/h/${last.alttpr}`
-    : last.avian ? Avian.permLink(last.avian)
-    : last.gwaa ? Kara.siteLink(last.gwaa)
-    : last.kara ? Kara.buildLink(last.spoiler.seed, last.kara, race)
-      : buildLink(last.spoiler.seed, last.fields, race);
+  const url = linkFor(last, race);
   const what = last.alttpr ? 'alttpr.com link' : last.avian ? 'AVIANART permalink' : last.gwaa ? 'Kara seed link' : race ? 'Race link' : 'Seed link';
   try {
     await navigator.clipboard.writeText(url);
@@ -462,6 +485,7 @@ async function generateAndPlay() {
     try { localStorage.setItem('unified-kara-open', '0'); } catch (e) {}
     // keep it across the page reload EmulatorJS needs when switching games
     try { await kvSet('last-seed', last); } catch (e) {}
+    logSeed({ fromLink });
 
     window.UnifiedApp.playRom(rom, name, {
       gamemode: settings.mode,
@@ -579,6 +603,7 @@ async function generateKara({ local = false, note = '' } = {}) {
     $('r-toggle').setAttribute('aria-expanded', 'false');
     try { localStorage.setItem('unified-kara-open', '0'); } catch (e) {}
     try { await kvSet('last-seed', last); } catch (e) {}
+    logSeed({ fromLink });
     window.UnifiedApp.playRom(rom, name, Kara.trackerFor(settings));
   } catch (e) {
     if (e.cancelled) status('Stopped.', '');
@@ -641,6 +666,7 @@ async function playGwaa(id, { settings = null, race = false, fallback = null } =
     $('r-toggle').setAttribute('aria-expanded', 'false');
     try { localStorage.setItem('unified-kara-open', '0'); } catch (e) {}
     try { await kvSet('last-seed', last); } catch (e) {}
+    logSeed();
     window.UnifiedApp.playRom(rom, name, Kara.trackerFor(s));
   } catch (e) {
     if (e.cancelled) status('Stopped.', '');
@@ -701,6 +727,7 @@ async function playAlttprSeed(id) {
     $('r-toggle').setAttribute('aria-expanded', 'false');
     try { localStorage.setItem('unified-kara-open', '0'); } catch (e) {}
     try { await kvSet('last-seed', last); } catch (e) {}
+    logSeed();
     window.UnifiedApp.playRom(rom, name, {
       gamemode: ALTTPR_MODES.includes(m.mode) ? m.mode : 'open',
       dungeonitems: TRACKER_DI[m.dungeon_items] || 'standard',
@@ -775,6 +802,7 @@ async function playAvian(hash, { preset = null, custom = null, race = false } = 
     $('r-toggle').setAttribute('aria-expanded', 'false');
     try { localStorage.setItem('unified-kara-open', '0'); } catch (e) {}
     try { await kvSet('last-seed', last); } catch (e) {}
+    logSeed();
     window.UnifiedApp.playRom(rom, name, Avian.trackerFor(m));
   } catch (e) {
     if (e.cancelled) status('Stopped.', '');

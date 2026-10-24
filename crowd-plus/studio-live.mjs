@@ -14,6 +14,8 @@
  *   dig game        chat guesses which dig gives the Digging Game's prize
  *                   (!dig 15); the game says which it was
  *   clip markers    big moments time-stamped for editing later (+ !clip)
+ *   seed history    every seed played: when, which, its code, who rolled it
+ *                   and how (seeds.json, kept across streams)
  *   hall of fame    all-time top gifters across streams
  *   welcome back    a pop-up when a regular shows up again
  *
@@ -66,6 +68,27 @@ export function createLive(ctx) {
   let fame = readJson(FAME_FILE, {});          // user → { coins, gifts, nickname, avatar, streams, last }
   let viewers = readJson(VIEWERS_FILE, {});    // user → { streams, lastStream, nickname }
   let clips = readJson(CLIPS_FILE, []);        // { id, at, elapsed, label, kind }
+  const SEEDS_FILE = path.join(HERE, 'seeds.json');
+  let seeds = readJson(SEEDS_FILE, []);        // { at, name, game, what, code, link, how, by, ... }
+  if (!Array.isArray(seeds)) seeds = [];
+
+  // ── seed history ───────────────────────────────────────────────────────
+  // The game says when a new seed starts ('seed', with the hub's details:
+  // code, link, who rolled it and how). Zelda 1 (and a hub without the
+  // details) only shows a new seed name in its run stats: that's logged too.
+  const SEED_KEYS = ['what', 'generator', 'preset', 'pick', 'code', 'race', 'link', 'kind', 'how', 'by', 'from'];
+  function seedSeen(info, game) {
+    const nm = clean(info.name, 120);
+    if (!nm) return;
+    const last = seeds[seeds.length - 1];
+    let e = last && last.name === nm ? last : null;
+    if (!e) { e = { at: Date.now(), name: nm, game: clean(info.game || game || 'Zelda 3', 20), elapsed: Math.max(0, Math.round((Date.now() - ctx.streamSince()) / 1000)) }; seeds.push(e); if (seeds.length > 2000) seeds.shift(); }
+    let changed = e !== last;
+    for (const k of SEED_KEYS) if (info[k] != null && info[k] !== '' && e[k] !== info[k]) { e[k] = k === 'race' ? !!info[k] : clean(info[k], 400); changed = true; }
+    if (!changed) return;
+    writeLater(SEEDS_FILE, seeds);
+    send('seeds', { seeds: seeds.slice(-200) });
+  }
 
   // ── run stats from the game ────────────────────────────────────────────
   let runStats = { deaths: 0, checks: 0, bonks: 0, place: '', seed: '', music: '', hearts: 0, bosses: [], at: 0 };
@@ -74,9 +97,12 @@ export function createLive(ctx) {
       runStats = { deaths: +m.deaths || 0, checks: +m.checks || 0, bonks: +m.bonks || 0, place: clean(m.place, 40), seed: clean(m.seed, 80),
         music: clean(m.music, 80), hearts: +m.hearts || 0, bosses: Array.isArray(m.bosses) ? m.bosses.map((b) => clean(b, 20)).slice(0, 20) : [], at: Date.now() };
       onProgress(runStats);
+      if (m.seed) seedSeen({ name: m.seed }, m.game === 'z1r' ? 'Zelda 1' : 'Zelda 3');
       if (m.gt && typeof m.gt === 'object') onGt(m.gt);
       if (m.dig && typeof m.dig === 'object') onDig(m.dig);
       send('run', { run: runStats });
+    } else if (m.type === 'seed' && m.seed && typeof m.seed === 'object') {
+      seedSeen(m.seed);
     } else if (m.type === 'death') {
       runStats.deaths = +m.deaths || runStats.deaths + 1;
       onDeath();
@@ -540,6 +566,7 @@ export function createLive(ctx) {
       case 'predict-cancel': clearTimeout(predT); pred = null; send('predict', { predict: null }); return true;
       case 'clip-add': return { clip: addClip(a.label || 'Marked by the streamer', 'manual') };
       case 'clip-delete': clips = clips.filter((c) => c.id !== a.id); writeLater(CLIPS_FILE, clips); send('clips'); return true;
+      case 'seeds-clear': seeds = []; writeLater(SEEDS_FILE, seeds); send('seeds', { seeds: [] }); return true;
       case 'clips-clear': clips = []; writeLater(CLIPS_FILE, clips); send('clips'); return true;
       case 'fame-reset': fame = {}; writeLater(FAME_FILE, fame); send('fame', { fame: [] }); return true;
       case 'fame-remove': delete fame[a.user]; writeLater(FAME_FILE, fame); send('fame', { fame: famous(20) }); return true;
@@ -566,7 +593,7 @@ export function createLive(ctx) {
 
   function snapshot() {
     return { poll: pollView(), battle: battleView(), combo: { n: combo.n, at: S().combo.bonusAt, best: combo.best }, predict: predView(), gtguess: gtView(), gt: gtLive, digguess: digView(), dig: digLive, run: runStats,
-      clips: clips.slice(-200), fame: famous(20), viewersKnown: Object.keys(viewers).length };
+      clips: clips.slice(-200), seeds: seeds.slice(-200), fame: famous(20), viewersKnown: Object.keys(viewers).length };
   }
 
   return { onEvent, onGame, mystery, run: action, snapshot, addClip, famous };

@@ -453,6 +453,13 @@
     <div class="log" id="cl-list" style="max-height:340px"></div>
   </div>
 
+  <h2>SEED HISTORY</h2>
+  <div class="card">
+    <p class="hint">Every seed played while the bridge was running, kept across streams (<span class="kbd">seeds.json</span> in the Crowd Control+ folder): when, the seed and its code, who rolled it and how (a gift, a random preset, CHAOS, the 🎲 button…) and a link to play it again. The hub keeps its own list too (⚙ Settings → Seed history).</p>
+    <div class="row"><button id="sd-export">Download (CSV)</button><button class="danger" id="sd-clear">Clear</button><span class="muted" id="sd-n"></span></div>
+    <div class="log" id="sd-list" style="max-height:340px"></div>
+  </div>
+
   <h2>HALL OF FAME</h2>
   <div class="grid g2">
     <div class="card">
@@ -1000,6 +1007,26 @@ $('cl-export').onclick = () => {
   const txt = 'Stream time\tClock time\tWhat\n' + list.map((c) => fmtElapsed(c.elapsed) + '\t' + new Date(c.at).toLocaleString() + '\t' + c.label).join('\n') + '\n';
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([txt], { type: 'text/plain' })); a.download = 'clip-markers-' + new Date().toISOString().slice(0, 10) + '.txt'; a.click();
 };
+function paintSeeds() {
+  const all = (S.live && S.live.seeds) || [], list = all.slice().reverse();
+  $('sd-n').textContent = all.length ? all.length + ' seed' + (all.length === 1 ? '' : 's') : '';
+  $('sd-list').innerHTML = list.length ? list.map((e, i) => '<div class="ev" style="grid-template-columns:88px 26px 1fr auto"><time title="' + new Date(e.at).toLocaleString() + '">' +
+    new Date(e.at).toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' + new Date(e.at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) + '</time><span class="ic">🎲</span><div><b>' + esc(e.what || e.name) + '</b> <span class="muted">' + esc(e.game || '') + (e.code ? ' · code ' + esc(e.code) : '') + (e.race ? ' · race' : '') + '</span>' +
+    ((e.how || e.by || e.preset || e.pick) ? '<div class="muted" style="font-size:11.5px">' + [e.how, e.by ? 'by ' + e.by : '', e.preset, e.pick].filter(Boolean).map(esc).join(' · ') + '</div>' : '') + '</div>' +
+    (e.link ? '<button class="small" data-sdlink="' + (all.length - 1 - i) + '">Copy link</button>' : '<span></span>') + '</div>').join('') : '<p class="muted">No seeds yet. They show up here when a game starts.</p>';
+  $('sd-list').querySelectorAll('[data-sdlink]').forEach((b) => b.onclick = () => {
+    const e = all[+b.dataset.sdlink]; if (!e || !e.link) return;
+    navigator.clipboard.writeText(e.link).then(() => { b.textContent = 'Copied'; setTimeout(() => b.textContent = 'Copy link', 1500); }, () => prompt('Seed link:', e.link));
+  });
+}
+$('sd-clear').onclick = () => { if (confirm('Clear the whole seed history (seeds.json)?')) call('seeds-clear', {}); };
+$('sd-export').onclick = () => {
+  const cell = (v) => { v = String(v == null ? '' : v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+  const rows = [['When', 'Game', 'Seed', 'Generator', 'Preset', 'Picked', 'Code', 'How', 'Who', 'Race', 'Link', 'File']]
+    .concat(((S.live && S.live.seeds) || []).map((e) => [new Date(e.at).toLocaleString(), e.game, e.what || '', e.generator || '', e.preset || '', e.pick || '', e.code || '', e.how || '', e.by || '', e.race ? 'yes' : '', e.link || '', e.name]));
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([rows.map((r) => r.map(cell).join(',')).join('\r\n') + '\r\n'], { type: 'text/csv' }));
+  a.download = 'seed-history-' + new Date().toISOString().slice(0, 10) + '.csv'; a.click();
+};
 function paintFame() {
   const f = (S.live && S.live.fame) || [];
   $('hf-list').innerHTML = f.length ? f.map((g, i) => '<tr><td class="muted">' + (i + 1) + '</td><td><b>' + esc(g.nickname || g.user) + '</b></td><td style="text-align:right">' + CC.num(g.coins) + ' coins</td><td class="muted" style="text-align:right">' + g.gifts + ' gifts</td><td><button class="small danger" data-hfdel="' + esc(g.user) + '">✕</button></td></tr>').join('') : '<tr><td class="muted">Nobody yet.</td></tr>';
@@ -1008,13 +1035,14 @@ function paintFame() {
 }
 $('hf-reset').onclick = () => { if (confirm('Reset the all-time hall of fame? This can\'t be undone.')) call('fame-reset', {}, 'Hall of fame reset'); };
 $('wb-test').onclick = () => call('welcome-test', { user: $('t-user').value || 'RegularViewer' });
-function paintLive() { const L = S.live || {}; paintPollNow(L.poll); paintBattleNow(L.battle); paintPredNow(L.predict); paintGtNow(L.gtguess, L.gt); paintDigNow(L.digguess, L.dig); paintRunNow(L.run); paintClips(); paintFame(); }
+function paintLive() { const L = S.live || {}; paintPollNow(L.poll); paintBattleNow(L.battle); paintPredNow(L.predict); paintGtNow(L.gtguess, L.gt); paintDigNow(L.digguess, L.dig); paintRunNow(L.run); paintClips(); paintSeeds(); paintFame(); }
 setInterval(() => { if (S && S.live) { paintPollNow(S.live.poll); paintPredNow(S.live.predict); } }, 1000);
 CC.on('live', (d) => {
   if (!S || !S.live) return;
   if (d.fame) S.live.fame = d.fame;
   if ('gtguess' in d) S.live.gtguess = d.gtguess; if (d.gt) S.live.gt = d.gt;
   if ('digguess' in d) S.live.digguess = d.digguess; if (d.dig) S.live.dig = d.dig;
+  if (d.seeds) S.live.seeds = d.seeds;
   paintLive();
 });
 let pvPainted = false;
