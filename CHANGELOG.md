@@ -5,6 +5,14 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.9.18 (2026-10-23)
+
+- **Seed type and settings under the seed code** (Randomizer bar): what kind of seed it
+  was (Generate & Play, 🎲 Reroll, Crowd Control's random preset / CHAOS, the preset or
+  pick, who rolled it), every setting the generator used (Kara's: all of them, defaults
+  dimmed), and what the tracker was set to for it (Mudora 2.0: Muffins' settings), side by
+  side, to check whether the tracker's logic matches the seed.
+
 ## Beta v1.9.17 (2026-10-23)
 
 - **Credits**: ⚙ Settings → Credits lists Rando Hub's playtesters (Gumby @gumby.oo7,
