@@ -777,10 +777,16 @@ Rando Hub wouldn't be what it is without these people. Thank you!
 
 | Who | For |
 |---|---|
-| **Heffie's Homies** | Play testing |
-| **HydeoutGaming** | Play testing, development ideas |
-| **Gumby007** | Play testing, development ideas |
+| **Gumby** ([@gumby.oo7](https://www.tiktok.com/@gumby.oo7)) | Play testing, development ideas |
+| **HydeOutGaming** ([@jennkevden](https://www.tiktok.com/@jennkevden)) | Play testing, development ideas |
+| **Heffie's Homies** ([@heffie638](https://www.tiktok.com/@heffie638)) | Play testing |
 | **Hutch** | Tracker implementation, and modifications to fit tablet mode |
+| **Kara** | Kara's randomizer branch, its settings and presets |
+| **Muffins** | Muffins' Tracker 2.0, and the logic behind Mudora 2.0 |
+
+They're in the app too (⚙ Settings → Credits), and in the game's own ending on every
+seed made in the hub: the joke captions of seven ending scenes become "playtested by
+Gumby" and so on (`randomizer/hub-credits.js`; the captions that hint at items stay).
 
 ## Credits
 

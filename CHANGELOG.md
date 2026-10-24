@@ -5,6 +5,14 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.9.17 (2026-10-23)
+
+- **Credits**: ⚙ Settings → Credits lists Rando Hub's playtesters (Gumby @gumby.oo7,
+  HydeOutGaming @jennkevden, Heffie's Homies @heffie638), shout-outs (Hutch, Kara,
+  Muffins) and what the hub builds on. They're also in the game's own ending on every
+  seed made in the hub ("playtested by Gumby"…), in the ending's joke captions only, so
+  the item-hint captions and the seeds themselves don't change.
+
 ## Beta v1.9.16 (2026-10-23)
 
 - **Room lights** (Crowd Control+ 1.9.16): *Lights on!* lights up a dark room as if every
