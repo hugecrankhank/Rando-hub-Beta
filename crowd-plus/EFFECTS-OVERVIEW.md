@@ -81,6 +81,18 @@ speed ones, so they work on any seed):
 | | | | `freeze` | Link can't move, 3 s |
 | | | | `pink_link` | Pink Link, 60 s |
 
+**Halloween** (1.9.13)
+
+| id | effect |
+|---|---|
+| `spooky_night` | Every colour on screen but Link's turned purple and orange, 45 s |
+| `ghost_link` / `pumpkin_link` | Pale ghostly Link / orange Link, 60 s |
+| `haunted_lights` | Screen dims and flickers, a lightning flash now and then (at most one every ~2 s), 20 s |
+| `spooky_monster` | A Poe, Keese, Gibdo, Stalfos, Stalfos Knight, Raven or Vulture near Link (flying ones outdoors only; a random enemy if none fits) |
+| `haunting` | Three spooky monsters |
+| `trick_or_treat` | 50/50: a treat or a trick effect |
+| `spooky_sprite` | Random Halloween-ish sprite from the library (by name or tag) |
+
 **Boss detour** (new in 1.2.0): the game saves itself, drops Link into a boss
 fight, then loads that save when the fight ends (timer runs out, Link falls, or he
 wins), so the run carries on exactly where it was. Length = `durations.boss_detour`

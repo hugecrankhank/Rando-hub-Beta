@@ -5,6 +5,12 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.9.13 (2026-10-23)
+
+- **Halloween effects** (Crowd Control+ 1.9.13): Spooky night, Ghost Link, Pumpkin Link,
+  Haunted lights, Spooky monster, Haunting (three monsters), Trick or treat and Spooky
+  sprite. Link's colour effects (Pink, Ghost, Pumpkin) take turns instead of fighting.
+
 ## Beta v1.9.12 (2026-10-23)
 
 - **Mudora 2.0 shows the check counter** (the game's own count, as in Mudora and the run

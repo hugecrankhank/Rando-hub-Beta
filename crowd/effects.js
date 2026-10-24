@@ -58,35 +58,96 @@
     return 'No empty bottle';
   }
 
-  // Pink Link: tint Link's palette (main palette buffer $7EC6E2, 15 colours)
-  // and ask the game to re-upload palettes ($15). The original colours are
-  // kept and put back when it ends; if the game reloads them meanwhile (new
-  // area, tunic change) the new ones are kept instead.
-  var LINK_PAL = 0xC6E2, LINK_N = 15, pinkSaved = null, pinkWritten = null;
-  function pinkify(c) {
-    var r = c & 31, g = (c >> 5) & 31, b = (c >> 10) & 31;
-    var l = (r * 3 + g * 6 + b) / 10;
-    r = Math.min(31, Math.round(l * 0.55 + 14)); g = Math.round(l * 0.45 + 2); b = Math.min(31, Math.round(l * 0.6 + 9));
-    return r | (g << 5) | (b << 10);
+  // Link tints (Pink Link, Ghost Link, Pumpkin Link): tint Link's palette
+  // (main palette buffer $7EC6E2, 15 colours) and ask the game to re-upload
+  // palettes ($15). The original colours are kept and put back when it ends;
+  // if the game reloads them meanwhile (new area, tunic change) the new ones
+  // are kept instead. One tint at a time: the newest wins, and when it ends
+  // the next one still running takes over.
+  var LINK_PAL = 0xC6E2, LINK_N = 15;
+  function lum(c) { return ((c & 31) * 3 + ((c >> 5) & 31) * 6 + ((c >> 10) & 31)) / 10; }
+  function rgb(r, g, b) { var k = function (v) { return Math.max(0, Math.min(31, Math.round(v))); }; return k(r) | (k(g) << 5) | (k(b) << 10); }
+  var LINK_TINTS = {
+    pink_link: function (c) { var l = lum(c); return rgb(l * 0.55 + 14, l * 0.45 + 2, l * 0.6 + 9); },
+    // pale and see-through looking: everything washed towards a cold blue-white
+    ghost_link: function (c) { var l = lum(c); return rgb(l * 0.45 + 13, l * 0.55 + 14, l * 0.3 + 22); },
+    pumpkin_link: function (c) { var l = lum(c); return rgb(l * 0.45 + 17, l * 0.55 + 4, l * 0.1 + 1); },
+  };
+  var LT = { saved: null, written: null, owner: null, used: null };
+  function palRead(r, at, n) { var o = []; for (var i = 0; i < n; i++) o[i] = r[at + i * 2] | (r[at + i * 2 + 1] << 8); return o; }
+  function palWrite(r, at, list) { for (var k = 0; k < list.length; k++) { r[at + k * 2] = list[k] & 0xFF; r[at + k * 2 + 1] = list[k] >> 8; } r[0x15] = 1; }
+  function linkTintFrame(id, r) {
+    if (LT.owner !== id) { if (LT.owner && active[LT.owner]) return; LT.owner = id; }
+    var cur = palRead(r, LINK_PAL, LINK_N), same = !!LT.written;
+    if (same) for (var i = 0; i < LINK_N; i++) if (cur[i] !== LT.written[i]) { same = false; break; }
+    if (!same) LT.saved = cur;            // first frame, or the game loaded new colours
+    if (!same || LT.used !== id) { LT.used = id; LT.written = LT.saved.map(LINK_TINTS[id]); palWrite(r, LINK_PAL, LT.written); }
   }
-  function pinkFrame(r) {
-    var cur = [], same = !!pinkWritten;
-    for (var i = 0; i < LINK_N; i++) { cur[i] = r[LINK_PAL + i * 2] | (r[LINK_PAL + i * 2 + 1] << 8); if (pinkWritten && cur[i] !== pinkWritten[i]) same = false; }
-    if (!same) pinkSaved = cur;            // first frame, or the game loaded new colours
-    if (!pinkWritten || !same) {
-      pinkWritten = pinkSaved.map(pinkify);
-      for (var k = 0; k < LINK_N; k++) { r[LINK_PAL + k * 2] = pinkWritten[k] & 0xFF; r[LINK_PAL + k * 2 + 1] = pinkWritten[k] >> 8; }
+  function linkTintEnd(id) {
+    var c = core(); if (!c) return;
+    var r = c.wram();
+    if (LT.owner !== id) return;
+    for (var k in LINK_TINTS) if (k !== id && active[k]) { LT.owner = k; return; }   // the next one takes over
+    if (LT.saved && LT.written) {
+      var cur = palRead(r, LINK_PAL, LINK_N), still = true;
+      for (var i = 0; i < LINK_N; i++) if (cur[i] !== LT.written[i]) still = false;
+      if (still) palWrite(r, LINK_PAL, LT.saved);
+    }
+    LT = { saved: null, written: null, owner: null, used: null };
+  }
+  function linkTint(id) {
+    return { frame: function (r) { linkTintFrame(id, r); }, start: function () { LT.owner = id; }, end: function () { linkTintEnd(id); } };
+  }
+
+  // Spooky night: every colour on screen but Link's (main palette buffer
+  // $7EC500-$7EC6FF) turned to Halloween's purple and orange: dark → purple,
+  // light → orange. Same keep-and-restore as the Link tints, per colour.
+  var PAL0 = 0xC500, PAL_N = 256, LINK_FIRST = (LINK_PAL - PAL0) / 2;
+  function spooky(c) { var t = lum(c) / 31; return rgb(4 + 27 * t, 1 + 18 * t * t, 11 - 9 * t); }
+  var NIGHT = { saved: null, written: null };
+  function nightFrame(r) {
+    var cur = palRead(r, PAL0, PAL_N), dirty = false;
+    if (!NIGHT.saved) { NIGHT.saved = cur.slice(); NIGHT.written = cur.slice(); }
+    for (var i = 0; i < PAL_N; i++) {
+      if (i >= LINK_FIRST && i < LINK_FIRST + LINK_N) continue;      // Link keeps his colours (and his own tints)
+      if (cur[i] !== NIGHT.written[i]) { NIGHT.saved[i] = cur[i]; NIGHT.written[i] = spooky(cur[i]); dirty = true; }
+      else if (NIGHT.written[i] === NIGHT.saved[i] && spooky(cur[i]) !== cur[i]) { NIGHT.written[i] = spooky(cur[i]); dirty = true; }
+    }
+    if (dirty) {
+      for (var k = 0; k < PAL_N; k++) {
+        if (k >= LINK_FIRST && k < LINK_FIRST + LINK_N) continue;
+        r[PAL0 + k * 2] = NIGHT.written[k] & 0xFF; r[PAL0 + k * 2 + 1] = NIGHT.written[k] >> 8;
+      }
       r[0x15] = 1;
     }
   }
-  function pinkEnd(r) {
-    if (pinkSaved && pinkWritten) {
-      var still = true;
-      for (var i = 0; i < LINK_N; i++) if ((r[LINK_PAL + i * 2] | (r[LINK_PAL + i * 2 + 1] << 8)) !== pinkWritten[i]) still = false;
-      if (still) { for (var k = 0; k < LINK_N; k++) { r[LINK_PAL + k * 2] = pinkSaved[k] & 0xFF; r[LINK_PAL + k * 2 + 1] = pinkSaved[k] >> 8; } r[0x15] = 1; }
+  function nightEnd() {
+    var c = core(); if (!c || !NIGHT.saved) { NIGHT = { saved: null, written: null }; return; }
+    var r = c.wram(), cur = palRead(r, PAL0, PAL_N);
+    for (var i = 0; i < PAL_N; i++) {
+      if (i >= LINK_FIRST && i < LINK_FIRST + LINK_N) continue;
+      if (cur[i] === NIGHT.written[i]) { r[PAL0 + i * 2] = NIGHT.saved[i] & 0xFF; r[PAL0 + i * 2 + 1] = NIGHT.saved[i] >> 8; }
     }
-    pinkSaved = pinkWritten = null;
+    r[0x15] = 1;
+    NIGHT = { saved: null, written: null };
   }
+
+  // Haunted lights: the screen's brightness ($13, the game's copy of INIDISP)
+  // dims down and flickers like a failing lantern, with a lightning flash
+  // now and then (at most one every ~2 s: no strobing). Put back to full when
+  // it ends. Only while Link is in normal play, so fades still work.
+  var haunt = { t: 0, flash: 0, next: 0, level: 6 };
+  function hauntFrame(r) {
+    haunt.t++;
+    if (haunt.flash > 0) { haunt.flash--; r[0x13] = 0x0F; return; }
+    if (haunt.t >= haunt.next) {
+      if (Math.random() < 0.35) { haunt.flash = 5; haunt.next = haunt.t + 120 + Math.floor(Math.random() * 120); r[0x13] = 0x0F; return; }
+      haunt.next = haunt.t + 8 + Math.floor(Math.random() * 30);
+      haunt.level = Math.random() < 0.15 ? 1 : 4 + Math.floor(Math.random() * 4);   // now and then nearly black
+    }
+    r[0x13] = haunt.level;
+  }
+  function hauntEnd() { var c = core(); if (c) c.wram()[0x13] = 0x0F; haunt = { t: 0, flash: 0, next: 0, level: 6 }; }
 
   // SNES pad bits, same order as Snes9xCore.BTN
   var B = { B: 1 << 0, Y: 1 << 1, UP: 1 << 4, DOWN: 1 << 5, LEFT: 1 << 6, RIGHT: 1 << 7 };
@@ -160,15 +221,28 @@
     [0xAA, [[0,0,0,[27]]]], [0xC3, [[0,0,[40],0]]], [0xC4, [[[14,21],0,0,0]]], [0xC7, [[0,0,[39],0]]],
     [0xC9, [[0,0,0,[16]]]], [0xD0, [[0,0,0,[20]]]],
   ];
-  function enemiesThatFit(r) {
+  // Halloween's monsters (ids and sheet needs from the randomizer's enemizer:
+  // Kara's alttpr-python source/enemizer/SpriteSheets.py). Flying ones only
+  // outdoors (the enemizer keeps them out of some rooms).
+  var SPOOKY_ENEMIES = [
+    [0x19, [[0,0,0,[14,21]]], 'fly'],      // Poe (ghost)
+    [0x6F, [[0,0,[28,36],0]]],             // Keese (bat)
+    [0x8B, [[0,0,[35],0]]],                // Gibdo (mummy)
+    [0xA7, [[[31],0,0,0]]],                // Stalfos (skeleton)
+    [0x91, [[0,[32],0,0]]],                // Stalfos Knight
+    [0x00, [[0,0,0,[17,25]]], 'fly'],      // Raven
+    [0x01, [[0,0,[18],0]], 'fly'],         // Vulture
+  ];
+  function spookyHere(r) { var out = r[0x1B] ? SPOOKY_ENEMIES.filter(function (e) { return !e[2]; }) : SPOOKY_ENEMIES; return out; }
+  function enemiesThatFit(r, list) {
     var sheets = [r[0xC2FC], r[0xC2FD], r[0xC2FE], r[0xC2FF]];
-    return RANDOM_ENEMIES.filter(function (e) {
+    return (list || RANDOM_ENEMIES).filter(function (e) {
       return e[1].some(function (opt) { return opt.every(function (need, i) { return !need || need.indexOf(sheets[i]) >= 0; }); });
     }).map(function (e) { return e[0]; });
   }
-  function spawnRandomEnemy(r) {
-    var types = enemiesThatFit(r);
-    if (!types.length) return cloneEnemy(r) === true ? true : 'No enemy fits this area';
+  function spawnRandomEnemy(r, list) {
+    var types = enemiesThatFit(r, list);
+    if (!types.length) return list ? 'No spooky monster fits this area' : cloneEnemy(r) === true ? true : 'No enemy fits this area';
     var free = -1;
     for (var k = 15; k >= 1; k--) if (r[S.STATE + k] === 0) { free = k; break; }
     if (free < 0) return 'Too many sprites on screen';
@@ -320,8 +394,38 @@
       apply: function (r) { return fillBottle(r, 6); } },
     bee_bottle:  { name: 'Bee in a bottle', good: true,
       apply: function (r) { return fillBottle(r, 7); } },
-    pink_link:   { name: 'Pink Link', good: true, secs: 60,
-      frame: pinkFrame, end: function () { var c = core(); if (c) pinkEnd(c.wram()); } },
+    pink_link:   Object.assign({ name: 'Pink Link', good: true, secs: 60 }, linkTint('pink_link')),
+
+    // ── Halloween ──
+    spooky_night:  { name: 'Spooky night', good: false, secs: 45, frame: nightFrame, end: nightEnd },
+    ghost_link:    Object.assign({ name: 'Ghost Link', good: true, secs: 60 }, linkTint('ghost_link')),
+    pumpkin_link:  Object.assign({ name: 'Pumpkin Link', good: true, secs: 60 }, linkTint('pumpkin_link')),
+    haunted_lights: { name: 'Haunted lights', good: false, secs: 20, frame: hauntFrame, end: hauntEnd },
+    spooky_monster: { name: 'Spooky monster', good: false,
+      apply: function (r) { var res = spawnRandomEnemy(r, spookyHere(r)); return res === true ? true : spawnRandomEnemy(r); } },
+    haunting:      { name: 'Haunting! (3 spooky monsters)', good: false,
+      apply: function (r) {
+        var n = 0, pool = spookyHere(r);
+        for (var i = 0; i < 3; i++) if (spawnRandomEnemy(r, pool) === true) n++;
+        if (!n) return spawnRandomEnemy(r);
+        return true;
+      } },
+    trick_or_treat: { name: 'Trick or treat!', good: true,
+      app: function (job) {
+        var treat = Math.random() < 0.5;
+        var list = treat ? ['heal_full', 'rupees_plus', 'bombs_plus', 'arrows_plus', 'magic_full', 'fairy', 'pumpkin_link']
+          : ['hurt_2', 'rupees_minus', 'magic_drain', 'spooky_monster', 'haunted_lights', 'spooky_night', 'ghost_link'];
+        var pick = list[Math.floor(Math.random() * list.length)];
+        feed((job.user ? job.user + ': ' : '') + (treat ? '🍬 TREAT! ' : '🎃 TRICK! ') + EFFECTS[pick].name, treat ? 'good' : 'bad');
+        trigger(pick, job.user, treat ? 'Treat!' : 'Trick!');
+        return true;
+      } },
+    spooky_sprite: { name: 'Spooky sprite', good: true,
+      app: function () {
+        var R = root.UnifiedRando && root.UnifiedRando.crowd;
+        if (!R || !R.spookySprite) { feed('Spooky sprite: the randomizer isn\'t ready', 'info'); return false; }
+        R.spookySprite(); return true;
+      } },
     music_roulette: { name: 'Music roulette', good: true,
       app: function () {
         var m = root.UnifiedRando && root.UnifiedRando.music;

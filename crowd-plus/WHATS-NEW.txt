@@ -5,6 +5,14 @@ Crowd Control+ is Rando Hub's crowd control: the gift bridge with a
 control panel and stream overlays. Every gift effect, big-donation seed
 roll and the subathon clock work exactly as before.
 
+NEW IN 1.9.13
+------------
+- Halloween effects: spooky_night (everything purple and orange),
+  ghost_link, pumpkin_link, haunted_lights (flickering, lightning),
+  spooky_monster and haunting (ghosts, bats, mummies, skeletons),
+  trick_or_treat (50/50 treat or trick) and spooky_sprite. Pick them
+  for gifts on the Gifts & effects tab. Details in INSTRUCTIONS.txt.
+
 NEW IN 1.9.11
 ------------
 - Digging Game guessing (Live games tab): like the GT big key game.
