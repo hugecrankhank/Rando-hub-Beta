@@ -105,6 +105,9 @@ speed ones, so they work on any seed):
 | `haunting` | Three spooky monsters |
 | `trick_or_treat` | 50/50: a treat or a trick effect |
 | `spooky_sprite` | Random Halloween-ish sprite from the library (by name or tag) |
+| `blood_drip` | Blood runs down from the top of the screen, 20 s |
+| `spider_web` | Spiderwebs in the corners and a dangling spider, 30 s |
+| `monster_mash` | Every enemy on screen becomes a bat or a mummy (another spooky monster where their graphics aren't loaded) |
 
 **Boss detour** (new in 1.2.0): the game saves itself, drops Link into a boss
 fight, then loads that save when the fight ends (timer runs out, Link falls, or he

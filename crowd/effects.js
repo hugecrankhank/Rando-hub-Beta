@@ -199,6 +199,89 @@
     lightRoom.room = -1;
   }
 
+  // ── Halloween screen overlays: drawn over the game picture (pointer-free),
+  // removed when the effect ends. Original art, made here in SVG. ──
+  var overlays = {};
+  function overlayOn(id, html, css) {
+    if (typeof document === 'undefined' || overlays[id]) return;
+    var host = document.querySelector('.s9x'); if (!host) return;
+    if (!document.getElementById('cc-ov-css')) {
+      var st = document.createElement('style'); st.id = 'cc-ov-css';
+      st.textContent = '.cc-ov { position: absolute; inset: 0; z-index: 23; pointer-events: none; overflow: hidden; transition: opacity .8s; }' +
+        '.cc-ov svg { position: absolute; inset: 0; width: 100%; height: 100%; }' +
+        '.cc-ov.bye { opacity: 0; }' +
+        '@keyframes cc-drip { from { transform: scaleY(0); } to { transform: scaleY(1); } }' +
+        '@keyframes cc-drop { 0% { transform: translateY(0); opacity: 0; } 8% { opacity: 1; } 100% { transform: translateY(105%); opacity: 1; } }' +
+        '@keyframes cc-spin { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(18%); } }' +
+        '@keyframes cc-sway { 0%, 100% { transform: rotate(-4deg); } 50% { transform: rotate(4deg); } }';
+      document.head.appendChild(st);
+    }
+    var el = document.createElement('div'); el.className = 'cc-ov'; el.innerHTML = html;
+    host.appendChild(el); overlays[id] = el;
+  }
+  function overlayOff(id) {
+    var el = overlays[id]; if (!el) return;
+    delete overlays[id];
+    el.classList.add('bye'); setTimeout(function () { el.remove(); }, 900);
+  }
+  function rnd(a, b) { return a + Math.random() * (b - a); }
+  // Blood: a bloody band along the top, drips that slowly run down from it
+  // (most short, a few long) and drops falling off some of them.
+  function bloodSvg() {
+    var W = 1000, edge = 'M0,0 H' + W + ' V46', x, drips = '', drops = '', i;
+    for (x = W; x > 0; x -= rnd(22, 46)) edge += ' Q' + (x - 12).toFixed(0) + ',' + rnd(60, 84).toFixed(0) + ' ' + Math.max(0, x - 26).toFixed(0) + ',' + rnd(40, 56).toFixed(0);
+    edge += ' L0,48 Z';
+    for (i = 0; i < 16; i++) {
+      var dx = rnd(15, 985), w = rnd(18, 34), len = Math.random() < 0.3 ? rnd(380, 700) : rnd(120, 320), t = rnd(0, 9), d = rnd(5, 12);
+      var top = 44, end = top + len, bulb = w * 0.62;
+      // a run of blood narrowing a little, with a round drop gathering at the end
+      drips += '<g style="transform-origin:' + dx.toFixed(0) + 'px ' + top + 'px;transform:scaleY(0);animation:cc-drip ' + d.toFixed(1) + 's ' + t.toFixed(1) + 's cubic-bezier(.25,.6,.35,1) forwards">' +
+        '<path d="M' + (dx - w / 2).toFixed(1) + ',' + top + ' C' + (dx - w / 2).toFixed(1) + ',' + (top + len * 0.5).toFixed(0) + ' ' + (dx - w * 0.3).toFixed(1) + ',' + (end - bulb).toFixed(0) + ' ' + (dx - bulb * 0.8).toFixed(1) + ',' + end.toFixed(0) +
+        ' A' + bulb.toFixed(1) + ',' + (bulb * 1.15).toFixed(1) + ' 0 1 0 ' + (dx + bulb * 0.8).toFixed(1) + ',' + end.toFixed(0) +
+        ' C' + (dx + w * 0.3).toFixed(1) + ',' + (end - bulb).toFixed(0) + ' ' + (dx + w / 2).toFixed(1) + ',' + (top + len * 0.5).toFixed(0) + ' ' + (dx + w / 2).toFixed(1) + ',' + top + ' Z" fill="url(#cc-blood)"/>' +
+        '<path d="M' + (dx - w * 0.2).toFixed(1) + ',' + (top + 8) + ' V' + (end - bulb).toFixed(0) + '" stroke="#ff8a8a" stroke-opacity=".35" stroke-width="' + (w * 0.16).toFixed(1) + '" stroke-linecap="round"/>' +
+        '<ellipse cx="' + (dx - bulb * 0.35).toFixed(1) + '" cy="' + (end + bulb * 0.2).toFixed(0) + '" rx="' + (bulb * 0.18).toFixed(1) + '" ry="' + (bulb * 0.3).toFixed(1) + '" fill="#ffb3b3" fill-opacity=".45"/></g>';
+      if (len > 300 && Math.random() < 0.7) {
+        drops += '<g style="animation:cc-drop ' + rnd(2.2, 3.5).toFixed(1) + 's ' + (t + d).toFixed(1) + 's ease-in infinite;opacity:0">' +
+          '<path d="M' + dx.toFixed(0) + ',' + (end + bulb).toFixed(0) + ' q' + (w * 0.4).toFixed(1) + ',' + (w * 0.9).toFixed(1) + ' 0,' + (w * 1.1).toFixed(1) + ' q-' + (w * 0.4).toFixed(1) + ',-' + (w * 0.2).toFixed(1) + ' 0,-' + (w * 1.1).toFixed(1) + ' Z" fill="#a4161a"/></g>';
+      }
+    }
+    return '<svg viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="cc-blood" x1="0" x2="1"><stop offset="0" stop-color="#5c030c"/><stop offset=".4" stop-color="#b5121b"/><stop offset=".6" stop-color="#9d0f17"/><stop offset="1" stop-color="#5c030c"/></linearGradient></defs>' +
+      '<path d="' + edge + '" fill="#8a0a12"/>' + drips + drops + '</svg>';
+  }
+  // Spiderwebs: webs in three corners (spokes, and sagging threads between
+  // them) and a spider bobbing on its thread from the top.
+  function webCorner(cx, cy, a0, rmax) {
+    var spokes = 7, rings = 7, d = '', i, j, ang = [];
+    for (i = 0; i < spokes; i++) ang.push(a0 + (Math.PI / 2) * i / (spokes - 1) + rnd(-0.05, 0.05));
+    ang.forEach(function (a) { d += 'M' + cx + ',' + cy + ' L' + (cx + Math.cos(a) * rmax).toFixed(1) + ',' + (cy + Math.sin(a) * rmax).toFixed(1) + ' '; });
+    for (j = 1; j <= rings; j++) {
+      var rr = rmax * (j / rings) * rnd(0.92, 1.02);
+      for (i = 0; i < spokes - 1; i++) {
+        var p1 = [cx + Math.cos(ang[i]) * rr, cy + Math.sin(ang[i]) * rr], p2 = [cx + Math.cos(ang[i + 1]) * rr, cy + Math.sin(ang[i + 1]) * rr];
+        var mid = (ang[i] + ang[i + 1]) / 2, sag = rr * 0.86;
+        d += 'M' + p1[0].toFixed(1) + ',' + p1[1].toFixed(1) + ' Q' + (cx + Math.cos(mid) * sag).toFixed(1) + ',' + (cy + Math.sin(mid) * sag).toFixed(1) + ' ' + p2[0].toFixed(1) + ',' + p2[1].toFixed(1) + ' ';
+      }
+    }
+    return '<path d="' + d + '" fill="none" stroke="#f1f1f1" stroke-opacity=".78" stroke-width="1.6" filter="url(#cc-glow)"/>';
+  }
+  function webSvg() {
+    var sx0 = rnd(380, 620);
+    return '<svg viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true"><defs><filter id="cc-glow"><feGaussianBlur stdDeviation="1.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>' +
+      webCorner(0, 0, 0, rnd(300, 380)) + webCorner(1000, 0, Math.PI / 2, rnd(260, 340)) + webCorner(0, 1000, -Math.PI / 2, rnd(220, 290)) +
+      '<g style="transform-origin:' + sx0 + 'px 0;animation:cc-sway 5s ease-in-out infinite"><g style="animation:cc-spin 3.4s ease-in-out infinite">' +
+      '<line x1="' + sx0 + '" y1="0" x2="' + sx0 + '" y2="230" stroke="#eee" stroke-opacity=".8" stroke-width="1.5"/>' +
+      '<g transform="translate(' + sx0 + ',250) scale(1.6)">' +
+      [-1, 1].map(function (sd) {
+        return [[-14, -10, -28, -26], [-6, -4, -32, -6], [4, 2, -30, 16], [12, 8, -24, 34]].map(function (l) {
+          return '<path d="M0,' + l[0] * 0.3 + ' L' + (sd * 16) + ',' + l[1] + ' L' + (sd * -l[2]) + ',' + l[3] + '" fill="none" stroke="#111" stroke-width="4" stroke-linejoin="round"/>';
+        }).join('');
+      }).join('') +
+      '<ellipse cx="0" cy="8" rx="16" ry="20" fill="#151515"/><circle cx="0" cy="-14" r="10" fill="#1d1d1d"/>' +
+      '<circle cx="-4" cy="-16" r="2.6" fill="#ff2a2a"/><circle cx="4" cy="-16" r="2.6" fill="#ff2a2a"/>' +
+      '<path d="M-8,4 q8,10 16,0" fill="none" stroke="#c1121f" stroke-width="2.5"/></g></g></g></svg>';
+  }
+
   // SNES pad bits, same order as Snes9xCore.BTN
   var B = { B: 1 << 0, Y: 1 << 1, UP: 1 << 4, DOWN: 1 << 5, LEFT: 1 << 6, RIGHT: 1 << 7 };
   function swapBits(pad, a, b) {
@@ -283,6 +366,31 @@
     [0x00, [[0,0,0,[17,25]]], 'fly'],      // Raven
     [0x01, [[0,0,[18],0]], 'fly'],         // Vulture
   ];
+  // Monster mash: every ordinary enemy on screen turns into a bat (Keese) or a
+  // mummy (Gibdo), or another spooky monster when this area's graphics have
+  // neither. Each keeps its place and its slot in the room's list (so killing
+  // it still opens shutter doors), and starts over as the new monster.
+  var MASH_FIRST = [0x6F, 0x8B];                 // bats and mummies first
+  function monsterMash(r) {
+    var fit = enemiesThatFit(r, spookyHere(r));
+    if (!fit.length) return 'No spooky monster fits this area (their graphics aren\'t loaded here)';
+    var best = fit.filter(function (t) { return MASH_FIRST.indexOf(t) >= 0; });
+    var pool = best.length ? best : fit, n = 0;
+    var keep = [S.XL, S.XH, S.YL, S.YH, S.FLOOR, S.N];
+    for (var k = 0; k < 16; k++) {
+      if (r[S.STATE + k] !== 9 || !CLONEABLE[r[S.TYPE + k]] || pool.indexOf(r[S.TYPE + k]) >= 0) continue;
+      var saved = keep.map(function (t) { return r[t + k]; });
+      for (var i = 0; i < SLOT_TABLES.length; i++) r[SLOT_TABLES[i] + k] = 0;
+      keep.forEach(function (t, j) { r[t + k] = saved[j]; });
+      r[S.TYPE + k] = pool[Math.floor(Math.random() * pool.length)];
+      r[S.STATE + k] = 0x08;                       // "initialize": the game sets the new monster up
+      n++;
+    }
+    if (!n) return 'No enemies on screen to turn';
+    lastMash = n + (best.length ? (best.length === 2 ? ' into bats and mummies' : best[0] === 0x6F ? ' into bats' : ' into mummies') : ' into spooky monsters');
+    return true;
+  }
+  var lastMash = '';
   function spookyHere(r) { var out = r[0x1B] ? SPOOKY_ENEMIES.filter(function (e) { return !e[2]; }) : SPOOKY_ENEMIES; return out; }
   function enemiesThatFit(r, list) {
     var sheets = [r[0xC2FC], r[0xC2FD], r[0xC2FE], r[0xC2FF]];
@@ -446,6 +554,13 @@
       apply: function (r) { return fillBottle(r, 7); } },
     pink_link:   Object.assign({ name: 'Pink Link', good: true, secs: 60 }, linkTint('pink_link')),
 
+    blood_drip:    { name: 'Blood drip', good: false, secs: 20,
+      start: function () { overlayOn('blood', bloodSvg()); }, end: function () { overlayOff('blood'); } },
+    spider_web:    { name: 'Spiderwebs', good: false, secs: 30,
+      start: function () { overlayOn('web', webSvg()); }, end: function () { overlayOff('web'); } },
+    monster_mash:  { name: 'Monster mash (enemies → bats / mummies)', good: false,
+      apply: function (r) { return monsterMash(r); } },
+
     // ── room lights ──
     lights_on:     { name: 'Lights on!', good: true, secs: 60, indoors: true, frame: lightsOnFrame, end: lightsOnEnd,
       start: function () { lightsCancel('lights_out', lightsOutEnd); } },
@@ -470,7 +585,7 @@
       app: function (job) {
         var treat = Math.random() < 0.5;
         var list = treat ? ['heal_full', 'rupees_plus', 'bombs_plus', 'arrows_plus', 'magic_full', 'fairy', 'pumpkin_link']
-          : ['hurt_2', 'rupees_minus', 'magic_drain', 'spooky_monster', 'haunted_lights', 'spooky_night', 'ghost_link'];
+          : ['hurt_2', 'rupees_minus', 'magic_drain', 'spooky_monster', 'haunted_lights', 'spooky_night', 'ghost_link', 'blood_drip', 'spider_web', 'monster_mash'];
         var pick = list[Math.floor(Math.random() * list.length)];
         feed((job.user ? job.user + ': ' : '') + (treat ? '🍬 TREAT! ' : '🎃 TRICK! ') + EFFECTS[pick].name, treat ? 'good' : 'bad');
         trigger(pick, job.user, treat ? 'Treat!' : 'Trick!');
@@ -936,6 +1051,7 @@
       if (typeof res === 'string' && !/^flute only/.test(res)) { feed(f.name + ': ' + res, 'info'); render(); return; }
       if (typeof res === 'string') feed(res, 'info');
       if (/^warp_/.test(job.id) && lastWarp) note('warp: ' + lastWarp);
+      if (job.id === 'monster_mash' && lastMash) feed('🦇 ' + lastMash, 'bad');
     }
     gap = GAP_FRAMES;
     if (!f.detour) giftCard(job.user, job.label, f.name + (secs ? ' · ' + secs + 's' : '') + (/^warp_/.test(job.id) && lastWarp ? ': ' + lastWarp : ''), f.good);

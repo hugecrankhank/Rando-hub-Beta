@@ -5,6 +5,14 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.9.20 (2026-10-24)
+
+- **More Halloween effects** (Crowd Control+ 1.9.20): *Blood drip* (blood runs down from the
+  top of the game screen, 20 s), *Spiderwebs* (webs in three corners and a spider on its
+  thread, 30 s) and *Monster mash* (every ordinary enemy on screen turns into a bat or a
+  mummy, or another spooky monster where those graphics aren't loaded; they keep their
+  place and their slot in the room). All three can come up in Trick or treat.
+
 ## Beta v1.9.19 (2026-10-24)
 
 - **One-hit KO** (Crowd Control+ 1.9.19): `one_hit` kills on any hit, green, blue or red

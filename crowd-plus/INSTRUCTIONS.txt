@@ -579,6 +579,13 @@ All effect names (use these on the right side):
                    Ghost Link)
     spooky_sprite  Random Halloween-ish Link sprite (skeletons, ghosts,
                    pumpkins, witches... by name or tag)
+    blood_drip     Blood runs down from the top of the game screen .. 20s
+    spider_web     Spiderwebs in the corners and a spider bobbing on
+                   its thread ...................... 30s
+    monster_mash   Every enemy on screen turns into a bat (Keese) or
+                   a mummy (Gibdo), or another spooky monster where
+                   this area's graphics have neither. They keep their
+                   place, so killing them still opens shutter doors.
 
   BOSS DETOURS (the game saves first and loads it back afterwards)
     boss_ganon     Fight Ganon ..................... 60s
