@@ -953,7 +953,14 @@ function crowdApi() {
     Saved.edited();
     return `${GEN_NAME[gen]}: ${parts.filter(Boolean).join(' · ')}`;
   }
-  return { presets, pool, usePreset, chaos, spookySprite: () => randomSprite('spooky') };
+  // Crowd Control's "Reveal a go-mode item": the spoiler of the seed being
+  // played (only if the game running is that seed). race: its spoiler stays hidden.
+  function spoiler() {
+    if (!last || !last.spoiler) return null;
+    if (playing && playing.name !== last.name) return null;
+    return { spoiler: last.spoiler, race: !!last.race, name: last.name };
+  }
+  return { presets, pool, usePreset, chaos, spookySprite: () => randomSprite('spooky'), spoiler };
 }
 
 // ── "Load a seed": paste a link or a number ──────────────────────────────────

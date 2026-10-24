@@ -101,6 +101,8 @@ export function createLive(ctx) {
       if (m.gt && typeof m.gt === 'object') onGt(m.gt);
       if (m.dig && typeof m.dig === 'object') onDig(m.dig);
       send('run', { run: runStats });
+    } else if (m.type === 'reveal') {
+      addClip(`🔮 ${clean(m.user, 40) || 'Someone'} revealed ${clean(m.item, 40)} at ${clean(m.loc, 80)}`, 'reveal', m.user);
     } else if (m.type === 'seed' && m.seed && typeof m.seed === 'object') {
       seedSeen(m.seed);
     } else if (m.type === 'death') {

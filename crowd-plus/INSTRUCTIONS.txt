@@ -541,6 +541,16 @@ All effect names (use these on the right side):
     bee_bottle     Bee in the first empty bottle
     music_roulette A random song from your MSU-1 pack
 
+  REVEAL (HydeOut's idea)
+    reveal_item    Shows where one item the run still needs is: a
+                   banner on the game ("Hammer is at Catfish"), and a
+                   mark on that spot in Mudora 2.0's map. Read from the
+                   spoiler of the seed being played: only seeds made in
+                   the hub (not race seeds, not ROMs loaded from a file).
+                   Picks from the spoiler's playthrough (the items the
+                   seed needs), skips items Link has, never the same
+                   spot twice.
+
   HALLOWEEN
     spooky_night   Everything purple and orange (not Link) ... 45s
     ghost_link     Pale, ghostly Link .............. 60s

@@ -81,6 +81,12 @@ speed ones, so they work on any seed):
 | | | | `freeze` | Link can't move, 3 s |
 | | | | `pink_link` | Pink Link, 60 s |
 
+**Reveal** (1.9.15, HydeOut's idea)
+
+| id | effect |
+|---|---|
+| `reveal_item` | Where one go-mode item is: a banner on the game, and a mark on Mudora 2.0's map. From the playthrough in the seed's spoiler; skips items Link has and spots already shown. Seeds made in the hub only (not race seeds). |
+
 **Halloween** (1.9.13)
 
 | id | effect |
