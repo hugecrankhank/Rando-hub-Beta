@@ -12,6 +12,10 @@ played again later.
   pick, who rolled it), every setting the generator used (Kara's: all of them, defaults
   dimmed), and what the tracker was set to for it (Mudora 2.0: Muffins' settings), side by
   side, to check whether the tracker's logic matches the seed.
+- **Scrolling gift list rows** (Crowd Control+ 1.9.18): 1-4 rows, each scrolling on its
+  own, set on the Gifts & effects tab with the list's title and speed.
+- **Gift order**: drag the gifts (or use ▲ ▼) on the Gifts & effects tab; the scrolling
+  gift list shows them in that order.
 
 ## Beta v1.9.17 (2026-10-23)
 

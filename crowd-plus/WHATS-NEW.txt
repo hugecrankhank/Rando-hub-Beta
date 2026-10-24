@@ -5,6 +5,14 @@ Crowd Control+ is Rando Hub's crowd control: the gift bridge with a
 control panel and stream overlays. Every gift effect, big-donation seed
 roll and the subathon clock work exactly as before.
 
+NEW IN 1.9.18
+------------
+- Scrolling gift list: 1 to 4 rows (Gifts & effects tab → Scrolling
+  gift list), so more gifts show at once. Make the browser source
+  72 px taller per row.
+- Gifts & effects tab: put the gifts in any order (drag the handle, or
+  the arrows), then Save. The scrolling gift list follows that order.
+
 NEW IN 1.9.16
 ------------
 - Room lights: lights_on (a dark room lit up as if every torch were
