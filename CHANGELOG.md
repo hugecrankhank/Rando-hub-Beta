@@ -5,6 +5,11 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.9.12 (2026-10-23)
+
+- **Mudora 2.0 shows the check counter** (the game's own count, as in Mudora and the run
+  stats overlay) next to Locations, Deaths and Bonks.
+
 ## Beta v1.9.11 (2026-10-23)
 
 - **Digging Game guessing** (Crowd Control+ 1.9.11, Live games tab): chat guesses which
