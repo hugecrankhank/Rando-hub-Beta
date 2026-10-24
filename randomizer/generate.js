@@ -10,6 +10,7 @@ import { WorldCollection, ItemCollection } from './core/collections.js';
 import { Sprite, Droppable } from './core/shop.js';
 import { hash_array } from './core/php.js';
 import { World } from './worlds/index.js';
+import { applyHubCredits } from './hub-credits.js';
 
 export const BUILD = Rom.BUILD;          // base patch build date
 export const BASE_HASH = Rom.HASH;       // MD5 of the patched 2MB base ROM
@@ -76,6 +77,7 @@ export function generate(req = DEFAULTS, seed = 1, opts = {}) {
   const rom = new Rom();
   const rand = new Randomizer([world]);
   rand.randomize();
+  if (opts.credits) applyHubCredits(world, rom);   // Rando Hub's names in the ending (hub-credits.js)
   world.writeToRom(rom);
   const winnable = new WorldCollection(rand.getWorlds()).isWinnable();
   const rng_calls = rngCalls();
@@ -212,6 +214,7 @@ export function generateCustom(req = {}, seed = 1, opts = {}) {
   const rom = new Rom();
   const rand = new Randomizer([world]);
   rand.randomize();
+  if (opts.credits) applyHubCredits(world, rom);   // Rando Hub's names in the ending (hub-credits.js)
   world.writeToRom(rom);
   const winnable = new WorldCollection(rand.getWorlds()).isWinnable();
   const rng_calls = rngCalls();

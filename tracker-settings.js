@@ -74,6 +74,14 @@
       hist.addEventListener('click', function () { setOpen(false); window.RandoSeedLog.open(); });
       panel.appendChild(hist);
     }
+    // who made it, the playtesters and shout-outs (credits.js)
+    if (window.RandoCredits) {
+      var cr = document.createElement('button');
+      cr.type = 'button'; cr.id = 'credits-btn'; cr.textContent = '\u2B50 Credits';
+      cr.title = 'Who made Rando Hub, its playtesters, shout-outs, and what it builds on';
+      cr.addEventListener('click', function () { setOpen(false); window.RandoCredits.open(); });
+      panel.appendChild(cr);
+    }
 
     function setOpen(on) { panel.classList.toggle('open', on); btn.classList.toggle('on', on); btn.setAttribute('aria-expanded', String(on)); }
     btn.addEventListener('click', function (e) { e.stopPropagation(); setOpen(!panel.classList.contains('open')); });

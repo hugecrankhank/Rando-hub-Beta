@@ -1,6 +1,6 @@
 {
  "edition": "full",
- "version": "b20e12fd1a52",
+ "version": "973eb19d02ce",
  "cache": "rando-hub-v1",
  "files": [
   "./",
@@ -331,6 +331,8 @@
   "games.js",
   "addons/hub-items.js",
   "addons/keys-client.js",
-  "tracker-settings.js"
+  "tracker-settings.js",
+  "credits.js",
+  "randomizer/hub-credits.js"
  ]
 }
