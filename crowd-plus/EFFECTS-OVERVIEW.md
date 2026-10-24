@@ -54,7 +54,7 @@ even unmapped ones, with a one-click "add".
 | `heal_1` | +1 heart | | `no_sword` | No sword, 20 s |
 | `hurt_2` | −2 hearts (never kills) | | `no_item` | No Y item, 20 s |
 | `hp_1` | Down to 1 heart | | `swap_by` | B and Y swapped, 20 s |
-| `magic_full` / `magic_drain` | Refill / drain magic | | `one_hit` | One-heart mode, 30 s |
+| `magic_full` / `magic_drain` | Refill / drain magic | | `one_hit` | One-hit KO: any hit kills, whatever mail Link wears (a fairy or the cape still save him), 30 s |
 | `rupees_plus` / `rupees_minus` | ±50 rupees | | `no_magic` | Magic locked, 30 s |
 | `bombs_plus` / `bombs_none` | +10 / lose all bombs | | `ice` | Ice physics (slippery floors everywhere), 20 s |
 | `enemy_spawn` | Extra enemy (copies one already in the room) | | | |

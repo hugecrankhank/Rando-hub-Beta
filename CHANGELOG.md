@@ -5,6 +5,13 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.9.19 (2026-10-24)
+
+- **One-hit KO** (Crowd Control+ 1.9.19): `one_hit` kills on any hit, green, blue or red
+  mail alike (it used to only drop Link to one heart, so mail could let him survive).
+  The hit's damage, after the mail, is turned into all of Link's hearts; a bottled fairy
+  and the cape / Cane of Byrna still save him.
+
 ## Beta v1.9.18 (2026-10-23)
 
 - **Seed type and settings under the seed code** (Randomizer bar): what kind of seed it

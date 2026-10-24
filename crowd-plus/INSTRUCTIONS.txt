@@ -521,7 +521,9 @@ All effect names (use these on the right side):
     no_item        No Y item ................... 20s
     swap_by        B and Y swapped ............. 20s
     ice            Ice physics ................. 20s
-    one_hit        One-hit KO mode ............. 30s
+    one_hit        One-hit KO: any hit kills, green, blue or red
+                   mail alike (a bottled fairy or the cape still
+                   save him) ................... 30s
     no_magic       Magic locked ................ 30s
     cucco_storm    Cucco attack (outdoors) ..... 30s
     This folder's mapping.json sets one_hit, no_magic and cucco_storm

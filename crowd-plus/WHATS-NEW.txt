@@ -5,6 +5,13 @@ Crowd Control+ is Rando Hub's crowd control: the gift bridge with a
 control panel and stream overlays. Every gift effect, big-donation seed
 roll and the subathon clock work exactly as before.
 
+NEW IN 1.9.19
+------------
+- one_hit is a true One-hit KO now: any hit kills, whether Link wears
+  the green, blue or red mail (before, mail could leave him alive on
+  his one heart). A bottled fairy and the cape / Cane of Byrna still
+  save him, like a real hit.
+
 NEW IN 1.9.18
 ------------
 - Scrolling gift list: 1 to 4 rows (Gifts & effects tab → Scrolling

@@ -513,8 +513,16 @@
     boss_aga:    { name: 'Boss detour: Agahnim', good: false, detour: 'aga1' },
     boss_random: { name: 'Boss detour: random boss', good: false, detour: 'random' },
 
-    one_hit:     { name: 'One-heart mode', good: false, secs: 30,
-      frame: function (r) { if (r[A.HP] > 8) r[A.HP] = 8; r[A.HP_FILL] = 0; } },
+    // One-hit KO: any hit kills, whatever mail Link wears. The game works out
+    // a hit's damage (blue mail halves it, red quarters it) into $0373 and
+    // takes it off a frame later (zelda3 player.c Link_ControlHandler): here
+    // the waiting damage becomes all of Link's hearts. Like a real hit, a
+    // bottled fairy still saves him and the cape / Cane of Byrna still block it.
+    one_hit:     { name: 'One-hit KO', good: false, secs: 30,
+      frame: function (r) {
+        if (r[A.HP] > 8) r[A.HP] = 8; r[A.HP_FILL] = 0;   // shows one heart
+        if (r[0x373] && r[0x373] < r[A.HP]) r[0x373] = r[A.HP];
+      } },
     no_magic:    { name: 'Magic locked', good: false, secs: 30,
       frame: function (r) { r[A.MAGIC] = 0; r[A.MAGIC_FILL] = 0; } },
 
