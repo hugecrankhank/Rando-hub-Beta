@@ -401,31 +401,208 @@
   function spawnRandomEnemy(r, list) {
     var types = enemiesThatFit(r, list);
     if (!types.length) return list ? 'No spooky monster fits this area' : cloneEnemy(r) === true ? true : 'No enemy fits this area';
-    var free = -1;
-    for (var k = 15; k >= 1; k--) if (r[S.STATE + k] === 0) { free = k; break; }
-    if (free < 0) return 'Too many sprites on screen';
+    return placeEnemy(r, types[Math.floor(Math.random() * types.length)]);
+  }
+  function freeSlot(r) { for (var k = 15; k >= 1; k--) if (r[S.STATE + k] === 0) return k; return -1; }
+  function enemySpot(r) {
     var lx = r[0x22] | (r[0x23] << 8), ly = r[0x20] | (r[0x21] << 8), indoors = r[0x1B];
-    // a spot 3-4 tiles from Link; indoors, one with open floor (BG2 tile attributes)
-    var spots = [[48, 0], [-48, 0], [0, 40], [0, -40], [36, 32], [-36, 32], [36, -32], [-36, -32]], at = null;
-    for (var t = 0; t < 16 && !at; t++) {
+    var spots = [[48, 0], [-48, 0], [0, 40], [0, -40], [36, 32], [-36, 32], [36, -32], [-36, -32]];
+    for (var t = 0; t < 16; t++) {
       var d = spots[Math.floor(Math.random() * spots.length)], x = lx + d[0], y = ly + d[1];
-      if (!indoors) { at = [x, y]; break; }
+      if (!indoors) return [x, y];
       var tx = ((x + 8) & 0x1FF) >> 3, ty = ((y + 12) & 0x1FF) >> 3, ok = true;
       for (var dy = -1; dy <= 1 && ok; dy++) for (var dx = -1; dx <= 1 && ok; dx++) {
         var a = r[0x12000 + (((ty + dy) & 63) * 64) + ((tx + dx) & 63)];
         if (!(a === 0x00 || a === 0x09 || a === 0x0E || a === 0x0F)) ok = false;
       }
-      if (ok) at = [x, y];
+      if (ok) return [x, y];
     }
+    return null;
+  }
+  function placeEnemy(r, type) {
+    var free = freeSlot(r), indoors = r[0x1B];
+    if (free < 0) return 'Too many sprites on screen';
+    var at = enemySpot(r);   // 3-4 tiles from Link; indoors, on open floor (BG2 tile attributes)
     if (!at) return 'No room for an enemy here';
     for (var i = 0; i < SLOT_TABLES.length; i++) r[SLOT_TABLES[i] + free] = 0;
-    r[S.TYPE + free] = types[Math.floor(Math.random() * types.length)];
+    r[S.TYPE + free] = type;
     r[S.XL + free] = at[0] & 0xFF; r[S.XH + free] = (at[0] >> 8) & 0xFF;
     r[S.YL + free] = at[1] & 0xFF; r[S.YH + free] = (at[1] >> 8) & 0xFF;
     r[S.FLOOR + free] = r[0xEE];
     if (indoors) r[S.N + free] = 0xFF; else { r[0xBC0 + free * 2] = 0xFF; r[0xBC1 + free * 2] = 0xFF; }   // not from the room's list
     r[S.STATE + free] = 0x08;    // "initialize": the game loads its stats and sets it up
     return true;
+  }
+
+  // ── any enemy, anywhere ─────────────────────────────────────────────────
+  // An area has four enemy sprite sheets loaded (slots at VRAM $5000-$5FFF,
+  // their numbers at $7EC2FC-F). For an enemy whose sheets aren't here, the
+  // sheets it needs are unpacked from this ROM (as gearGfx does), turned into
+  // the 4bpp tiles the game itself would make (zelda3 LoadSpriteGraphics) at
+  // $7F0000 + slot*$800, where a screen change leaves them, and sent to VRAM
+  // by the game's own NMI: $19/$0118 copy $200 bytes a frame (zelda3
+  // Graphics_IncrementalVRAMUpload), so a sheet takes 4 frames. Then the
+  // enemy appears. Slots other enemies on screen use are left alone when
+  // possible; if not, they look wrong until the next screen. The next screen
+  // loads its own sheets as usual.
+  // Enemies and sheet needs: Kara's alttpr-python enemizer (SpriteSheets.py),
+  // everything killable that isn't a boss, an NPC, water-only or tied to its
+  // spot (pits, sand, water). Not the Mimics: the enemizer's own ids for
+  // them aren't the game's (spawned as is, the game freezes).
+  var ANY_ENEMIES = [
+    [0x00, [[0,0,0,[17,25]]], 'Raven'],
+    [0x01, [[0,0,[18],0]], 'Vulture'],
+    [0x08, [[0,0,[12,24],0]], 'Octorok'],
+    [0x0A, [[0,0,[12],0]], 'Octorok 4 Way'],
+    [0x0D, [[0,0,0,[17]]], 'Buzzblob'],
+    [0x0E, [[[22],0,[23],0]], 'Snapdragon'],
+    [0x0F, [[0,0,[12],0]], 'Octoballoon'],
+    [0x11, [[[22],0,0,0]], 'Hinox'],
+    [0x12, [[0,0,[23],0]], 'Moblin'],
+    [0x13, [[0,[30],0,0]], 'Mini Helmasaur'],
+    [0x15, [[0,0,0,[82,83]]], 'Anti Fairy'],
+    [0x17, [[0,0,0,[17]]], 'Hoarder'],
+    [0x18, [[0,[30],0,0]], 'Mini Moldorm'],
+    [0x19, [[0,0,0,[21]]], 'Poe'],
+    [0x20, [[0,0,[37],0]], 'Sluggula'],
+    [0x22, [[[22],0,0,0]], 'Ropa'],
+    [0x23, [[[31],0,0,0]], 'Red Bari'],
+    [0x24, [[[31],0,0,0]], 'Blue Bari'],
+    [0x26, [[0,[30],0,0]], 'Hardhat Beetle'],
+    [0x27, [[0,0,0,[16]]], 'Deadrock'],
+    [0x3E, [[0,0,0,[17]]], 'Hoarder 2'],
+    [0x41, [[0,[13,73],[19,41],0]], 'Blue Guard'],
+    [0x42, [[0,[73],[19],0]], 'Green Guard'],
+    [0x43, [[0,[13,73],[19,41],0]], 'Red Spear Guard'],
+    [0x44, [[[70],[13,73],0,0]], 'Bluesain Bolt'],
+    [0x45, [[0,[13,73],0,0]], 'Usain Bolt'],
+    [0x46, [[[72],[73],0,0]], 'Blue Archer'],
+    [0x47, [[[72],[73],0,0]], 'Green Bush Guard'],
+    [0x48, [[[70],[73],0,0]], 'Red Javelin Guard'],
+    [0x49, [[[70],[73],0,0]], 'Red Bush Guard'],
+    [0x4A, [[[70],[73],0,0]], 'Bomb Guard'],
+    [0x4B, [[0,[73],[19],0]], 'Green Knife Guard'],
+    [0x4C, [[0,0,[18],0]], 'Geldman'],
+    [0x4E, [[0,[44],0,0]], 'Popo'],
+    [0x4F, [[0,[44],0,0]], 'Popo 2'],
+    [0x51, [[0,0,0,[16]]], 'Armos Statue'],
+    [0x58, [[0,0,[12],0]], 'Crab'],
+    [0x61, [[0,[44],0,0]], 'Beamos'],
+    [0x6A, [[[70],[73],0,0]], 'Ball NChain'],
+    [0x6B, [[[70],[73],0,0]], 'Cannon Trooper'],
+    [0x6D, [[0,0,[28,36],0]], 'Cricket Rat'],
+    [0x6E, [[0,0,[28,36],0]], 'Snake'],
+    [0x6F, [[0,0,[28,36],0]], 'Keese'],
+    [0x71, [[[47],0,0,0]], 'Leever'],
+    [0x7C, [[[31],0,0,0]], 'Floating Skull'],
+    [0x7D, [[0,0,0,[82,83]]], 'Big Spike'],
+    [0x80, [[[31],0,0,0]], 'Firesnake'],
+    [0x81, [[0,0,[34],0]], 'Hover'],
+    [0x82, [[0,0,0,[82,83]]], 'Anti Fairy Circle'],
+    [0x83, [[0,0,[46],0]], 'Green Eyegore'],
+    [0x84, [[0,0,[46],0]], 'Red Eyegore'],
+    [0x86, [[0,0,[42],0]], 'Kodongo'],
+    [0x8B, [[0,0,[35],0]], 'Gibdo'],
+    [0x8E, [[0,0,[42],0]], 'Terrorpin'],
+    [0x8F, [[0,[32],0,0]], 'Blob'],
+    [0x91, [[0,[32],0,0]], 'Stalfos Knight'],
+    [0x99, [[0,0,[38],0]], 'Pengator'],
+    [0x9B, [[0,0,[37,41],0]], 'Wizzrobe'],
+    [0x9C, [[0,[32],0,0]], 'Zoro'],
+    [0x9D, [[0,[32],0,0]], 'Babasu'],
+    [0xA5, [[0,0,[40],0]], 'Blue Zazak'],
+    [0xA6, [[0,0,[40],0]], 'Red Zazak'],
+    [0xA7, [[[31],0,0,0]], 'Stalfos'],
+    [0xA8, [[0,0,0,[27]]], 'Green Zirro'],
+    [0xA9, [[0,0,0,[27]]], 'Blue Zirro'],
+    [0xAA, [[0,0,0,[27]]], 'Pikit'],
+    [0xC3, [[0,0,[40],0]], 'Gibo'],
+    [0xC7, [[0,0,[39],0]], 'Pokey'],
+    [0xC9, [[0,0,0,[16]]], 'Tektite'],
+    [0xD0, [[0,0,0,[20]]], 'Lynel'],
+  ];
+  // which of the four slots each sprite type draws from (bit per slot, same source)
+  var SLOT_USE = '84008080444808540142084828a080814811182801f0400f0110f0400880ff808666323333364822088884c44cc1144442c11111113304440181ff0070f0181114844040c084444242c8088884442240444044418880040000108280080ff8004f841004c8499968800002f00000000000000000890004122040000000000000';
+  var HIGH_SHEETS = { 0x52: 1, 0x53: 1, 0x5A: 1, 0x5B: 1, 0x5C: 1, 0x5E: 1, 0x5F: 1 };
+  var sheetJob = null, lastAny = '';
+  function screenKey(r) { return r[0x1B] + ':' + (r[0x1B] ? r[0xA0] | r[0xA1] << 8 : r[0x8A]); }
+  function slotsInUse(r) {
+    var used = 0;
+    for (var k = 0; k < 16; k++) if (r[S.STATE + k]) used |= parseInt(SLOT_USE.charAt(r[S.TYPE + k]), 16) || 0;
+    return used;
+  }
+  // the cheapest way to get an enemy's sheets in: [changes [[slot, sheet]], cost]
+  function sheetPlan(r, e, used) {
+    var have = [r[0xC2FC], r[0xC2FD], r[0xC2FE], r[0xC2FF]], best = null;
+    e[1].forEach(function (opt) {
+      var ch = [], cost = 0;
+      opt.forEach(function (need, i) {
+        if (!need || need.indexOf(have[i]) >= 0) return;
+        ch.push([i, need[0]]); cost += (used >> i & 1) ? 10 : 1;
+      });
+      if (!best || cost < best[1]) best = [ch, cost];
+    });
+    return best;
+  }
+  function spriteSheet3bpp(n) {
+    var c = core(), rom; try { rom = c && c.rom(); } catch (e) { return null; }
+    if (!rom || rom.length < 0x100000) return null;
+    var pc = (rom[0x5033 + n] & 0x7F) * 0x8000 + ((rom[0x5112 + n] << 8 | rom[0x51F1 + n]) & 0x7FFF);
+    var d = lzDecomp(rom, pc);
+    return d && d.length === 0x600 ? d : null;
+  }
+  // zelda3 Do3To4Low16Bit / Do3To4High16Bit, 64 tiles
+  function sheet4bpp(r, dst, src, high) {
+    var si = 0;
+    for (var t = 0; t < 64; t++) {
+      for (var n = 0; n < 8; n++) {
+        var lo = src[si + n * 2], hi = src[si + n * 2 + 1], u = src[si + 16 + n];
+        r[dst + n * 2] = lo; r[dst + n * 2 + 1] = hi;
+        if (high) { var t2 = lo | hi << 8, v = ((t2 | (t2 >> 8) | u) << 8 | u) & 0xFFFF; r[dst + 16 + n * 2] = v & 0xFF; r[dst + 17 + n * 2] = v >> 8; }
+        else { r[dst + 16 + n * 2] = u; r[dst + 17 + n * 2] = 0; }
+      }
+      si += 24; dst += 32;
+    }
+  }
+  function spawnAnyEnemy(r, pick) {
+    if (sheetJob) return 'Another enemy is still on its way';
+    if (freeSlot(r) < 0) return 'Too many sprites on screen';
+    var here = r[0x1B] ? 'uw' : 'ow';   // e[3]: the only place it can go, when there's one
+    var pool = ANY_ENEMIES.filter(function (e) { return (!e[3] || e[3] === here) && (!pick || pick(e)); });
+    if (!pool.length) return 'No enemy for here';
+    var used = slotsInUse(r);
+    // prefer enemies that leave the slots in use alone
+    var plans = pool.map(function (e) { return [e, sheetPlan(r, e, used)]; });
+    var calm = plans.filter(function (p) { return p[1][1] < 10; });
+    var p = (calm.length ? calm : plans)[Math.floor(Math.random() * (calm.length || plans.length))];
+    var e = p[0], ch = p[1][0];
+    var chunks = [];
+    for (var i = 0; i < ch.length; i++) {
+      var slot = ch[i][0], n = ch[i][1], d = spriteSheet3bpp(n);
+      if (!d) return 'Couldn\'t read that enemy\'s graphics from this ROM';
+      for (var b = 0; b < 0x600; b++) r[0x7800 + slot * 0x600 + b] = d[b];   // the 3bpp copy the game keeps
+      sheet4bpp(r, 0x10000 + slot * 0x800, d, HIGH_SHEETS[n]);
+      r[0xC2FC + slot] = n;
+      for (var j = 0; j < 4; j++) chunks.push([0x50 + slot * 4 + j, slot * 0x800 + j * 0x200]);
+    }
+    lastAny = e[2];
+    sheetJob = { type: e[0], name: e[2], chunks: chunks, at: screenKey(r), wait: 2 };
+    if (!chunks.length) { sheetJob = null; return placeEnemy(r, e[0]); }
+    return true;
+  }
+  function sheetFrame(r) {
+    var j = sheetJob; if (!j) return;
+    if (screenKey(r) !== j.at) { sheetJob = null; feed(j.name + ' didn\'t make it: Link changed screens', 'info'); return; }
+    if (j.chunks.length) {
+      if (r[0x19]) return;               // the game's own upload is busy this frame
+      var c = j.chunks.shift();
+      r[0x19] = c[0]; r[0x118] = c[1] & 0xFF; r[0x119] = c[1] >> 8;
+      return;
+    }
+    if (--j.wait > 0) return;
+    sheetJob = null;
+    var res = placeEnemy(r, j.type);
+    if (res !== true) feed(j.name + ': ' + res, 'info');
   }
 
   // ── warps ──
@@ -745,6 +922,8 @@
       apply: function (r) { return cloneEnemy(r); } },
     enemy_random: { name: 'Random enemy', good: false,
       apply: function (r) { return spawnRandomEnemy(r); } },
+    enemy_any:   { name: 'Any enemy', good: false,
+      apply: function (r) { return spawnAnyEnemy(r); } },
     magic_small: { name: 'Small magic refill', good: true,
       apply: function (r) { r[A.MAGIC_FILL] = Math.min(0x80, r[A.MAGIC_FILL] + 0x20); } },
     warp_dungeon: { name: 'Warp to a random dungeon', good: false,
@@ -1296,7 +1475,8 @@
       if (++waitT === 240) feed(queue.length + ' waiting: ' + (detour ? 'boss detour still running (' + detour.state + ')' :
         'Link isn\'t in normal play (mode ' + ram[A.MODE] + '/' + ram[A.SUBMODE] + ', frozen ' + ram[A.FROZEN] + ', hearts ' + ram[A.HP] + '/' + ram[A.HP_MAX] + ')'), 'info');
     } else waitT = 0;
-    if (!inPlay(ram)) return;
+    if (!inPlay(ram)) { if (sheetJob && !PLAY_MODES[ram[A.MODE]]) sheetJob = null; return; }
+    sheetFrame(ram);
     gearFrame('shield', ram); gearFrame('sword', ram); itemFrame(ram);
     // timed effects
     var outside = ram[A.MODE] === 0x09;   // the ROM only spawns cuccos on the overworld
@@ -1346,6 +1526,7 @@
       if (typeof res === 'string') feed(res, 'info');
       if (/^warp_/.test(job.id) && lastWarp) note('warp: ' + lastWarp);
       if (job.id === 'monster_mash' && lastMash) feed('🦇 ' + lastMash, 'bad');
+      if (job.id === 'enemy_any' && lastAny) feed('Any enemy: a ' + lastAny + ' is coming', 'bad');
     }
     gap = GAP_FRAMES;
     if (!f.detour) giftCard(job.user, job.label, f.name + (job.id === 'item_off' && lastItemGone ? ': ' + lastItemGone : '') + (secs ? ' · ' + secs + 's' : '') + (/^warp_/.test(job.id) && lastWarp ? ': ' + lastWarp : ''), f.good);
@@ -1958,6 +2139,10 @@
     giftCard: giftCard,
     get waiting() { return queue.length + (gap > 0 ? 1 : 0); },
     detourTo: function (key) { return testBoss(key, 'test'); },
+    // for testing from the console: CrowdEffects.spawnEnemy('Lynel')
+    spawnEnemy: function (name) { var c = core(); if (!c) return 'no game'; var n = String(name || '').toLowerCase();
+      return spawnAnyEnemy(c.wram(), n ? function (e) { return e[2].toLowerCase() === n; } : null); },
+    get enemyJob() { return sheetJob && { name: sheetJob.name, left: sheetJob.chunks.length }; },
     _onFrame: onFrame, _onInput: onInput, _showClock: showClock,
     get queue() { return queue.slice(); }, get active() { return Object.assign({}, active); },
     get status() { return status; },

@@ -522,6 +522,11 @@ All effect names (use these on the right side):
                    whose graphics are loaded here) appears a few steps
                    from Link. Which ones can appear changes from area to
                    area; if none fit, it copies a nearby enemy instead.
+    enemy_any      Any enemy, anywhere, even in an empty room: one of 68
+                   (Lynels, Stalfos, guards, Wizzrobes, Gibdos...). Its
+                   graphics are loaded first, which takes a moment. The
+                   enemies already on screen keep their graphics when
+                   possible; if not, they look odd until the next screen.
     magic_small    Small magic refill (a quarter of the meter)
     warp_dungeon   Warp to a random dungeon: Link drops into a random
                    dungeon's entrance. Keys of the dungeon he was in are

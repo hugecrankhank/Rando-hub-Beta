@@ -301,7 +301,7 @@ const effectNames = {
   heal_full: 'Full heal', heal_1: '+1 heart', hurt_2: '-2 hearts', hp_1: 'Down to 1 heart',
   magic_full: 'Refill magic', magic_drain: 'Drain magic', rupees_plus: '+50 rupees', rupees_minus: '-50 rupees',
   bombs_plus: '+10 bombs', bombs_none: 'Lose all bombs', arrows_plus: '+10 arrows', arrows_none: 'Lose all arrows',
-  enemy_spawn: 'Extra enemy', enemy_random: 'Random enemy', magic_small: 'Small magic refill',
+  enemy_spawn: 'Extra enemy', enemy_random: 'Random enemy', enemy_any: 'Any enemy (loads its graphics)', magic_small: 'Small magic refill',
   warp_dungeon: 'Warp to a random dungeon', warp_flute: 'Flute warp (random spot)', warp_random: 'Random warp (flute spot or dungeon)',
   insta_kill: 'Instant death', ice: 'Ice physics', cucco_storm: 'Cucco attack', invert: 'Inverted D-pad',
   no_sword: 'No sword', no_item: 'No Y item', swap_by: 'B and Y swapped', one_hit: 'One-hit KO',

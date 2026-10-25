@@ -5,6 +5,17 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.10.10 (2026-10-25)
+
+- **Any enemy** (`enemy_any`): one of 68 enemies appears near Link, anywhere, even in an empty
+  room or a screen with no enemies of its own (an idea from JynxCast). The area's sprite
+  graphics are swapped for the ones it needs: unpacked from the ROM and sent through the game's
+  own graphics upload, 4 frames a sheet. Slots enemies on screen are using are left alone when
+  another way works; the next screen loads its own graphics as usual.
+  - Enemies and their graphics needs come from the enemizer in Kara's branch; bosses, NPCs,
+    water-only ones and ones tied to pits or sand are left out.
+  - From the browser console: `CrowdEffects.spawnEnemy('Lynel')`.
+
 ## Beta v1.10.9 (2026-10-25)
 
 - **Item gone** (`item_off`, 30 s): a random item Link has is gone for the time, then comes
