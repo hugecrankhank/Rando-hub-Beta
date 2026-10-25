@@ -10,6 +10,8 @@ NEW IN 1.10.9
 - item_off (Item gone, 30s): a random item Link has disappears, then
   comes back. Any item-menu item, the bottles (as one), gloves, boots,
   flippers or Moon Pearl. The gift alert says which item.
+- tunic_up / tunic_down: the tunic one step better or worse (green,
+  blue, red mail). Link's colors change with it.
 - Fix: Shield gone, Sword gone and Sword downgrade gave the gear back
   straight away in 1.10.7 and 1.10.8. They work now.
 

@@ -496,6 +496,8 @@ All effect names (use these on the right side):
                    Never takes the Fighter's Shield away.
     shield_up      Shield upgrade: none to Fighter's to Fire to Mirror.
     sword_up       Sword upgrade: Fighter's, Master, Tempered, Golden.
+    tunic_up       Tunic upgrade: green to blue to red mail.
+    tunic_down     Tunic downgrade: red to blue to green mail.
     sword_steal    WARNING: Sword stolen. The sword is gone until Link
                    finds another, and that can make the seed unbeatable:
                    if every sword has been found there's none left, and

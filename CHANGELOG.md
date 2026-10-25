@@ -18,6 +18,9 @@ played again later.
     is up, the flippers while Link swims.
   - Without the pearl in the Dark World Link turns into a bunny at the next screen, and turns
     back at the next screen after it's back.
+- **Tunic upgrade / Tunic downgrade** (`tunic_up` / `tunic_down`): one step along green, blue,
+  red mail. Hits hurt accordingly, and Link's colors change straight away (from the ROM, so a
+  custom sprite gets its own tunic colors).
 - **Fixed:** Shield gone, Sword gone and Sword downgrade gave the gear back on the first frame
   (1.10.7, 1.10.8), so they did nothing. A timed effect now counts as running before it
   starts.

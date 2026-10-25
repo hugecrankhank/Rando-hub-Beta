@@ -598,6 +598,23 @@
   }
   function gearCheck(kind) { return function (r) { return gearHas(kind, r) || lent(kind) ? '' : r[GEAR[kind].addr] > GEAR[kind].max ? 'swordless seed' : 'Link has no ' + kind; }; }
 
+  // ── tunic ($7EF35B: 0 green, 1 blue, 2 red) ─────────────────────────────
+  // The number is what hits are worked out by. Link's colors are the
+  // tunic's 15-color palette from this ROM ($1B:D308, 30 bytes a tunic; a
+  // custom sprite brings its own there) into $7EC6E2, then the gloves' color
+  // on top ($1B:EDF5), as zelda3 LoadActualGearPalettes does. As a bunny
+  // the game picks the colors when he turns back.
+  var TUNICS = ['the Green Mail', 'the Blue Mail', 'the Red Mail'];
+  function setTunic(r, lvl) {
+    r[0xF35B] = lvl;
+    var c = core(), rom; try { rom = c && c.rom(); } catch (e) {}
+    if (!rom || rom.length < 0xE0000 || r[0x56]) return;
+    for (var i = 0; i < 30; i++) r[0xC4E2 + i] = r[0xC6E2 + i] = rom[0xDD308 + lvl * 30 + i];
+    var g = r[0xF354];
+    if (g >= 1 && g <= 2) for (i = 0; i < 2; i++) r[0xC4FA + i] = r[0xC6FA + i] = rom[0xDEDF5 + (g - 1) * 2 + i];
+    r[0x15] = 1;
+  }
+
   // ── "Item gone": one random inventory item lent out for a while ─────────
   // Every item in the item menu, plus the gloves, boots, flippers and Moon
   // Pearl ($7EF340-$7EF357). The sword and shield have their own effects,
@@ -869,6 +886,11 @@
     sword_up:    { name: 'Sword upgrade', good: true, apply: function (r) { return gearStep('sword', r, 1); } },
     sword_steal: { name: 'Sword stolen', good: false, apply: function (r) { return gearSteal('sword', r); },
       warn: 'Sword stolen can make the seed unbeatable: if every sword has been found, there is none left to get back (Agahnim\'s barrier and Ganon need one), and the next sword found only gives the Fighter\'s Sword.' },
+
+    tunic_up:    { name: 'Tunic upgrade', good: true,
+      apply: function (r) { var t = r[0xF35B]; if (t >= 2) return 'Link already has the Red Mail'; setTunic(r, t + 1); } },
+    tunic_down:  { name: 'Tunic downgrade', good: false,
+      apply: function (r) { var t = r[0xF35B]; if (!t || t > 2) return 'Link only has the Green Mail'; setTunic(r, t - 1); } },
 
     // A random item from the inventory, gone for a while (see itemTake above).
     item_off:    { name: 'Item gone', good: false, secs: 30,
