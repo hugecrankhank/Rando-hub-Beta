@@ -107,5 +107,7 @@ cm = re.search(r'presetCategories[^=]*=\s*\[(.*?)\n\];', lp, re.S)
 for title, ids in re.findall(r'title:\s*"([^"]+)".*?presetIds:\s*\[([^\]]*)\]', cm.group(1) if cm else '', re.S):
     presets.append({'title': title, 'presets': [{'id': i, 'name': names[i][0], 'desc': names[i][1]} for i in re.findall(r'"([^"]+)"', ids) if i in names]})
 
-json.dump({'sections': sections, 'breaks': breaks, 'remembered': remembered, 'entranceMenu': menu, 'presets': presets}, sys.stdout, indent=1, ensure_ascii=False)
+# and every preset he has (his "Browse all presets…" list), in his order
+allp = [{'id': i, 'name': n, 'desc': d} for i, (n, d) in names.items()]
+json.dump({'sections': sections, 'breaks': breaks, 'remembered': remembered, 'entranceMenu': menu, 'presets': presets, 'allPresets': allp}, sys.stdout, indent=1, ensure_ascii=False)
 print()

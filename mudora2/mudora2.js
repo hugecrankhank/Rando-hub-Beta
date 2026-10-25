@@ -67,7 +67,10 @@
       var btns = Array.prototype.slice.call(d.querySelectorAll('button'));
       if (!picked) {
         var b = btns.filter(function (x) { return x.textContent.trim() === name; })[0];
-        if (b) { b.click(); picked = true; }
+        // not one of his buttons: his "Browse all presets…" list
+        if (!b) b = btns.filter(function (x) { var s = x.querySelector('span'); return s && s.textContent.trim() === name && x.closest('.max-h-64'); })[0];
+        if (!b) { var br = btns.filter(function (x) { return /Browse all presets/.test(x.textContent); })[0]; if (br && !d.querySelector('.max-h-64')) br.click(); return; }
+        b.click(); picked = true;
         return;
       }
       var go = btns.filter(function (x) { return /Launch Tracker/.test(x.textContent); })[0];
@@ -641,13 +644,39 @@
     // a new game from one of his presets (OnlyADKD is "ADKDF")
     if (SET.presets && SET.presets.length) {
       setBody.appendChild(el('h4', null, 'New game from a preset'));
+      // every preset he has (his "Browse all presets…"), his groups first, and a search (HydeOut, Oct 2026)
       var pr = el('div', 's-row'), sel = el('select'), go = el('button', null, 'Start');
-      sel.appendChild(el('option', null, 'Pick a preset…')).value = '';
-      SET.presets.forEach(function (g) {
-        var og = document.createElement('optgroup'); og.label = g.title;
-        g.presets.forEach(function (p) { if (p.id === 'mystery') return; var o = el('option', null, p.name + (p.desc ? ' — ' + p.desc : '')); o.value = p.name; og.appendChild(o); });
-        sel.appendChild(og);
-      });
+      var sr = el('div', 's-row'), q = el('input'); q.type = 'search'; q.placeholder = 'Search presets (name, mode, “keys”…)';
+      q.style.flex = '1'; q.style.background = '#1d2126'; q.style.border = '1px solid var(--line)'; q.style.borderRadius = '4px'; q.style.padding = '3px 6px'; q.style.color = 'inherit';
+      var cnt = el('small', null, ''); cnt.style.color = 'var(--dim)';
+      sr.appendChild(q); sr.appendChild(cnt);
+      var grouped = {}, all = (SET.allPresets || []).filter(function (p) { return p.id !== 'mystery'; });
+      SET.presets.forEach(function (g) { g.presets.forEach(function (p) { grouped[p.id] = 1; }); });
+      function opt(p, parent) { var o = el('option', null, p.name + (p.desc ? ' — ' + p.desc : '')); o.value = p.name; parent.appendChild(o); }
+      function fill() {
+        var t = q.value.trim().toLowerCase(), was = sel.value, n = 0;
+        sel.textContent = '';
+        sel.appendChild(el('option', null, t ? 'Matching presets…' : 'Pick a preset…')).value = '';
+        if (t) {
+          all.forEach(function (p) { if ((p.name + ' ' + (p.desc || '') + ' ' + p.id).toLowerCase().indexOf(t) >= 0) { opt(p, sel); n++; } });
+          cnt.textContent = n + ' of ' + all.length;
+        } else {
+          SET.presets.forEach(function (g) {
+            var og = document.createElement('optgroup'); og.label = g.title;
+            g.presets.forEach(function (p) { if (p.id === 'mystery') return; opt(p, og); n++; });
+            sel.appendChild(og);
+          });
+          var rest = all.filter(function (p) { return !grouped[p.id]; });
+          if (rest.length) { var og2 = document.createElement('optgroup'); og2.label = 'More presets'; rest.forEach(function (p) { opt(p, og2); n++; }); sel.appendChild(og2); }
+          cnt.textContent = all.length + ' presets';   // a few sit in two of his groups
+        }
+        sel.value = was; if (sel.value !== was) sel.value = '';
+        if (t && n === 1) sel.selectedIndex = 1;
+      }
+      q.addEventListener('input', fill);
+      q.addEventListener('keydown', function (e) { if (e.key === 'Enter' && sel.value) go.click(); });
+      fill();
+      setBody.appendChild(sr);
       sel.style.maxWidth = '260px'; sel.style.flex = '1';
       go.type = 'button';
       go.addEventListener('click', function () {

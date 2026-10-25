@@ -846,5 +846,342 @@
     }
    ]
   }
+ ],
+ "allPresets": [
+  {
+   "id": "open",
+   "name": "Open",
+   "desc": "Open 7/7"
+  },
+  {
+   "id": "open76",
+   "name": "Open 7/6",
+   "desc": "Open mode, fast Ganon with 6 crystals ganon, 7 crystals GT"
+  },
+  {
+   "id": "openboots",
+   "name": "Open Boots",
+   "desc": "Open 7/7, boots start"
+  },
+  {
+   "id": "standard",
+   "name": "Standard",
+   "desc": "Standard 7/7"
+  },
+  {
+   "id": "standardboots",
+   "name": "Standard Boots",
+   "desc": "Standard 7/7, boots start"
+  },
+  {
+   "id": "casualboots",
+   "name": "Casual Boots",
+   "desc": "Standard 7/7, assured sword, boots start"
+  },
+  {
+   "id": "ad",
+   "name": "All Dungeons",
+   "desc": "Open, All Dungeons "
+  },
+  {
+   "id": "adenemizer",
+   "name": "AD Enemizer",
+   "desc": "All Dungeons with boss and enemy shuffle"
+  },
+  {
+   "id": "adkdb",
+   "name": "ADKDB",
+   "desc": "All Dungeons, keysanity, key drop, start with boots"
+  },
+  {
+   "id": "adkdf",
+   "name": "ADKDF",
+   "desc": "All Dungeons, keysanity, key drop, follower shuffle"
+  },
+  {
+   "id": "adkeydrop",
+   "name": "AD Keydrop",
+   "desc": "All Dungeons with keysanity and key drop pots"
+  },
+  {
+   "id": "adkeydropshop",
+   "name": "AD Keydrop Shop",
+   "desc": "All Dungeons with keysanity, key drop pots, and shopsanity"
+  },
+  {
+   "id": "adkeysanity",
+   "name": "AD Keysanity",
+   "desc": "All Dungeons with full keysanity"
+  },
+  {
+   "id": "adtileswap",
+   "name": "AD Tile Swap",
+   "desc": "All Dungeons with overworld tile swap"
+  },
+  {
+   "id": "openkeysanity",
+   "name": "Open Keysanity",
+   "desc": "Open mode, defeat Ganon, all dungeon items wild"
+  },
+  {
+   "id": "open47keys",
+   "name": "4/7 Open Keys",
+   "desc": "Open keysanity, 4 crystals for tower, 7 for Ganon"
+  },
+  {
+   "id": "mcshuffle",
+   "name": "MC Shuffle",
+   "desc": "Maps and compasses shuffled, keys in dungeon"
+  },
+  {
+   "id": "mcboss",
+   "name": "MCBoss",
+   "desc": "Maps and compasses shuffled with boss shuffle"
+  },
+  {
+   "id": "crosskeys",
+   "name": "Crosskeys",
+   "desc": "Crossed ER with full keysanity, fast Ganon"
+  },
+  {
+   "id": "crosskeys2024",
+   "name": "Crosskeys 2024/5/6",
+   "desc": "Crosskeys with pseudoboots"
+  },
+  {
+   "id": "crosshunt",
+   "name": "Crosshunt",
+   "desc": "Crosskeys, ganon hunt with 0 tower crystals"
+  },
+  {
+   "id": "crosskeys_flute_ms_pb",
+   "name": "Crosskeys Flute MS PB",
+   "desc": "Crosskeys with activated flute, mirror scroll, pseudoboots"
+  },
+  {
+   "id": "crosskeys_kd_flute_inv_pb_zw",
+   "name": "Crosskeys KD Flute Inv PB ZW",
+   "desc": "Inverted crosskeys with key drop, activated flute, pseudoboots"
+  },
+  {
+   "id": "crosskeys_kd_ms_pb_zw",
+   "name": "Crosskeys KD MS PB ZW",
+   "desc": "Crosskeys with key drop, mirror scroll, pseudoboots"
+  },
+  {
+   "id": "crosskeys_ms_pb_zw",
+   "name": "Crosskeys MS PB ZW",
+   "desc": "Crosskeys with mirror scroll, pseudoboots"
+  },
+  {
+   "id": "crosskeys_kd_ad",
+   "name": "Crosskeys KD AD",
+   "desc": "Crosskeys with key drop, all dungeons goal"
+  },
+  {
+   "id": "supercrosskeys",
+   "name": "Supercrosskeys",
+   "desc": "Crosskeys key drop, pseudoboots, bonk shuffle, fast Ganon 4 crystals"
+  },
+  {
+   "id": "invertedcrosskeys",
+   "name": "Inverted Crosskeys",
+   "desc": "Inverted Crosskeys"
+  },
+  {
+   "id": "crisscross",
+   "name": "Crisscross",
+   "desc": "Crosskeys, crossed doors, pseudoboots, shopsanity"
+  },
+  {
+   "id": "beginnerdoors",
+   "name": "Beginner Doors",
+   "desc": "Standard mode, basic doors, assured sword, pseudoboots"
+  },
+  {
+   "id": "intermediatedoors",
+   "name": "Intermediate Doors",
+   "desc": "Standard mode, partitioned doors, assured sword, pseudoboots, keysanity"
+  },
+  {
+   "id": "inverted",
+   "name": "Inverted",
+   "desc": "Inverted mode, defeat Ganon"
+  },
+  {
+   "id": "inverted_startflute",
+   "name": "Inverted (Start Flute)",
+   "desc": "Inverted mode with activated starting flute"
+  },
+  {
+   "id": "invertedkeysanity",
+   "name": "Inverted Keysanity",
+   "desc": "Inverted mode with full keysanity"
+  },
+  {
+   "id": "invertedadkeysanity",
+   "name": "Inverted AD Keysanity",
+   "desc": "Inverted mode, all dungeons, full keysanity"
+  },
+  {
+   "id": "influkeys",
+   "name": "Influkeys",
+   "desc": "Inverted, keysanity, activated flute, start with flute"
+  },
+  {
+   "id": "invrosia",
+   "name": "Invrosia",
+   "desc": "Inverted mode with assured sword, wild big keys and guaranteed non-dungeon item on the boss"
+  },
+  {
+   "id": "championsswordless",
+   "name": "Champions Swordless",
+   "desc": "Swordless with MC shuffle"
+  },
+  {
+   "id": "championshunt",
+   "name": "Champions Hunt",
+   "desc": "Assured sword, wild big keys, 5 tower crystals, Ganon hunt, start with boots"
+  },
+  {
+   "id": "enemizer",
+   "name": "Enemizer",
+   "desc": "Open mode with boss and enemy shuffle"
+  },
+  {
+   "id": "enemizerboots",
+   "name": "Enemizer Boots",
+   "desc": "Enemizer with starting boots"
+  },
+  {
+   "id": "enemizerkeydrop",
+   "name": "Enemizer Keydrop",
+   "desc": "Enemizer with key drop pots and full keysanity"
+  },
+  {
+   "id": "bosshunt",
+   "name": "Bosshunt",
+   "desc": "Ganon hunt with 0 tower crystals"
+  },
+  {
+   "id": "ganonhunt",
+   "name": "Ganonhunt",
+   "desc": "Ganon hunt, assured sword, wild big keys, 5/2, start with boots"
+  },
+  {
+   "id": "goldrush",
+   "name": "Gold Rush",
+   "desc": "Triforce hunt with full keysanity, start with boots"
+  },
+  {
+   "id": "reducedcrystals",
+   "name": "Reduced Crystals",
+   "desc": "Open mode, fast Ganon with 6 crystals"
+  },
+  {
+   "id": "doubledown",
+   "name": "Double Down",
+   "desc": "All Dungeons, keysanity, start with boots"
+  },
+  {
+   "id": "duality",
+   "name": "Duality",
+   "desc": "Fast Ganon 1/5, full keysanity"
+  },
+  {
+   "id": "ambrosia",
+   "name": "Ambrosia",
+   "desc": "Standard mode, assured sword, ambrosia"
+  },
+  {
+   "id": "ambroz1a",
+   "name": "AmbroZ1a",
+   "desc": "Retro mode, Ganon hunt, ambrosia, activated flute"
+  },
+  {
+   "id": "cabookey",
+   "name": "Cabookey",
+   "desc": "Standard mode, all dungeons, keysanity, assured sword, start with boots"
+  },
+  {
+   "id": "cabookeydrop",
+   "name": "Cabookeydrop",
+   "desc": "Standard mode, all dungeons, keysanity, key drop, assured sword, start with boots"
+  },
+  {
+   "id": "hardopenplus",
+   "name": "Hard Open Plus",
+   "desc": "Open mode, defeat Ganon"
+  },
+  {
+   "id": "ludicrousspeed",
+   "name": "Ludicrous Speed",
+   "desc": "All Dungeons with wild compasses"
+  },
+  {
+   "id": "mystery",
+   "name": "Mystery",
+   "desc": "Mystery/unknown settings"
+  },
+  {
+   "id": "patronparty",
+   "name": "Patron Party",
+   "desc": "Inverted, boss shuffle, keysanity, pseudoboots, activated flute, start with hookshot/glove/flute"
+  },
+  {
+   "id": "potpourri",
+   "name": "Potpourri",
+   "desc": "All Dungeons, boss shuffle, wild keys, activated flute, start with hookshot/icerod/flute"
+  },
+  {
+   "id": "potsandbones",
+   "name": "Pots & Bones",
+   "desc": "Standard, crossed ER, key drop, triforce hunt, keysanity, start with boots/lantern/red boomerang"
+  },
+  {
+   "id": "retrance",
+   "name": "Retrance",
+   "desc": "Retro mode, crossed ER, keysanity, assured sword"
+  },
+  {
+   "id": "shoptillyoudrop",
+   "name": "Shop Till You Drop",
+   "desc": "Retro mode, crossed ER, key drop, keysanity, shopsanity, start with boots"
+  },
+  {
+   "id": "truepothunt",
+   "name": "True Pot Hunt",
+   "desc": "Crossed ER, key drop, triforce hunt, keysanity, shopsanity, start with boots/lantern"
+  },
+  {
+   "id": "xdhunt",
+   "name": "XDHunt",
+   "desc": "Crossed ER, key drop, Ganon hunt, keysanity, pseudoboots, 4 tower crystals"
+  },
+  {
+   "id": "stanvertedkeys",
+   "name": "Stanverted Keys",
+   "desc": "Standard mode, overworld shuffle, keysanity, defeat Ganon"
+  },
+  {
+   "id": "owg",
+   "name": "OWG",
+   "desc": "Overworld glitches logic"
+  },
+  {
+   "id": "owg_assured",
+   "name": "OWG Assured",
+   "desc": "Overworld glitches with assured sword, start with boots"
+  },
+  {
+   "id": "hmg",
+   "name": "HMG",
+   "desc": "Hybrid major glitches, start with boots"
+  },
+  {
+   "id": "nologic",
+   "name": "No Logic",
+   "desc": "No logic — anything goes, keysanity, start with boots"
+  }
  ]
 }

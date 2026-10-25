@@ -26,6 +26,12 @@ Mudora and Mudora 2.0, from HydeOut's notes:
   phone), and the tracker changes with it. Placed with the game's own sum for its map markers,
   both zoom levels. ⚙ Settings → "Prize marks on the game's map" turns it off. Mudora and
   Mudora 2.0 only.
+- **Every one of Muffins' presets in Mudora 2.0** (⚙ Settings → New game from a preset): all 67
+  of his, not just the 21 his launch page has buttons for. His groups come first, then
+  "More presets". A **search box** above the list finds them by name, mode or description
+  ("keys", "inverted", "hunt"…); Enter starts the one picked. Presets without a button on his
+  page are picked from his own "Browse all presets…" list. (Mystery stays on his page: its
+  settings aren't known up front.)
 
 ## Beta v1.10.10 (2026-10-25)
 
