@@ -53,16 +53,44 @@
 
   /* dungeons panel */
   #dungeons { padding: 6px; display: grid; grid-template-columns: 1fr; gap: 3px; }
-  .dg { display: grid; grid-template-columns: 34px 18px 1fr auto; align-items: center; gap: 5px; padding: 3px 6px; border-radius: 5px;
+  .dg { display: grid; grid-template-columns: 34px 26px 1fr auto; align-items: center; gap: 5px; padding: 3px 6px; border-radius: 5px;
     background: #1b1f23; border-left: 4px solid var(--c-red); cursor: pointer; }
   .dg:hover { background: #22272c; }
   .dg.green { border-color: var(--c-green); } .dg.yellow { border-color: var(--c-yellow); } .dg.orange { border-color: var(--c-orange); }
   .dg.purple { border-color: var(--c-purple); } .dg.done { border-color: var(--c-done); opacity: .6; }
   .dg .nm { font-weight: 700; }
   .dg .nm img.rv { width: 14px; height: 14px; margin-left: 3px; vertical-align: -2px; image-rendering: pixelated; filter: drop-shadow(0 0 1px #000); }
-  .dg .pz { width: 18px; height: 18px; image-rendering: pixelated; display: flex; align-items: center; justify-content: center; color: var(--dim); font-weight: 700; }
-  .dg .pz img { width: 18px; height: 18px; image-rendering: pixelated; }
-  .dg .pz.off { filter: grayscale(1) brightness(.45); }
+  .dg .pz { width: 26px; height: 24px; image-rendering: pixelated; display: flex; align-items: center; justify-content: center; color: var(--dim); font-weight: 700; }
+  .dg .pz img, .dghere .hp img { width: 22px; height: 22px; object-fit: contain; image-rendering: pixelated; }
+  /* the prize: grey until it's yours, then bright with a glow in its own colour (HydeOut) */
+  .pz.no img, .hp.no img { filter: grayscale(1) brightness(.42); opacity: .8; }
+  .pz.got img, .hp.got img { filter: brightness(1.3) saturate(1.5) drop-shadow(0 0 2px var(--glow, #fff)) drop-shadow(0 0 4px var(--glow, #fff)); }
+  .pz.crystal, .hp.crystal { --glow: #6fb6ff; } .pz.crystal_red, .hp.crystal_red { --glow: #ff5c5c; }
+  .pz.pendant_blue, .hp.pendant_blue { --glow: #6fb6ff; } .pz.pendant_green, .hp.pendant_green { --glow: #5ee37a; }
+  .pin.dgn img.pzi { left: 0; top: 0; width: 16px; height: 16px; object-fit: contain; filter: grayscale(.6) brightness(.8) drop-shadow(0 0 1px #000); }
+  .pin.dgn img.pzi.got { filter: brightness(1.2) drop-shadow(0 0 2px #fff); }
+  /* this dungeon: the card for the dungeon Link is in */
+  .dghere { margin: 4px 6px 8px; min-height: 76px; display: grid; grid-template-columns: 64px 1fr; gap: 8px; align-items: center; padding: 6px 8px;
+    border-radius: 8px; background: #1b1f23; border: 1px solid #2c3238; }
+  .dghere.empty > * { visibility: hidden; }
+  .dghere .hb { width: 64px; height: 64px; cursor: pointer; display: flex; align-items: center; justify-content: center; position: relative; }
+  .dghere .hb img { max-width: 64px; max-height: 64px; image-rendering: pixelated; }
+  .dghere.beaten .hb img { filter: grayscale(1) brightness(.5); }
+  .dghere.beaten .hb::after { content: '✓'; position: absolute; right: 0; bottom: -2px; font: 900 20px/1 system-ui, sans-serif; color: #5ee37a; text-shadow: 0 0 3px #000, 0 0 3px #000; }
+  .dghere .hm { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+  .dghere .ht { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .dghere .hn { font-size: 14px; color: #fff; }
+  .dghere .hp { width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: var(--dim); font-weight: 700; }
+  .dghere .hk { display: inline-flex; align-items: center; gap: 4px; color: var(--gold); font-variant-numeric: tabular-nums; }
+  .dghere .hk .kc.done { color: #2ecc71; } .dghere .hk img.bk { width: 18px; height: 18px; image-rendering: pixelated; }
+  .dghere .hc { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; cursor: pointer; }
+  .dghere .hc img.ch { width: 18px; height: 18px; image-rendering: pixelated; }
+  .dghere .hc img.ch.open { opacity: .55; }
+  .dghere .hc .hl { margin-left: 4px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; }
+  .dghere .hc .hl.none { color: #2ecc71; }
+  #dungeons .dg { order: 0; }
+  /* "This dungeon only": just the card (for stream) */
+  body.dg-here-only #dungeons, body.dg-here-only #side .h-dg { display: none; }
   .dg .pz { position: relative; }
   .dg .pz .plus { position: absolute; right: -4px; top: -5px; font: 900 12px/1 system-ui, sans-serif; color: #fff; text-shadow: 0 0 2px #000, 0 0 2px #000, 0 0 3px #000; pointer-events: none; }
   .dg .pz .plus.red { color: #ff6b6b; } .dg .pz .plus.green { color: #5ee37a; }
@@ -191,6 +219,8 @@
     <label title="How dungeon maps are shown">Dungeons <select id="dgmode"></select></label>
     <label title="How big the item pictures are">Items <select id="isize"><option value="auto">Auto</option><option value="28">Small</option><option value="36">Medium</option><option value="46">Large</option></select></label>
     <label title="The game's screens as a grid on the maps"><input type="checkbox" id="o-grid"> Grid</label>
+    <label title="Open a dungeon's map when Link goes in (off: the world map stays up)"><input type="checkbox" id="o-follow"> Follow into dungeons</label>
+    <label title="The dungeon list: in the game's order, the ones you can clear first, or only the dungeon Link is in (compact, for stream)">List <select id="dglist"><option value="all">All dungeons</option><option value="ready">Ready first</option><option value="here">This dungeon only</option></select></label>
     <span id="link" title="Hutch's logic, read live from the game"><i></i><span id="link-t">Starting…</span></span>
     <span class="sp"></span>
     <button id="b-reset" type="button" title="Put the maps back as they started (whole world, no zoom)">Reset maps</button>
@@ -202,6 +232,7 @@
       <div id="items"></div>
       <h3 class="h-dg">Dungeons</h3>
       <div id="dungeons"></div>
+      <div id="dghere" class="dghere empty" title="The dungeon Link is in"></div>
     </div>
     <div id="maps">
       <div class="dg-bar" id="dgbar"></div>

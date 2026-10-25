@@ -338,6 +338,7 @@
       it[dk + 'SmallKeys'] = Math.max(0, Math.min(km, (ds.smallKeys || 0) + ((ds.manuallyChanged && ds.manuallyChanged.smallKeys) || 0)));
       it[dk + 'BigKey'] = !!ds.bigKey; it[dk + 'Map'] = !!ds.map; it[dk + 'Compass'] = !!ds.compass;
       it[dk + 'Prize'] = PRIZE[ds.prize] || 'unknown'; it[dk + 'PrizeObtained'] = !!ds.prizeCollected;
+      it[dk + 'Boss'] = ds.boss || 'unknown'; it[dk + 'BossDefeated'] = !!ds.bossDefeated;   // his boss (boss shuffle: picked by hand)
       var e = DATA.entries[dd.name] || {};
       var j = judge(names, LC);
       dgs[dk] = { world: e.world, name: dd.name };
@@ -587,6 +588,9 @@
       if (dir > 0) action('dungeons/togglePrizeCollected', { dungeon: k });
       else action('dungeons/incrementPrizeCount', { dungeon: k, decrement: false });
     }
+    // which prize it is, forward or back (the map's prize marks, the dungeon card)
+    else if (part === 'prizeType') action('dungeons/incrementPrizeCount', { dungeon: k, decrement: dir < 0 });
+    else if (part === 'boss') action('dungeons/incrementBoss', { dungeon: k, decrement: dir < 0 });
     return true;
   };
 
@@ -734,7 +738,9 @@
     'Logic and settings: Muffins’ Tracker 2.0, unchanged. Pick your settings on his launch page when you start (New game); his tracker then runs out of sight and Mudora shows its answers. ⚙ Settings changes them any time, mid-game too. Pictures, maps and where each square sits come from your game itself.\n\n' +
     'Items: click to go up, right click (hold on a phone) to go back. Right click Bombos, Ether or Quake to mark which of Misery Mire / Turtle Rock it opens.\n' +
     'Map: click (tap) a square to mark everything in it done; click again to open it again. Right click (hold) a square to see what’s inside, tick off places one by one, or mark which item is there. A darker green square has some places available and some not. ⟲ on a map, or Reset maps at the top, puts the maps back as they started.\n' +
-    'Dungeons: click a dungeon to open its map. Chests, small keys, big key, map and compass: click to count, right click to undo. Prize: click when you have it, right click to change which it is.\n\n' +
+    'Dungeons: click a dungeon to open its map. Chests, small keys, big key, map and compass: click to count, right click to undo. Prize: click when you have it, right click to change which it is.\n' +
+    'This dungeon: the card under the list shows the dungeon Link is in: its boss (click / right click to pick another, for boss shuffle), its prize (click / right click: which it is), keys, and a chest for every check, open when found. It’s blank outside dungeons. List → This dungeon only shows just the card (for stream); Ready first puts the dungeons you can clear on top, crystals first.\n' +
+    'Follow into dungeons: open a dungeon’s map when Link goes in (off: the world map stays up). The game’s own map (X): a button by each dungeon marks its prize here, click for the next, right click for the one before (⚙ Settings in Rando Hub turns it off).\n\n' +
     'Entrance shuffle: every shuffled door shows on the map. Walk through one and Rando Hub fills in where it leads, from the game itself. Click a door to mark it done; right click (hold) for Muffins’ entrance menu, to set where it leads by hand, make a connector or add a note.\n\n' +
     'Problems with the logic: Muffins (his Discord). Problems with how it looks here: Rando Hub.';
 })();

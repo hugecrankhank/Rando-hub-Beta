@@ -275,6 +275,14 @@
     var iw = M.itemsWin(); if (!iw) return false;
     var slot = iw.document.querySelector('.dungeon-slot[data-dungeon-key="' + k + '"], .ct-group[data-dungeon-key="' + k + '"]');
     if (!slot) return false;
+    if (part === 'boss') return false;   // Hutch's tracker has no boss to pick: Mudora keeps it
+    // which prize it is: his right click goes forward through the five; back is four forward
+    if (part === 'prizeType') {
+      var pe = slot.querySelector('.prize-img'), ok2 = true;
+      for (var n = dir < 0 ? 4 : 1; n > 0; n--) ok2 = fire(pe, 'contextmenu') && ok2;
+      setTimeout(ask, 60);
+      return ok2;
+    }
     var sel = { chest: '.count-item:not(.key-count-item)', key: '.key-count-item', bigkey: '.bigkey-img', map: '.map-img', compass: '.compass-img', prize: '.prize-img' }[part];
     var el = part === 'prize' && dir > 0 ? slot : slot.querySelector(sel);
     var ok = fire(el, dir < 0 ? 'contextmenu' : 'click');
@@ -359,21 +367,51 @@
   }
 
   // item icons, cut from the game's pause menu by a hidden emulator
+  // The menu's black is made see-through, which also punched holes in the
+  // crystals' dark facets: see-through pixels the outside can't reach are
+  // put back as black.
+  function fillHoles(px) {
+    var out = new Uint8Array(256), q = [], i, x, y;
+    for (i = 0; i < 16; i++) q.push(i, 240 + i, i * 16, i * 16 + 15);
+    while (q.length) {
+      i = q.pop();
+      if (out[i] || px[i * 4 + 3]) continue;
+      out[i] = 1; x = i & 15; y = i >> 4;
+      if (x > 0) q.push(i - 1); if (x < 15) q.push(i + 1); if (y > 0) q.push(i - 16); if (y < 15) q.push(i + 16);
+    }
+    for (i = 0; i < 256; i++) if (!out[i] && !px[i * 4 + 3]) { px[i * 4] = px[i * 4 + 1] = px[i * 4 + 2] = 8; px[i * 4 + 3] = 255; }
+    return px;
+  }
+  // the dungeon prizes, cropped to the picture itself so they fill a bigger box
+  var TIGHT = { crystal: 1, crystal_red: 1, pendant_red: 1, pendant_blue: 1, pendant_green: 1 };
+  function tightURL(px) {
+    var x0 = 16, y0 = 16, x1 = -1, y1 = -1;
+    for (var y = 0; y < 16; y++) for (var x = 0; x < 16; x++) if (px[(y * 16 + x) * 4 + 3]) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
+    if (x1 < 0) return null;
+    var w = x1 - x0 + 1, h = y1 - y0 + 1, n = Math.max(w, h);
+    var cv = document.createElement('canvas'); cv.width = cv.height = n;
+    var src = document.createElement('canvas'); src.width = src.height = 16;
+    src.getContext('2d').putImageData(new ImageData(px, 16, 16), 0, 0);
+    cv.getContext('2d').drawImage(src, x0, y0, w, h, Math.floor((n - w) / 2), Math.floor((n - h) / 2), w, h);
+    return cv.toDataURL('image/png');
+  }
   function useIcons(raw) {
     var out = {};
     var cv = document.createElement('canvas'); cv.width = cv.height = 16;
     var cx = cv.getContext('2d');
     Object.keys(raw).forEach(function (k) {
+      var px = new Uint8ClampedArray(raw[k].slice ? raw[k].slice(0) : raw[k]);
+      if (k === 'crystal' || k === 'crystal_red') fillHoles(px);   // not the pendants: their chain's loop isn't a hole
       cx.clearRect(0, 0, 16, 16);
-      cx.putImageData(new ImageData(new Uint8ClampedArray(raw[k]), 16, 16), 0, 0);
-      out[k] = cv.toDataURL('image/png');
+      cx.putImageData(new ImageData(px, 16, 16), 0, 0);
+      out[k] = (TIGHT[k] && tightURL(px)) || cv.toDataURL('image/png');
     });
     // a red crystal: the game's own (found in its menu), or else the crystal with its blues turned red
     if (raw.crystal && !raw.crystal_red) {
       var px = new Uint8ClampedArray(raw.crystal.slice ? raw.crystal.slice(0) : raw.crystal);
       for (var i = 0; i < px.length; i += 4) { if (px[i + 3] && px[i + 2] > px[i] + 20) { var t = px[i]; px[i] = px[i + 2]; px[i + 2] = t; } }
-      cx.clearRect(0, 0, 16, 16); cx.putImageData(new ImageData(px, 16, 16), 0, 0);
-      out.crystal_red = cv.toDataURL('image/png');
+      fillHoles(px);
+      out.crystal_red = tightURL(px) || out.crystal;
     }
     // Half Magic: the game only writes a 3-tile "1/2" label over the magic meter
     // (zelda3 hud.c Hud_Update_Magic), too wide for a square, so Mudora draws its
@@ -409,9 +447,10 @@
     cx.clearRect(0, 0, 16, 16); cx.putImageData(new ImageData(px, 16, 16), 0, 0);
     return cv.toDataURL('image/png');
   }
+  M._useIcons = useIcons;   // for tests: pictures as the worker sends them
   var iconJob = null;
   function loadIcons(g) {
-    get('rhb-mudora', 'icons', 'v7-' + g).then(function (hit) {
+    get('rhb-mudora', 'icons', 'v8-' + g).then(function (hit) {
       if (M.game !== g) return;
       if (hit && hit.crystal) { useIcons(hit); return; }
       var P = M.player(), core = P && P.core, rom = null;
@@ -429,7 +468,7 @@
         if (ev.data && ev.data.icons) {
           var copy = {};   // keep a copy: the canvases below don't need the originals
           Object.keys(ev.data.icons).forEach(function (k) { copy[k] = ev.data.icons[k].slice(0); });
-          put('rhb-mudora', 'icons', 'v7-' + g, copy);
+          put('rhb-mudora', 'icons', 'v8-' + g, copy);
           useIcons(ev.data.icons);
         } else { M.iconState = 'failed'; emit('icons'); console.warn('[mudora] icons', ev.data && ev.data.error); }
       };

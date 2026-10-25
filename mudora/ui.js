@@ -161,11 +161,13 @@
       if (E.pz.__sig !== psig) {
         E.pz.__sig = psig; E.pz.textContent = '';
         if (pk && M.icons[pk]) {
-          var pi = iconImg(pk); if (!it[k + 'PrizeObtained']) pi.style.filter = 'grayscale(1) brightness(.45)'; E.pz.appendChild(pi);
+          // got it: bright, with a glow in its own colour; not yet: grey (HydeOut: make it obvious)
+          var pi = iconImg(pk); E.pz.appendChild(pi);
+          E.pz.className = 'pz ' + (it[k + 'PrizeObtained'] ? 'got ' : 'no ') + pk;
           // red crystal and green pendant look like the others once grayed out: a + marks them
           if (pk === 'crystal_red' || pk === 'pendant_green') E.pz.appendChild(el('b', 'plus' + (pk === 'crystal_red' ? ' red' : ' green'), '+'));
         }
-        else if (pk === '') E.pz.textContent = '?';
+        else { E.pz.className = 'pz'; if (pk === '') E.pz.textContent = '?'; }
       }
       E.pz.title = pn ? pn.replace('green', 'green ').replace('red', 'red ') : '';
       // items revealed in this dungeon, next to its name
@@ -175,7 +177,108 @@
         Array.prototype.slice.call(E.nm.querySelectorAll('img.rv')).forEach(function (x) { x.remove(); });
         rvl.forEach(function (x) { var im = iconImg(x); if (im) { im.className = 'rv'; im.title = 'Revealed in this dungeon'; E.nm.appendChild(im); } });
       }
+      // "Ready first": dungeons you can clear on top, crystals before the rest, done at the bottom
+      E.r.style.order = listMode === 'ready' ? String(readyRank(k, col, done, pn)) : '';
     });
+    paintHere();
+  }
+  var RANK = { green: 0, partial: 1, yellow: 2, orange: 3, purple: 4, red: 5 };
+  function readyRank(k, col, done, pn) {
+    if (done) return 900 + DGS.findIndex(function (d) { return d[0] === k; });
+    var crystal = pn === 'crystal' || pn === 'redcrystal';
+    return (RANK[col] != null ? RANK[col] : 5) * 40 + (crystal ? 0 : 20) + DGS.findIndex(function (d) { return d[0] === k; });
+  }
+
+  // ── this dungeon: a card for the dungeon Link is in (HydeOut, Oct 2026) ───
+  // Its boss (click / right click to pick another, for boss shuffle), prize
+  // (click / right click: which it is), keys, and a chest for every check:
+  // open ones found, shut ones still to get. Blank outside dungeons, so it
+  // can sit on stream on its own ("This dungeon only").
+  var BOSS_ART = { unknown: '../tracker/boss/boss0.png', armos: '../tracker/boss/boss1.png', lanmolas: '../tracker/boss/boss2.png',
+    moldorm: '../tracker/boss/boss3.png', helmasaurking: '../tracker/boss/boss4.png', arrghus: '../tracker/boss/boss5.png',
+    mothula: '../tracker/boss/boss6.png', blind: '../tracker/boss/boss7.png', kholdstare: '../tracker/boss/boss8.png',
+    vitreous: '../tracker/boss/boss9.png', trinexx: '../tracker/boss/boss10.png', agahnim: '../tracker/map/agahnim0.png',
+    agahnim2: '../tracker/map/agahnim0.png', bnc: '../mfns-tracker/app/dungeons/ballnchain.png' };
+  var BOSS_NAME = { unknown: 'Boss not known yet', armos: 'Armos Knights', lanmolas: 'Lanmolas', moldorm: 'Moldorm', helmasaurking: 'Helmasaur King',
+    arrghus: 'Arrghus', mothula: 'Mothula', blind: 'Blind', kholdstare: 'Kholdstare', vitreous: 'Vitreous', trinexx: 'Trinexx',
+    agahnim: 'Agahnim', agahnim2: 'Agahnim 2', bnc: 'Ball and Chain Trooper' };
+  var BOSS_CYCLE = ['unknown', 'armos', 'lanmolas', 'moldorm', 'helmasaurking', 'arrghus', 'mothula', 'blind', 'kholdstare', 'vitreous', 'trinexx', 'agahnim', 'agahnim2'];
+  var VANILLA_BOSS = { hc: 'bnc', ep: 'armos', dp: 'lanmolas', toh: 'moldorm', ct: 'agahnim', pod: 'helmasaurking', sp: 'arrghus', sw: 'mothula',
+    tt: 'blind', ip: 'kholdstare', mm: 'vitreous', tr: 'trinexx', gt: 'agahnim2' };
+  // Hutch's tracker has no bosses to pick: Mudora keeps them, per game
+  function localBosses() { try { return JSON.parse(localStorage.getItem('rhb-mudora-bosses:' + (M.game || '')) || '{}'); } catch (e) { return {}; } }
+  function bossOf(k) {
+    var it = M.items || {}, b = it[k + 'Boss'];
+    if (b && b !== 'unknown') return b;
+    // his "not known yet" (boss shuffle); Agahnim's two towers and the castle never change
+    if (b === 'unknown') return localBosses()[k] || (k === 'ct' || k === 'gt' || k === 'hc' ? VANILLA_BOSS[k] : 'unknown');
+    return localBosses()[k] || VANILLA_BOSS[k] || 'unknown';
+  }
+  function stepBoss(k, dir) {
+    if ((M.items || {})[k + 'Boss'] != null && M.dungeonAct(k, 'boss', dir)) return;
+    var L = localBosses(), i = BOSS_CYCLE.indexOf(bossOf(k)), n = BOSS_CYCLE.length;
+    L[k] = BOSS_CYCLE[((i < 0 ? 0 : i) + (dir < 0 ? n - 1 : 1)) % n];
+    try { localStorage.setItem('rhb-mudora-bosses:' + (M.game || ''), JSON.stringify(L)); } catch (e) {}
+    paintHere(true);
+  }
+  var here = null;
+  function buildHere() {
+    var box = $('dghere'); if (!box) return;
+    box.innerHTML = '<div class="hb" title=""><img alt=""></div><div class="hm"><div class="ht"><b class="hn"></b><span class="hp"></span><span class="hk"></span></div><div class="hc"></div></div>';
+    here = { box: box, boss: box.querySelector('.hb'), bimg: box.querySelector('.hb img'), nm: box.querySelector('.hn'), pz: box.querySelector('.hp'),
+      keys: box.querySelector('.hk'), chests: box.querySelector('.hc'), k: null, sig: '' };
+    function on(node, fn) {
+      node.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); if (here.k) fn(here.k, 1); });
+      node.addEventListener('contextmenu', function (e) { e.preventDefault(); e.stopPropagation(); if (here.k) fn(here.k, -1); });
+      longPress(node, function () { if (here.k) fn(here.k, -1); });
+    }
+    on(here.boss, stepBoss);
+    on(here.pz, function (k, d) { M.dungeonAct(k, 'prizeType', d); });
+    on(here.chests, function (k, d) { M.dungeonAct(k, 'chest', d); });
+  }
+  function hereKey() {
+    if (!D) return null;
+    var w = D.where(), i = w && w.dg;
+    if (i == null || i < 0 || !D.list[i]) return null;
+    var short = D.list[i][1];
+    return (DGS.filter(function (d) { return d[1] === short; })[0] || [])[0] || null;
+  }
+  function paintHere(force) {
+    if (!here) return;
+    var k = hereKey(), it = M.items || {};
+    if (!k) { if (here.k !== null || force) { here.k = null; here.sig = ''; here.box.className = 'dghere empty'; } return; }
+    var d = DGS.filter(function (x) { return x[0] === k; })[0];
+    var boss = bossOf(k), pn = it[k + 'Prize'], pk = k === 'hc' || k === 'ct' || k === 'gt' ? null : prizeIcon(pn);
+    var max = it[k + 'MaxChests'], got = it[k + 'Chests'] || 0, beaten = !!(it[k + 'BossDefeated'] || it[k + 'PrizeObtained'] || M.dcleared[k]);
+    var KC = window.RandoKeysClient, km = it[k + 'MaxSmallKeys'] != null ? it[k + 'MaxSmallKeys'] : it[k + 'SmallKeysMax'], kf = it[k + 'SmallKeys'] || 0;
+    var sig = [k, boss, pk, M.icons[pk] ? 1 : 0, !!it[k + 'PrizeObtained'], max, got, beaten, km, kf, !!it[k + 'BigKey'], M.icons.bigkey ? 1 : 0].join('|');
+    if (sig === here.sig && !force) return;
+    here.sig = sig; here.k = k;
+    here.box.className = 'dghere' + (beaten ? ' beaten' : '');
+    here.nm.textContent = d[2];
+    here.bimg.src = BOSS_ART[boss] || BOSS_ART.unknown;
+    here.boss.title = (BOSS_NAME[boss] || boss) + (beaten ? ' (beaten)' : '') + '\nClick / right click: another boss (boss shuffle)';
+    here.pz.textContent = '';
+    if (pk && M.icons[pk]) {
+      var pi = iconImg(pk); here.pz.appendChild(pi);
+      here.pz.className = 'hp ' + (it[k + 'PrizeObtained'] ? 'got ' : 'no ') + pk;
+    } else { here.pz.className = 'hp'; if (pk === '') here.pz.textContent = '?'; }
+    here.pz.title = pk !== null ? (pn ? pn.replace('green', 'green ').replace('red', 'red ') : 'Prize') + '\nClick / right click: which prize it is' : '';
+    here.keys.textContent = '';
+    if (it[k + 'BigKey'] && M.icons.bigkey) { var bk = iconImg('bigkey'); bk.className = 'bk'; bk.title = 'Big key'; here.keys.appendChild(bk); }
+    if (km) here.keys.appendChild(el('span', 'kc' + (km !== '?' && kf >= km ? ' done' : ''), '🗝' + (KC ? KC.text(kf, k, km) : kf + '/' + km)));
+    // the chests: one per check, open when found
+    here.chests.textContent = '';
+    if (max == null || max === '?') { here.chests.appendChild(el('span', 'hl', max === '?' ? '? chests' : '')); return; }
+    var left = Math.max(0, max - got), show = Math.min(max, 16);
+    var openN = Math.max(0, show - Math.min(left, show));
+    for (var i = 0; i < show; i++) {
+      var c = el('img', 'ch' + (i < openN ? ' open' : '')); c.alt = ''; c.draggable = false;
+      c.src = i < openN ? '../mfns-tracker/app/dungeons/chest0.png' : '../mfns-tracker/app/dungeons/smallchest.png';
+      here.chests.appendChild(c);
+    }
+    here.chests.appendChild(el('span', 'hl' + (left ? '' : ' none'), left ? left + ' left' + (max > 16 ? ' of ' + max : '') : 'all done'));
+    here.chests.title = got + ' of ' + max + ' found\nClick: one more found, right click: undo';
   }
 
   // ── long press (phones): the same as a right click ────────────────────────
@@ -404,11 +507,19 @@
       }
       var cls = 'pin dgn ' + (M.dcleared[k] ? 'done' : (M.dcolors[k] || 'red'));
       if (p.className !== cls) p.className = cls;
+      // its prize, once marked, inside the circle (HydeOut: the map shows which dungeons are crystals)
+      var it2 = M.items || {}, pk2 = k === 'hc' || k === 'ct' || k === 'gt' ? null : prizeIcon(it2[k + 'Prize']);
+      var psrc = pk2 && M.icons[pk2] ? M.icons[pk2] : '', pzi = p.querySelector('img.pzi');
+      if (psrc) {
+        if (!pzi) { pzi = el('img', 'pzi'); pzi.alt = ''; p.appendChild(pzi); }
+        if (pzi.getAttribute('src') !== psrc) pzi.src = psrc;
+        pzi.classList.toggle('got', !!it2[k + 'PrizeObtained']);
+      } else if (pzi) pzi.remove();
       // items revealed inside it (Crowd Control's reveal, M.dmark): up to two pictures over the square
       var dm = (M.dmarks ? M.dmarks(k) : []).filter(function (x) { return M.icons[x]; }).slice(-2), dsig = dm.join(',');
       if (p.__dm !== dsig) {
         p.__dm = dsig;
-        Array.prototype.slice.call(p.querySelectorAll('img')).forEach(function (x) { x.remove(); });
+        Array.prototype.slice.call(p.querySelectorAll('img:not(.pzi)')).forEach(function (x) { x.remove(); });
         dm.forEach(function (x, i) { var im = el('img'); im.alt = ''; im.src = M.icons[x]; if (i) im.style.left = '16px'; p.appendChild(im); });
       }
     });
@@ -606,7 +717,8 @@
     if (D) {
       D.list.forEach(function (d, i) { mk(i, d[1], d[2]); });
       dgView = new D.View($('dgview'));
-      D.onEnter = function (dg) { selectDg(dg); };
+      // follow Link into a dungeon's map only when asked (HydeOut: the world map stays up to plan the way on)
+      D.onEnter = function (dg) { if (follow) selectDg(dg); paintHere(); };
     }
   }
   function selectDg(i) { dgSel = i; paintDg(); }
@@ -623,7 +735,7 @@
     if (dgSel >= 0 && dgView && dgView.dg !== dgSel) dgView.show(dgSel);
     if (dgSel < 0) layoutWorlds();
   }
-  setInterval(paintDg, 1000);
+  setInterval(function () { paintDg(); paintHere(); }, 1000);
 
   // ── footer: counters from the game ────────────────────────────────────────
   function paintStats() {
@@ -660,6 +772,18 @@
   try { gridOn = localStorage.getItem('rhb-mudora-grid') !== '0'; } catch (e) {}
   $('o-grid').checked = gridOn; document.body.classList.toggle('no-grid', !gridOn);
   $('o-grid').addEventListener('change', function () { document.body.classList.toggle('no-grid', !this.checked); views.forEach(function (v) { v.draw(); }); try { localStorage.setItem('rhb-mudora-grid', this.checked ? '1' : '0'); } catch (e) {} });
+  var follow = false, listMode = 'all';
+  try { follow = localStorage.getItem('rhb-mudora-follow') === '1'; listMode = localStorage.getItem('rhb-mudora-dglist') || 'all'; } catch (e) {}
+  if ($('o-follow')) {
+    $('o-follow').checked = follow;
+    $('o-follow').addEventListener('change', function () { follow = this.checked; try { localStorage.setItem('rhb-mudora-follow', follow ? '1' : '0'); } catch (e) {} });
+  }
+  function applyList() {
+    document.body.classList.toggle('dg-here-only', listMode === 'here');
+    if ($('dglist')) $('dglist').value = listMode;
+    paintDungeons();
+  }
+  if ($('dglist')) $('dglist').addEventListener('change', function () { listMode = this.value; try { localStorage.setItem('rhb-mudora-dglist', listMode); } catch (e) {} applyList(); });
   function dgModes() {
     var sel = $('dgmode');
     if (!D) { sel.parentNode.style.display = 'none'; return; }
@@ -703,7 +827,8 @@
       'Logic: Hutch’s tracker, unchanged (it runs out of sight and Mudora shows its answers). Pictures, maps and where each check sits come from your game itself.\n\n' +
       'Items: click to go up, right click (hold on a phone) to go back. Right click Bombos, Ether or Quake to mark which of Misery Mire / Turtle Rock it opens.\n' +
       'Map: click (tap) a square to mark it done; click again to open it again. Right click (hold) a square to mark which item is there. ⟲ on a map, or Reset maps at the top, puts the maps back as they started.\n' +
-      'Dungeons: click a dungeon to open its map (entering one in the game shows it too). Chests, small keys, big key, map and compass: click to count, right click to undo.\n\n' +
+      'Dungeons: click a dungeon to open its map (with Follow into dungeons, entering one in the game shows it too). Chests, small keys, big key, map and compass: click to count, right click to undo.\n' +
+      'This dungeon: the card under the list shows the dungeon Link is in (boss: click to pick another; prize: click / right click; a chest for every check). List → This dungeon only shows just the card, for stream.\n\n' +
       'Zoom with the wheel or a pinch, drag to move, double-click (double-tap) to fit.');
   });
 
@@ -729,11 +854,11 @@
   function onResize() { applySize(); layoutWorlds(); }
   var rt = null;
   window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(onResize, 80); });
-  buildItems(); buildDungeons(); buildDgBar();
+  buildItems(); buildDungeons(); buildHere(); buildDgBar(); applyList();
   ['lw', 'dw'].forEach(function (w) { $('worlds').appendChild(new WorldView(w).box); });
   applySize(); dgModes(); paintDg(); paintStats(); paintLink();
   M.on(function (what) {
-    if (what === 'items') { paintItems(); paintDungeons(); paintStats(); paintLink(); }
+    if (what === 'items') { paintItems(); paintDungeons(); paintStats(); paintLink(); views.forEach(function (v) { v.paintPins(); }); }
     else if (what === 'checks') { views.forEach(function (v) { v.paintPins(); }); paintDungeons(); if (cardFor && !cardSticky) fillCard(false); }
     else if (what === 'dungeons') paintDungeons();
     else if (what === 'maps') views.forEach(function (v) { v.paintTiles(); });

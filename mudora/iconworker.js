@@ -111,11 +111,14 @@ function findIcon(a, b) {
   var x0 = Math.round((best.x0 + best.x1 + 1) / 2 - 8), y0 = Math.round((best.y0 + best.y1 + 1) / 2 - 8);
   return [Math.max(0, Math.min(240, x0)), Math.max(0, Math.min(208, y0))];
 }
-function cutAt(pic, x0, y0) {
+// `off` (the picture without the item): only what changed is kept, so a
+// crystal next to another doesn't bring bits of its neighbours along
+// (HydeOut, Oct 2026)
+function cutAt(pic, x0, y0, off) {
   var px = new Uint8ClampedArray(16 * 16 * 4);
   for (var y = 0; y < 16; y++) for (var x = 0; x < 16; x++) {
-    var v = pic[(y0 + y) * 256 + x0 + x], o = (y * 16 + x) * 4;
-    if (!v) continue;
+    var i = (y0 + y) * 256 + x0 + x, v = pic[i], o = (y * 16 + x) * 4;
+    if (!v || (off && off[i] === v)) continue;
     var r = v >> 11, g = (v >> 5) & 63, b = v & 31;
     px[o] = r << 3 | r >> 2; px[o + 1] = g << 2 | g >> 4; px[o + 2] = b << 3 | b >> 2; px[o + 3] = 255;
   }
@@ -178,7 +181,7 @@ onmessage = function (ev) {
       var on = shot(PASSES[fd[1]]), off = shot(PASSES[fd[1]], fd[2]);
       var at = findIcon(on, off);
       if (!at) return;
-      icons[fd[0]] = cutAt(on, at[0], at[1]).buffer;
+      icons[fd[0]] = cutAt(on, at[0], at[1], off).buffer;
       found++;
     });
     dims.push(['found', found]);

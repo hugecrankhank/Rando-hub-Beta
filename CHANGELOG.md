@@ -5,6 +5,28 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.10.11 (2026-10-25)
+
+Mudora and Mudora 2.0, from HydeOut's notes:
+
+- **Crystals and pendants look right and stand out.** Their pictures no longer bring bits of the
+  crystals next to them in the game's menu, the crystals' dark facets aren't see-through holes,
+  and they're cropped to fill a bigger box. Not yet got: grey. Got: bright, with a glow in their
+  own colour. (The pictures are drawn again from the game once, on the next start.)
+- **This dungeon:** a card under the dungeon list for the dungeon Link is in: its boss (click /
+  right click to pick another, for boss shuffle; ticked when beaten), its prize (click / right
+  click: which it is), small keys and big key, and a chest for every check, open once found.
+  Blank outside dungeons. **List → This dungeon only** shows just the card, compact for stream;
+  **Ready first** puts the dungeons you can clear on top, crystals first.
+- **Follow into dungeons** (off unless ticked): the tracker no longer switches to a dungeon's
+  map when Link goes in, so the world map stays up to plan the way on.
+- **The maps show each dungeon's prize** once marked, inside its circle (bright once you have it).
+- **Mark prizes on the game's own map.** While the world map is open in the game (X), a button
+  sits by each dungeon: click for the next prize, right click for the one before (hold on a
+  phone), and the tracker changes with it. Placed with the game's own sum for its map markers,
+  both zoom levels. ⚙ Settings → "Prize marks on the game's map" turns it off. Mudora and
+  Mudora 2.0 only.
+
 ## Beta v1.10.10 (2026-10-25)
 
 - **Any enemy** (`enemy_any`): one of 74 enemies appears near Link, anywhere, even in an empty
