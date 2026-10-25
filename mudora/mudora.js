@@ -375,8 +375,39 @@
       cx.clearRect(0, 0, 16, 16); cx.putImageData(new ImageData(px, 16, 16), 0, 0);
       out.crystal_red = cv.toDataURL('image/png');
     }
+    // Half Magic: the game only writes a 3-tile "1/2" label over the magic meter
+    // (zelda3 hud.c Hud_Update_Magic), too wide for a square, so Mudora draws its
+    // own: a pixel "1/2" in the meter's green, outlined in black.
+    out.halfmagic = halfMagicIcon(cv, cx);
     M.icons = out; M.iconState = 'ready';
     emit('icons');
+  }
+  function halfMagicIcon(cv, cx) {
+    var P = [
+      '................',
+      '..##.......##...',
+      '.###......##....',
+      '..##.....##.....',
+      '..##....##......',
+      '..##...##.......',
+      '.####.##........',
+      '.....##..####...',
+      '....##..##..##..',
+      '...##.......##..',
+      '..##.......##...',
+      '.##......##.....',
+      '##......##......',
+      '.......######...',
+      '................',
+      '................'];
+    var px = new Uint8ClampedArray(16 * 16 * 4), on = function (x, y) { return y >= 0 && y < 16 && x >= 0 && x < 16 && P[y][x] === '#'; };
+    for (var y = 0; y < 16; y++) for (var x = 0; x < 16; x++) {
+      var o = (y * 16 + x) * 4;
+      if (on(x, y)) { var slash = x + y === 12 || x + y === 13; /* the stroke between 1 and 2: white */ px[o] = slash ? 220 : 33; px[o + 1] = slash ? 220 : 181; px[o + 2] = slash ? 220 : 33; px[o + 3] = 255; }
+      else if (on(x - 1, y) || on(x + 1, y) || on(x, y - 1) || on(x, y + 1)) { px[o + 3] = 255; }   // black outline
+    }
+    cx.clearRect(0, 0, 16, 16); cx.putImageData(new ImageData(px, 16, 16), 0, 0);
+    return cv.toDataURL('image/png');
   }
   var iconJob = null;
   function loadIcons(g) {

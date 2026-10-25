@@ -5,6 +5,12 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.10.2 (2026-10-24)
+
+- **Mudora: Half Magic has a picture** (HydeOut): a pixel "½" in the magic meter's green,
+  in the item grid and in "Mark an item…" (it was text only, so it couldn't be marked).
+  The game itself only writes a 3-tile label over the magic meter, too wide to cut out.
+
 ## Beta v1.10.1 (2026-10-24)
 
 - **Go-mode reveal marks dungeons**: an item revealed inside a dungeon now shows on that

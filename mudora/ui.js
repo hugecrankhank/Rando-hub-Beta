@@ -42,7 +42,7 @@
       case 'sword': return { ic: ['sword' + (s || 1)], off: !s };
       case 'shield': return { ic: ['shield' + (s || 1)], off: !s };
       case 'tunic': return { ic: ['tunic' + Math.min(2, s)], off: false };
-      case 'halfmagic': return { tx: '½', off: !s };
+      case 'halfmagic': return M.icons.halfmagic ? { ic: ['halfmagic'], off: !s } : { tx: '½', off: !s };
       case 'agahnim': return { tx: s ? '☠' : 'A', off: !s, title: s ? 'Agahnim defeated' : 'Agahnim' };
       default:
         if (/^bottle/.test(key)) return { ic: ['bottle' + (s || 1)], off: !s };
@@ -562,7 +562,7 @@
         var pick = el('div', 'pick');
         var keys = ['bow2', 'boomerang1', 'boomerang2', 'hookshot', 'bomb', 'mushroom', 'powder', 'firerod', 'icerod', 'bombos', 'ether', 'quake', 'lamp', 'hammer',
           'shovel', 'flute', 'net', 'book', 'bottle1', 'somaria', 'byrna', 'cape', 'mirror', 'boots', 'gloves1', 'gloves2', 'flippers', 'moonpearl',
-          'sword1', 'shield1', 'tunic1', 'bow3', 'bigkey', 'map', 'compass', 'crystal', 'pendant_green'];
+          'sword1', 'shield1', 'tunic1', 'bow3', 'halfmagic', 'bigkey', 'map', 'compass', 'crystal', 'pendant_green'];
         keys.forEach(function (k) {
           if (!M.icons[k]) return;
           var b = el('button'); b.type = 'button'; b.title = k; var im = iconImg(k); b.appendChild(im);
