@@ -7,13 +7,14 @@ played again later.
 
 ## Beta v1.10.10 (2026-10-25)
 
-- **Any enemy** (`enemy_any`): one of 68 enemies appears near Link, anywhere, even in an empty
+- **Any enemy** (`enemy_any`): one of 75 enemies appears near Link, anywhere, even in an empty
   room or a screen with no enemies of its own (an idea from JynxCast). The area's sprite
   graphics are swapped for the ones it needs: unpacked from the ROM and sent through the game's
   own graphics upload, 4 frames a sheet. Slots enemies on screen are using are left alone when
   another way works; the next screen loads its own graphics as usual.
   - Enemies and their graphics needs come from the enemizer in Kara's branch; bosses, NPCs,
-    water-only ones and ones tied to pits or sand are left out.
+    and the Mimics (they freeze the game) are left out. Water and sand ones are in, out of
+    their element: a Zora's ripple on dry land, Debirandos and Swamolas anywhere.
   - From the browser console: `CrowdEffects.spawnEnemy('Lynel')`.
 
 ## Beta v1.10.9 (2026-10-25)

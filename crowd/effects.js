@@ -446,8 +446,8 @@
   // possible; if not, they look wrong until the next screen. The next screen
   // loads its own sheets as usual.
   // Enemies and sheet needs: Kara's alttpr-python enemizer (SpriteSheets.py),
-  // everything killable that isn't a boss, an NPC, water-only or tied to its
-  // spot (pits, sand, water). Not the Mimics: the enemizer's own ids for
+  // everything killable that isn't a boss or an NPC, water and sand ones too
+  // (they're fun out of place). Not the Mimics: the enemizer's own ids for
   // them aren't the game's (spawned as is, the game freezes).
   var ANY_ENEMIES = [
     [0x00, [[0,0,0,[17,25]]], 'Raven'],
@@ -520,6 +520,14 @@
     [0xC7, [[0,0,[39],0]], 'Pokey'],
     [0xC9, [[0,0,0,[16]]], 'Tektite'],
     [0xD0, [[0,0,0,[20]]], 'Lynel'],
+    // water and sand ones, out of their element on purpose
+    [0x55, [[0,0,[12,24],0]], 'Fireball Zora'],
+    [0x56, [[0,0,[12],[68]]], 'Zora'],
+    [0x63, [[[47],0,0,0]], 'Debirando Pit'],
+    [0x64, [[[47],0,0,0]], 'Debirando'],
+    [0x9A, [[0,0,[34],0]], 'Kyameron'],
+    [0xA1, [[0,0,[38],0]], 'Freezor'],
+    [0xCF, [[0,0,0,[25]]], 'Swamola'],
   ];
   // which of the four slots each sprite type draws from (bit per slot, same source)
   var SLOT_USE = '84008080444808540142084828a080814811182801f0400f0110f0400880ff808666323333364822088884c44cc1144442c11111113304440181ff0070f0181114844040c084444242c8088884442240444044418880040000108280080ff8004f841004c8499968800002f00000000000000000890004122040000000000000';
