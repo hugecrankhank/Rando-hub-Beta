@@ -5,6 +5,17 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.10.1 (2026-10-24)
+
+- **Go-mode reveal marks dungeons**: an item revealed inside a dungeon now shows on that
+  dungeon's square on the map (up to two pictures), next to its name in the dungeon list,
+  and on its card ("Revealed inside", with Clear). Before, only overworld squares got a
+  mark in Mudora 2.0.
+- **Mudora (Hutch's logic) shows reveals too**: dungeons by name, overworld spots on
+  Hutch's square of the same name ("Kakariko Well - Top" → Kakariko Well). A reveal that
+  arrives before the tracker is ready waits for it. Hutch's own tracker, EmoTracker and
+  Muffins' Tracker 2.0 on its own still only get the banner on the game.
+
 ## Beta v1.10.0 (2026-10-24)
 
 - **Zelda 1 seeds: ZORA 2.0 beta 8** (from beta 5). Nearly every setting in the New seed

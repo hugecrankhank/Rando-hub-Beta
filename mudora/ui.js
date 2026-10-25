@@ -125,7 +125,7 @@
       });
       r.addEventListener('click', function () { var i = dgIndex(d[1]); if (i >= 0) selectDg(i); });
       box.appendChild(r);
-      dgEls[k] = { r: r, pz: pz, chest: chest, key: key, bk: bk, mp: mp, cp: cp };
+      dgEls[k] = { r: r, nm: nm, pz: pz, chest: chest, key: key, bk: bk, mp: mp, cp: cp };
     });
     paintDungeons();
   }
@@ -168,6 +168,13 @@
         else if (pk === '') E.pz.textContent = '?';
       }
       E.pz.title = pn ? pn.replace('green', 'green ').replace('red', 'red ') : '';
+      // items revealed in this dungeon, next to its name
+      var rvl = (M.dmarks ? M.dmarks(k) : []).filter(function (x) { return M.icons[x]; }), rsig = rvl.join(',');
+      if (E.nm.__rv !== rsig) {
+        E.nm.__rv = rsig;
+        Array.prototype.slice.call(E.nm.querySelectorAll('img.rv')).forEach(function (x) { x.remove(); });
+        rvl.forEach(function (x) { var im = iconImg(x); if (im) { im.className = 'rv'; im.title = 'Revealed in this dungeon'; E.nm.appendChild(im); } });
+      }
     });
   }
 
@@ -397,6 +404,13 @@
       }
       var cls = 'pin dgn ' + (M.dcleared[k] ? 'done' : (M.dcolors[k] || 'red'));
       if (p.className !== cls) p.className = cls;
+      // items revealed inside it (Crowd Control's reveal, M.dmark): up to two pictures over the square
+      var dm = (M.dmarks ? M.dmarks(k) : []).filter(function (x) { return M.icons[x]; }).slice(-2), dsig = dm.join(',');
+      if (p.__dm !== dsig) {
+        p.__dm = dsig;
+        Array.prototype.slice.call(p.querySelectorAll('img')).forEach(function (x) { x.remove(); });
+        dm.forEach(function (x, i) { var im = el('img'); im.alt = ''; im.src = M.icons[x]; if (i) im.style.left = '16px'; p.appendChild(im); });
+      }
     });
     // entrances (entrance shuffle): every door and hole, where it leads
     var pend = M.entPending ? M.entPending() : null;
@@ -566,6 +580,13 @@
       var s2 = el('div', 'st'); var i2 = el('i'); i2.style.background = CSS[dc] || '#555'; s2.appendChild(i2); s2.appendChild(document.createTextNode(COLOR_WORD[dc] || dc)); card.appendChild(s2);
       var max = it[k + 'MaxChests'];
       if (max != null) card.appendChild(el('div', 'st', 'Chests: ' + (it[k + 'Chests'] || 0) + ' of ' + max + (it[k + 'BigKey'] ? ' · big key ✓' : '')));
+      var dmk = M.dmarks ? M.dmarks(k) : [];
+      if (dmk.length) {
+        var rv = el('div', 'st', 'Revealed inside: ');
+        dmk.forEach(function (x) { var im = iconImg(x); if (im) { im.style.width = im.style.height = '20px'; im.style.verticalAlign = 'middle'; im.style.imageRendering = 'pixelated'; rv.appendChild(im); } });
+        card.appendChild(rv);
+        btn('Clear revealed', function () { M.mark('dg:' + k, null); hideCard(); });
+      }
       var short = (DGS.filter(function (d) { return d[0] === k; })[0] || [])[1];
       btn('Open its map', function () { var i = dgIndex(short); hideCard(); if (i >= 0) selectDg(i); });
       card.appendChild(btns);

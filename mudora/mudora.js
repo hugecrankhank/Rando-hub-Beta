@@ -417,6 +417,49 @@
     emit('checks');
   };
 
+  // dungeons hold a list of revealed items ("hammer,lamp"), shown on the dungeon's
+  // square and in the dungeon list
+  M.dmarks = function (dk) { var v = M.marks['dg:' + dk]; return v ? String(v).split(',').filter(Boolean) : []; };
+  M.dmark = function (dk, icon) {
+    var l = M.dmarks(dk); if (icon && l.indexOf(icon) < 0) l.push(icon);
+    M.mark('dg:' + dk, l.join(','));
+  };
+
+  // ── Crowd Control's "Reveal a go-mode item" (crowd/effects.js) ────────────
+  // The game page sends { loc, region, item, icon }: the spoiler's spot. Which
+  // square holds it: Mudora 2.0 knows exactly (M.revealSquare, Muffins' data);
+  // otherwise the dungeon from the spot's name or region, or Hutch's square by
+  // name. Dungeons get the item in their list; other squares a mark.
+  var DG_RE = [['hc', /hyrule castle|sewers|escape/i], ['ep', /eastern palace/i], ['dp', /desert palace/i],
+    ['toh', /tower of hera|mountain tower/i], ['ct', /castle tower|agahnim'?s tower|^agahnim\b/i],
+    ['pod', /palace of darkness|dark palace/i], ['sp', /swamp palace/i], ['sw', /skull woods/i],
+    ['tt', /thieves'? ?town/i], ['ip', /ice palace/i], ['mm', /misery mire/i], ['tr', /turtle rock/i],
+    ['gt', /ganon'?s ?tower/i]];
+  var RV_ALIAS = { pegasusrocks: 'bonkrockcave', bumpercave: 'bumpercaveledge', graveyardledge: 'graveyardcave', hammerpegs: 'pegcave' };
+  function nrm(x) { return String(x || '').toLowerCase().replace(/\([^)]*\)/g, '').replace(/[^a-z0-9]/g, ''); }
+  function guessSquare(m) {
+    var txt = m.loc + ' | ' + (m.region || '');
+    for (var i = 0; i < DG_RE.length; i++) {
+      if (DG_RE[i][1].test(m.loc) || (DG_RE[i][1].test(m.region || '') && !/^(light|dark) world$/i.test(m.region || ''))) return 'dg:' + DG_RE[i][0];
+    }
+    // an overworld square: same name as the spot, or as the spot's first part ("Kakariko Well - Top")
+    var full = nrm(m.loc), head = nrm(String(m.loc).split(' - ')[0]);
+    full = RV_ALIAS[full] || full; head = RV_ALIAS[head] || head;
+    var hit = null;
+    (M.checks || []).some(function (c) { var n = nrm(c.name); if (n && (n === full || n === head)) { hit = c.id; return true; } return false; });
+    return hit;
+  }
+  var revealQ = [];
+  M.reveal = function (m) {
+    if (!M.checks || !M.checks.length) { revealQ.push(m); return; }      // the tracker isn't ready yet
+    var sq = (M.revealSquare && M.revealSquare(m)) || guessSquare(m);
+    if (sq && String(sq).indexOf('dg:') === 0) M.dmark(String(sq).slice(3), m.icon);
+    else if (sq && m.icon) M.mark(sq, m.icon);
+    M.toast('\ud83d\udd2e ' + m.item + ' is at ' + m.loc + (sq ? '' : ' (not on this map)'));
+  };
+  M.on(function () { if (revealQ.length && M.checks && M.checks.length) { var q = revealQ; revealQ = []; q.forEach(M.reveal); } });
+  try { new BroadcastChannel('rando-hub-reveal').onmessage = function (ev) { if (ev.data && ev.data.type === 'reveal') M.reveal(ev.data); }; } catch (e) {}
+
   var toastT = null;
   function toast(msg) {
     var t = document.getElementById('toast'); if (!t) return;

@@ -606,7 +606,7 @@
         banner('done-ok', '\ud83d\udd2e ' + e.name + ' is at ' + e.loc, (job.user && job.user !== 'test' ? 'Revealed by ' + job.user : 'Revealed') +
           (/^(Light|Dark) World$/.test(e.region) ? ' \u00b7 ' + e.region : ''), 9000);
         feed('\ud83d\udd2e ' + e.name + ': ' + where, 'good');
-        try { var bc = new BroadcastChannel('rando-hub-reveal'); bc.postMessage({ type: 'reveal', loc: e.loc, item: e.name, icon: e.icon, seed: sp.name }); bc.close(); } catch (x) {}
+        try { var bc = new BroadcastChannel('rando-hub-reveal'); bc.postMessage({ type: 'reveal', loc: e.loc, region: e.region, item: e.name, icon: e.icon, seed: sp.name }); bc.close(); } catch (x) {}
         send({ type: 'reveal', item: e.name, loc: e.loc, region: e.region, user: job.user || '' });
         return true;
       } },
