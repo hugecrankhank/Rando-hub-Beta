@@ -77,7 +77,7 @@
     ITEMS.forEach(function (key) {
       var b = itemEls[key]; if (!b) return;
       var s = itemState(key), L = look(key, s);
-      var sig = JSON.stringify([L, M.iconState, medLabel(key)]);
+      var sig = JSON.stringify([L, M.iconState, medLabel(key), M.iconRev]);
       if (b.__sig === sig) return;
       b.__sig = sig; b.textContent = '';
       b.classList.toggle('off', !!L.off);
@@ -157,7 +157,7 @@
       var pn = it[k + 'Prize'];
       E.mp.style.display = E.cp.style.display = k === 'ct' ? 'none' : '';
       var pk = k === 'hc' || k === 'ct' || k === 'gt' ? null : prizeIcon(pn);
-      var psig = [pk, M.icons[pk] ? 1 : 0, !!it[k + 'PrizeObtained']].join();
+      var psig = [pk, M.icons[pk] ? 1 : 0, !!it[k + 'PrizeObtained'], M.iconRev].join();
       if (E.pz.__sig !== psig) {
         E.pz.__sig = psig; E.pz.textContent = '';
         if (pk && M.icons[pk]) {
@@ -246,17 +246,17 @@
   function paintHere(force) {
     if (!here) return;
     var k = hereKey(), it = M.items || {};
-    if (!k) { if (here.k !== null || force) { here.k = null; here.sig = ''; here.box.className = 'dghere empty'; } return; }
+    if (!k) { if (here.k !== null || force) { here.k = null; here.sig = ''; here.box.className = 'dghere empty'; copyToPop(); } return; }
     var d = DGS.filter(function (x) { return x[0] === k; })[0];
     var boss = bossOf(k), pn = it[k + 'Prize'], pk = k === 'hc' || k === 'ct' || k === 'gt' ? null : prizeIcon(pn);
     var max = it[k + 'MaxChests'], got = it[k + 'Chests'] || 0, beaten = !!(it[k + 'BossDefeated'] || it[k + 'PrizeObtained'] || M.dcleared[k]);
     var KC = window.RandoKeysClient, km = it[k + 'MaxSmallKeys'] != null ? it[k + 'MaxSmallKeys'] : it[k + 'SmallKeysMax'], kf = it[k + 'SmallKeys'] || 0;
-    var sig = [k, boss, pk, M.icons[pk] ? 1 : 0, !!it[k + 'PrizeObtained'], max, got, beaten, km, kf, !!it[k + 'BigKey'], M.icons.bigkey ? 1 : 0].join('|');
+    var sig = [k, boss, pk, M.icons[pk] ? 1 : 0, M.iconRev, !!it[k + 'PrizeObtained'], max, got, beaten, km, kf, !!it[k + 'BigKey'], M.icons.bigkey ? 1 : 0].join('|');
     if (sig === here.sig && !force) return;
     here.sig = sig; here.k = k;
     here.box.className = 'dghere' + (beaten ? ' beaten' : '');
     here.nm.textContent = d[2];
-    here.bimg.src = BOSS_ART[boss] || BOSS_ART.unknown;
+    here.bimg.src = abs(BOSS_ART[boss] || BOSS_ART.unknown);
     here.boss.title = (BOSS_NAME[boss] || boss) + (beaten ? ' (beaten)' : '') + '\nClick / right click: another boss (boss shuffle)';
     here.pz.textContent = '';
     if (pk && M.icons[pk]) {
@@ -274,12 +274,45 @@
     var openN = Math.max(0, show - Math.min(left, show));
     for (var i = 0; i < show; i++) {
       var c = el('img', 'ch' + (i < openN ? ' open' : '')); c.alt = ''; c.draggable = false;
-      c.src = i < openN ? '../mfns-tracker/app/dungeons/chest0.png' : '../mfns-tracker/app/dungeons/smallchest.png';
+      c.src = abs(i < openN ? '../mfns-tracker/app/dungeons/chest0.png' : '../mfns-tracker/app/dungeons/smallchest.png');
       here.chests.appendChild(c);
     }
     here.chests.appendChild(el('span', 'hl' + (left ? '' : ' none'), left ? left + ' left' + (max > 16 ? ' of ' + max : '') : 'all done'));
     here.chests.title = got + ' of ' + max + ' found\nClick: one more found, right click: undo';
+    copyToPop();
   }
+  function abs(u) { try { return new URL(u, location.href).href; } catch (e) { return u; } }
+  // ── the card in a window of its own (for stream: OBS window capture) ──────
+  // HydeOut: under the list it made the side panel scroll, so in the panel it
+  // only shows with "This dungeon only"; ⧉ Pop out puts it in its own small
+  // window, kept up to date from here.
+  var pop = null;
+  function popCss() {
+    var out = [];
+    Array.prototype.forEach.call(document.styleSheets, function (ss) {
+      var rules; try { rules = ss.cssRules; } catch (e) { return; }
+      Array.prototype.forEach.call(rules || [], function (r) { if (/dghere|:root|\.hp\b|icons-smooth/.test(r.cssText)) out.push(r.cssText); });
+    });
+    return out.join('\n') + '\nhtml,body{margin:0;background:#101214;color:#d7dde3;font:13px/1.3 system-ui,sans-serif;overflow:hidden}.dghere{margin:6px}';
+  }
+  function copyToPop() {
+    if (!pop || pop.closed || !here) return;
+    var d = pop.document, box = d.getElementById('c');
+    if (!box) {
+      d.open(); d.write('<!doctype html><title>Mudora: this dungeon</title><style>' + popCss() + '</style><div id="c"></div>'); d.close();
+      box = d.getElementById('c');
+      if (document.documentElement.classList.contains('icons-smooth')) d.documentElement.classList.add('icons-smooth');
+    }
+    var html = here.box.outerHTML;
+    if (box.__html !== html) { box.__html = html; box.innerHTML = html; var c = box.firstChild; if (c) { c.removeAttribute('id'); c.classList.remove('hide-side'); } }
+  }
+  function popOut() {
+    if (pop && !pop.closed) { pop.focus(); return; }
+    pop = window.open('', 'mudora-dungeon', 'width=420,height=110,menubar=no,toolbar=no,location=no,status=no');
+    if (!pop) { M.toast('The pop-out was blocked: allow pop-ups for this page.'); return; }
+    paintHere(true);
+  }
+  M.popOutDungeon = popOut;
 
   // ── long press (phones): the same as a right click ────────────────────────
   function longPress(node, fn) {
@@ -783,6 +816,48 @@
     if ($('dglist')) $('dglist').value = listMode;
     paintDungeons();
   }
+  if ($('b-pop')) $('b-pop').addEventListener('click', popOut);
+  // how the item pictures look: the game's pixels, smoothed, or your own
+  var ICON_KEYS = 'bow1 bow2 bow3 boomerang1 boomerang2 hookshot bomb mushroom powder firerod icerod bombos ether quake lamp hammer shovel flute net book ' +
+    'bottle1 bottle2 bottle3 bottle4 bottle5 bottle6 bottle7 somaria byrna cape mirror boots gloves1 gloves2 flippers moonpearl sword1 sword2 sword3 sword4 ' +
+    'shield1 shield2 shield3 tunic0 tunic1 tunic2 halfmagic bigkey map compass crystal crystal_red pendant_red pendant_blue pendant_green';
+  function iconSel() {
+    var s = $('iconstyle'); if (!s) return;
+    var n = Object.keys(M.customIcons ? M.customIcons() : {}).length;
+    s.querySelector('option[value=custom]').textContent = n ? 'Custom pictures (' + n + ')…' : 'Custom pictures…';
+    s.querySelector('option[value=clear]').hidden = !n;
+    s.value = M.iconStyle || 'pixel';
+  }
+  if ($('iconstyle')) {
+    iconSel();
+    $('iconstyle').addEventListener('change', function () {
+      var v = this.value;
+      if (v === 'pixel' || v === 'smooth') { M.setIconStyle(v); iconSel(); return; }
+      if (v === 'clear') { if (confirm('Forget your own pictures and use the game’s again?')) M.setCustomIcons({}); iconSel(); return; }
+      iconSel();
+      alert('Your own item pictures: pick PNG files named after the item, for example hookshot.png, sword2.png, crystal_red.png.\n' +
+        'Each one takes the place of the game’s picture for that item; the rest stay as they are.\n\nNames: ' + ICON_KEYS.split(' ').join(', '));
+      var inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/png,image/gif,image/webp'; inp.multiple = true;
+      inp.addEventListener('change', function () {
+        var map = Object.assign({}, M.customIcons()), files = Array.prototype.slice.call(inp.files || []), left = files.length, used = 0, skipped = [];
+        if (!left) return;
+        files.forEach(function (f) {
+          var k = f.name.replace(/\.[a-z]+$/i, '').toLowerCase();
+          if (ICON_KEYS.split(' ').indexOf(k) < 0 || f.size > 200000) { skipped.push(f.name); if (!--left) done(); return; }
+          var rd = new FileReader();
+          rd.onload = function () { map[k] = rd.result; used++; if (!--left) done(); };
+          rd.onerror = function () { skipped.push(f.name); if (!--left) done(); };
+          rd.readAsDataURL(f);
+        });
+        function done() {
+          if (used) M.setCustomIcons(map);
+          iconSel();
+          M.toast(used + ' picture' + (used === 1 ? '' : 's') + ' used' + (skipped.length ? '; not used (name not an item, or over 200 KB): ' + skipped.join(', ') : ''));
+        }
+      });
+      inp.click();
+    });
+  }
   if ($('dglist')) $('dglist').addEventListener('change', function () { listMode = this.value; try { localStorage.setItem('rhb-mudora-dglist', listMode); } catch (e) {} applyList(); });
   function dgModes() {
     var sel = $('dgmode');
@@ -862,7 +937,7 @@
     else if (what === 'checks') { views.forEach(function (v) { v.paintPins(); }); paintDungeons(); if (cardFor && !cardSticky) fillCard(false); }
     else if (what === 'dungeons') paintDungeons();
     else if (what === 'maps') views.forEach(function (v) { v.paintTiles(); });
-    else if (what === 'icons') { paintItems(); paintDungeons(); views.forEach(function (v) { v.paintPins(); }); var bi = $('brand-ic'); if (M.icons.book) bi.src = M.icons.book; paintLink(); }
+    else if (what === 'icons') { iconSel(); paintItems(); paintDungeons(); views.forEach(function (v) { v.paintPins(); }); var bi = $('brand-ic'); if (M.icons.book) bi.src = M.icons.book; paintLink(); }
     else if (what === 'link') paintLink();
   });
   setTimeout(onResize, 50);

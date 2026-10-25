@@ -417,7 +417,9 @@
     // (zelda3 hud.c Hud_Update_Magic), too wide for a square, so Mudora draws its
     // own: a pixel "1/2" in the meter's green, outlined in black.
     out.halfmagic = halfMagicIcon(cv, cx);
-    M.icons = out; M.iconState = 'ready';
+    M.pixelIcons = out;
+    M.icons = out; M.iconState = 'ready'; M.iconRev = (M.iconRev || 0) + 1;
+    if (M.iconStyle !== 'pixel' || Object.keys(customIcons()).length) { restyle(); return; }
     emit('icons');
   }
   function halfMagicIcon(cv, cx) {
@@ -446,6 +448,69 @@
     }
     cx.clearRect(0, 0, 16, 16); cx.putImageData(new ImageData(px, 16, 16), 0, 0);
     return cv.toDataURL('image/png');
+  }
+  // ── how the pictures look (HydeOut, Oct 2026) ──────────────────────────
+  // 'pixel': the game's own, sharp. 'smooth': each picture enlarged with
+  // Scale2x twice (16 → 64 pixels: stairs on diagonals and curves become
+  // smooth lines, colours stay the game's), then shown smoothly. Custom
+  // pictures (⚙ Icons → Custom pictures…: PNG files named after the item,
+  // e.g. hookshot.png) take the place of the game's, item by item.
+  M.iconStyle = 'pixel';
+  try { M.iconStyle = localStorage.getItem('rhb-mudora-iconstyle') || 'pixel'; } catch (e) {}
+  var CUSTOM_KEY = 'rhb-mudora-custom-icons';
+  function customIcons() { try { return JSON.parse(localStorage.getItem(CUSTOM_KEY) || '{}'); } catch (e) { return {}; } }
+  M.customIcons = customIcons;
+  M.setCustomIcons = function (map) {
+    try { if (map && Object.keys(map).length) localStorage.setItem(CUSTOM_KEY, JSON.stringify(map)); else localStorage.removeItem(CUSTOM_KEY); }
+    catch (e) { M.toast('Those pictures are too big to keep (try smaller PNGs).'); return false; }
+    restyle(); return true;
+  };
+  M.setIconStyle = function (st) { M.iconStyle = st; try { localStorage.setItem('rhb-mudora-iconstyle', st); } catch (e) {} restyle(); };
+  function scale2x(src, w, h) {
+    var dst = new Uint32Array(w * h * 4), W = w * 2;
+    function at(x, y) { x = x < 0 ? 0 : x >= w ? w - 1 : x; y = y < 0 ? 0 : y >= h ? h - 1 : y; return src[y * w + x]; }
+    for (var y = 0; y < h; y++) for (var x = 0; x < w; x++) {
+      var P = at(x, y), A = at(x, y - 1), B = at(x + 1, y), C = at(x - 1, y), D = at(x, y + 1);
+      var e0 = P, e1 = P, e2 = P, e3 = P;
+      if (C === A && C !== D && A !== B) e0 = A;
+      if (A === B && A !== C && B !== D) e1 = B;
+      if (D === C && D !== B && C !== A) e2 = C;
+      if (B === D && B !== A && D !== C) e3 = D;
+      var o = y * 2 * W + x * 2;
+      dst[o] = e0; dst[o + 1] = e1; dst[o + W] = e2; dst[o + W + 1] = e3;
+    }
+    return dst;
+  }
+  function smoothURL(url) {
+    return new Promise(function (res) {
+      var im = new Image();
+      im.onload = function () {
+        var w = im.naturalWidth, h = im.naturalHeight;
+        if (!w || !h || w > 64) { res(url); return; }
+        var c = document.createElement('canvas'); c.width = w; c.height = h; var x = c.getContext('2d'); x.drawImage(im, 0, 0);
+        var px = new Uint32Array(x.getImageData(0, 0, w, h).data.buffer.slice(0));
+        var a = scale2x(px, w, h), b = scale2x(a, w * 2, h * 2);
+        var o = document.createElement('canvas'); o.width = w * 4; o.height = h * 4;
+        o.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(b.buffer), w * 4, h * 4), 0, 0);
+        res(o.toDataURL('image/png'));
+      };
+      im.onerror = function () { res(url); };
+      im.src = url;
+    });
+  }
+  var styleRun = 0;
+  function restyle() {
+    var base = M.pixelIcons; if (!base) return;
+    var run = ++styleRun, cus = customIcons(), keys = Object.keys(base);
+    document.documentElement.classList.toggle('icons-smooth', M.iconStyle !== 'pixel');
+    var jobs = keys.map(function (k) { return M.iconStyle === 'pixel' ? Promise.resolve(base[k]) : smoothURL(base[k]); });
+    Promise.all(jobs).then(function (urls) {
+      if (run !== styleRun) return;
+      var out = {};
+      keys.forEach(function (k, i) { out[k] = urls[i]; });
+      Object.keys(cus).forEach(function (k) { out[k] = cus[k]; });
+      M.icons = out; M.iconRev = (M.iconRev || 0) + 1; emit('icons');
+    });
   }
   M._useIcons = useIcons;   // for tests: pictures as the worker sends them
   var iconJob = null;

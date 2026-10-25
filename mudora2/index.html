@@ -67,8 +67,8 @@
   .pz.got img, .hp.got img { filter: brightness(1.3) saturate(1.5) drop-shadow(0 0 2px var(--glow, #fff)) drop-shadow(0 0 4px var(--glow, #fff)); }
   .pz.crystal, .hp.crystal { --glow: #6fb6ff; } .pz.crystal_red, .hp.crystal_red { --glow: #ff5c5c; }
   .pz.pendant_blue, .hp.pendant_blue { --glow: #6fb6ff; } .pz.pendant_green, .hp.pendant_green { --glow: #5ee37a; }
-  .pin.dgn img.pzi { left: 0; top: 0; width: 16px; height: 16px; object-fit: contain; filter: grayscale(.6) brightness(.8) drop-shadow(0 0 1px #000); }
-  .pin.dgn img.pzi.got { filter: brightness(1.2) drop-shadow(0 0 2px #fff); }
+  .pin.dgn img.pzi { left: 15px; top: -8px; width: 26px; height: 26px; object-fit: contain; filter: brightness(.95) drop-shadow(0 0 1px #000) drop-shadow(0 0 1px #000); }
+  .pin.dgn img.pzi.got { filter: brightness(1.25) saturate(1.4) drop-shadow(0 0 2px #fff) drop-shadow(0 0 1px #000); }
   /* this dungeon: the card for the dungeon Link is in */
   .dghere { margin: 4px 6px 8px; min-height: 76px; display: grid; grid-template-columns: 64px 1fr; gap: 8px; align-items: center; padding: 6px 8px;
     border-radius: 8px; background: #1b1f23; border: 1px solid #2c3238; }
@@ -89,8 +89,14 @@
   .dghere .hc .hl { margin-left: 4px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; }
   .dghere .hc .hl.none { color: #2ecc71; }
   #dungeons .dg { order: 0; }
-  /* "This dungeon only": just the card (for stream) */
+  /* "This dungeon only": just the card (for stream); otherwise the card isn't in the panel (it made it scroll: ⧉ pops it out) */
   body.dg-here-only #dungeons, body.dg-here-only #side .h-dg { display: none; }
+  body:not(.dg-here-only) #side #dghere { display: none; }
+  /* quick clicks no longer select (paint blue) the pictures */
+  #side, #items, #dungeons, .dghere, .pin { -webkit-user-select: none; user-select: none; }
+  #side img, .pin img { -webkit-user-drag: none; }
+  /* Icons → Smooth: the enlarged pictures, drawn smoothly */
+  .icons-smooth .it img, .icons-smooth .dg img, .icons-smooth .dghere img.bk, .icons-smooth .hp img, .icons-smooth .pin img, .icons-smooth #card img { image-rendering: auto; }
   .dg .pz { position: relative; }
   .dg .pz .plus { position: absolute; right: -4px; top: -5px; font: 900 12px/1 system-ui, sans-serif; color: #fff; text-shadow: 0 0 2px #000, 0 0 2px #000, 0 0 3px #000; pointer-events: none; }
   .dg .pz .plus.red { color: #ff6b6b; } .dg .pz .plus.green { color: #5ee37a; }
@@ -256,6 +262,8 @@
     <label title="The game's screens as a grid on the maps"><input type="checkbox" id="o-grid"> Grid</label>
     <label title="Open a dungeon's map when Link goes in (off: the world map stays up)"><input type="checkbox" id="o-follow"> Follow into dungeons</label>
     <label title="The dungeon list: in the game's order, the ones you can clear first, or only the dungeon Link is in (compact, for stream)">List <select id="dglist"><option value="all">All dungeons</option><option value="ready">Ready first</option><option value="here">This dungeon only</option></select></label>
+    <button id="b-pop" type="button" title="The card for the dungeon Link is in, in a small window of its own (for stream: OBS window capture)">⧉ Dungeon card</button>
+    <label title="How the item pictures look: the game's own pixels, smoothed, or your own pictures">Icons <select id="iconstyle"><option value="pixel">Game pixels</option><option value="smooth">Smooth</option><option value="custom">Custom pictures…</option><option value="clear">Use the game's again</option></select></label>
     <span id="link" title="Muffins' logic, read live from his tracker"><i></i><span id="link-t">Starting…</span></span>
     <span class="sp"></span>
     <button id="b-set" type="button" title="Tracker and logic settings: change them any time, mid-game too">⚙ Settings</button>

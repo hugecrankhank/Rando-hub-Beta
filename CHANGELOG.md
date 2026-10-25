@@ -26,6 +26,15 @@ Mudora and Mudora 2.0, from HydeOut's notes:
   phone), and the tracker changes with it. Placed with the game's own sum for its map markers,
   both zoom levels. ⚙ Settings → "Prize marks on the game's map" turns it off. Mudora and
   Mudora 2.0 only.
+- **The dungeon card no longer makes the side panel scroll** (HydeOut): in the panel it only shows
+  with List → This dungeon only. **⧉ Dungeon card** puts it in a small window of its own, kept up
+  to date, for OBS window capture.
+- **Quick clicks on the tracker no longer select the pictures** (the blue highlight).
+- **Icons: Game pixels / Smooth / Custom pictures.** Smooth enlarges each picture with Scale2x
+  twice (stairs on diagonals and curves become smooth lines, the game's colours) and draws it
+  smoothly. Custom pictures: PNG files named after the item (hookshot.png, crystal_red.png…)
+  replace the game's, item by item; "Use the game's again" forgets them.
+- **Bigger prizes on the maps:** the crystal or pendant now sits beside each dungeon's circle, larger.
 - **Every one of Muffins' presets in Mudora 2.0** (⚙ Settings → New game from a preset): all 67
   of his, not just the 21 his launch page has buttons for. His groups come first, then
   "More presets". A **search box** above the list finds them by name, mode or description
