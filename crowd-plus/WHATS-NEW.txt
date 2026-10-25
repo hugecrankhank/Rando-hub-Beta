@@ -5,6 +5,14 @@ Crowd Control+ is Rando Hub's crowd control: the gift bridge with a
 control panel and stream overlays. Every gift effect, big-donation seed
 roll and the subathon clock work exactly as before.
 
+NEW IN 1.10.9
+------------
+- item_off (Item gone, 30s): a random item Link has disappears, then
+  comes back. Any item-menu item, the bottles (as one), gloves, boots,
+  flippers or Moon Pearl. The gift alert says which item.
+- Fix: Shield gone, Sword gone and Sword downgrade gave the gear back
+  straight away in 1.10.7 and 1.10.8. They work now.
+
 NEW IN 1.10.8
 ------------
 - Sword effects: sword_off (Sword gone for 30s, then it comes back),

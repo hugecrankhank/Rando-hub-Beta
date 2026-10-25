@@ -598,6 +598,79 @@
   }
   function gearCheck(kind) { return function (r) { return gearHas(kind, r) || lent(kind) ? '' : r[GEAR[kind].addr] > GEAR[kind].max ? 'swordless seed' : 'Link has no ' + kind; }; }
 
+  // ── "Item gone": one random inventory item lent out for a while ─────────
+  // Every item in the item menu, plus the gloves, boots, flippers and Moon
+  // Pearl ($7EF340-$7EF357). The sword and shield have their own effects,
+  // and the tunic is left alone. The item's number is held at 0 while the
+  // effect runs, as if Link never had it; the boots and flippers also lose
+  // their ability bits ($7EF379: 4 dash, 2 swim). All four bottles go as one.
+  // It comes back when time's up, with anything found meanwhile added
+  // (bombs and gloves add up, the rest keep the better one). Kept in this
+  // browser with the ROM, like the shield and sword loans.
+  //
+  // The game uses the item equipped on Y without checking Link still has
+  // it (zelda3 Link_HandleYItem), so Y does nothing while the equipped item
+  // is the one that's gone; the item menu skips it (Hud_DoWeHaveThisItem).
+  var INV = [
+    [0x340, function (v) { return v >= 3 ? 'Silver Arrows' : 'Bow'; }], [0x341, function (v) { return v >= 2 ? 'Red Boomerang' : 'Boomerang'; }],
+    [0x342, 'Hookshot'], [0x343, 'Bombs', 'add', 99], [0x344, function (v) { return v >= 2 ? 'Magic Powder' : 'Mushroom'; }],
+    [0x345, 'Fire Rod'], [0x346, 'Ice Rod'], [0x347, 'Bombos'], [0x348, 'Ether'], [0x349, 'Quake'], [0x34A, 'Lamp'],
+    [0x34B, 'Hammer'], [0x34C, function (v) { return v >= 2 ? 'Flute' : 'Shovel'; }], [0x34D, 'Bug Net'], [0x34E, 'Book of Mudora'],
+    [0x34F, 'Bottles', 'bottles'], [0x350, 'Cane of Somaria'], [0x351, 'Cane of Byrna'], [0x352, 'Magic Cape'],
+    [0x353, function (v) { return v >= 2 ? 'Magic Mirror' : 'Magic Scroll'; }],
+    [0x354, function (v) { return v >= 2 ? "Titan's Mitt" : 'Power Glove'; }, 'add', 2], [0x355, 'Pegasus Boots', 0, 0, 0x04],
+    [0x356, 'Flippers', 0, 0, 0x02], [0x357, 'Moon Pearl'],
+  ];
+  function invName(e, v) { return typeof e[1] === 'function' ? e[1](v) : e[1]; }
+  function invEntry(addr) { for (var i = 0; i < INV.length; i++) if (INV[i][0] === addr) return INV[i]; return null; }
+  var ITEM_KEY = 'rhb-item-loan';
+  var itemLoan = (function () { try { return JSON.parse(localStorage.getItem(ITEM_KEY) || 'null'); } catch (e) { return null; } })();
+  function itemSave() { try { if (itemLoan) localStorage.setItem(ITEM_KEY, JSON.stringify(itemLoan)); else localStorage.removeItem(ITEM_KEY); } catch (e) {} }
+  function itemCandidates(r) {
+    return INV.filter(function (e) {
+      var a = 0xF000 + e[0];
+      if (e[2] === 'bottles') { for (var i = 0; i < 4; i++) if (r[0xF35C + i]) return true; return false; }
+      if (!r[a]) return false;
+      if (e[0] === 0x352 && r[0x55]) return false;                          // cape on: it'd stay on with Y blocked
+      if (e[0] === 0x351 && r[0x303] === 18 && r[0x37B]) return false;     // Byrna's shield up
+      if (e[0] === 0x356 && (r[0x5D] === 4 || r[0x5D] === 0x13)) return false;   // swimming
+      return true;
+    });
+  }
+  function itemTake(r) {
+    var list = itemCandidates(r); if (!list.length) return null;
+    var e = list[Math.floor(Math.random() * list.length)], a = 0xF000 + e[0];
+    var l = { rom: romId(), addr: e[0], name: invName(e, r[a]), v: r[a], ab: e[4] ? r[0xF379] & e[4] : 0 };
+    if (e[2] === 'bottles') { l.slots = [r[0xF35C], r[0xF35D], r[0xF35E], r[0xF35F]]; l.name = 'Bottles'; for (var i = 0; i < 4; i++) r[0xF35C + i] = 0; }
+    r[a] = 0; if (e[4]) r[0xF379] &= ~e[4];
+    itemLoan = l; itemSave();
+    return l;
+  }
+  function itemFrame(r) {
+    var l = itemLoan; if (!l || l.rom !== romId()) return;
+    var e = invEntry(l.addr), a = 0xF000 + l.addr, i;
+    if (active.item_off) {
+      var changed = false;
+      if (e[2] === 'bottles') {
+        for (i = 0; i < 4; i++) if (r[0xF35C + i]) { if (!l.slots[i]) l.slots[i] = r[0xF35C + i]; r[0xF35C + i] = 0; changed = true; }
+        r[a] = 0;
+      } else if (r[a]) {
+        l.v = e[2] === 'add' ? Math.min(e[3], l.v + r[a]) : Math.max(l.v, r[a]);
+        r[a] = 0; changed = true;
+      }
+      if (e[4] && (r[0xF379] & e[4])) { l.ab |= e[4]; r[0xF379] &= ~e[4]; changed = true; }
+      if (changed) itemSave();
+      return;
+    }
+    // time's up (or the page was reloaded): give it back
+    itemLoan = null; itemSave();
+    if (e[2] === 'bottles') {
+      for (i = 0; i < 4; i++) if (!r[0xF35C + i] && l.slots[i]) r[0xF35C + i] = l.slots[i];
+      if (!r[a] || !r[0xF35C + r[a] - 1]) { r[a] = 0; for (i = 0; i < 4; i++) if (r[0xF35C + i]) { r[a] = i + 1; break; } }
+    } else r[a] = e[2] === 'add' ? Math.min(e[3], l.v + r[a]) : Math.max(l.v, r[a]);
+    if (l.ab) r[0xF379] |= l.ab;
+  }
+
   // ── the effects ─────────────────────────────────────────────────────────
   // Instant effects run once (apply). Timed ones last `secs` seconds of play
   // (the clock stops in menus and text boxes); a second gift adds more time.
@@ -796,6 +869,21 @@
     sword_up:    { name: 'Sword upgrade', good: true, apply: function (r) { return gearStep('sword', r, 1); } },
     sword_steal: { name: 'Sword stolen', good: false, apply: function (r) { return gearSteal('sword', r); },
       warn: 'Sword stolen can make the seed unbeatable: if every sword has been found, there is none left to get back (Agahnim\'s barrier and Ganon need one), and the next sword found only gives the Fighter\'s Sword.' },
+
+    // A random item from the inventory, gone for a while (see itemTake above).
+    item_off:    { name: 'Item gone', good: false, secs: 30,
+      check: function (r) { return itemLoan && itemLoan.rom === romId() || itemCandidates(r).length ? '' : 'Link has no items to take'; },
+      start: function () {
+        var c = core(), r = c && c.wram(); if (!r) return;
+        if (itemLoan && itemLoan.rom === romId()) { feed('Item gone: still the ' + itemLoan.name, 'bad'); return; }
+        var l = itemTake(r); if (l) { lastItemGone = l.name; feed('Item gone: the ' + l.name + ' (it comes back when time\'s up)', 'bad'); }
+      },
+      // the game uses Y's item without checking Link still has it
+      input: function (p) {
+        var l = itemLoan, c = core(), r = c && c.wram();
+        return l && r && r[0x202] === l.addr - 0x33F ? p & ~B.Y : p;
+      },
+      end: function () { var c = core(), r = c && c.wram(); if (r && r.length >= 0x20000) itemFrame(r); } },
 
     // These press the app's own roll buttons (randomizer/app.js, reroll.js).
     sprite_roll: { name: 'Random sprite', good: true,
@@ -1092,6 +1180,7 @@
   // ── queue and timers ────────────────────────────────────────────────────
   var queue = [];              // { id, user, label }
   var active = {};             // id -> frames left
+  var lastItemGone = '';
   var paused = {};             // outdoor-only effects waiting indoors
   var gap = 0;                 // frames until the next queued effect may run
   var GAP_FRAMES = 45;         // ~0.75 s between effects, so each one is seen
@@ -1167,7 +1256,7 @@
         'Link isn\'t in normal play (mode ' + ram[A.MODE] + '/' + ram[A.SUBMODE] + ', frozen ' + ram[A.FROZEN] + ', hearts ' + ram[A.HP] + '/' + ram[A.HP_MAX] + ')'), 'info');
     } else waitT = 0;
     if (!inPlay(ram)) return;
-    gearFrame('shield', ram); gearFrame('sword', ram);
+    gearFrame('shield', ram); gearFrame('sword', ram); itemFrame(ram);
     // timed effects
     var outside = ram[A.MODE] === 0x09;   // the ROM only spawns cuccos on the overworld
     for (var id in active) {
@@ -1199,8 +1288,11 @@
     }
     var secs = secsOf(job.id);
     if (secs) {
-      if (!active[job.id] && f.start) { try { f.start(); } catch (e) { console.warn('[crowd]', job.id, e); } }
+      // counted as running before start(), so start() sees it running (the
+      // shield / sword / item loans hold their gear only while it runs)
+      var isNew = !active[job.id];
       active[job.id] = (active[job.id] || 0) + Math.round(secs * (core.fps || 60.1));
+      if (isNew && f.start) { try { f.start(); } catch (e) { console.warn('[crowd]', job.id, e); } }
     }
     else if (f.detour) {
       var dres = startDetour(job, f.detour, core, ram);
@@ -1215,7 +1307,7 @@
       if (job.id === 'monster_mash' && lastMash) feed('🦇 ' + lastMash, 'bad');
     }
     gap = GAP_FRAMES;
-    if (!f.detour) giftCard(job.user, job.label, f.name + (secs ? ' · ' + secs + 's' : '') + (/^warp_/.test(job.id) && lastWarp ? ': ' + lastWarp : ''), f.good);
+    if (!f.detour) giftCard(job.user, job.label, f.name + (job.id === 'item_off' && lastItemGone ? ': ' + lastItemGone : '') + (secs ? ' · ' + secs + 's' : '') + (/^warp_/.test(job.id) && lastWarp ? ': ' + lastWarp : ''), f.good);
     if (!cfg.alerts) feed((job.user ? job.user + ': ' : '') + (job.label ? job.label + ' → ' : '') + f.name + (secs ? ' (' + secs + 's)' : ''),
       f.good ? 'good' : 'bad');   // the gift card already says it
     send({ type: 'applied', effect: job.id, user: job.user });

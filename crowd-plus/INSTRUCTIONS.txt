@@ -546,6 +546,13 @@ All effect names (use these on the right side):
     sword_down     Sword downgrade ............. 30s
                    One step worse (Master to Fighter's and so on),
                    then back. Not for the Fighter's Sword.
+    item_off       Item gone ................... 30s
+                   A random item Link has: anything in the item menu
+                   (all bottles count as one), the gloves, boots,
+                   flippers or Moon Pearl. It comes back at the end,
+                   even after a reload; one found meanwhile is added.
+                   While it's the item on Y, Y does nothing (the
+                   picture on the HUD stays until the menu is opened).
     cucco_storm    Cucco attack (outdoors) ..... 30s
     This folder's mapping.json sets one_hit, no_magic and cucco_storm
     to 20s (see "durations" below).

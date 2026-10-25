@@ -5,6 +5,23 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.10.9 (2026-10-25)
+
+- **Item gone** (`item_off`, 30 s): a random item Link has is gone for the time, then comes
+  back. Anything in the item menu (all four bottles count as one), the gloves, boots
+  (and dashing), flippers (and swimming) or Moon Pearl. The gift alert says which one.
+  - The game uses the item on Y without checking Link still has it, so Y does nothing while
+    the gone item is the one equipped; the HUD keeps showing it until the menu is opened.
+  - One found meanwhile is added when it comes back (bombs and gloves add up). It comes
+    back after a reload too.
+  - Skipped while it'd get stuck: the cape while it's on, the Cane of Byrna while its shield
+    is up, the flippers while Link swims.
+  - Without the pearl in the Dark World Link turns into a bunny at the next screen, and turns
+    back at the next screen after it's back.
+- **Fixed:** Shield gone, Sword gone and Sword downgrade gave the gear back on the first frame
+  (1.10.7, 1.10.8), so they did nothing. A timed effect now counts as running before it
+  starts.
+
 ## Beta v1.10.8 (2026-10-25)
 
 - **Sword effects for Crowd Control:**
