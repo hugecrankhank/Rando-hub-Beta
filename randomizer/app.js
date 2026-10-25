@@ -15,6 +15,7 @@ import { buildUi as buildKaraUi } from './kara/ui.js';
 import { initCustomizer, customizerOn, customRequest, snapshotAlttpr, applyAlttpr, fromSiteSave } from './custom-ui.js';
 import * as Saved from './saved-presets.js';
 import { SETTINGS as KARA_SETTINGS } from './kara/settings-data.js';
+import { patchRomCredits } from './hub-credits.js';
 
 const msu = new MsuPlayer();
 
@@ -173,6 +174,12 @@ function applyCosmetics(rom, { quickswap = true, menuSpeed = true } = {}) {
   }
   w(0x18021A, 0x00);   // music on
   w(0x18017F, 0x00);   // reduce flashing off
+}
+
+// The playtesters and shout-outs in the game's ending (hub-credits.js), for
+// seeds from any generator; then the header checksum again.
+function addHubCredits(rom) {
+  try { if (rom && patchRomCredits(rom) && rom.length % 1024 === 0) updateChecksum(rom); } catch (e) { console.warn('[randomizer] credits', e); }
 }
 
 function updateChecksum(rom) {
@@ -559,6 +566,7 @@ async function generateAndPlay() {
     $('r-toggle').setAttribute('aria-expanded', 'false');
     try { localStorage.setItem('unified-kara-open', '0'); } catch (e) {}
     // keep it across the page reload EmulatorJS needs when switching games
+    addHubCredits(last.rom);
     try { await kvSet('last-seed', last); } catch (e) {}
     logSeed({ fromLink });
 
@@ -677,6 +685,7 @@ async function generateKara({ local = false, note = '' } = {}) {
     document.body.classList.remove('rando-open');
     $('r-toggle').setAttribute('aria-expanded', 'false');
     try { localStorage.setItem('unified-kara-open', '0'); } catch (e) {}
+    addHubCredits(last.rom);
     try { await kvSet('last-seed', last); } catch (e) {}
     logSeed({ fromLink });
     window.UnifiedApp.playRom(rom, name, Kara.trackerFor(settings));
@@ -740,6 +749,7 @@ async function playGwaa(id, { settings = null, race = false, fallback = null } =
     document.body.classList.remove('rando-open');
     $('r-toggle').setAttribute('aria-expanded', 'false');
     try { localStorage.setItem('unified-kara-open', '0'); } catch (e) {}
+    addHubCredits(last.rom);
     try { await kvSet('last-seed', last); } catch (e) {}
     logSeed();
     window.UnifiedApp.playRom(rom, name, Kara.trackerFor(s));
@@ -801,6 +811,7 @@ async function playAlttprSeed(id) {
     document.body.classList.remove('rando-open');
     $('r-toggle').setAttribute('aria-expanded', 'false');
     try { localStorage.setItem('unified-kara-open', '0'); } catch (e) {}
+    addHubCredits(last.rom);
     try { await kvSet('last-seed', last); } catch (e) {}
     logSeed();
     window.UnifiedApp.playRom(rom, name, {
@@ -876,6 +887,7 @@ async function playAvian(hash, { preset = null, custom = null, race = false } = 
     document.body.classList.remove('rando-open');
     $('r-toggle').setAttribute('aria-expanded', 'false');
     try { localStorage.setItem('unified-kara-open', '0'); } catch (e) {}
+    addHubCredits(last.rom);
     try { await kvSet('last-seed', last); } catch (e) {}
     logSeed();
     window.UnifiedApp.playRom(rom, name, Avian.trackerFor(m));

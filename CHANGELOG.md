@@ -5,6 +5,14 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.10.4 (2026-10-24)
+
+- **The playtesters are in the ending of every seed the hub starts** (HydeOut's stream
+  showed the old captions): seeds from Kara's branch, AVIANART and alttpr.com bring their
+  own ending, which 1.9.17 didn't touch. Now the finished ROM's ending is patched: our seven
+  scenes are drawn again, the other nine (item hints, the seed's own jokes) are kept byte
+  for byte, and only when it fits the space the generator used.
+
 ## Beta v1.10.3 (2026-10-24)
 
 - **Hide gifts from the scrolling gift list** (Crowd Control+ 1.10.3): an "On ticker"

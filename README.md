@@ -785,7 +785,7 @@ Rando Hub wouldn't be what it is without these people. Thank you!
 | **Muffins** | Muffins' Tracker 2.0, and the logic behind Mudora 2.0 |
 
 They're in the app too (⚙ Settings → Credits), and in the game's own ending on every
-seed made in the hub: the joke captions of seven ending scenes become "playtested by
+seed the hub starts (its own generator, Kara's branch, AVIANART and alttpr.com): the joke captions of seven ending scenes become "playtested by
 Gumby" and so on (`randomizer/hub-credits.js`; the captions that hint at items stay).
 
 ## Credits
