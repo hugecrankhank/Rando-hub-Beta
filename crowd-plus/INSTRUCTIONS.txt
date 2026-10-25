@@ -645,7 +645,12 @@ Other settings in mapping.json:
                    for the scrolling gift list. Rows, title and speed are
                    also on the Gifts & effects tab. The list shows the
                    gifts in their order on that tab (drag or use the
-                   arrows to change it). The list shows only what the
+                   arrows to change it). Untick "On ticker" on a gift to
+                   leave it out of the list (it still works in the
+                   game); "Also show" switches the like, follow / share,
+                   big donation and subathon lines on or off. Saved as
+                   "hidden", "showLikes", "showSocial", "showTiers" and
+                   "showTimer" in "ticker". The list shows only what the
                    game that's open can do (Zelda 3 or Zelda 1), and
                    changes on its own when a reroll switches games.
 

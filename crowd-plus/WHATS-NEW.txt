@@ -5,6 +5,13 @@ Crowd Control+ is Rando Hub's crowd control: the gift bridge with a
 control panel and stream overlays. Every gift effect, big-donation seed
 roll and the subathon clock work exactly as before.
 
+NEW IN 1.10.3
+------------
+- Scrolling gift list: an "On ticker" checkbox on every gift (Gifts &
+  effects tab). Untick it to leave the gift out of the list; it still
+  works in the game. "Also show" switches the like, follow / share, big
+  donation and subathon lines on or off.
+
 NEW IN 1.9.20
 ------------
 - More Halloween: blood_drip (blood runs down the screen), spider_web

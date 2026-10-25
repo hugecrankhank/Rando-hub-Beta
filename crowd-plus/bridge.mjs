@@ -336,9 +336,11 @@ function tickerData() {
     return knownEffects.has(id);
   };
   const items = [];
+  // gifts the streamer unticked "On ticker" for (Gifts & effects tab) still work, they just don't scroll by
+  const hidden = new Set((Array.isArray(t.hidden) ? t.hidden : []).map((n) => String(n).toLowerCase()));
   for (const [gift, raw] of Object.entries(cfg.gifts || {})) {
     const id = resolveEffect(raw) || raw;
-    if (!can(id)) continue;
+    if (!can(id) || hidden.has(gift.toLowerCase())) continue;
     const secs = id in defaultSecs ? (+(cfg.durations || {})[id] > 0 ? +cfg.durations[id] : defaultSecs[id]) : 0;
     items.push({ gift, label: labels[id] || effectNames[id] || id, secs, icon: iconFor(gift) ? '/icons/' + encodeURIComponent(iconFor(gift)) : null });
   }
@@ -348,7 +350,7 @@ function tickerData() {
   for (const kind of Object.keys(SOCIAL_TICK)) if (t.showSocial !== false && cfg[kind] && can(resolveEffect(cfg[kind]) || cfg[kind]))
     items.push({ gift: SOCIAL_TICK[kind][0], label: labels[cfg[kind]] || effectNames[cfg[kind]] || cfg[kind], secs: 0, icon: null, emoji: SOCIAL_TICK[kind][1] });
   const tiers = (Array.isArray(cfg.coinTiers) ? cfg.coinTiers : []).filter((x) => x && +x.coins > 0 && x.effect).sort((a, b) => a.coins - b.coins);
-  for (const x of tiers) {
+  if (t.showTiers !== false) for (const x of tiers) {
     const id = resolveEffect(x.effect) || x.effect;
     if (!can(id)) continue;
     items.push({ gift: `${Number(x.coins).toLocaleString('en-US')}+ coins`, label: x.label || labels[id] || effectNames[id] || id, secs: 0, icon: null, emoji: '🪙' });
