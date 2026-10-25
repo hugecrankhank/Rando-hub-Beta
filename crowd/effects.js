@@ -447,7 +447,8 @@
   // loads its own sheets as usual.
   // Enemies and sheet needs: Kara's alttpr-python enemizer (SpriteSheets.py),
   // everything killable that isn't a boss or an NPC, water and sand ones too
-  // (they're fun out of place). Not the Mimics: the enemizer's own ids for
+  // (they're fun out of place), but not the Fireball Zora (it only surfaces
+  // from water, so on land it never shows). Not the Mimics: the enemizer's own ids for
   // them aren't the game's (spawned as is, the game freezes).
   var ANY_ENEMIES = [
     [0x00, [[0,0,0,[17,25]]], 'Raven'],
@@ -521,7 +522,6 @@
     [0xC9, [[0,0,0,[16]]], 'Tektite'],
     [0xD0, [[0,0,0,[20]]], 'Lynel'],
     // water and sand ones, out of their element on purpose
-    [0x55, [[0,0,[12,24],0]], 'Fireball Zora'],
     [0x56, [[0,0,[12],[68]]], 'Zora'],
     [0x63, [[[47],0,0,0]], 'Debirando Pit'],
     [0x64, [[[47],0,0,0]], 'Debirando'],

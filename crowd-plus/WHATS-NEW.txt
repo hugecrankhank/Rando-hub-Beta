@@ -7,7 +7,7 @@ roll and the subathon clock work exactly as before.
 
 NEW IN 1.10.10
 -------------
-- enemy_any (Any enemy): one of 75 enemies appears near Link, anywhere,
+- enemy_any (Any enemy): one of 74 enemies appears near Link, anywhere,
   even with nothing on screen. Its graphics are loaded into the area
   first. Water and sand enemies too, out of their element. The gift
   alert says which enemy.

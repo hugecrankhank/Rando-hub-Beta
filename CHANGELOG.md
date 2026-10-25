@@ -7,7 +7,7 @@ played again later.
 
 ## Beta v1.10.10 (2026-10-25)
 
-- **Any enemy** (`enemy_any`): one of 75 enemies appears near Link, anywhere, even in an empty
+- **Any enemy** (`enemy_any`): one of 74 enemies appears near Link, anywhere, even in an empty
   room or a screen with no enemies of its own (an idea from JynxCast). The area's sprite
   graphics are swapped for the ones it needs: unpacked from the ROM and sent through the game's
   own graphics upload, 4 frames a sheet. Slots enemies on screen are using are left alone when

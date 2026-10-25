@@ -59,7 +59,7 @@ even unmapped ones, with a one-click "add".
 | `bombs_plus` / `bombs_none` | +10 / lose all bombs | | `ice` | Ice physics (slippery floors everywhere), 20 s |
 | `enemy_spawn` | Extra enemy (copies one already in the room) | | | |
 | `enemy_random` | Random enemy that fits the area's loaded graphics (sheet needs from Enemizer) | | | |
-| `enemy_any` | Any enemy, anywhere: one of 75 enemies, its graphics loaded into the area first (the next screen loads its own again). Enemies already on screen keep theirs when possible | | | |
+| `enemy_any` | Any enemy, anywhere: one of 74 enemies, its graphics loaded into the area first (the next screen loads its own again). Enemies already on screen keep theirs when possible | | | |
 | `magic_small` | Small magic refill (¼ meter) | | | |
 | `warp_dungeon` | Drop into a random dungeon's entrance (keeps the current dungeon's keys) | | | |
 | `warp_flute` | Flute bird to a random flute spot (Light World outdoors; otherwise a random dungeon) | | | |

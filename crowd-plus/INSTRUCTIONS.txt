@@ -522,7 +522,7 @@ All effect names (use these on the right side):
                    whose graphics are loaded here) appears a few steps
                    from Link. Which ones can appear changes from area to
                    area; if none fit, it copies a nearby enemy instead.
-    enemy_any      Any enemy, anywhere, even in an empty room: one of 75
+    enemy_any      Any enemy, anywhere, even in an empty room: one of 74
                    (Lynels, Stalfos, guards, Wizzrobes, Zoras, Swamolas...). Its
                    graphics are loaded first, which takes a moment. The
                    enemies already on screen keep their graphics when
