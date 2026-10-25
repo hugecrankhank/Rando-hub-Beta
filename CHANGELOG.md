@@ -5,6 +5,15 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.10.5 (2026-10-24)
+
+- **The playtesters are in the ending of every ALTTP randomizer seed played here**, not just
+  the ones the hub makes: a ROM loaded from a file, a resumed game, a seed handed over after
+  a reload. The copy being played gets the names when it starts (the file itself is never
+  changed); a ROM whose ending isn't laid out like a randomizer's (the plain game) is left
+  alone. Seeds in progress get the names the next time they're started; Mudora counts the
+  patched ROM as a new game once, so marks on a seed already in progress start fresh.
+
 ## Beta v1.10.4 (2026-10-24)
 
 - **The playtesters are in the ending of every seed the hub starts** (HydeOut's stream

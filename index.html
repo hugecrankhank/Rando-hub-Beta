@@ -8,7 +8,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <title>Rando Hub Beta</title>
 <meta name="application-name" content="Rando Hub">
-<meta name="version" content="1.10.4">
+<meta name="version" content="1.10.5">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#161b22">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
@@ -569,7 +569,7 @@
 </head>
 <body>
 <header>
-  <h1 title="Rando Hub Beta (v1.10.4 + EmoTracker)"><svg class="app-die" viewBox="-130 -130 260 260" aria-hidden="true"><g transform="rotate(-12)"><rect x="-108" y="-108" width="216" height="216" rx="32" fill="#fff" stroke="#c8102e" stroke-width="16"/><circle cx="-56" cy="-56" r="23" fill="#c8102e"/><circle cx="56" cy="-56" r="23" fill="#14213d"/><circle r="23" fill="#c8102e"/><circle cx="-56" cy="56" r="23" fill="#14213d"/><circle cx="56" cy="56" r="23" fill="#c8102e"/></g></svg><span class="app-name">RANDO <span>HUB</span></span><small class="app-ver">v1.10.4 beta</small></h1>
+  <h1 title="Rando Hub Beta (v1.10.5 + EmoTracker)"><svg class="app-die" viewBox="-130 -130 260 260" aria-hidden="true"><g transform="rotate(-12)"><rect x="-108" y="-108" width="216" height="216" rx="32" fill="#fff" stroke="#c8102e" stroke-width="16"/><circle cx="-56" cy="-56" r="23" fill="#c8102e"/><circle cx="56" cy="-56" r="23" fill="#14213d"/><circle r="23" fill="#c8102e"/><circle cx="-56" cy="56" r="23" fill="#14213d"/><circle cx="56" cy="56" r="23" fill="#c8102e"/></g></svg><span class="app-name">RANDO <span>HUB</span></span><small class="app-ver">v1.10.5 beta</small></h1>
 
   <div id="rando-split">
     <button id="r-toggle" aria-expanded="false" aria-controls="rando-bar" title="Show or hide the randomizer settings (they fold away by themselves when you go back to playing)">Randomizer<span id="r-gen-name"> · alttpr.com</span></button>
@@ -1386,12 +1386,20 @@
       return;
     }
     if (reloadTrackers) loadTrackers();
-    // the randomizer bar shows this ROM's file-select code (and the share
-    // buttons, if it's the seed it generated)
-    if (window.UnifiedRando && window.UnifiedRando.noteRom) window.UnifiedRando.noteRom(bytes, name);
-    else window.__pendingRomNote = { bytes: bytes, name: name };
-    AlttpBridge.setRom(bytes, name);
-    bootEmulator(new File([bytes], name, { type: 'application/octet-stream' }));
+    // The playtesters and shout-outs in the game's ending, whatever made the
+    // seed (a file, a resumed game, another site): randomizer/hub-credits.js
+    // swaps seven of the ending's joke captions and keeps the rest; ROMs whose
+    // ending isn't laid out like a randomizer's are left alone. Only the copy
+    // played here changes, never the file.
+    import('./randomizer/hub-credits.js').then(function (m) { try { m.patchRomCredits(bytes); } catch (e) {} },
+      function () {}).then(function () {
+      // the randomizer bar shows this ROM's file-select code (and the share
+      // buttons, if it's the seed it generated)
+      if (window.UnifiedRando && window.UnifiedRando.noteRom) window.UnifiedRando.noteRom(bytes, name);
+      else window.__pendingRomNote = { bytes: bytes, name: name };
+      AlttpBridge.setRom(bytes, name);
+      bootEmulator(new File([bytes], name, { type: 'application/octet-stream' }));
+    });
   }
   // One connection, opened at load and kept: a save made while the page is
   // closing has no time to open a new one first (closing a laptop tab lost
