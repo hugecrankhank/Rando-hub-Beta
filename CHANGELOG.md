@@ -5,6 +5,21 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.10.8 (2026-10-25)
+
+- **Sword effects for Crowd Control:**
+  - **Sword gone** (`sword_off`, 30 s) and **Sword downgrade** (`sword_down`, 30 s, one step
+    worse): the sword comes back when time's up, even after a reload. A sword found meanwhile
+    is added on, since swords are progressive: found while the Tempered is down to the
+    Master, it gives the Golden back.
+  - **Sword upgrade** (`sword_up`): one step along Fighter's, Master, Tempered, Golden.
+  - **Sword stolen** (`sword_steal`): gone until Link finds another. It can make a seed
+    unbeatable, so it's marked "⚠ can end the run" in Crowd Control+, and the control panel
+    asks before it's put on a gift, a level or the mystery box, or tested.
+  - The new sword looks right straight away (its picture and colors come from the ROM), and
+    swordless seeds skip all of them.
+- **Shield gone** counts a shield found during it as one more level, as the game does.
+
 ## Beta v1.10.7 (2026-10-25)
 
 - **Four shield effects for Crowd Control:**

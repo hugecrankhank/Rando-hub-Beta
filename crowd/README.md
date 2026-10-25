@@ -65,7 +65,9 @@ even unmapped ones, with a one-click "add".
 | `warp_random` | Flute spot or dungeon, 50/50 | | | |
 | `insta_kill` | Instant death; the cape and Cane of Byrna don't block it (a bottled fairy still saves you) | | | |
 | `shield_steal` | Shield stolen: gone until Link finds another (like a Pikit eating it) | | `shield_off` | Shield gone, 30 s: the same shield comes back at the end (a better one found meanwhile is kept) |
-| `shield_down` / `shield_up` | Shield one step worse / better (Fighter's, Fire, Mirror); down stops at the Fighter's Shield | | | |
+| `shield_down` / `shield_up` | Shield one step worse / better (Fighter's, Fire, Mirror); down stops at the Fighter's Shield | | `sword_off` | Sword gone, 30 s: the same sword comes back (one found meanwhile counts) |
+| `sword_up` | Sword one step better (Fighter's, Master, Tempered, Golden) | | `sword_down` | Sword downgrade, 30 s: one step worse, then back |
+| `sword_steal` | ⚠ Sword stolen: gone until Link finds another. **Can make a seed unbeatable** (no sword left to find); Crowd Control+ asks before it's put on a gift | | | |
 | `seed_preset` / `seed_chaos` | Random preset / CHAOS seed (see below) | | | |
 | `arrows_plus` / `arrows_none` | +10 / lose all arrows | | `cucco_storm` | Cucco attack: angry cuccos fly at Link, 30 s of outdoor time (the clock pauses indoors) |
 

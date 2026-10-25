@@ -5,6 +5,17 @@ Crowd Control+ is Rando Hub's crowd control: the gift bridge with a
 control panel and stream overlays. Every gift effect, big-donation seed
 roll and the subathon clock work exactly as before.
 
+NEW IN 1.10.8
+------------
+- Sword effects: sword_off (Sword gone for 30s, then it comes back),
+  sword_down (one step worse for 30s, then back) and sword_up (one
+  step better). Swordless seeds skip them.
+- sword_steal (Sword stolen) is there too, marked with a warning: it
+  can make a seed unbeatable. The control panel asks before it goes on
+  a gift, a level, the mystery box or a test.
+- Shield gone now counts a shield found during it as one more level
+  (shields are progressive), like the sword ones.
+
 NEW IN 1.10.7
 ------------
 - Four shield effects: shield_off (Shield gone for 30s, then it comes

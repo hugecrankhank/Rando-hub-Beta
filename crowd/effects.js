@@ -469,16 +469,25 @@
     }
   }
 
-  // ── shield ($7EF35A: 0 none, 1 Fighter's, 2 Fire, 3 Mirror) ─────────────
-  // Changing the number is all the game needs to block or not, as when a
-  // Pikit eats the shield. What Link holds is drawn from tiles the game
-  // unpacks once ($7E9300, zelda3 DecompressShieldGraphics) and a palette
-  // ($7EC6B8 = kPal_Shield), so a different shield also gets its tiles and
-  // colors, made the way the game makes them, from this ROM's own
-  // graphics (sheets $5E/$5F, pointer tables at $00:D033/D112/D1F1) and
-  // shield palettes ($1B:D648). Custom sprites leave both alone.
-  var SHIELD = 0xF35A, SHIELD_NAMES = ['no shield', "the Fighter's Shield", 'the Fire Shield', 'the Mirror Shield'];
-  var shieldTiles = { key: '', sheet: null };
+  // ── shield and sword ───────────────────────────────────────────────────
+  // $7EF35A shield: 0 none, 1 Fighter's, 2 Fire, 3 Mirror.
+  // $7EF359 sword: 0 none, 1 Fighter's, 2 Master, 3 Tempered, 4 Golden
+  // (0xFF: swordless). Changing the number is all the game needs to block,
+  // swing or fire beams by, as when a Pikit eats the shield. What Link holds
+  // is drawn from tiles the game unpacks once ($7E9000 sword, $7E9300
+  // shield: zelda3 DecompressSwordGraphics / DecompressShieldGraphics) and a
+  // palette ($7EC6B2 kPal_Sword, $7EC6B8 kPal_Shield). A changed level gets
+  // its tiles and colors made the way the game makes them, from this ROM's
+  // own graphics (sheets $5E/$5F, pointer tables at $00:D033/D112/D1F1) and
+  // palettes ($1B:D630 swords, $1B:D648 shields).
+  var GEAR = {
+    shield: { addr: 0xF35A, max: 3, names: ['no shield', "the Fighter's Shield", 'the Fire Shield', 'the Mirror Shield'],
+      gfx: [0x660, 0x660, 0x6F0, 0x900], tiles: [[0x9300, 0], [0x93C0, 0x180]], n: 6, pal: 0xDD648, palLen: 8, palAt: 0x1B8 },
+    sword: { addr: 0xF359, max: 4, names: ['no sword', "the Fighter's Sword", 'the Master Sword', 'the Tempered Sword', 'the Golden Sword'],
+      gfx: [0, 0, 0x120, 0x120, 0x120], tiles: [[0x9000, 0], [0x9180, 0x180]], n: 12, pal: 0xDD630, palLen: 6, palAt: 0x1B2 },
+  };
+  var SHIELD = GEAR.shield.addr, SWORD = GEAR.sword.addr;
+  var gearRom = { key: '', g: null };
   function lzDecomp(rom, p) {
     var out = [];
     for (;;) {
@@ -494,20 +503,19 @@
       else { var c = rom[p++]; while (len--) out.push(c++ & 0xFF); }
     }
   }
-  function shieldSheet() {
+  function gearGfx() {
     var c = core(), rom; try { rom = c && c.rom(); } catch (e) { return null; }
     if (!rom || rom.length < 0xE0000) return null;
     var key = rom.length + ':' + rom[0x7FDC] + ',' + rom[0x7FDD] + ',' + rom[0x7FC0] + ',' + rom[0x7FC1] + ',' + rom[0x7FC2];
-    if (shieldTiles.key === key) return shieldTiles.sheet;
+    if (gearRom.key === key) return gearRom.g;
     var sheet = new Uint8Array(0xC00), ok = true;
     [0x5E, 0x5F].forEach(function (n, i) {
       var pc = (rom[0x5033 + n] & 0x7F) * 0x8000 + ((rom[0x5112 + n] << 8 | rom[0x51F1 + n]) & 0x7FFF);
       var d = ok && lzDecomp(rom, pc);
       if (!d || d.length !== 0x600) ok = false; else sheet.set(d, i * 0x600);
     });
-    var pal = rom.slice(0xDD648, 0xDD648 + 24);
-    shieldTiles = { key: key, sheet: ok ? { tiles: sheet, pal: pal } : null };
-    return shieldTiles.sheet;
+    gearRom = { key: key, g: ok ? { tiles: sheet, rom: rom } : null };
+    return gearRom.g;
   }
   // zelda3 Expand3To4High: the sheet's 3bpp tiles into the 4bpp buffer
   function expand3to4(r, dst, src, base, num) {
@@ -522,36 +530,73 @@
       if (!(src & 0x78)) src += 0x180;
     } while (--num);
   }
-  function setShield(r, lvl) {
-    lvl = Math.max(0, Math.min(3, lvl));
-    var was = r[SHIELD];
-    r[SHIELD] = lvl;
+  function setGear(kind, r, lvl) {
+    var G = GEAR[kind];
+    lvl = Math.max(0, Math.min(G.max, lvl));
+    var was = r[G.addr];
+    r[G.addr] = lvl;
     if (!lvl || lvl === was) return;
-    var g = shieldSheet(); if (!g) return;   // the level still changes; only the picture can't
-    var off = [0x660, 0x660, 0x6F0, 0x900][lvl];
-    expand3to4(r, 0x9300, off, g.tiles, 6);
-    expand3to4(r, 0x93C0, off + 0x180, g.tiles, 6);
-    for (var i = 0; i < 8; i++) r[0xC4B8 + i] = r[0xC6B8 + i] = g.pal[(lvl - 1) * 8 + i];
+    var g = gearGfx(); if (!g) return;   // the level still changes; only the picture can't
+    G.tiles.forEach(function (t) { expand3to4(r, t[0], G.gfx[lvl] + t[1], g.tiles, G.n); });
+    for (var i = 0; i < G.palLen; i++) r[0xC300 + G.palAt + i] = r[0xC500 + G.palAt + i] = g.rom[G.pal + (lvl - 1) * G.palLen + i];
     r[0x15] = 1;   // upload the palette next frame
   }
-  // "Shield gone" lends the shield out: what Link had (and any shield he finds
-  // meanwhile) comes back when time's up. The loan is kept in this browser
-  // with the ROM it belongs to, so a reload or a cleared effect list gives it
-  // back too, and another seed never gets it.
-  var LOAN_KEY = 'rhb-shield-loan';
+  function setShield(r, lvl) { setGear('shield', r, lvl); }
+  function gearHas(kind, r) { var v = r[GEAR[kind].addr]; return v > 0 && v <= GEAR[kind].max; }
+
+  // The timed ones lend the gear out: "Shield gone", "Sword gone", "Sword
+  // downgrade". Link holds less (none, or one sword level lower) while one
+  // runs, and gets back what he had when they've all ended. One found
+  // meanwhile counts too: pickups are progressive (each adds a level), so a
+  // sword found while holding the Fighter's in place of the Tempered gives
+  // the Golden back. The loan is kept in this browser with the ROM it
+  // belongs to, so a reload or a cleared effect list still gives it back,
+  // and another seed never gets it.
   function romId() { var c = core(), rom; try { rom = c && c.rom(); } catch (e) { return ''; } if (!rom || !rom.length) return '';
     var t = ''; for (var i = 0x7FC0; i < 0x7FD5; i++) t += String.fromCharCode(rom[i]); return rom.length + ':' + rom[0x7FDC] + ',' + rom[0x7FDD] + ':' + t; }
-  function loanGet() { try { return JSON.parse(localStorage.getItem(LOAN_KEY) || 'null'); } catch (e) { return null; } }
-  function loanSet(v) { try { if (v) localStorage.setItem(LOAN_KEY, JSON.stringify(v)); else localStorage.removeItem(LOAN_KEY); } catch (e) {} }
-  var loanMem = loanGet();
-  function shieldLoanFrame(r) {
-    if (!loanMem) return;
-    if (active.shield_off) return;
-    if (loanMem.rom !== romId()) return;   // another game: keep it for when that seed's back
-    var lvl = Math.max(loanMem.lvl, r[SHIELD]);
-    loanMem = null; loanSet(null);
-    setShield(r, lvl);
+  var LOAN_KEYS = { shield: 'rhb-shield-loan', sword: 'rhb-sword-loan' };
+  function loanRead(kind) { try { return JSON.parse(localStorage.getItem(LOAN_KEYS[kind]) || 'null'); } catch (e) { return null; } }
+  function loanSave(kind) { var v = loans[kind]; try { if (v) localStorage.setItem(LOAN_KEYS[kind], JSON.stringify(v)); else localStorage.removeItem(LOAN_KEYS[kind]); } catch (e) {} }
+  var loans = { shield: loanRead('shield'), sword: loanRead('sword') };
+  function lent(kind) { var l = loans[kind]; return l && l.rom === romId() ? l : null; }
+  function heldNow(kind, l) {
+    if (kind === 'shield') return active.shield_off ? 0 : -1;
+    if (active.sword_off) return 0;
+    if (active.sword_down) return Math.max(1, l.lvl - 1);
+    return -1;   // nothing holding it: give it back
   }
+  function gearFrame(kind, r) {
+    var l = loans[kind]; if (!l) return;
+    if (l.rom !== romId()) return;   // another game: kept for when that seed's back
+    var G = GEAR[kind], v = r[G.addr];
+    if (v > l.held && v <= G.max) { l.lvl = Math.min(G.max, Math.max(v, l.lvl + v - l.held)); }   // found one meanwhile
+    var want = heldNow(kind, l);
+    if (want < 0) { loans[kind] = null; loanSave(kind); setGear(kind, r, Math.max(l.lvl, v <= G.max ? v : 0)); return; }
+    if (v !== want) setGear(kind, r, want);
+    if (l.held !== want || v !== want) { l.held = want; loanSave(kind); }
+  }
+  function lend(kind) {
+    var c = core(), r = c && c.wram(); if (!r || r.length < 0x20000) return;
+    if (!lent(kind)) { var v = r[GEAR[kind].addr]; loans[kind] = { rom: romId(), lvl: v <= GEAR[kind].max ? v : 0, held: v }; loanSave(kind); }
+    gearFrame(kind, r);
+  }
+  function giveBack(kind) { var c = core(), r = c && c.wram(); if (r && r.length >= 0x20000) gearFrame(kind, r); }
+  // permanent changes while some is lent change what comes back
+  function gearStep(kind, r, d, min) {
+    var G = GEAR[kind], l = lent(kind), cur = l ? l.lvl : r[G.addr];
+    if (cur > G.max) return 'swordless seed';
+    if (d < 0 && cur <= min) return cur ? 'Link only has ' + G.names[cur] : 'Link has no ' + kind;
+    if (d > 0 && cur >= G.max) return 'Link already has ' + G.names[G.max];
+    if (l) { l.lvl = cur + d; loanSave(kind); gearFrame(kind, r); return; }
+    setGear(kind, r, cur + d);
+  }
+  function gearSteal(kind, r) {
+    var l = lent(kind);
+    if (!l && !gearHas(kind, r)) return r[GEAR[kind].addr] > GEAR[kind].max ? 'swordless seed' : 'Link has no ' + kind;
+    if (l) { loans[kind] = null; loanSave(kind); ['shield_off', 'sword_off', 'sword_down'].forEach(function (id) { if (id.indexOf(kind) === 0) delete active[id]; }); }
+    r[GEAR[kind].addr] = 0;
+  }
+  function gearCheck(kind) { return function (r) { return gearHas(kind, r) || lent(kind) ? '' : r[GEAR[kind].addr] > GEAR[kind].max ? 'swordless seed' : 'Link has no ' + kind; }; }
 
   // ── the effects ─────────────────────────────────────────────────────────
   // Instant effects run once (apply). Timed ones last `secs` seconds of play
@@ -734,40 +779,23 @@
     no_magic:    { name: 'Magic locked', good: false, secs: 30,
       frame: function (r) { r[A.MAGIC] = 0; r[A.MAGIC_FILL] = 0; } },
 
-    // Shields (see setShield above). "Shield gone" gives it back at the end,
-    // "Shield stolen" doesn't: Link needs to find one again.
-    shield_off:  { name: 'Shield gone', good: false, secs: 30,
-      check: function (r) { return r[SHIELD] || (loanMem && loanMem.rom === romId()) ? '' : 'Link has no shield'; },
-      start: function () {
-        var c = core(), r = c && c.wram(); if (!r) return;
-        var keep = loanMem && loanMem.rom === romId() ? loanMem.lvl : 0;
-        loanMem = { rom: romId(), lvl: Math.max(keep, r[SHIELD]) }; loanSet(loanMem);
-        r[SHIELD] = 0;
-      },
-      frame: function (r) {
-        if (!loanMem) return;
-        if (r[SHIELD]) { loanMem.lvl = Math.max(loanMem.lvl, r[SHIELD]); loanSet(loanMem); r[SHIELD] = 0; }
-      },
-      end: function () { var c = core(), r = c && c.wram(); if (r && r.length >= 0x20000) shieldLoanFrame(r); } },
-    shield_steal: { name: 'Shield stolen', good: false,
-      apply: function (r) {
-        var lent = loanMem && loanMem.rom === romId();
-        if (!r[SHIELD] && !lent) return 'Link has no shield';
-        if (lent) { loanMem = null; loanSet(null); delete active.shield_off; }
-        r[SHIELD] = 0;
-      } },
-    shield_down: { name: 'Shield downgrade', good: false,
-      apply: function (r) {
-        if (loanMem && loanMem.rom === romId()) { if (loanMem.lvl < 2) return 'Link only has the Fighter\'s Shield'; loanMem.lvl--; loanSet(loanMem); return; }
-        if (r[SHIELD] < 2) return r[SHIELD] ? 'Link only has the Fighter\'s Shield' : 'Link has no shield';
-        setShield(r, r[SHIELD] - 1);
-      } },
-    shield_up:   { name: 'Shield upgrade', good: true,
-      apply: function (r) {
-        if (loanMem && loanMem.rom === romId()) { if (loanMem.lvl >= 3) return 'Link already has the Mirror Shield'; loanMem.lvl++; loanSet(loanMem); return; }
-        if (r[SHIELD] >= 3) return 'Link already has the Mirror Shield';
-        setShield(r, r[SHIELD] + 1);
-      } },
+    // Shields and swords (see setGear above). The "gone" and sword downgrade
+    // ones are timed and give it back at the end; "stolen" doesn't: Link
+    // needs to find one again. Sword stolen can leave a seed unbeatable (no
+    // sword left to find), so Crowd Control+ asks before it's put on a gift.
+    shield_off:  { name: 'Shield gone', good: false, secs: 30, check: gearCheck('shield'),
+      start: function () { lend('shield'); }, end: function () { giveBack('shield'); } },
+    shield_steal: { name: 'Shield stolen', good: false, apply: function (r) { return gearSteal('shield', r); } },
+    shield_down: { name: 'Shield downgrade', good: false, apply: function (r) { return gearStep('shield', r, -1, 1); } },
+    shield_up:   { name: 'Shield upgrade', good: true, apply: function (r) { return gearStep('shield', r, 1); } },
+    sword_off:   { name: 'Sword gone', good: false, secs: 30, check: gearCheck('sword'),
+      start: function () { lend('sword'); }, end: function () { giveBack('sword'); } },
+    sword_down:  { name: 'Sword downgrade', good: false, secs: 30,
+      check: function (r) { var l = lent('sword'), v = l ? l.lvl : r[SWORD]; return v > 4 ? 'swordless seed' : v >= 2 ? '' : v ? 'Link only has the Fighter\'s Sword' : 'Link has no sword'; },
+      start: function () { lend('sword'); }, end: function () { giveBack('sword'); } },
+    sword_up:    { name: 'Sword upgrade', good: true, apply: function (r) { return gearStep('sword', r, 1); } },
+    sword_steal: { name: 'Sword stolen', good: false, apply: function (r) { return gearSteal('sword', r); },
+      warn: 'Sword stolen can make the seed unbeatable: if every sword has been found, there is none left to get back (Agahnim\'s barrier and Ganon need one), and the next sword found only gives the Fighter\'s Sword.' },
 
     // These press the app's own roll buttons (randomizer/app.js, reroll.js).
     sprite_roll: { name: 'Random sprite', good: true,
@@ -1139,7 +1167,7 @@
         'Link isn\'t in normal play (mode ' + ram[A.MODE] + '/' + ram[A.SUBMODE] + ', frozen ' + ram[A.FROZEN] + ', hearts ' + ram[A.HP] + '/' + ram[A.HP_MAX] + ')'), 'info');
     } else waitT = 0;
     if (!inPlay(ram)) return;
-    shieldLoanFrame(ram);
+    gearFrame('shield', ram); gearFrame('sword', ram);
     // timed effects
     var outside = ram[A.MODE] === 0x09;   // the ROM only spawns cuccos on the overworld
     for (var id in active) {
@@ -1740,7 +1768,7 @@
   function menuClick(b, rr) {
     rerender = rr;
     var a = b.dataset.ext;
-    if (a === 'cc-test') { note('test button: ' + b.dataset.id); trigger(b.dataset.id, 'test'); }
+    if (a === 'cc-test') { var wf = EFFECTS[b.dataset.id]; if (wf && wf.warn && !confirm(wf.warn + '\n\nRun it now?')) return; note('test button: ' + b.dataset.id); trigger(b.dataset.id, 'test'); }
     else if (a === 'cc-clear') { endAll(); queue.length = 0; paused = {}; cancelReroll(); }
     else if (a === 'cc-cancel-reroll') cancelReroll();
     else if (a === 'cc-end-detour') cancelDetour();
@@ -1774,7 +1802,7 @@
 
   function list() {
     return Object.keys(EFFECTS).filter(function (id) { return id.charAt(0) !== '_'; }).map(function (id) {
-      return { id: id, name: EFFECTS[id].name, secs: EFFECTS[id].detour ? detourSecs(id) : secsOf(id), good: !!EFFECTS[id].good };
+      return { id: id, name: EFFECTS[id].name, secs: EFFECTS[id].detour ? detourSecs(id) : secsOf(id), good: !!EFFECTS[id].good, warn: EFFECTS[id].warn || undefined };
     });
   }
 

@@ -495,6 +495,13 @@ All effect names (use these on the right side):
     shield_down    Shield downgrade: Mirror to Fire, Fire to Fighter's.
                    Never takes the Fighter's Shield away.
     shield_up      Shield upgrade: none to Fighter's to Fire to Mirror.
+    sword_up       Sword upgrade: Fighter's, Master, Tempered, Golden.
+    sword_steal    WARNING: Sword stolen. The sword is gone until Link
+                   finds another, and that can make the seed unbeatable:
+                   if every sword has been found there's none left, and
+                   Agahnim's barrier and Ganon need one. The next sword
+                   found only gives the Fighter's. The control panel asks
+                   before you put it on a gift or test it.
     magic_full     Refill magic
     magic_drain    Drain magic
     rupees_plus    +50 rupees
@@ -533,6 +540,12 @@ All effect names (use these on the right side):
     shield_off     Shield gone ................. 30s
                    The same shield comes back at the end, even after
                    a reload; a better one found meanwhile is kept.
+    sword_off      Sword gone .................. 30s
+                   The same sword comes back at the end (one found
+                   meanwhile is added on).
+    sword_down     Sword downgrade ............. 30s
+                   One step worse (Master to Fighter's and so on),
+                   then back. Not for the Fighter's Sword.
     cucco_storm    Cucco attack (outdoors) ..... 30s
     This folder's mapping.json sets one_hit, no_magic and cucco_storm
     to 20s (see "durations" below).

@@ -306,6 +306,7 @@ const effectNames = {
   insta_kill: 'Instant death', ice: 'Ice physics', cucco_storm: 'Cucco attack', invert: 'Inverted D-pad',
   no_sword: 'No sword', no_item: 'No Y item', swap_by: 'B and Y swapped', one_hit: 'One-hit KO',
   no_magic: 'Magic locked', shield_off: 'Shield gone', shield_steal: 'Shield stolen', shield_down: 'Shield downgrade', shield_up: 'Shield upgrade',
+  sword_off: 'Sword gone', sword_down: 'Sword downgrade', sword_up: 'Sword upgrade', sword_steal: 'Sword stolen',
   sprite_roll: 'Random sprite', sprite_fav: 'Random favourite sprite',
   msu_roll: 'Random MSU pack', seed_roll: 'New seed (same settings)', seed_preset: 'Random preset seed', seed_chaos: 'CHAOS seed',
   mirror: 'Mirror mode', upside_down: 'Upside down', wobble: 'Drunk wobble', tiny: 'Tiny screen', crt: 'Retro CRT',
@@ -316,7 +317,11 @@ const effectNames = {
   reveal_item: 'Reveal a go-mode item', lights_on: 'Lights on!', lights_out: 'Lights out!', spooky_monster: 'Spooky monster', haunting: 'Haunting! (3 spooky monsters)', trick_or_treat: 'Trick or treat!', spooky_sprite: 'Spooky sprite',
   boss_ganon: 'Boss detour: Ganon', boss_aga: 'Boss detour: Agahnim', boss_random: 'Boss detour: random boss', detour_rescue: 'Rescue Link from a boss detour',
 };
-const defaultSecs = { ice: 20, cucco_storm: 30, invert: 20, no_sword: 20, no_item: 20, swap_by: 20, one_hit: 30, no_magic: 30, shield_off: 30,
+// Effects that can hurt a run for good: the panel asks before one goes on a gift.
+const effectWarnings = {
+  sword_steal: 'Sword stolen can make the seed unbeatable. If every sword has already been found, there is none left to get it back, and Agahnim\'s barrier and Ganon both need a sword. The next sword found also only gives the Fighter\'s Sword.',
+};
+const defaultSecs = { ice: 20, cucco_storm: 30, invert: 20, no_sword: 20, no_item: 20, swap_by: 20, one_hit: 30, no_magic: 30, shield_off: 30, sword_off: 30, sword_down: 30,
   mirror: 20, upside_down: 15, wobble: 20, tiny: 20, crt: 30, speed_up: 20, slow_mo: 15, freeze: 3, pink_link: 60,
   boss_ganon: 60, boss_aga: 60, boss_random: 60, spooky_night: 45, ghost_link: 60, pumpkin_link: 60, haunted_lights: 20, lights_on: 60, lights_out: 30, blood_drip: 20, spider_web: 30 };
 
@@ -1029,7 +1034,7 @@ const studio = createStudio({
   effectList: () => {
     const virtual = ['mystery_box', 'detour_rescue'];
     const ids = (knownEffects ? [...knownEffects] : Object.keys(effectNames).filter((x) => !virtual.includes(x))).concat(virtual);
-    return ids.map((id) => ({ id, name: effectNames[id] || id, secs: id in defaultSecs ? (+(cfg.durations || {})[id] > 0 ? +cfg.durations[id] : defaultSecs[id]) : 0 }));
+    return ids.map((id) => ({ id, name: effectNames[id] || id, warn: effectWarnings[id], secs: id in defaultSecs ? (+(cfg.durations || {})[id] > 0 ? +cfg.durations[id] : defaultSecs[id]) : 0 }));
   },
   timerView,
   timerApi: (op, seconds, why) => timerAction(op, seconds, why),

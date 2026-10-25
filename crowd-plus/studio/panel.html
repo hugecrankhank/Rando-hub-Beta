@@ -722,9 +722,22 @@ $('tts-test').onclick = () => speak((draft.tts.readNames ? 'TestViewer says: ' :
 // ── gift setup editor ──
 function effectOptions(sel, none) {
   const eff = (S.effects || []);
-  return (none ? '<option value="">— nothing —</option>' : '') + eff.map((e) => '<option value="' + esc(e.id) + '"' + (e.id === sel ? ' selected' : '') + '>' + esc(e.name) + (e.secs ? ' (' + e.secs + 's)' : '') + '</option>').join('') +
+  return (none ? '<option value="">— nothing —</option>' : '') + eff.map((e) => '<option value="' + esc(e.id) + '"' + (e.id === sel ? ' selected' : '') + '>' + (e.warn ? '⚠ ' : '') + esc(e.name) + (e.secs ? ' (' + e.secs + 's)' : '') + (e.warn ? ' (can end the run)' : '') + '</option>').join('') +
     (sel && !eff.some((e) => e.id === sel) ? '<option value="' + esc(sel) + '" selected>' + esc(sel) + ' (?)</option>' : '');
 }
+// Effects that can hurt a run for good (the bridge sends a warning with
+// them): picking one anywhere, for a gift, a test, a level or the mystery
+// box, asks first. "Cancel" puts the old choice back.
+const effWarn = (id) => ((S.effects || []).find((e) => e.id === id) || {}).warn;
+document.addEventListener('focusin', (ev) => { const el = ev.target; if (el && el.tagName === 'SELECT') el.dataset.prev = el.value; }, true);
+document.addEventListener('change', (ev) => {
+  const el = ev.target; if (!el) return;
+  const id = el.tagName === 'SELECT' ? el.value : (el.type === 'checkbox' && el.checked ? el.dataset.mb : '');
+  const w = id && effWarn(id); if (!w) return;
+  if (confirm('⚠ ' + w + '\n\nUse it anyway?')) { if (el.tagName === 'SELECT') el.dataset.prev = el.value; return; }
+  ev.stopImmediatePropagation(); ev.preventDefault();
+  if (el.tagName === 'SELECT') el.value = el.dataset.prev ?? ''; else el.checked = false;
+}, true);
 function newGDraft() {
   const m = S.mapping;
   gdraft = {
@@ -784,7 +797,7 @@ function paintGifts() {
   $('gift-rows').querySelectorAll('[data-gi]').forEach((el) => el[el.tagName === 'SELECT' ? 'onchange' : 'oninput'] = () => { gdraft.gifts[+el.dataset.gi][el.dataset.k] = el.value; markG(); });
   $('gift-rows').querySelectorAll('[data-gtick]').forEach((el) => el.onchange = () => { gdraft.gifts[+el.dataset.gtick].tick = el.checked; markG(); });
   $('gift-rows').querySelectorAll('[data-gdel]').forEach((b) => b.onclick = () => { gdraft.gifts.splice(+b.dataset.gdel, 1); markG(); paintGifts(); });
-  $('gift-rows').querySelectorAll('[data-gtest]').forEach((b) => b.onclick = () => { const g = gdraft.gifts[+b.dataset.gtest]; call('test-effect', { effect: g.effect, user: 'test' }, 'Sent ' + g.effect + ' to the game'); });
+  $('gift-rows').querySelectorAll('[data-gtest]').forEach((b) => b.onclick = () => { const g = gdraft.gifts[+b.dataset.gtest]; if (effWarn(g.effect) && !confirm('⚠ ' + effWarn(g.effect) + '\n\nRun it in the game now?')) return; call('test-effect', { effect: g.effect, user: 'test' }, 'Sent ' + g.effect + ' to the game'); });
   // tiers
   $('tier-rows').innerHTML = gdraft.coinTiers.map((t, i) => '<tr><td><input type="number" min="1" value="' + t.coins + '" data-ti="' + i + '" data-k="coins"></td>' +
     '<td><select data-ti="' + i + '" data-k="effect">' + effectOptions(t.effect) + '</select></td>' +
@@ -1109,7 +1122,7 @@ function paintFxTests() {
   const el = $('fx-tests');
   el.innerHTML = list.length ? list.map((e) => '<button class="small" data-fxtest="' + esc(e.id) + '" title="' + esc(e.id) + '">' + esc(e.name) + '</button>').join('')
     : '<span class="hint">Open the game and turn on Crowd effects to list them.</span>';
-  el.querySelectorAll('[data-fxtest]').forEach((b) => b.onclick = () => call('test-effect', { effect: b.dataset.fxtest, user: ($('t-user') && $('t-user').value) || 'TestViewer' }, 'Sent ' + effName(b.dataset.fxtest) + ' to the game'));
+  el.querySelectorAll('[data-fxtest]').forEach((b) => b.onclick = () => (effWarn(b.dataset.fxtest) && !confirm('⚠ ' + effWarn(b.dataset.fxtest) + '\n\nRun it in the game now?')) || call('test-effect', { effect: b.dataset.fxtest, user: ($('t-user') && $('t-user').value) || 'TestViewer' }, 'Sent ' + effName(b.dataset.fxtest) + ' to the game'));
 }
 
 // ── wiring ──
