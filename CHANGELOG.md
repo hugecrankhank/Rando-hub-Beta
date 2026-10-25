@@ -5,6 +5,20 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.10.7 (2026-10-25)
+
+- **Four shield effects for Crowd Control:**
+  - **Shield gone** (`shield_off`, 30 s): Link loses his shield, and the same one comes back
+    when time's up. A better shield found meanwhile is the one he gets back. The loan is kept
+    in the browser with the seed it belongs to, so a reload mid-effect still returns it.
+  - **Shield stolen** (`shield_steal`): gone until Link finds another, like a Pikit eating it.
+  - **Shield downgrade** / **Shield upgrade** (`shield_down` / `shield_up`): one step along
+    Fighter's, Fire, Mirror. Downgrade stops at the Fighter's Shield.
+  - A changed shield looks right straight away: its picture and colors are made from the
+    ROM's own graphics, the way the game does when Link picks one up.
+  - Gifts that can't do anything (no shield to take, Mirror Shield already) say so in the feed
+    instead of running.
+
 ## Beta v1.10.6 (2026-10-25)
 
 - **Crowd Control's Instant death can't be blocked any more.** It used to hand Link a hit

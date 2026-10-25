@@ -5,6 +5,15 @@ Crowd Control+ is Rando Hub's crowd control: the gift bridge with a
 control panel and stream overlays. Every gift effect, big-donation seed
 roll and the subathon clock work exactly as before.
 
+NEW IN 1.10.7
+------------
+- Four shield effects: shield_off (Shield gone for 30s, then it comes
+  back), shield_steal (gone until Link finds another), shield_down and
+  shield_up (one step worse or better: Fighter's, Fire, Mirror). Map
+  them to gifts in the Gifts & effects tab.
+- insta_kill (Instant death) can't be blocked by the Magic Cape or the
+  Cane of Byrna any more (a bottled fairy still revives).
+
 NEW IN 1.10.3
 ------------
 - Scrolling gift list: an "On ticker" checkbox on every gift (Gifts &

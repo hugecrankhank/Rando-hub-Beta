@@ -469,6 +469,90 @@
     }
   }
 
+  // ── shield ($7EF35A: 0 none, 1 Fighter's, 2 Fire, 3 Mirror) ─────────────
+  // Changing the number is all the game needs to block or not, as when a
+  // Pikit eats the shield. What Link holds is drawn from tiles the game
+  // unpacks once ($7E9300, zelda3 DecompressShieldGraphics) and a palette
+  // ($7EC6B8 = kPal_Shield), so a different shield also gets its tiles and
+  // colors, made the way the game makes them, from this ROM's own
+  // graphics (sheets $5E/$5F, pointer tables at $00:D033/D112/D1F1) and
+  // shield palettes ($1B:D648). Custom sprites leave both alone.
+  var SHIELD = 0xF35A, SHIELD_NAMES = ['no shield', "the Fighter's Shield", 'the Fire Shield', 'the Mirror Shield'];
+  var shieldTiles = { key: '', sheet: null };
+  function lzDecomp(rom, p) {
+    var out = [];
+    for (;;) {
+      if (p >= rom.length || out.length > 0x2000) return null;
+      var cmd = rom[p++], len;
+      if (cmd === 0xFF) return out;
+      if ((cmd & 0xE0) !== 0xE0) { len = (cmd & 0x1F) + 1; cmd &= 0xE0; }
+      else { len = rom[p++] + ((cmd & 3) << 8) + 1; cmd = (cmd << 3) & 0xE0; }
+      if (cmd === 0) { while (len--) out.push(rom[p++]); }
+      else if (cmd & 0x80) { var o = rom[p] | rom[p + 1] << 8; p += 2; while (len--) { if (o >= out.length) return null; out.push(out[o++]); } }
+      else if (!(cmd & 0x40)) { var v = rom[p++]; while (len--) out.push(v); }
+      else if (!(cmd & 0x20)) { var lo = rom[p++], hi = rom[p++]; for (;;) { out.push(lo); if (--len === 0) break; out.push(hi); if (--len === 0) break; } }
+      else { var c = rom[p++]; while (len--) out.push(c++ & 0xFF); }
+    }
+  }
+  function shieldSheet() {
+    var c = core(), rom; try { rom = c && c.rom(); } catch (e) { return null; }
+    if (!rom || rom.length < 0xE0000) return null;
+    var key = rom.length + ':' + rom[0x7FDC] + ',' + rom[0x7FDD] + ',' + rom[0x7FC0] + ',' + rom[0x7FC1] + ',' + rom[0x7FC2];
+    if (shieldTiles.key === key) return shieldTiles.sheet;
+    var sheet = new Uint8Array(0xC00), ok = true;
+    [0x5E, 0x5F].forEach(function (n, i) {
+      var pc = (rom[0x5033 + n] & 0x7F) * 0x8000 + ((rom[0x5112 + n] << 8 | rom[0x51F1 + n]) & 0x7FFF);
+      var d = ok && lzDecomp(rom, pc);
+      if (!d || d.length !== 0x600) ok = false; else sheet.set(d, i * 0x600);
+    });
+    var pal = rom.slice(0xDD648, 0xDD648 + 24);
+    shieldTiles = { key: key, sheet: ok ? { tiles: sheet, pal: pal } : null };
+    return shieldTiles.sheet;
+  }
+  // zelda3 Expand3To4High: the sheet's 3bpp tiles into the 4bpp buffer
+  function expand3to4(r, dst, src, base, num) {
+    do {
+      var s2 = src + 0x10;
+      for (var n = 0; n < 8; n++) {
+        var t = base[src] | base[src + 1] << 8, u = base[s2], v = ((t | (t >> 8) | u) << 8 | u) & 0xFFFF;
+        r[dst] = t & 0xFF; r[dst + 1] = t >> 8; r[dst + 0x10] = v & 0xFF; r[dst + 0x11] = v >> 8;
+        src += 2; s2++; dst += 2;
+      }
+      dst += 16; src = s2;
+      if (!(src & 0x78)) src += 0x180;
+    } while (--num);
+  }
+  function setShield(r, lvl) {
+    lvl = Math.max(0, Math.min(3, lvl));
+    var was = r[SHIELD];
+    r[SHIELD] = lvl;
+    if (!lvl || lvl === was) return;
+    var g = shieldSheet(); if (!g) return;   // the level still changes; only the picture can't
+    var off = [0x660, 0x660, 0x6F0, 0x900][lvl];
+    expand3to4(r, 0x9300, off, g.tiles, 6);
+    expand3to4(r, 0x93C0, off + 0x180, g.tiles, 6);
+    for (var i = 0; i < 8; i++) r[0xC4B8 + i] = r[0xC6B8 + i] = g.pal[(lvl - 1) * 8 + i];
+    r[0x15] = 1;   // upload the palette next frame
+  }
+  // "Shield gone" lends the shield out: what Link had (and any shield he finds
+  // meanwhile) comes back when time's up. The loan is kept in this browser
+  // with the ROM it belongs to, so a reload or a cleared effect list gives it
+  // back too, and another seed never gets it.
+  var LOAN_KEY = 'rhb-shield-loan';
+  function romId() { var c = core(), rom; try { rom = c && c.rom(); } catch (e) { return ''; } if (!rom || !rom.length) return '';
+    var t = ''; for (var i = 0x7FC0; i < 0x7FD5; i++) t += String.fromCharCode(rom[i]); return rom.length + ':' + rom[0x7FDC] + ',' + rom[0x7FDD] + ':' + t; }
+  function loanGet() { try { return JSON.parse(localStorage.getItem(LOAN_KEY) || 'null'); } catch (e) { return null; } }
+  function loanSet(v) { try { if (v) localStorage.setItem(LOAN_KEY, JSON.stringify(v)); else localStorage.removeItem(LOAN_KEY); } catch (e) {} }
+  var loanMem = loanGet();
+  function shieldLoanFrame(r) {
+    if (!loanMem) return;
+    if (active.shield_off) return;
+    if (loanMem.rom !== romId()) return;   // another game: keep it for when that seed's back
+    var lvl = Math.max(loanMem.lvl, r[SHIELD]);
+    loanMem = null; loanSet(null);
+    setShield(r, lvl);
+  }
+
   // ── the effects ─────────────────────────────────────────────────────────
   // Instant effects run once (apply). Timed ones last `secs` seconds of play
   // (the clock stops in menus and text boxes); a second gift adds more time.
@@ -649,6 +733,41 @@
       } },
     no_magic:    { name: 'Magic locked', good: false, secs: 30,
       frame: function (r) { r[A.MAGIC] = 0; r[A.MAGIC_FILL] = 0; } },
+
+    // Shields (see setShield above). "Shield gone" gives it back at the end,
+    // "Shield stolen" doesn't: Link needs to find one again.
+    shield_off:  { name: 'Shield gone', good: false, secs: 30,
+      check: function (r) { return r[SHIELD] || (loanMem && loanMem.rom === romId()) ? '' : 'Link has no shield'; },
+      start: function () {
+        var c = core(), r = c && c.wram(); if (!r) return;
+        var keep = loanMem && loanMem.rom === romId() ? loanMem.lvl : 0;
+        loanMem = { rom: romId(), lvl: Math.max(keep, r[SHIELD]) }; loanSet(loanMem);
+        r[SHIELD] = 0;
+      },
+      frame: function (r) {
+        if (!loanMem) return;
+        if (r[SHIELD]) { loanMem.lvl = Math.max(loanMem.lvl, r[SHIELD]); loanSet(loanMem); r[SHIELD] = 0; }
+      },
+      end: function () { var c = core(), r = c && c.wram(); if (r && r.length >= 0x20000) shieldLoanFrame(r); } },
+    shield_steal: { name: 'Shield stolen', good: false,
+      apply: function (r) {
+        var lent = loanMem && loanMem.rom === romId();
+        if (!r[SHIELD] && !lent) return 'Link has no shield';
+        if (lent) { loanMem = null; loanSet(null); delete active.shield_off; }
+        r[SHIELD] = 0;
+      } },
+    shield_down: { name: 'Shield downgrade', good: false,
+      apply: function (r) {
+        if (loanMem && loanMem.rom === romId()) { if (loanMem.lvl < 2) return 'Link only has the Fighter\'s Shield'; loanMem.lvl--; loanSet(loanMem); return; }
+        if (r[SHIELD] < 2) return r[SHIELD] ? 'Link only has the Fighter\'s Shield' : 'Link has no shield';
+        setShield(r, r[SHIELD] - 1);
+      } },
+    shield_up:   { name: 'Shield upgrade', good: true,
+      apply: function (r) {
+        if (loanMem && loanMem.rom === romId()) { if (loanMem.lvl >= 3) return 'Link already has the Mirror Shield'; loanMem.lvl++; loanSet(loanMem); return; }
+        if (r[SHIELD] >= 3) return 'Link already has the Mirror Shield';
+        setShield(r, r[SHIELD] + 1);
+      } },
 
     // These press the app's own roll buttons (randomizer/app.js, reroll.js).
     sprite_roll: { name: 'Random sprite', good: true,
@@ -1020,6 +1139,7 @@
         'Link isn\'t in normal play (mode ' + ram[A.MODE] + '/' + ram[A.SUBMODE] + ', frozen ' + ram[A.FROZEN] + ', hearts ' + ram[A.HP] + '/' + ram[A.HP_MAX] + ')'), 'info');
     } else waitT = 0;
     if (!inPlay(ram)) return;
+    shieldLoanFrame(ram);
     // timed effects
     var outside = ram[A.MODE] === 0x09;   // the ROM only spawns cuccos on the overworld
     for (var id in active) {
@@ -1044,6 +1164,10 @@
     var f = EFFECTS[job.id];
     if (f.romCheck && !romHas(core, f.romCheck)) {
       feed(f.name + ' needs a randomizer ROM (not this one)', 'info'); render(); return;
+    }
+    if (f.check) {
+      var why = f.check(ram);
+      if (why) { feed(f.name + ': ' + why, 'info'); render(); return; }
     }
     var secs = secsOf(job.id);
     if (secs) {

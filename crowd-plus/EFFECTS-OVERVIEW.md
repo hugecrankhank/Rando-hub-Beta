@@ -64,6 +64,8 @@ even unmapped ones, with a one-click "add".
 | `warp_flute` | Flute bird to a random flute spot (Light World outdoors; otherwise a random dungeon) | | | |
 | `warp_random` | Flute spot or dungeon, 50/50 | | | |
 | `insta_kill` | Instant death; the cape and Cane of Byrna don't block it (a bottled fairy still saves you) | | | |
+| `shield_steal` | Shield stolen: gone until Link finds another (like a Pikit eating it) | | `shield_off` | Shield gone, 30 s: the same shield comes back at the end (a better one found meanwhile is kept) |
+| `shield_down` / `shield_up` | Shield one step worse / better (Fighter's, Fire, Mirror); down stops at the Fighter's Shield | | | |
 | `seed_preset` / `seed_chaos` | Random preset / CHAOS seed (see below) | | | |
 | `arrows_plus` / `arrows_none` | +10 / lose all arrows | | `cucco_storm` | Cucco attack: angry cuccos fly at Link, 30 s of outdoor time (the clock pauses indoors) |
 

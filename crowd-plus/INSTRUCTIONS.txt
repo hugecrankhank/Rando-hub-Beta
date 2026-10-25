@@ -490,6 +490,11 @@ All effect names (use these on the right side):
     insta_kill     Instant death. Nothing blocks it: not the Magic Cape,
                    the Cane of Byrna or the blink after a hit. A fairy in
                    a bottle still revives you, as on any death.
+    shield_steal   Shield stolen: the shield is gone until Link finds
+                   another one (like a Pikit eating it).
+    shield_down    Shield downgrade: Mirror to Fire, Fire to Fighter's.
+                   Never takes the Fighter's Shield away.
+    shield_up      Shield upgrade: none to Fighter's to Fire to Mirror.
     magic_full     Refill magic
     magic_drain    Drain magic
     rupees_plus    +50 rupees
@@ -525,6 +530,9 @@ All effect names (use these on the right side):
                    mail alike (a bottled fairy or the cape still
                    save him) ................... 30s
     no_magic       Magic locked ................ 30s
+    shield_off     Shield gone ................. 30s
+                   The same shield comes back at the end, even after
+                   a reload; a better one found meanwhile is kept.
     cucco_storm    Cucco attack (outdoors) ..... 30s
     This folder's mapping.json sets one_hit, no_magic and cucco_storm
     to 20s (see "durations" below).
