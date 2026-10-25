@@ -18,6 +18,9 @@ played again later.
     is up, the flippers while Link swims.
   - Without the pearl in the Dark World Link turns into a bunny at the next screen, and turns
     back at the next screen after it's back.
+- **+1 / −1 heart container** (`heart_add` / `heart_remove`), for good: up to 20 hearts, never
+  below 1. A new container fills itself, like one picked up; one taken away takes its health
+  with it and leaves the HUD.
 - **Tunic upgrade / Tunic downgrade** (`tunic_up` / `tunic_down`): one step along green, blue,
   red mail. Hits hurt accordingly, and Link's colors change straight away (from the ROM, so a
   custom sprite gets its own tunic colors).

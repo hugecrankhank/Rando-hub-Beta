@@ -887,6 +887,25 @@
     sword_steal: { name: 'Sword stolen', good: false, apply: function (r) { return gearSteal('sword', r); },
       warn: 'Sword stolen can make the seed unbeatable: if every sword has been found, there is none left to get back (Agahnim\'s barrier and Ganon need one), and the next sword found only gives the Fighter\'s Sword.' },
 
+    // Heart containers, for good: $7EF36C is the hearts Link has (8 a heart,
+    // 20 at most). A new one fills itself up, as when one is picked up
+    // (zelda3 ancilla.c). One taken away takes its health with it and is
+    // wiped off the HUD (the game only draws the hearts Link has, so the old
+    // one would stay: $7EC768, two rows of ten, 0x207F is a blank tile).
+    heart_add:   { name: '+1 heart container', good: true,
+      apply: function (r) {
+        if (r[A.HP_MAX] >= 0xA0) return 'Link already has 20 hearts';
+        r[A.HP_MAX] += 8; r[A.HP_FILL] = Math.min(0xA0, r[A.HP_FILL] + 8);
+      } },
+    heart_remove: { name: '-1 heart container', good: false,
+      apply: function (r) {
+        var n = r[A.HP_MAX] >> 3;
+        if (n <= 1) return 'Link only has 1 heart';
+        r[A.HP_MAX] = (n - 1) * 8;
+        if (r[A.HP] > r[A.HP_MAX]) r[A.HP] = r[A.HP_MAX];
+        for (var i = n - 1; i < 20; i++) { var at = 0xC768 + (i % 10) * 2 + (i >= 10 ? 0x40 : 0); r[at] = 0x7F; r[at + 1] = 0x20; }
+        r[0x16] = 1;   // send the HUD next frame
+      } },
     tunic_up:    { name: 'Tunic upgrade', good: true,
       apply: function (r) { var t = r[0xF35B]; if (t >= 2) return 'Link already has the Red Mail'; setTunic(r, t + 1); } },
     tunic_down:  { name: 'Tunic downgrade', good: false,

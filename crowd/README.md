@@ -66,6 +66,7 @@ even unmapped ones, with a one-click "add".
 | `insta_kill` | Instant death; the cape and Cane of Byrna don't block it (a bottled fairy still saves you) | | | |
 | `shield_steal` | Shield stolen: gone until Link finds another (like a Pikit eating it) | | `shield_off` | Shield gone, 30 s: the same shield comes back at the end (a better one found meanwhile is kept) |
 | `shield_down` / `shield_up` | Shield one step worse / better (Fighter's, Fire, Mirror); down stops at the Fighter's Shield | | `sword_off` | Sword gone, 30 s: the same sword comes back (one found meanwhile counts) |
+| `heart_add` / `heart_remove` | +1 / −1 heart container for good (20 at most, never below 1); a new one fills itself |
 | `tunic_up` / `tunic_down` | Tunic one step better / worse (green, blue, red mail), colors and all |
 | `sword_up` | Sword one step better (Fighter's, Master, Tempered, Golden) | | `sword_down` | Sword downgrade, 30 s: one step worse, then back |
 | | | | `item_off` | Item gone, 30 s: a random item Link has (any item-menu item, all bottles as one, gloves, boots, flippers or Moon Pearl) is gone, then back. Y does nothing while it's the equipped one |
