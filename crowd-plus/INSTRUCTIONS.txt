@@ -487,9 +487,9 @@ All effect names (use these on the right side):
     heal_1         +1 heart
     hurt_2         -2 hearts (never kills)
     hp_1           Down to 1 heart
-    insta_kill     Instant death. Works like taking a hit for all your
-                   hearts, so a fairy in a bottle still saves you, and the
-                   Magic Cape or Cane of Byrna blocks it while active.
+    insta_kill     Instant death. Nothing blocks it: not the Magic Cape,
+                   the Cane of Byrna or the blink after a hit. A fairy in
+                   a bottle still revives you, as on any death.
     magic_full     Refill magic
     magic_drain    Drain magic
     rupees_plus    +50 rupees

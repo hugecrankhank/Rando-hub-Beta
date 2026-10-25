@@ -508,11 +508,20 @@
       input: function (p) { return p & ~B.Y; } },
     swap_by:     { name: 'B and Y swapped', good: false, secs: 20,
       input: function (p) { return swapBits(p, B.B, B.Y); } },
-    // Hands the game a hit worth all of Link's hearts, so it runs its own
-    // death: a bottled fairy still saves him, and the cape / Cane of
-    // Byrna's invincibility still blocks it, exactly like a real hit.
+    // Starts the game's own death right away, the way a fatal hit does
+    // (zelda3 Link_ControlHandler), but without going through the hit: the
+    // Magic Cape, the Cane of Byrna, i-frames and the like don't stop it.
+    // The game over sequence turns the cape off itself, and a bottled fairy
+    // still revives Link, as on any death.
     insta_kill:  { name: 'Instant death', good: false,
-      apply: function (r) { r[0x373] = r[A.HP]; } },
+      apply: function (r) {
+        r[0x373] = 0;                          // no hit pending
+        r[0xC211] = r[0x1C]; r[0xC212] = r[0x1D];   // mapbak_TM/TS = TM/TS
+        r[0x10C] = r[A.MODE];                  // saved_module_for_menu
+        r[A.MODE] = 0x12; r[A.SUBMODE] = 1;    // game over, death
+        r[0x31F] = 0;                          // no blinking
+        r[A.HP_FILL] = 0; r[A.HP] = 0;
+      } },
     enemy_spawn: { name: 'Extra enemy', good: false,
       apply: function (r) { return cloneEnemy(r); } },
     enemy_random: { name: 'Random enemy', good: false,

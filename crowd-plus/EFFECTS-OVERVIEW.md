@@ -63,7 +63,7 @@ even unmapped ones, with a one-click "add".
 | `warp_dungeon` | Drop into a random dungeon's entrance (keeps the current dungeon's keys) | | | |
 | `warp_flute` | Flute bird to a random flute spot (Light World outdoors; otherwise a random dungeon) | | | |
 | `warp_random` | Flute spot or dungeon, 50/50 | | | |
-| `insta_kill` | Instant death (a bottled fairy still saves you) | | | |
+| `insta_kill` | Instant death; the cape and Cane of Byrna don't block it (a bottled fairy still saves you) | | | |
 | `seed_preset` / `seed_chaos` | Random preset / CHAOS seed (see below) | | | |
 | `arrows_plus` / `arrows_none` | +10 / lose all arrows | | `cucco_storm` | Cucco attack: angry cuccos fly at Link, 30 s of outdoor time (the clock pauses indoors) |
 

@@ -5,6 +5,13 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.10.6 (2026-10-25)
+
+- **Crowd Control's Instant death can't be blocked any more.** It used to hand Link a hit
+  worth all his hearts, so the Magic Cape, the Cane of Byrna and the blink after a hit
+  stopped it. It now starts the game's death right away. A bottled fairy still revives
+  Link, as on any death.
+
 ## Beta v1.10.5 (2026-10-24)
 
 - **The playtesters are in the ending of every ALTTP randomizer seed played here**, not just
