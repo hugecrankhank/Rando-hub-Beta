@@ -1,8 +1,10 @@
 /*
- * Rando Hub's games: A Link to the Past (this page) and Zelda 1 (z1r/, the
+ * Rando Hub's games: A Link to the Past (this page), Zelda 1 (z1r/, the
  * Z1R app from hugecrankhank/Zelda-1-Rando, copied in by tools/update-z1r.py).
  *
- *  - A "Game" row at the top of the Randomizer bar switches between them.
+ *  - A "Game" row at the top of the Randomizer bar switches between them,
+ *    and to The Guardian Legend (glr/, from hugecrankhank/GLR), which is only
+ *    ever picked by hand: rerolls and Crowd Control never go there.
  *  - "Rerolls can land on either game": the 🎲 Reroll button and Crowd
  *    Control's "Random preset seed" and "CHAOS seed" pick a game at random;
  *    Zelda 1 opens z1r/ and rolls a seed there (the button: the flags last
@@ -19,6 +21,7 @@
   'use strict';
   var EITHER_KEY = 'rando-hub-either-game';
   var Z1_URL = 'z1r/';
+  var GLR_URL = 'glr/';   // The Guardian Legend: picked by hand only, never by a reroll or Crowd Control
 
   function either() { try { return localStorage.getItem(EITHER_KEY) === '1'; } catch (e) { return false; } }
   function setEither(on) { try { localStorage.setItem(EITHER_KEY, on ? '1' : '0'); } catch (e) {} }
@@ -29,7 +32,7 @@
     location.href = Z1_URL + '?roll=1' + (mode && mode !== 'same' ? '&mode=' + mode : '') + (by ? '&by=' + encodeURIComponent(by) : '');
   }
 
-  window.RandoGames = { either: either, setEither: setEither, pickZ1: pickZ1, goZ1: goZ1, Z1_URL: Z1_URL };
+  window.RandoGames = { either: either, setEither: setEither, pickZ1: pickZ1, goZ1: goZ1, Z1_URL: Z1_URL, GLR_URL: GLR_URL };
 
   // ── the 🎲 Reroll button: maybe Zelda 1 instead ───────────────────────────
   // Runs before reroll.js's own click handler (capture phase on the document).
@@ -58,7 +61,8 @@
     var row = document.createElement('div');
     row.id = 'game-row';
     row.innerHTML = '<span>Game</span><span class="gm"><span aria-current="page">Zelda 3 · ALTTP</span>' +
-      '<a href="' + Z1_URL + '" title="Zelda 1 randomizer (Z1R): roll, play and track Zelda 1 seeds">Zelda 1 ▸</a></span>' +
+      '<a href="' + Z1_URL + '" title="Zelda 1 randomizer (Z1R): roll, play and track Zelda 1 seeds">Zelda 1 ▸</a>' +
+      '<a href="' + GLR_URL + '" title="The Guardian Legend randomizer (GLR): roll, play and track its seeds. Rerolls and Crowd Control never pick it.">Guardian Legend ▸</a></span>' +
       '<label title="The 🎲 Reroll button and Crowd Control’s Random preset and CHAOS seeds pick Zelda 3 or Zelda 1 at random. Crowd Control’s New seed (same settings) stays in the game you’re playing.">' +
       '<input type="checkbox" id="either-game"> Rerolls can land on either game</label>';
     var after = document.getElementById('r-shared');

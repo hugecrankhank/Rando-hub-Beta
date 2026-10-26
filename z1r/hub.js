@@ -91,6 +91,11 @@
       back.textContent = '◂ Zelda 3';
       back.title = 'Back to Rando Hub (A Link to the Past)';
       newSeed.parentNode.insertBefore(back, newSeed);
+      var glr = document.createElement('a');
+      glr.className = 'btn'; glr.id = 'hub-glr'; glr.href = HUB + 'glr/';
+      glr.textContent = 'GLR'; glr.title = 'The Guardian Legend randomizer (picked by hand only: rerolls never go there)';
+      glr.style.textDecoration = 'none';
+      newSeed.parentNode.insertBefore(glr, newSeed);
       var rr = document.createElement('button');
       rr.className = 'btn'; rr.id = 'hub-reroll'; rr.type = 'button';
       rr.textContent = '🎲 Reroll';

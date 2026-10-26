@@ -8,7 +8,8 @@
  *    keys hides for Muffins' own tracker, which keeps its own count.
  *    In the iPad and phone headers (everything already behind their ⚙) the
  *    same settings simply sit in that menu.
- *  - Zelda 1 ▸ next to 🎲 Reroll: switch to the Zelda 1 randomizer (z1r/).
+ *  - Zelda 1 ▸ and GLR ▸ next to 🎲 Reroll: switch to the Zelda 1 randomizer
+ *    (z1r/) or The Guardian Legend randomizer (glr/).
  *
  * Loaded after reroll.js and addons/hub-items.js (which add the buttons and
  * menus moved here). The controls keep their ids, so nothing that uses them
@@ -35,7 +36,7 @@
     'body.hdr-compact #trk-settings-btn, body.phone #trk-settings-btn { display: none !important; }',
     'body.hdr-compact #trk-settings, body.phone #trk-settings { display: flex; position: static; box-shadow: none; border: 0; padding: 0; background: none;',
     '  flex-direction: row; flex-wrap: wrap; min-width: 0; }',
-    '#z1-btn { white-space: nowrap; }',
+    '#z1-btn, #glr-btn { white-space: nowrap; }',
   ].join('\n');
 
   function build() {
@@ -99,8 +100,16 @@
       if (window.EJS_emulator && !confirm('Switch to Zelda 1?\n\nThe current game will be closed.')) return;
       location.href = window.RandoGames.Z1_URL;
     });
+    var g = document.createElement('button');
+    g.type = 'button'; g.id = 'glr-btn';
+    g.textContent = 'GLR ▸';
+    g.title = 'Switch to The Guardian Legend randomizer (GLR)';
+    g.addEventListener('click', function () {
+      if (window.EJS_emulator && !confirm('Switch to The Guardian Legend?\n\nThe current game will be closed.')) return;
+      location.href = window.RandoGames.GLR_URL;
+    });
     var after = $('reroll-btn') || $('rando-split');
-    if (after) after.parentNode.insertBefore(b, after.nextSibling);
+    if (after) { after.parentNode.insertBefore(b, after.nextSibling); b.parentNode.insertBefore(g, b.nextSibling); }
   }
 
   function init() { build(); z1Button(); }

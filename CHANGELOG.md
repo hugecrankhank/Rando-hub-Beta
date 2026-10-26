@@ -5,6 +5,15 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.10.14 (2026-10-25)
+
+- **The Guardian Legend (GLR) is in Rando Hub** at glr/, a copy of the GLR app kept up to date
+  with it on every deploy. Pick it from the Randomizer bar's Game row ("Guardian Legend ▸") or
+  the GLR ▸ button by Zelda 1 ▸; GLR has ◂ Zelda 3 and Zelda 1 buttons to come back, and Zelda 1
+  has a GLR button. It's only ever picked by hand: 🎲 Reroll, "Rerolls can land on either game"
+  and Crowd Control's preset / CHAOS seeds stay on Zelda 3 and Zelda 1. GLR seeds go into
+  Seed history.
+
 ## Beta v1.10.13 (2026-10-25)
 
 - **Installed apps no longer get mixed up.** Rando Hub, Zelda 1 and GLR all live on the same
