@@ -7,6 +7,7 @@ played again later.
 
 ## Beta v1.10.17 (2026-10-25)
 
+- **No "Light World" / "Dark World" names over Mudora's maps** any more, on any device.
 - **Black and white Home Screen icon on iPhone** (the die, white on black, to sit with a
   monochrome Home Screen). iPad, Android and computers keep the colour icon, and the app itself
   keeps its colours. ⚙ Settings → **Home Screen icon**: Auto, Colour or Black & white. iOS reads

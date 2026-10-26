@@ -344,7 +344,7 @@
     this.cv = el('canvas', 'wcv'); this.cx = this.cv.getContext('2d');
     this.pins = el('div', 'pins');
     this.box.appendChild(this.cv); this.box.appendChild(this.pins);
-    this.box.appendChild(el('div', 'wname', world === 'lw' ? 'Light World' : 'Dark World'));
+    this.box.setAttribute('aria-label', world === 'lw' ? 'Light World' : 'Dark World');   // (no name drawn over the map)
     var rs = el('button', 'wreset', '⟲'); rs.type = 'button'; rs.title = 'Reset this map (whole world, as at the start)';
     rs.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
     rs.addEventListener('click', function (e) { e.stopPropagation(); self.fit(); });
