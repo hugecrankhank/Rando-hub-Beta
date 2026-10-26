@@ -2,7 +2,6 @@
   "name": "Rando Hub Beta",
   "short_name": "Rando Beta",
   "description": "Rando Hub: A Link to the Past Randomizer on a built-in Snes9x emulator, with the Hutch tracker, seed generators and TikTok crowd control.",
-  "id": "./",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

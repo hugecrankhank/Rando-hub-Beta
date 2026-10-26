@@ -5,7 +5,9 @@
  * as they load, so once you've played and rolled a seed online, both work
  * without a connection.
  */
-const CACHE = 'z1r-unified-v5';
+// One name per copy of the app (Zelda 1 also runs inside Rando Hub on the same site)
+const PREFIX = 'z1r-unified-v', SCOPE = ':' + self.registration.scope;
+const CACHE = 'z1r-unified-v5' + SCOPE;
 const EXTERNAL = [
   'https://cdn.jsdelivr.net/pyodide/',
   'https://fonts.googleapis.com/',
@@ -22,7 +24,9 @@ self.addEventListener('install', (e) => {
   self.skipWaiting();
 });
 self.addEventListener('activate', (e) => {
-  e.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+  // Only this app's own older caches: other apps share this site (github.io),
+  // and their saved files aren't ours to clear (plus our old unscoped one).
+  e.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE && k.startsWith(PREFIX) && (k.endsWith(SCOPE) || k.indexOf(':') < 0)).map((k) => caches.delete(k))))
     .then(() => self.clients.claim()));
 });
 self.addEventListener('fetch', (e) => {

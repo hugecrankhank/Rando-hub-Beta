@@ -5,6 +5,16 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.10.13 (2026-10-25)
+
+- **Installed apps no longer get mixed up.** Rando Hub, Zelda 1 and GLR all live on the same
+  site (hugecrankhank.github.io) and all named themselves the same app, so installing or
+  opening one could turn another's desktop / home screen app into it (an installed Rando Hub
+  opening GLR). Each one is now its own app. An install that already got switched has to be
+  removed and installed again.
+- **Zelda 1 no longer clears other apps' offline copies** when it updates (it cleared every
+  saved copy on the site, Rando Hub's offline download included); it only clears its own.
+
 ## Beta v1.10.12 (2026-10-25)
 
 - **iPad layout with Mudora and Mudora 2.0** looks like it does with Hutch's tracker: the game

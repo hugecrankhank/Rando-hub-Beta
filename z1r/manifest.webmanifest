@@ -2,7 +2,6 @@
   "name": "Z1R Unified",
   "short_name": "Z1R",
   "description": "Roll Zelda 1 randomizer seeds, play them, and track your progress in one page.",
-  "id": "./",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
