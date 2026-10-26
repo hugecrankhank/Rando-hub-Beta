@@ -10,6 +10,9 @@ played again later.
 - **Mudora / Mudora 2.0 maps on phones and iPads: press and hold works as a right click again.**
   Holding a check opened its card but, on letting go, also marked it (or unmarked it) as if
   it had been tapped. The hold now only opens the card; a tap still marks.
+- **Zelda 1 and GLR say their seed generators are beta** (not fully vetted yet), on their
+  start screen and in New seed. Zelda 1's start screen says "Zelda 1 Randomizer".
+- README brought up to date with everything since 1.9.0.
 
 ## Beta v1.10.14 (2026-10-25)
 

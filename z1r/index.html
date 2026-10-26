@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-<title>Z1R Unified</title>
+<title>Zelda 1 Randomizer</title>
 <meta name="description" content="Roll Zelda 1 randomizer seeds, play them, and track your progress in one page.">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#000000">
@@ -304,6 +304,8 @@ html { touch-action: manipulation; -webkit-text-size-adjust: 100%; }
   #result p { margin: 0 0 12px; color: var(--text-dim); font-size: 14px; }
   #result .actions { display: flex; flex-wrap: wrap; gap: 8px; }
   .fine { font-size: 12px; color: var(--text-dim); }
+  .beta-note, #placeholder p.beta-note { color: var(--gold); }
+  .dlg .beta-note { margin: 0; padding: 10px 16px 0; font-size: 12px; line-height: 1.4; }
   .fine a { color: var(--frame-lit); }
 
   .toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom)); transform: translateX(-50%);
@@ -349,7 +351,7 @@ html { touch-action: manipulation; -webkit-text-size-adjust: 100%; }
 </head>
 <body>
 <header>
-  <h1 class="brand" aria-label="Z1R Unified"><span id="brand-mark"></span><span class="brand-text">Z1R Unified</span></h1>
+  <h1 class="brand" aria-label="Zelda 1 Randomizer"><span id="brand-mark"></span><span class="brand-text">Z1R</span></h1>
   <button class="btn primary" id="new-seed" type="button">New seed</button>
   <label class="btn" for="rom-input">Play ROM file</label>
   <!-- No `accept` filter: iOS grays out .nes files it doesn't know. -->
@@ -365,7 +367,7 @@ html { touch-action: manipulation; -webkit-text-size-adjust: 100%; }
     <div id="game"></div>
     <div id="placeholder">
       <span class="tri-mark" id="tri-mark"></span>
-      <h2>Roll a seed and play</h2>
+      <h2>Zelda 1 Randomizer</h2>
       <p>Generate a randomized Legend of Zelda from your own ROM, play it right here, and the tracker follows along as you go.</p>
       <div class="actions">
         <button class="btn primary" id="ph-new" type="button">Roll a new seed</button>
@@ -373,6 +375,7 @@ html { touch-action: manipulation; -webkit-text-size-adjust: 100%; }
         <label class="btn" for="rom-input">Play ROM file</label>
       </div>
       <p class="fine">Your ROM never leaves this device. Seeds are made by <a href="https://github.com/tetraly/zora" target="_blank" rel="noopener">ZORA</a>.</p>
+      <p class="fine beta-note">Beta: this seed generator is new and not fully vetted yet. A seed may have mistakes (an item out of reach, say); please report anything odd.</p>
     </div>
   </div>
   <aside id="tracker" aria-label="Tracker"></aside>
@@ -384,6 +387,7 @@ html { touch-action: manipulation; -webkit-text-size-adjust: 100%; }
       <div><h2 id="seed-title" style="display:inline">New seed</h2><small id="zora-version"></small></div>
       <button class="x" value="close" aria-label="Close">×</button>
     </div>
+    <p class="beta-note">Beta: this seed generator is new and not fully vetted yet. A seed may have mistakes (an item out of reach, say); please report anything odd.</p>
 
     <section class="step">
       <h3>Your Zelda ROM</h3>

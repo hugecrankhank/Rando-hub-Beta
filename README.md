@@ -5,12 +5,12 @@
 <h1 align="center">Rando Hub Beta</h1>
 
 > This is the **beta** of [Rando Hub](https://github.com/hugecrankhank/Rando-hub): new features are tried
-> here first. Right now: **EmoTracker** as a tracker choice (Tracker → EmoTracker (beta)). Saves here are
-> kept apart from the main app's.
+> here first, then move to the main app. Your ROM and saves here are kept apart from the main app's.
 
 <p align="center">
-  <b>A Link to the Past Randomizer, a Snes9x emulator and Hutch's autotracker, all on one screen, in your browser.</b><br>
-  Phones, tablets and computers. Installs like an app. Plays offline. Built for streaming.
+  <b>A Link to the Past Randomizer, a Snes9x emulator and an autotracker, all on one screen, in your browser.</b><br>
+  Zelda 1 and The Guardian Legend randomizers too. Phones, tablets and computers. Installs like an app.
+  Plays offline. Built for streaming.
 </p>
 
 <p align="center">
@@ -31,7 +31,7 @@
 - [How the app works](#how-the-app-works)
 - [Crowd control (TikTok LIVE)](#crowd-control-tiktok-live)
 - [Downloads and versions](#downloads-and-versions)
-- [Feature guide](#feature-guide) (layouts, tracker, generators, presets, sprites, offline)
+- [Feature guide](#feature-guide) (layouts, trackers, Mudora, other games, generators, presets, sprites, offline)
 - [Running and hosting it yourself](#running-and-hosting-it-yourself)
 - [Releasing a new version](#releasing-a-new-version)
 - [Under the hood](#under-the-hood)
@@ -50,16 +50,23 @@ Rando Hub puts everything you need for an ALttP Randomizer run in one page:
   between buttons, or press the gap for two), L/R, Select/Start. Size and
   opacity are adjustable; it hides when you use a real controller and comes back
   when you touch the screen.
-- **[Hutch's tracker](https://github.com/hutchch/ALTTPR-Tracker)** (items, keys,
-  Light World and Dark World maps) autotracking from the game's live memory.
+- **An autotracker** reading the game's live memory, four to pick from:
+  **Mudora 2.0** (the default: Rando Hub's own tracker, drawn from the game itself, with
+  [Muffins'](https://github.com/KrisDavie/alttptracker) logic and settings), **Mudora**
+  (the same look with Hutch's logic), and
+  **[Hutch's tracker](https://github.com/hutchch/ALTTPR-Tracker)** (newest release or
+  his beta). Items, keys, dungeons, prizes, entrances and both world maps.
 - **Three seed generators** in one menu: **alttpr.com** (the official generator,
   running in your browser), **Kara's branch** (door, entrance and overworld
   shuffles) and **AVIANART** (tournament and community presets). Plus the
   Customizer, saved presets, Reroll, seed links and race seeds.
-- **Layouts for every screen:** Phone, Tablet, Stacked, Desktop (tracker pieces
+- **Layouts for every screen:** Phone, iPad, Tablet, Desktop (tracker pieces
   pop out into their own windows) and Classic. **Layout → Auto** picks one for you.
-- **Extras:** Link sprites from the alttpr.com library, MSU-1 music packs,
-  Resume last game, offline play.
+- **More games:** the **Zelda 1** randomizer (Z1R, seeds by ZORA) and **The Guardian
+  Legend** randomizer (GLR), each with its own emulator and tracker, a click away.
+  Both seed generators are in beta.
+- **Extras:** Link sprites from the alttpr.com library, MSU-1 music packs, item sound
+  packs, Resume last game, a seed history, offline play.
 - **TikTok LIVE crowd control:** viewers' gifts change your game, roll new
   seeds and add time to a subathon clock.
 
@@ -126,11 +133,25 @@ TikTok gifts ─► crowd bridge ─► crowd/effects.js ───────�
 ## Crowd control (TikTok LIVE)
 
 Viewers' gifts, likes, follows and shares change your game while you stream:
-hearts, magic, rupees, bombs, arrows, inverted controls, no sword, ice physics,
-cucco attacks, extra enemies, instant death, random sprites or music, and
-brand-new seeds (same settings, a random preset, or full CHAOS) for big
-donations. There's also a **subathon clock** and a **scrolling gift list** for
-OBS / TikTok LIVE Studio. The ROM is never changed; any seed works.
+hearts, magic, rupees, bombs, arrows, inverted controls, ice physics, cucco
+attacks, instant death and one-hit KO, random sprites or music, and brand-new seeds
+(same settings, a random preset, or full CHAOS) for big donations. Plus:
+
+- **Gear:** shield gone / stolen / up / down, sword gone / down / up (and *sword
+  stolen*, which asks first since it can end a run), tunic up / down, +1 / −1 heart
+  container, and *item gone* (any item Link has, for 30 seconds).
+- **Enemies:** *any enemy* (one of 74, anywhere, even in an empty room), extra
+  enemies, and the Halloween set (Monster mash, Spooky monster, Haunting…).
+- **The room:** *Lights on!* / *Lights out!*, Blood drip, Spiderwebs, Spooky night.
+- **Help:** *reveal a go-mode item* shows where something the run still needs is
+  (seeds made in the hub; race seeds keep their spoiler hidden).
+- **Live games** for chat: guess the Ganon's Tower chest with the big key (`!gt`) or
+  the Digging Game dig with the prize (`!dig`).
+
+There's also a **subathon clock** (gifts, likes, follows, shares, comments, checks and
+bosses add time) and a **scrolling gift list** for OBS / TikTok LIVE Studio. With
+*Rerolls can land on either game*, new-seed gifts can switch between Zelda 3 and
+Zelda 1 (never The Guardian Legend). The ROM is never changed; any seed works.
 
 ```
 TikTok LIVE ──► your LIVE page (Chrome/Edge window) ──► Crowd Control+ ──ws://localhost:21214──► Rando Hub ──► Snes9x
@@ -213,11 +234,14 @@ her seeds are made in the browser instead. What changed in each version:
   **Light World** and **Dark World** buttons to switch the one tracker panel below it,
   sized to fit the screen with no scrolling. The header's controls are behind **⚙**.
   Turned sideways, the game is on the left and the panel on the right.
-- **Tablet** and **Stacked** (iPad and other tablets), **Desktop** with pop-out
-  tracker windows, and **Classic**.
+- **iPad**: the game on top, the items and dungeons under it, and both maps below
+  (upright) or in a column beside it (sideways). With Mudora the items run in two long
+  rows with the counters beside them (checks, deaths, bonks, the GT big key game and
+  the Digging Game), and the 13 dungeons as a row of small cards.
+- **Tablet** (other tablets), **Desktop** with pop-out tracker windows, and **Classic**.
 
-**Layout → Auto** picks Phone on phones, the tablet layouts on tablets (Stacked upright,
-Tablet sideways) and Desktop on a computer.
+**Layout → Auto** picks Phone on phones, iPad on an iPad, Tablet on other tablets and
+Desktop on a computer. A layout picked by hand always wins.
 
 ## Customizer and presets
 
@@ -252,28 +276,67 @@ links, and browsing the sprite library.
 On iPhone/iPad, also **Share → Add to Home Screen** and open it from there: iOS can
 clear a website's saved files after a few weeks without use, but not a Home Screen app's.
 
-## Tracker: newest release, beta or off
+## Trackers: Mudora 2.0, Mudora, Hutch's or off
 
-The **Tracker** choice in the header (behind ⚙ on phones) picks which of
-Hutch's trackers runs, and switches straight away, mid-game too:
+The **Tracker** choice in the header (behind ⚙ on phones and iPads) switches straight
+away, mid-game too:
 
-- **Newest release**: `tracker/`, his
+- **Mudora 2.0 (Muffins logic)**, the default: Mudora's look with the logic and
+  settings of [Muffins' Tracker 2.0](https://github.com/KrisDavie/alttptracker)
+  (`mudora2/`). His tracker runs out of sight (`mfns-tracker/`, built unchanged from
+  his source) and Mudora 2.0 shows its answers. Each seed rolled in the hub starts a
+  new game in it with the seed's settings; **⚙ Settings** has all his game and logic
+  settings (changeable mid-game), every one of his 67 presets with a search box, his
+  launch page and entrance menu, and Autotracking details. Logic problems: Muffins'
+  Discord; how it looks or runs here: Rando Hub.
+- **Mudora (Hutch logic)**: the same look with Hutch's logic (`mudora/`); his tracker
+  runs out of sight and both stay in step.
+- **Hutch**: his tracker as he makes it, `tracker/`, his
   [ALTTPR-Tracker](https://github.com/hutchch/ALTTPR-Tracker).
-- **Beta**: `tracker-beta/`, the release with the files from his
+- **Hutch Beta**: `tracker-beta/`, the release with the files from his
   [ALTTPR-Tracker-Beta](https://github.com/hutchch/ALTTPR-Tracker-Beta) laid over
   it. That repository only holds the files a beta changes, and is empty between
-  betas (his v1.1.20 beta became the release on 8 Oct); then there's no
-  `tracker-beta/` and Beta shows "same as release right now".
-- **Mudora (beta)**: Rando Hub's own tracker, with Hutch's logic (`mudora/`).
-- **Mudora 2.0 (beta, Muffins logic)**: Mudora's look with the logic and settings of
-  Muffins' Tracker 2.0 (`mudora2/`).
-- **Muffins Tracker 2.0 (beta)**: [his tracker](https://github.com/KrisDavie/alttptracker)
-  itself, built unchanged (`mfns-tracker/`).
+  betas; then there's no `tracker-beta/` and Beta shows "same as release right now".
 - **Off**: no tracker is loaded and the game fills the screen under the header,
   in every layout. With the on-screen controller showing it moves off the
   picture: under it when a phone or iPad is upright, on both sides when
   sideways. With a tracker on, the controller overlays the game as before.
   On computers, Timer and Game only stay in the header.
+
+**⚙ Settings** in the header holds the tracker settings: Tracker world and Tracker
+dungeon items (for the trackers with Hutch's logic), Tracker keys (Found `1/6`, In hand
+`0/6` or Both `1(0)/6`) and **Item sounds**: sound packs (a folder per item, a random
+sound on each pickup) that play with every tracker. It also has **📜 Seed history**
+(every seed started here, Zelda 1 and GLR too: when, the seed and its code, who rolled
+it and how, with a link to play it again and a CSV download) and **⭐ Credits**.
+
+### Mudora
+
+Rando Hub's own tracker, named after the Book of Mudora (it reads the old writing; this
+one reads your game). Everything it shows comes from the game being played:
+
+- **Items** cut from the game's own pause menu by a hidden copy of the emulator, so a
+  randomizer's menu and a custom sprite's look come along. **Icons** can be the game's
+  pixels, Smooth (Scale2x, twice), or your own PNGs, item by item.
+- **Both worlds drawn from the ROM**, sharp at any zoom, with a check's pin on the real
+  door, cave, item or person. Zoom with the wheel or a pinch, drag to move, ⟲ to reset.
+- **Clicking a check marks it done**; right click (press and hold on a phone or iPad)
+  opens its card to mark which item is there, or tick off the places in a square one
+  by one. Items: click up, right click back.
+- **Dungeons:** prize (crystals and pendants in their own colours, bright once you have
+  them), big key, map, compass, small keys (green once all found) and chests left, and
+  dungeon maps three ways: *Explore* (fills in as you walk), *Map* (like the pause map)
+  and *Full* (every room up front, desktop). **This dungeon** shows the boss, prize,
+  keys and chests of the dungeon Link is in; **⧉ Dungeon card** puts it in a window of
+  its own for OBS. **List** can show only the ready dungeons, or only this one.
+- **Prizes from the game's map:** whatever crystal or pendant the game draws on its world
+  map (X) is copied to the tracker; a button by each dungeon opens a picker for the rest.
+- **Entrances** on entrance-shuffle seeds: each door and hole where it is, filled in as
+  you walk through it (only the door you used is read, so nothing is given away).
+- **Counters:** checks (out of the places there are), deaths, bonks, the GT big key game
+  and the Digging Game, read from the game; **Visible** checks (orange) you can see but
+  not reach yet; go-mode reveals from crowd control marked on the map.
+- On phones the options fold behind its ⚙; on an iPad it uses the iPad layout above.
 
 `tools/update-hutch.py` refreshes both copies from his repositories (keeping
 the SNI shim line and the bottle pictures) and writes
@@ -373,9 +436,30 @@ work without touching Hutch's code:
   dungeons along the bottom (Hutch's own tablet view, `js/mobile.js` in
   [his tracker](https://github.com/hutchch/ALTTPR-Tracker)). The **−** / **+** at the
   bottom left of the item tracker resize the maps; the game takes the rest.
-- *Stacked:* the game with the items and dungeons under it, and both maps at full
-  size (side by side when upright, in a column on the right when sideways).
+- *iPad:* the game with the items and dungeons under it, and both maps at full
+  size (side by side when upright, in a column on the right when sideways). With
+  Mudora, `mudora-stack.js` lays Mudora out the same way around the game.
 - *Classic:* the original layout, with the game and both trackers on one page.
+
+## Other games: Zelda 1 and The Guardian Legend
+
+The **Game** row at the top of the Randomizer bar (and **Zelda 1 ▸** / **GLR ▸** in the
+header) switches games. Each is its own app inside the hub, with its own emulator,
+seed generator, tracker and saves, and buttons back to the others.
+
+- **Zelda 1** (`z1r/`, from [Zelda-1-Rando](https://github.com/hugecrankhank/Zelda-1-Rando)):
+  seeds made by [ZORA](https://github.com/tetraly/zora) from your own Legend of Zelda
+  (USA) ROM. Crowd control works there too: effects both games have keep their names,
+  ALTTP-only ones are skipped. **Rerolls can land on either game** lets 🎲 Reroll and
+  Crowd Control's random preset / CHAOS seeds pick Zelda 3 or Zelda 1 at random
+  (*New seed (same settings)* always stays in the game being played).
+- **The Guardian Legend** (`glr/`, from [GLR](https://github.com/hugecrankhank/GLR)):
+  seeds from your own Guardian Legend (USA) ROM, with the labyrinth map drawn from the
+  ROM. Only ever picked by hand: rerolls and crowd control never switch to it.
+
+Both seed generators are **beta**: new and not fully vetted yet, so a seed may have
+mistakes; please report anything odd. Both copies follow their own repositories on
+every deploy (`tools/update-z1r.py`, `tools/update-glr.py`).
 
 ## The Randomizer bar
 
@@ -621,6 +705,11 @@ index.html, *.js        the app: layouts (phone.js, tablet.js, desktop.js), pop-
 emu/                    Snes9x compiled to WebAssembly and its player, input, video and audio
 bridge/                 memory bridge to the tracker (sni-bridge.js) and the fake-SNI shim
 tracker/                Hutch's tracker (refreshed from his repository on every deploy)
+mudora/, mudora2/       Mudora (Hutch's logic) and Mudora 2.0 (Muffins' logic)
+mfns-tracker/           Muffins' Tracker 2.0, built unchanged; Mudora 2.0 runs it out of sight
+addons/                 item sounds, keys in hand, map prizes and other additions to the trackers
+z1r/, glr/              the Zelda 1 and Guardian Legend apps (copied from their repositories)
+sounds/                 item sound packs
 randomizer/             alttpr.com generator (JS port), Kara's branch, AVIANART, presets, sprites, MSU
 crowd/                  crowd control's game side: effects.js (in the app)
 crowd-plus/             Crowd Control+ (runs on your PC): gift bridge, control panel, stream overlays
@@ -766,6 +855,8 @@ AlttpBridge.peek(0x7EF340, 32)   // dump inventory bytes ($7EF340+)
   AVIANART add entrance, door and overworld shuffles; for glitched logic, generate
   elsewhere and use **Load a seed** or **Load ROM…**.
 - **Changing ROMs reloads the page.** Your game is stashed first, so nothing is lost.
+- **Mudora 2.0 doesn't follow door shuffle or overworld shuffle** (neither do the other
+  trackers); its logic is Muffins', so a logic question goes to him.
 - **Crowd control needs a PC** running Crowd Control+ (or an `https` tunnel to it for
   phone play; see `crowd/README.md`). It changes the game mid-run, so it's not for races.
 - Saves live in the browser's storage on the site you play from (the website and a
@@ -791,14 +882,9 @@ Gumby" and so on (`randomizer/hub-credits.js`; the captions that hint at items s
 
 ## Credits
 
-- EmoTracker (beta, Tracker → EmoTracker): a web version of the tracker part of
-  [EmoTracker](https://github.com/EmoTracker-Community/EmoTracker) (MIT) running the official
-  ALTTPR pack by EmoSaru (MIT), with Lua on [fengari](https://fengari.io) (MIT). See `emotracker/README.md`.
-
 - Tracker: [Hutch-ALTTPR Tracker](https://github.com/hutchch/ALTTPR-Tracker)
   by Hutch (hutchch), MIT License (see `tracker/LICENSE`).
-- Muffins' Tracker 2.0 (Tracker → Muffins Tracker 2.0, and the logic and settings of
-  Tracker → Mudora 2.0): [alttptracker](https://github.com/KrisDavie/alttptracker)
+- Muffins' Tracker 2.0 (the logic and settings of Tracker → Mudora 2.0): [alttptracker](https://github.com/KrisDavie/alttptracker)
   (`react_rewrite`) by Muffins / Kristofer Davie (MFNS), MIT License (see
   `mfns-tracker/LICENSE`), built unchanged. Tracker or logic bugs: his Discord;
   bugs in how it runs or looks inside Rando Hub: Rando Hub.
@@ -816,6 +902,11 @@ Gumby" and so on (`randomizer/hub-credits.js`; the captions that hint at items s
   Settings, presets and help text from her [alttpr.gwaa.kiwi](https://alttpr.gwaa.kiwi/generate).
   Runs on [Pyodide](https://pyodide.org) (MPL-2.0), downloaded when the site is deployed.
 - AVIANART seeds: [avianart.games](https://avianart.games).
+- Zelda 1: seeds by [ZORA](https://github.com/tetraly/zora) by Tetra (MIT, `z1r/zora/LICENSE`);
+  Zelda 1 and The Guardian Legend run on [libretro FCEUmm](https://github.com/libretro/libretro-fceumm)
+  (GPL-2.0, `z1r/core/LICENSES/`). See `z1r/README.md` and `glr/README.md`.
+- An earlier web EmoTracker (the official ALTTPR pack by EmoSaru, MIT, on
+  [fengari](https://fengari.io)) is kept in `emotracker/` but no longer offered as a tracker.
 - Link sprites: the [alttpr.com sprite library](https://alttpr.com/en/sprites) and its artists.
 - TikTok connection: [TikFinity](https://tikfinity.zerody.one).
 - Logo lettering: [Press Start 2P](https://fonts.google.com/specimen/Press+Start+2P) by CodeMan38,

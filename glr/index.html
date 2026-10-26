@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>GLR</title>
+<title>The Guardian Legend Randomizer</title>
 <meta name="description" content="Roll The Guardian Legend randomizer seeds, play them, and track your progress in one page.">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#000000">
@@ -256,6 +256,8 @@
   #result p { margin: 0 0 12px; color: var(--text-dim); font-size: 14px; }
   #result .actions { display: flex; flex-wrap: wrap; gap: 8px; }
   .fine { font-size: 12px; color: var(--text-dim); }
+  .beta-note, #placeholder p.beta-note { color: var(--gold); }
+  .dlg .beta-note { margin: 0; padding: 10px 16px 0; font-size: 12px; line-height: 1.4; }
   .fine a { color: var(--frame-lit); }
 
   .toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom)); transform: translateX(-50%);
@@ -325,6 +327,7 @@
         <label class="btn" for="rom-input">Play ROM file</label>
       </div>
       <p class="fine">Your ROM never leaves this device. Passwords are switched off: your progress is kept with save states (F5 / F8) and an autosave.</p>
+      <p class="fine beta-note">Beta: this seed generator is new and not fully vetted yet. A seed may have mistakes (an item out of reach, say); please report anything odd.</p>
     </div>
   </div>
   <aside id="tracker" aria-label="Tracker"></aside>
@@ -336,6 +339,7 @@
       <div><h2 id="seed-title" style="display:inline">New seed</h2><small id="glr-version"></small></div>
       <button class="x" value="close" aria-label="Close">×</button>
     </div>
+    <p class="beta-note">Beta: this seed generator is new and not fully vetted yet. A seed may have mistakes (an item out of reach, say); please report anything odd.</p>
 
     <section class="step">
       <h3>Your Guardian Legend ROM</h3>

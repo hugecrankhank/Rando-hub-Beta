@@ -1,5 +1,10 @@
 # GLR — roll, play and track The Guardian Legend randomizer seeds in one page
 
+> **Beta:** the seed generator is new and not fully vetted yet. A seed may have
+> mistakes (an item out of reach, say); please report anything odd.
+
+It's also one of the games in [Rando Hub](https://hugecrankhank.github.io/Rando-hub/glr/), next to A Link to the Past and Zelda 1.
+
 The Guardian Legend sibling of Z1R Unified and ALTTPR Unified. Generate a
 randomized Guardian Legend (NES) from your own ROM, play it in the browser,
 and the tracker follows along, with the labyrinth map drawn from the ROM

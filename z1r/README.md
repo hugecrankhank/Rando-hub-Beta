@@ -1,4 +1,9 @@
-# Z1R Unified — roll, play and track Zelda 1 randomizer seeds in one page
+# Zelda 1 Randomizer (Z1R) — roll, play and track Zelda 1 randomizer seeds in one page
+
+> **Beta:** the seed generator is new and not fully vetted yet. A seed may have
+> mistakes (an item out of reach, say); please report anything odd.
+
+It's also one of the games in [Rando Hub](https://hugecrankhank.github.io/Rando-hub/z1r/), next to A Link to the Past and The Guardian Legend.
 
 The Zelda 1 sibling of ALTTPR Unified. Generate a randomized Legend of Zelda
 from your own ROM, play it in the browser, and the tracker follows along as
