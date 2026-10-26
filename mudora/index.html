@@ -204,15 +204,24 @@
   body.stack.bar-open #gear { background: #3a4652; }
   body.stack #app { position: relative; }
   body.stack #main { position: absolute; inset: 0; display: block; }
+  /* under the game, as in Hutch's iPad layout: the items in two long rows, the dungeons as a row of small cards */
   body.stack #side { position: absolute; left: 0; right: 0; top: var(--hole-h); bottom: calc(var(--each) + var(--sgap)); width: auto; max-width: none;
-    border: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto 1fr; align-content: start; overflow: auto; }
-  body.stack #side .h-items { grid-column: 1; grid-row: 1; } body.stack #side #items { grid-column: 1; grid-row: 2 / 4; align-content: start; }
-  body.stack #side .h-dg { grid-column: 2; grid-row: 1; } body.stack #side #dungeons { grid-column: 2; grid-row: 2; }
-  body.stack #side #dghere { grid-column: 2; grid-row: 3; }
-  body.stack.dg-here-only #side #dghere { grid-row: 2; }
-  body.stack #dungeons { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
-  body.stack #maps { position: absolute; left: 0; right: 0; bottom: 0; height: var(--each); border-top: 1px solid var(--line); }
+    border: 0; display: flex; flex-direction: column; overflow: auto; }
+  body.stack #side h3 { display: none; }
+  body.stack #items { grid-template-columns: repeat(17, var(--isz)); gap: 3px; padding: 6px 8px 4px; }
+  body.stack #dungeons { grid-template-columns: repeat(13, minmax(0, 1fr)); gap: 3px; padding: 2px 6px 6px; }
+  body.stack #dungeons .dg { grid-template-columns: 1fr; grid-template-rows: auto auto auto auto; justify-items: center; gap: 1px; padding: 3px 2px;
+    border-left: 0; border-top: 4px solid var(--c-red); text-align: center; }
+  body.stack #dungeons .dg.green { border-color: var(--c-green); } body.stack #dungeons .dg.yellow { border-color: var(--c-yellow); }
+  body.stack #dungeons .dg.orange { border-color: var(--c-orange); } body.stack #dungeons .dg.purple { border-color: var(--c-purple); }
+  body.stack #dungeons .dg.partial { border-color: var(--c-partial); } body.stack #dungeons .dg.done { border-color: var(--c-done); }
+  body.stack #dungeons .dg .row { flex-wrap: wrap; justify-content: center; gap: 1px 2px; }
+  body.stack #dungeons .dg .ic { width: 14px; height: 14px; }
+  body.stack #dungeons .dg .key { font-size: 11px; width: 100%; }
+  body.stack #dungeons .dg .nm { font-size: 12px; } body.stack #dungeons .dg .nm img.rv { display: none; }
+  body.stack #side #dghere { margin: 4px 6px; }
   body.stack.stack-side #side { right: auto; width: var(--hole-w); bottom: 0; }
+  body.stack #maps { position: absolute; left: 0; right: 0; bottom: 0; height: var(--each); border-top: 1px solid var(--line); }
   body.stack.stack-side #maps { left: auto; top: 0; width: var(--each); height: auto; border-top: 0; border-left: 1px solid var(--line); }
   /* phone: one panel at a time (Rando Hub's tabs pick it) */
   body.phone #bar { display: none; }

@@ -11,6 +11,9 @@ played again later.
   on top, items and dungeons under it, and the maps below (upright) or in a column beside it
   (sideways). Mudora fills the area and the game sits over the space it leaves; Mudora's options
   are behind its ⚙. (`mudora-stack.js`)
+  Under the game, as in Hutch's: the items in two long rows across, and the 13 dungeons as a
+  row of small cards (name, prize, big key / map / compass, keys, chests left), so the game gets
+  most of the height.
 - **"Stacked" is now called "iPad"** and is the starting layout on an iPad. Every other tablet
   starts on **Tablet**. Picking a layout by hand still wins.
 - **Trackers:** Hutch, Hutch Beta, Mudora 2.0 (Muffins logic), Mudora (Hutch logic), Off.

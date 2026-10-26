@@ -793,7 +793,8 @@
   try { isize = localStorage.getItem(SIZE_KEY) || 'auto'; } catch (e) {}
   function applySize() {
     var side = $('side'), px;
-    if (isize === 'auto') {
+    if (stackIsz && document.body.classList.contains('stack')) px = stackIsz;
+    else if (isize === 'auto') {
       var W = phoneTab === 'items' ? innerWidth - 24 : document.body.classList.contains('stack') ? Math.min(($('side').clientWidth || 600) * 0.45, 340) : Math.min(innerWidth * 0.32, 340);
       px = Math.max(26, Math.min(phoneTab ? 48 : 64, Math.floor((W - 30 - 5 * 4) / 6)));
     } else px = +isize;
@@ -929,11 +930,12 @@
   // Rando Hub says how big a space to leave for it, top left; the items and
   // dungeons go under it, the maps beside (sideways) or below (upright), as
   // with Hutch's tracker in that layout. The options go behind ⚙.
-  var stackSig = '';
+  var stackSig = '', stackIsz = 0;
   window.addEventListener('message', function (e) {
     var d = e.data; if (!d || d.type !== 'mudora-stack') return;
     var b = document.body, r = document.documentElement.style;
-    var sig = d.on ? [d.hole.w, d.hole.h, d.each, d.side].join() : 'off';
+    var sig = d.on ? [d.hole.w, d.hole.h, d.each, d.side, d.isz].join() : 'off';
+    stackIsz = d.on ? d.isz || 0 : 0;
     if (sig === stackSig) return;
     stackSig = sig;
     b.classList.toggle('stack', !!d.on);

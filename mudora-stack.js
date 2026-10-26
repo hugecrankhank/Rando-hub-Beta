@@ -55,19 +55,24 @@
     active = true;
     var W = main.clientWidth, H = main.clientHeight;
     if (!W || !H) return;
-    var side = W > H, each, colW, gameW, gameH;
+    // Under the game, as in Hutch's iPad layout: the items in two long rows
+    // (17 across) and the 13 dungeons as a row of small cards
+    var side = W > H, each, colW, gameW, gameH, isz, band;
     if (side) {
       each = Math.floor(Math.min((H - MAP_GAP) / 2, W * 0.42));
       colW = W - each - MAP_GAP;
-      gameW = colW; gameH = Math.round(Math.min(colW * 7 / 8, H * 0.62));
     } else {
-      each = Math.floor(Math.min((W - MAP_GAP) / 2, H * 0.45));
-      gameW = W; gameH = Math.round(Math.min(W * 7 / 8, H - each - 230));
-      gameH = Math.max(160, gameH);
+      each = Math.floor(Math.min((W - MAP_GAP) / 2, H * 0.4));
+      colW = W;
     }
-    var sig = [W, H, gameW, gameH, each, side].join();
+    isz = Math.max(22, Math.min(46, Math.floor((colW - 16 - 16 * 3) / 17)));
+    band = 2 * isz + 3 + 14 + 96;   // two item rows, gaps, the dungeon cards
+    gameW = colW;
+    gameH = Math.round(Math.min(colW * 7 / 8, (side ? H : H - each - MAP_GAP) - band));
+    gameH = Math.max(140, gameH);
+    var sig = [W, H, gameW, gameH, each, side, isz].join();
     gw.style.left = '0px'; gw.style.top = '0px'; gw.style.width = gameW + 'px'; gw.style.height = gameH + 'px';
-    post({ type: 'mudora-stack', on: true, hole: { w: gameW, h: gameH }, each: each, side: side, gap: MAP_GAP });
+    post({ type: 'mudora-stack', on: true, hole: { w: gameW, h: gameH }, each: each, side: side, gap: MAP_GAP, isz: isz });
     if (sig !== last) { last = sig; window.dispatchEvent(new Event('resize')); }
   }
 
