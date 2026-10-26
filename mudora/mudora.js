@@ -290,6 +290,19 @@
     return ok;
   };
 
+  // set a dungeon's prize outright: his right click goes round
+  // unknown → crystal → red crystal → pendant → green pendant
+  var HUTCH_PRIZES = ['unknown', 'crystal', 'redcrystal', 'pendant', 'greenpendant'];
+  M.setPrize = function (k, name) {
+    var iw = M.itemsWin(); if (!iw) return false;
+    var slot = iw.document.querySelector('.dungeon-slot[data-dungeon-key="' + k + '"]'), pe = slot && slot.querySelector('.prize-img');
+    if (!pe || HUTCH_PRIZES.indexOf(name) < 0) return false;
+    var cur = HUTCH_PRIZES.indexOf((M.items || {})[k + 'Prize'] || 'unknown');
+    for (var n = (HUTCH_PRIZES.indexOf(name) - Math.max(0, cur) + 5) % 5; n > 0; n--) fire(pe, 'contextmenu');
+    setTimeout(ask, 60);
+    return true;
+  };
+
   // ── which game (ROM) this is ──────────────────────────────────────────────
   function romHash(b) {
     try {

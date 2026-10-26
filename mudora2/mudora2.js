@@ -597,6 +597,18 @@
     return true;
   };
 
+  // set a dungeon's prize outright (the map's picker, or copied from the game's map):
+  // his prize cycle forward as many times as it takes
+  var MF_PRIZES = ['unknown', 'greenPendant', 'pendant', 'crystal', 'redCrystal'];
+  var MF_OF = { unknown: 'unknown', greenpendant: 'greenPendant', pendant: 'pendant', crystal: 'crystal', redcrystal: 'redCrystal' };
+  M.setPrize = function (k, name) {
+    if (!ready()) return false;
+    var ds = state.dungeons[k]; if (!ds || !MF_OF[name]) return false;
+    var cur = MF_PRIZES.indexOf(!ds.prize || ds.prize === 'map' ? 'unknown' : ds.prize), to = MF_PRIZES.indexOf(MF_OF[name]);
+    for (var n = (to - Math.max(0, cur) + 5) % 5; n > 0; n--) action('dungeons/incrementPrizeCount', { dungeon: k, decrement: false });
+    return true;
+  };
+
   // ── words ─────────────────────────────────────────────────────────────────
   M.stats = function () {
     // Muffins' tracker doesn't count deaths or bonks; the hub reads them from the game

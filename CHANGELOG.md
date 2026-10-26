@@ -19,6 +19,12 @@ played again later.
   digging game (digs, which dig gave the prize).
 - **"Stacked" is now called "iPad"** and is the starting layout on an iPad. Every other tablet
   starts on **Tablet**. Picking a layout by hand still wins.
+- **Prizes on the game's map:** whatever crystal or pendant the game itself draws on its world map
+  is copied to the tracker on its own (HydeOut: a click per step had marked three crystals as
+  green pendants). The game's prize pictures are read from its sprite list: crystal ($64) or
+  pendant ($60/$62), its colour from the palette (red, blue, green). Red X's and crystal numbers
+  are small sprites and never count; a change made by hand afterwards stays. Tapping a dungeon's
+  button now opens a picker (green pendant, pendant, crystal, red crystal, ?) instead of stepping.
 - **Trackers:** Hutch, Hutch Beta, Mudora 2.0 (Muffins logic), Mudora (Hutch logic), Off.
   EmoTracker and Muffins' own tracker are no longer offered: Mudora 2.0 already runs Muffins'
   logic with Mudora's items and maps. Anyone on either is moved to Mudora 2.0. (His tracker is

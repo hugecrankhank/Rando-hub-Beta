@@ -4,9 +4,21 @@
  *
  * While the world map is open in the game, a small button sits by each
  * dungeon on it, showing the prize the tracker has for that dungeon (or "?").
- * Click: the next prize (crystal, red crystal, pendant…), right click (hold
- * on a phone): the one before. It changes the tracker straight away. The
- * buttons only show while the map is open, and only with Mudora or Mudora 2.0.
+ *
+ * Whatever prize the game itself draws on its map is copied to the tracker
+ * on its own: the randomizer draws a dungeon's crystal or pendant there once
+ * you may know it (its map or compass, by the seed's settings). Read from the
+ * game's sprite list ($7E0800, 4 bytes a sprite; sizes in $7E0A00): a 16 x 16
+ * sprite by the dungeon with the crystal picture ($64) or a pendant ($60/$62),
+ * its colour from the palette (z3randomizer overworldmap.asm / tables.asm
+ * WorldMapIcon_tile: palette 1 red, 2 blue, 4 green). The red X and the
+ * crystal numbers are small sprites, so they never count. A prize is copied
+ * once it's been seen the same a few times, and only when the game shows
+ * something new: a change made by hand afterwards stays.
+ *
+ * Click a button for a picker: green pendant, pendant, crystal, red crystal,
+ * or ? (not known). The buttons only show while the map is open, and only
+ * with Mudora or Mudora 2.0.
  *
  * Where each dungeon is on the map: the game's own sum for its map markers
  * (zelda3 messaging.c WorldMap_CalculateOamCoordinates, MIT), for both zoom
@@ -85,6 +97,10 @@
     '.mapz button:hover { background: rgba(40,46,56,.95); border-color: #fff; }',
     '.mapz button img { width: 18px; height: 18px; object-fit: contain; image-rendering: pixelated; pointer-events: none; }',
     '.mapz button.got { border-color: #5ee37a; }',
+    '.mapz .pick { position: absolute; transform: translate(-50%, 0); display: flex; gap: 3px; padding: 4px; border-radius: 8px; pointer-events: auto;',
+    '  background: rgba(10,12,16,.92); border: 1px solid #ffd166; box-shadow: 0 4px 14px rgba(0,0,0,.7); z-index: 2; }',
+    '.mapz .pick button { position: static; margin: 0; width: 34px; height: 34px; border-radius: 6px; border: 1px solid #4a535c; }',
+    '.mapz .pick button img { width: 26px; height: 26px; }',
     '.mapz .hint { position: absolute; left: 50%; bottom: 4px; transform: translateX(-50%); padding: 2px 8px; border-radius: 6px; background: rgba(0,0,0,.7);',
     '  color: #fff; font: 600 11px/1.4 system-ui, sans-serif; white-space: nowrap; pointer-events: none; }',
   ].join('\n');
@@ -95,26 +111,87 @@
     if (!document.getElementById('mapz-css')) { var st = document.createElement('style'); st.id = 'mapz-css'; st.textContent = CSS; document.head.appendChild(st); }
     if (!layer || !layer.isConnected) {
       layer = document.createElement('div'); layer.className = 'mapz'; layer.hidden = true;
-      var hint = document.createElement('div'); hint.className = 'hint'; hint.textContent = 'Prize: click = next, right click = back';
+      var hint = document.createElement('div'); hint.className = 'hint'; hint.textContent = 'Prizes the map shows are copied to the tracker · tap a ? to pick one';
       layer.appendChild(hint);
       h.appendChild(layer); btns = {};
     }
     return layer;
   }
+  // the picker: one tap on a dungeon's button, one tap on the prize
+  var CHOICES = [['greenpendant', 'pendant_green', 'Green pendant'], ['pendant', 'pendant_blue', 'Pendant'], ['crystal', 'crystal', 'Crystal'],
+    ['redcrystal', 'crystal_red', 'Red crystal'], ['unknown', '', 'Not known']];
+  var pick = null;
+  function closePick() { if (pick) { pick.remove(); pick = null; } }
+  function setPrize(k, name) {
+    var M = tracker(); if (!M) return;
+    if (M.setPrize) M.setPrize(k, name);
+    setTimeout(paint, 150);
+  }
+  function openPick(k, b) {
+    var was = pick && pick.__k; closePick();
+    if (was === k) return;
+    var M = tracker(); if (!M) return;
+    pick = document.createElement('div'); pick.className = 'pick'; pick.__k = k;
+    CHOICES.forEach(function (c) {
+      var o = document.createElement('button'); o.type = 'button'; o.title = c[2];
+      var src = c[1] && M.icons && M.icons[c[1]];
+      if (src) { var im = new Image(); im.src = src; im.alt = ''; o.appendChild(im); } else o.textContent = '?';
+      o.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); setPrize(k, c[0]); closePick(); });
+      ['pointerdown', 'mousedown', 'touchstart'].forEach(function (ev) { o.addEventListener(ev, function (e) { e.stopPropagation(); }, { passive: true }); });
+      pick.appendChild(o);
+    });
+    pick.style.left = b.style.left; pick.style.top = (parseFloat(b.style.top) + 18) + 'px';
+    layer.appendChild(pick);
+  }
   function button(k) {
     if (btns[k]) return btns[k];
     var b = document.createElement('button'); b.type = 'button';
-    function step(d) { var M = tracker(); if (M) { M.dungeonAct(k, 'prizeType', d); setTimeout(paint, 150); } }
-    b.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); step(1); });
-    b.addEventListener('contextmenu', function (e) { e.preventDefault(); e.stopPropagation(); step(-1); });
-    var t = null;
-    b.addEventListener('touchstart', function () { t = setTimeout(function () { t = 'done'; step(-1); }, 480); }, { passive: true });
-    b.addEventListener('touchend', function (e) { if (t === 'done') e.preventDefault(); else clearTimeout(t); t = null; });
+    b.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); openPick(k, b); });
+    b.addEventListener('contextmenu', function (e) { e.preventDefault(); e.stopPropagation(); openPick(k, b); });
     ['pointerdown', 'mousedown'].forEach(function (ev) { b.addEventListener(ev, function (e) { e.stopPropagation(); }); });
     layer.appendChild(b); btns[k] = b;
     return b;
   }
-  function hide() { if (layer && !layer.hidden) layer.hidden = true; }
+
+  // ── what the game draws on its map ────────────────────────────────────────
+  var seen = {}, copied = {}, copiedFor = '';
+  function gameSprites(r) {
+    var out = [];
+    for (var i = 0; i < 128; i++) {
+      var o = 0x800 + i * 4, y = r[o + 1];
+      if (y >= 0xE0 && y < 0xF8) continue;
+      var hi = (r[0xA00 + (i >> 2)] >> ((i & 3) * 2)) & 3;
+      if (!(hi & 2)) continue;                         // only the 16 x 16 ones: the prize pictures
+      var ch = r[o + 2], at = r[o + 3];
+      if (ch !== 0x64 && ch !== 0x60 && ch !== 0x62) continue;
+      var x = r[o] | ((hi & 1) << 8); if (x >= 256) x -= 512;
+      out.push({ x: x + 8, y: (y >= 0xF8 ? y - 256 : y) + 8, ch: ch, pal: (at >> 1) & 7 });
+    }
+    return out;
+  }
+  function kindOf(s) {
+    if (s.ch === 0x64) return s.pal === 1 ? 'redcrystal' : 'crystal';
+    return s.pal === 4 ? 'greenpendant' : 'pendant';
+  }
+  function copyFromGame(r, M, pts) {
+    var game = M.game || '';
+    if (game !== copiedFor) { copiedFor = game; copied = {}; seen = {}; }
+    var spr = gameSprites(r), now = Date.now();
+    spr.forEach(function (s) {
+      var best = null, bd = 18;
+      Object.keys(pts).forEach(function (k) { var p = pts[k], d = Math.max(Math.abs(p.x - s.x), Math.abs(p.y - s.y)); if (d < bd) { bd = d; best = k; } });
+      if (!best) return;
+      var kind = kindOf(s), o = seen[best];
+      if (!o || o.kind !== kind || now - o.t > 3000) seen[best] = o = { kind: kind, n: 0, t: now };
+      o.n++; o.t = now;
+      var it = M.items || {};
+      if (o.n >= 3 && copied[best] !== kind) {
+        copied[best] = kind;
+        if (it[best + 'Prize'] !== kind && M.setPrize) { M.setPrize(best, kind); setTimeout(paint, 200); }
+      }
+    });
+  }
+  function hide() { closePick(); if (layer && !layer.hidden) layer.hidden = true; }
   function paint() {
     var P = window.Snes9xPlayer, core = P && P.core, r;
     if (!on || !core) return hide();
@@ -123,13 +200,14 @@
     var M = tracker(); if (!M) return hide();
     var rect = P.fx && P.fx.pictureRect && P.fx.pictureRect();
     if (!rect || !rect.w || !ensure()) return hide();
-    var dark = !!(r[0x8A] & 0x40), it = M.items || {}, sx = rect.w / 256, sy = rect.h / 224, shown = {};
+    var dark = !!(r[0x8A] & 0x40), it = M.items || {}, sx = rect.w / 256, sy = rect.h / 224, shown = {}, pts = {};
     layer.style.left = rect.x + 'px'; layer.style.top = rect.y + 'px'; layer.style.width = rect.w + 'px'; layer.style.height = rect.h + 'px';
     DGS.forEach(function (d) {
       var k = d[0];
       if ((d[1] === 'dw') !== dark) return;
       var at = M.dungeonAt(k); if (!at) return;
       var p = mapPoint(r, at.x, at.y); if (!p) return;
+      pts[k] = p;
       var b = button(k); shown[k] = 1;
       // beside the dungeon (up and right), so the game's own marker stays visible
       b.style.left = ((p.x + 9) * sx) + 'px'; b.style.top = ((p.y - 9) * sy) + 'px';
@@ -140,10 +218,12 @@
         if (src) { var im = new Image(); im.src = src; im.alt = ''; b.appendChild(im); } else b.textContent = '?';
         b.classList.toggle('got', !!it[k + 'PrizeObtained']);
       }
-      b.title = NAMES[k] + ': ' + (pn && pn !== 'unknown' ? pn.replace('green', 'green ').replace('red', 'red ') : 'prize not marked') + '\nClick: next prize · right click: the one before';
+      b.title = NAMES[k] + ': ' + (pn && pn !== 'unknown' ? pn.replace('green', 'green ').replace('red', 'red ') : 'prize not marked') + '\nTap: pick its prize';
     });
     Object.keys(btns).forEach(function (k) { btns[k].style.display = shown[k] ? '' : 'none'; });
+    if (pick && !shown[pick.__k]) closePick();
     layer.hidden = false;
+    try { copyFromGame(r, M, pts); } catch (e) {}
   }
   setInterval(paint, 100);
 
@@ -162,5 +242,5 @@
     return true;
   }
   if (!addSetting()) document.addEventListener('DOMContentLoaded', addSetting);
-  window.RandoMapPrizes = { mapPoint: mapPoint, get on() { return on; } };
+  window.RandoMapPrizes = { mapPoint: mapPoint, get on() { return on; }, _sprites: gameSprites, _kind: kindOf };
 })();
