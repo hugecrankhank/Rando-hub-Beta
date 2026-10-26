@@ -1,6 +1,6 @@
 {
  "edition": "full",
- "version": "4c99ae125a7b",
+ "version": "09a88162635d",
  "cache": "rando-hub-v1",
  "files": [
   "./",
@@ -12,6 +12,7 @@
   "desktop.js",
   "fonts/PressStart2P-Regular.ttf",
   "icons/apple-touch-icon.png",
+  "icons/apple-touch-icon-mono.png",
   "icons/favicon-32.png",
   "icons/favicon.ico",
   "icons/icon-192.png",

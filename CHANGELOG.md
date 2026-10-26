@@ -5,6 +5,14 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.10.17 (2026-10-25)
+
+- **Black and white Home Screen icon on iPhone** (the die, white on black, to sit with a
+  monochrome Home Screen). iPad, Android and computers keep the colour icon, and the app itself
+  keeps its colours. ⚙ Settings → **Home Screen icon**: Auto, Colour or Black & white. iOS reads
+  the icon when you Add to Home Screen, so an icon already there changes once it's removed and
+  added again.
+
 ## Beta v1.10.16 (2026-10-25)
 
 - **Zelda 1 and The Guardian Legend live in Rando Hub now.** `z1r/` and `glr/` are the apps

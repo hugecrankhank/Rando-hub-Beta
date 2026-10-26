@@ -64,6 +64,20 @@
     first.parentNode.insertBefore(wrap, first);
     row(gm, 'hutch-only'); row(di, 'hutch-only');
     row($('key-display'), 'keys-only'); row($('sound-pack-sel'));
+    // Home Screen icon (iPhone / iPad: read when you tap Share → Add to Home Screen)
+    var hi = document.createElement('label'); hi.className = 'ctl';
+    hi.innerHTML = 'Home Screen icon <select id="home-icon-sel">' +
+      '<option value="auto">Auto (black &amp; white on iPhone)</option>' +
+      '<option value="color">Colour</option><option value="mono">Black &amp; white</option></select>';
+    hi.title = 'The icon iPhone / iPad use when you Add to Home Screen. Already added? Remove it and add it again to change it.';
+    panel.appendChild(hi);
+    var his = hi.querySelector('select');
+    try { his.value = localStorage.getItem('rhb-home-icon') || 'auto'; } catch (e) {}
+    his.addEventListener('change', function () {
+      try { localStorage.setItem('rhb-home-icon', his.value); } catch (e) {}
+      var mono = his.value === 'mono' || (his.value === 'auto' && /iPhone|iPod/.test(navigator.userAgent));
+      var l = $('touch-icon'); if (l) l.href = mono ? 'icons/apple-touch-icon-mono.png' : 'icons/apple-touch-icon.png';
+    });
     var note = document.createElement('p'); note.className = 'trk-note no-hutch';
     note.textContent = 'Tracker world and dungeon items follow each seed rolled here; change them in this tracker’s own Settings (Muffins’ logic).';
     panel.appendChild(note);
