@@ -41,6 +41,7 @@ index.html
 │   └── audio.js         AudioWorklet output with drift correction
 ├── js/nes-bridge.js     the tracker's live view of the NES's 2 KB RAM
 ├── js/tracker.js        items, levels, overworld + dungeon maps, pickup log
+├── js/training.js       Z1R Training: record a route, then follow it over the game
 ├── js/seed.js           "New seed" dialog
 ├── js/diag.js           crash recorder and status panel
 └── zora/seed-worker.js  ZORA randomizer, in Pyodide, in a Web Worker
@@ -114,6 +115,32 @@ back), tap a level's triforce, map or compass, and tap any overworld screen to
 label it (levels, sword caves, shops, take-any, hints and so on). A hand-set
 value stays until the game's own value changes. Tracking is saved per ROM, and
 each ROM gets its own battery save, so seeds never overwrite each other.
+
+## Z1R Training (beta)
+
+**🎯 Training** in the header: learn a speedrun route by playing it, with the
+route drawn over the game. Works with the normal game (Play ROM file) and seeds.
+
+- **Record** a route by playing it once, for example along with a speedrun
+  video. Each screen, cave and dungeon room becomes a step: the path you walk,
+  where you leave, the secrets you open (read from the game, and placed on the
+  ROM's own square for them) and where you drop bombs. Type a note for a screen
+  and it shows over the game there. Took a wrong turn? Delete those steps in the
+  list; the steps either side join back up. Press **Off** when you're done.
+- **Guide** plays it back: a green arrow at the edge you leave by (or GO IN /
+  EXIT / STAIRS / WARP where you go in a cave, a level, down stairs or warp),
+  the bush, wall, rock, grave or armos outlined with what to do (BURN, BOMB,
+  PUSH, TOUCH), bomb spots, and a dotted trail of the line to walk. It follows
+  you as you play; leave the route and it says where the route continues and
+  which way. ◀ / ▶ step through it by hand; click a step in the list to jump there.
+- **Export** saves a route as a `.z1route.json` file; **Import…** loads one.
+  Routes listed in `training/routes.json` show up for everyone (see
+  [`training/README.md`](training/README.md)).
+
+The code is `js/training.js` (one file); the overlay is a canvas over the
+emulator's picture, sized from `EmuPlayer.fx.pictureRect()`, and it reads
+RAM through `NesBridge`: $10 level, $12 mode, $EB room, $70/$84 Link,
+$658 bombs, $67F+ screen flags (bit 7: secret opened).
 
 ## Crowd effects (TikTok LIVE)
 

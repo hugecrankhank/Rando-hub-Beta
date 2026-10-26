@@ -5,6 +5,17 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.11.2 (2026-10-26)
+
+- **Z1R Training** (Zelda 1, beta): **🎯 Training** in Zelda 1's header. Record a speedrun
+  route by playing it once (for example along with a run video), then **Guide** draws it
+  over the game: an arrow at the edge to leave by, GO IN / EXIT / STAIRS / WARP where the
+  route goes into a cave or level, the bush, wall, rock, grave or armos outlined with what
+  to do (BURN, BOMB, PUSH, TOUCH), where to drop bombs, a dotted trail of the line to walk,
+  and your own notes per screen. It follows you as you play and says where the route
+  continues if you leave it. Routes export to a file to share, and import on any computer.
+  Works with the normal game and with seeds. See `z1r/README.md` → Z1R Training.
+
 ## Beta v1.11.1 (2026-10-26)
 
 - **Counters under the dungeons on computers.** Mudora 2.0 and Mudora now show the counters

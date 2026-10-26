@@ -358,6 +358,14 @@
           return [0, 1, 2].map((k) => block[4 * 0x80 + i + k] & 0x3F).filter((id) => id !== 0x3F);
         },
         screenPixels, drawScreen, drawMap, layout, squareTiles, entranceSquare,
+        // The tile object on a square ($E5 rock, $E6 bombable wall, $E7 burnable
+        // bush, $E8 grave, $E9/$EA armos), or its plain tile; 0 if unknown.
+        squareKind(s, col, row) {
+          const sc = screens[s];
+          if (!sc || sc.layout >= LAYOUTS) return 0;
+          const q = layout(sc.layout)[Math.round(col)][Math.round(row)];
+          return q < 0x38 ? primary[q] : 0;
+        },
         // The armos item: its screen and square ({s, col, row}), or null
         armosItem() { const a = armosSquare(armosRooms[0], 0); return a && armosRooms[0] < 128 ? Object.assign({ s: armosRooms[0] }, a) : null; },
       };
