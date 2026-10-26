@@ -41,13 +41,6 @@ jobs:
       # the repository are used.
       - name: Refresh Hutch's tracker
         run: python3 tools/update-hutch.py || { echo "Keeping the tracker copies from the repository"; git checkout -- tracker offline-files.json; git clean -fdq tracker-beta; }
-      # Zelda 1 (Z1R) at z1r/: the newest from hugecrankhank/Zelda-1-Rando.
-      # If it can't be reached, the copy in the repository is used.
-      - name: Refresh Zelda 1 (Z1R)
-        run: python3 tools/update-z1r.py || { echo "Keeping the Z1R copy from the repository"; git checkout -- z1r; git clean -fdq z1r; }
-      # The Guardian Legend (GLR) at glr/: the newest from hugecrankhank/GLR.
-      - name: Refresh Guardian Legend (GLR)
-        run: python3 tools/update-glr.py || { echo "Keeping the GLR copy from the repository"; git checkout -- glr; git clean -fdq glr; }
       # Kara's branch: her generator packed for the browser, and the pinned
       # Pyodide (Python for the browser) it runs on
       - name: Pack Kara's generator

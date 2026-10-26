@@ -447,19 +447,20 @@ The **Game** row at the top of the Randomizer bar (and **Zelda 1 ▸** / **GLR �
 header) switches games. Each is its own app inside the hub, with its own emulator,
 seed generator, tracker and saves, and buttons back to the others.
 
-- **Zelda 1** (`z1r/`, from [Zelda-1-Rando](https://github.com/hugecrankhank/Zelda-1-Rando)):
+- **Zelda 1** (`z1r/`):
   seeds made by [ZORA](https://github.com/tetraly/zora) from your own Legend of Zelda
   (USA) ROM. Crowd control works there too: effects both games have keep their names,
   ALTTP-only ones are skipped. **Rerolls can land on either game** lets 🎲 Reroll and
   Crowd Control's random preset / CHAOS seeds pick Zelda 3 or Zelda 1 at random
   (*New seed (same settings)* always stays in the game being played).
-- **The Guardian Legend** (`glr/`, from [GLR](https://github.com/hugecrankhank/GLR)):
+- **The Guardian Legend** (`glr/`):
   seeds from your own Guardian Legend (USA) ROM, with the labyrinth map drawn from the
   ROM. Only ever picked by hand: rerolls and crowd control never switch to it.
 
 Both seed generators are **beta**: new and not fully vetted yet, so a seed may have
-mistakes; please report anything odd. Both copies follow their own repositories on
-every deploy (`tools/update-z1r.py`, `tools/update-glr.py`).
+mistakes; please report anything odd. Both live in this repository (each folder is a
+complete app with its own README; `hub.js` in each is what connects it to the hub).
+They started as separate repositories for beta testing, now archived.
 
 ## The Randomizer bar
 
@@ -708,7 +709,7 @@ tracker/                Hutch's tracker (refreshed from his repository on every 
 mudora/, mudora2/       Mudora (Hutch's logic) and Mudora 2.0 (Muffins' logic)
 mfns-tracker/           Muffins' Tracker 2.0, built unchanged; Mudora 2.0 runs it out of sight
 addons/                 item sounds, keys in hand, map prizes and other additions to the trackers
-z1r/, glr/              the Zelda 1 and Guardian Legend apps (copied from their repositories)
+z1r/, glr/              the Zelda 1 and Guardian Legend apps (each complete, with its own README)
 sounds/                 item sound packs
 randomizer/             alttpr.com generator (JS port), Kara's branch, AVIANART, presets, sprites, MSU
 crowd/                  crowd control's game side: effects.js (in the app)

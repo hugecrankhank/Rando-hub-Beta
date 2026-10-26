@@ -5,6 +5,16 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.10.16 (2026-10-25)
+
+- **Zelda 1 and The Guardian Legend live in Rando Hub now.** `z1r/` and `glr/` are the apps
+  themselves (complete, each with its README); the separate repositories they started in were
+  for beta testing and are archived. Deploys no longer copy them in (`tools/update-z1r.py`,
+  `tools/update-glr.py` and the `z1r-hub/` / `glr-hub/` folders are gone; `hub.js` in each
+  app is where the hub glue lives).
+- **"◂ Zelda 3" is now just "Zelda 3"** in Zelda 1 and GLR: with three games, the buttons are
+  plain names.
+
 ## Beta v1.10.15 (2026-10-25)
 
 - **Mudora / Mudora 2.0 maps on phones and iPads: press and hold works as a right click again.**

@@ -1,9 +1,9 @@
 /*
  * Rando Hub's games: A Link to the Past (this page), Zelda 1 (z1r/, the
- * Z1R app from hugecrankhank/Zelda-1-Rando, copied in by tools/update-z1r.py).
+ * Z1R app, which lives in this repository now).
  *
  *  - A "Game" row at the top of the Randomizer bar switches between them,
- *    and to The Guardian Legend (glr/, from hugecrankhank/GLR), which is only
+ *    and to The Guardian Legend (glr/), which is only
  *    ever picked by hand: rerolls and Crowd Control never go there.
  *  - "Rerolls can land on either game": the 🎲 Reroll button and Crowd
  *    Control's "Random preset seed" and "CHAOS seed" pick a game at random;

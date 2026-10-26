@@ -7,7 +7,7 @@
  * whoever pressed Generate just before (RandoSeedLog.next): Crowd Control
  * (same settings / random preset / CHAOS, and the viewer), the 🎲 Reroll
  * button, or a roll handed over from the other game. Zelda 1's rerolls are
- * added by z1r-hub/hub.js into the same list (same site, same storage).
+ * added by z1r/hub.js (and glr/hub.js) into the same list (same site, same storage).
  *
  * ⚙ Settings → Seed history shows it, with Copy link and Download (CSV).
  * The newest 500 are kept.

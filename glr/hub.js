@@ -1,7 +1,6 @@
 /*
- * Rando Hub glue for The Guardian Legend (glr/). tools/update-glr.py copies
- * this file into glr/ and adds one <script> line to glr/index.html; the GLR
- * app itself (hugecrankhank/GLR) stays a standalone app.
+ * Rando Hub glue for The Guardian Legend (glr/), loaded by one <script> line
+ * in glr/index.html. GLR lives here now (its old repository is archived).
  *
  * GLR is a game you pick yourself: rerolls, "either game" and Crowd Control
  * never roll a seed here. This only adds the way back to the other games and
@@ -34,7 +33,7 @@
     document.head.appendChild(css);
     var newSeed = document.getElementById('new-seed');
     if (newSeed) {
-      newSeed.parentNode.insertBefore(link('hub-back', HUB, '◂ Zelda 3', 'Back to Rando Hub (A Link to the Past)'), newSeed);
+      newSeed.parentNode.insertBefore(link('hub-back', HUB, 'Zelda 3', 'Back to Rando Hub (A Link to the Past)'), newSeed);
       newSeed.parentNode.insertBefore(link('hub-z1', HUB + 'z1r/', 'Zelda 1', 'The Zelda 1 randomizer (Z1R)'), newSeed);
     }
     var play = document.getElementById('play');

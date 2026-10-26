@@ -1,7 +1,7 @@
 /*
- * Rando Hub glue for Zelda 1 (z1r/). tools/update-z1r.py copies this file
- * into z1r/ and adds one <script> line to z1r/index.html; the Z1R app itself
- * (hugecrankhank/Zelda-1-Rando) stays a standalone app.
+ * Rando Hub glue for Zelda 1 (z1r/), loaded by one <script> line in
+ * z1r/index.html. Zelda 1 lives here now (its old repository, Zelda-1-Rando,
+ * is archived).
  *
  *  - "◂ Zelda 3" back to the hub, and a 🎲 Reroll button in the header
  *  - "Rerolls can land on either game" (set in the hub's Randomizer bar):
@@ -88,7 +88,7 @@
     if (newSeed) {
       var back = document.createElement('a');
       back.className = 'btn'; back.id = 'hub-back'; back.href = HUB;
-      back.textContent = '◂ Zelda 3';
+      back.textContent = 'Zelda 3';
       back.title = 'Back to Rando Hub (A Link to the Past)';
       newSeed.parentNode.insertBefore(back, newSeed);
       var glr = document.createElement('a');

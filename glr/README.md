@@ -3,7 +3,10 @@
 > **Beta:** the seed generator is new and not fully vetted yet. A seed may have
 > mistakes (an item out of reach, say); please report anything odd.
 
-It's also one of the games in [Rando Hub](https://hugecrankhank.github.io/Rando-hub/glr/), next to A Link to the Past and Zelda 1.
+Part of [Rando Hub](https://github.com/hugecrankhank/Rando-hub): play it at
+https://hugecrankhank.github.io/Rando-hub/glr/ (or from the hub's Game row).
+This folder is the app; the separate repository it started in was for beta testing
+and is archived.
 
 The Guardian Legend sibling of Z1R Unified and ALTTPR Unified. Generate a
 randomized Guardian Legend (NES) from your own ROM, play it in the browser,
@@ -23,7 +26,7 @@ Open http://localhost:8080, tap **New seed**, choose your
 **Generate**, then **Play now**. Already have a ROM? **Play ROM file** plays
 it with the tracker (and with the password option switched off).
 
-The included workflow publishes it to GitHub Pages on every push to `main`.
+On the web it's served as part of Rando Hub's site (Rando Hub's deploy publishes it).
 
 Command line (Node 18+):
 

@@ -3,7 +3,10 @@
 > **Beta:** the seed generator is new and not fully vetted yet. A seed may have
 > mistakes (an item out of reach, say); please report anything odd.
 
-It's also one of the games in [Rando Hub](https://hugecrankhank.github.io/Rando-hub/z1r/), next to A Link to the Past and The Guardian Legend.
+Part of [Rando Hub](https://github.com/hugecrankhank/Rando-hub): play it at
+https://hugecrankhank.github.io/Rando-hub/z1r/ (or from the hub's Game row).
+This folder is the app; the separate repository it started in was for beta testing
+and is archived.
 
 The Zelda 1 sibling of ALTTPR Unified. Generate a randomized Legend of Zelda
 from your own ROM, play it in the browser, and the tracker follows along as
@@ -15,7 +18,7 @@ It must be served over HTTP (opening `index.html` as a file won't work: the
 seed generator runs in a Web Worker, which browsers block on `file://`).
 
 ```bash
-cd z1r-unified
+cd z1r
 python3 -m http.server 8080      # or: npx serve .
 ```
 
@@ -24,8 +27,7 @@ Open http://localhost:8080, tap **New seed**, choose your Legend of Zelda
 **Play now**. Already have a randomized ROM (from zora.gg or the Z1R desktop
 app)? Use **Play ROM file**; the tracker works with any Zelda 1 ROM.
 
-It also works as a static site. Push to a GitHub repo and the included
-workflow publishes it to GitHub Pages, which lets you play from any device.
+On the web it's served as part of Rando Hub's site (Rando Hub's deploy publishes it).
 
 ## What's in the page
 
