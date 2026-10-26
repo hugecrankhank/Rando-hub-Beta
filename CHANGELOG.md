@@ -5,6 +5,19 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.12.0 (2026-10-26)
+
+- **Patched games** (new page, `patched/`; **Patched ▸** next to Zelda 1 and GLR): play NES and
+  SNES ROM hacks on Rando Hub's own emulators. Pick your original ROM and the hack's patch
+  (**.ips**, **.bps**, **.ups**, or the **.zip** it came in): it's patched right in the browser
+  and kept in a library, nothing uploaded and no games or patches shipped with the app.
+  BPS / UPS patches check the ROM is the right one and say which one they want if not; SNES
+  copier headers are added or taken off to match. Each game's **title screen becomes its
+  cover** (picked by itself the first time you play), shown in the library and beside the
+  game where the trackers usually are; **📸 Use this screen as cover** or **🖼 Choose a picture**
+  to change it. Original ROMs can be remembered for the next hack. In-game saves and save
+  states (F5 / F8) work as everywhere else.
+
 ## Beta v1.11.4 (2026-10-26)
 
 - **Zelda Classic button removed** (from 1.11.3): ZQuest Classic is better used as its own

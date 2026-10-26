@@ -22,7 +22,7 @@
     this.gain = this.ctx.createGain();
     this.gain.connect(this.ctx.destination);
     this.applyVolume();
-    this._starting = this.ctx.audioWorklet.addModule('emu/audio-worklet.js').then(function () {
+    this._starting = this.ctx.audioWorklet.addModule((window.EMU_BASE || 'emu/') + 'audio-worklet.js').then(function () {
       self.node = new AudioWorkletNode(self.ctx, 'snes9x-audio', {
         numberOfInputs: 0, outputChannelCount: [2], processorOptions: { inRate: self.inRate } });
       self.node.connect(self.gain);

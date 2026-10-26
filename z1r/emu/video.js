@@ -59,7 +59,7 @@
   }
 
   Video.PRESETS = PRESETS;
-  Video.base = 'emu/';        // where shaders/ lives, relative to the page
+  Video.base = window.EMU_BASE || 'emu/';   // where shaders/ lives, relative to the page
 
   Video.prototype._tex = function () {
     var gl = this.gl, t = gl.createTexture();

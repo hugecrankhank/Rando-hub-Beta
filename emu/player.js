@@ -14,7 +14,7 @@
  */
 (function () {
   'use strict';
-  var BASE = 'emu/';
+  var BASE = window.EMU_BASE || 'emu/';   // EMU_BASE: a page in another folder (patched/)
   var SETTINGS_KEY = 's9x-player-settings';
   var DEFAULTS = {
     filter: 'xbrz6', aspect: '8:7', volume: 0.5, muted: false,

@@ -122,8 +122,16 @@
       if (window.EJS_emulator && !confirm('Switch to The Guardian Legend?\n\nThe current game will be closed.')) return;
       location.href = window.RandoGames.GLR_URL;
     });
+    var pt = document.createElement('button');
+    pt.type = 'button'; pt.id = 'patched-btn';
+    pt.textContent = 'Patched ▸';
+    pt.title = 'Patched games: play NES and SNES ROM hacks (your ROM + the hack\u2019s patch) on these emulators';
+    pt.addEventListener('click', function () {
+      if (window.EJS_emulator && !confirm('Switch to Patched games?\n\nThe current game will be closed.')) return;
+      location.href = 'patched/';
+    });
     var after = $('reroll-btn') || $('rando-split');
-    if (after) { after.parentNode.insertBefore(b, after.nextSibling); b.parentNode.insertBefore(g, b.nextSibling); }
+    if (after) { after.parentNode.insertBefore(b, after.nextSibling); b.parentNode.insertBefore(g, b.nextSibling); g.parentNode.insertBefore(pt, g.nextSibling); }
   }
 
   function init() { build(); z1Button(); }

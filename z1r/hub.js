@@ -96,6 +96,11 @@
       glr.textContent = 'GLR'; glr.title = 'The Guardian Legend randomizer (picked by hand only: rerolls never go there)';
       glr.style.textDecoration = 'none';
       newSeed.parentNode.insertBefore(glr, newSeed);
+      var pt = document.createElement('a');
+      pt.className = 'btn'; pt.id = 'hub-patched'; pt.href = HUB + 'patched/';
+      pt.textContent = 'Patched'; pt.title = 'Patched games: NES and SNES ROM hacks on these emulators';
+      pt.style.textDecoration = 'none';
+      newSeed.parentNode.insertBefore(pt, newSeed);
       var rr = document.createElement('button');
       rr.className = 'btn'; rr.id = 'hub-reroll'; rr.type = 'button';
       rr.textContent = '🎲 Reroll';

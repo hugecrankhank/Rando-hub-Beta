@@ -111,6 +111,22 @@ the top right turns green (**Update vX.Y.Z**) and **Download update** gets it. U
 version over the old folder: saves stay in `%APPDATA%\Rando Hub Beta`. **Menu → Version** switches
 to the live website instead. How it's built: [`desktop/README.md`](desktop/README.md).
 
+## Patched games
+
+**Patched ▸** (next to Zelda 1 and GLR) opens [`patched/`](patched/): ROM hacks for the NES and
+SNES, played on Rando Hub's emulators (FCEUmm and Snes9x). **＋ Add a game**, pick your own
+original ROM and the hack's patch (**.ips**, **.bps**, **.ups**, or the **.zip** it came in;
+romhacking.net has thousands), name it, **Add & play**. It's patched in the browser and kept
+in the library there; nothing is uploaded and no games or patches come with the app.
+
+- BPS and UPS patches check the ROM: the wrong one gets a message with the CRC32 the hack
+  wants. IPS can't check; a garbled game means the hack wants another version.
+- SNES copier headers are taken off or added to match the patch by themselves.
+- The title screen becomes the game's cover by itself the first time you play (in the
+  library, and beside the game where the trackers usually are). **📸 Use this screen as
+  cover** or **🖼 Choose a picture…** to change it.
+- In-game saves, save states (F5 / F8), controllers, filters: as in the rest of the app.
+
 ## Quick start
 
 1. Open the app and press **Randomizer** (top left).
