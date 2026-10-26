@@ -85,12 +85,26 @@
     [0x0f6, 0x10], [0x0f6, 0x20], [0x0f6, 0x40], [0x0f6, 0x80], [0x116, 0x10], [0x0fa, 0x10], [0x0f8, 0x10], [0x0f8, 0x20],
     [0x0f8, 0x40], [0x0f8, 0x80], [0x118, 0x80], [0x038, 0x20], [0x038, 0x40], [0x038, 0x10]];
   var gt = { armed: false, at: null }, stats = null;
+  // the digging game (Dark World, south of the Village of Outcasts, screen $68): digs this visit
+  // ($7FFE01), its prize taken ($7EF2E8 bit $40), and which dig it came on (the seed's dig, ROM
+  // $180020, or the count when it was picked up), as crowd/effects.js reads them
+  var dig = { digs: 0, armed: false, at: null };
+  function digRng() {
+    var P = window.Snes9xPlayer, core = P && P.core, rom = null;
+    try { rom = core && core.rom(); } catch (e) {}
+    var v = rom && rom.length > 0x180020 ? rom[0x180020] : 0;
+    return v >= 1 && v <= 30 ? v : 0;
+  }
   function readStats(r) {
     var opened = 0;
     GT_CHESTS.forEach(function (c) { if (r[0xF000 + c[0]] & c[1]) opened++; });
     var found = !!(r[0xF366] & 0x04);
     if (!found) gt = { armed: true, at: null };
     else if (gt.armed && gt.at === null) { gt.at = r[0x040C] === 0x1A ? opened : '?'; gt.armed = false; }
+    var digHere = r[0x10] === 0x09 && !r[0x1B] && r[0x8A] === 0x68, digFound = !!(r[0xF2E8] & 0x40);
+    if (digHere && r[0x1FE01] <= 60) dig.digs = r[0x1FE01];
+    if (!digFound) { dig.armed = true; dig.at = null; }
+    else if (dig.armed && dig.at === null) { var rr = digRng(); dig.at = rr && dig.digs >= rr ? rr : (dig.digs || '?'); dig.armed = false; }
     var checks = r[0xF423] | (r[0xF424] << 8);
     var prev = stats || {};
     stats = {
@@ -98,6 +112,7 @@
       deaths: Math.max(r[0xF449], prev.deaths || 0),
       bonks: Math.max(r[0xF420], prev.bonks || 0),
       gt: { chests: opened, total: GT_CHESTS.length, found: found, at: found ? gt.at : null },
+      dig: { digs: dig.digs, total: 30, found: digFound, at: digFound ? dig.at : null },
     };
   }
 
@@ -126,7 +141,7 @@
     var r = core.wram();
     if (!r || r.length < 0x20000) return;
     var name = P.gameName || '';
-    if (name !== gameKey) { gameKey = name; best = null; stats = null; gt = { armed: false, at: null }; }   // a new seed: start from what it has
+    if (name !== gameKey) { gameKey = name; best = null; stats = null; gt = { armed: false, at: null }; dig = { digs: 0, armed: false, at: null }; }   // a new seed: start from what it has
     if (!playable(r)) return;
     var any = false;
     for (var i = 0; i < 0x40 && !any; i++) if (r[INV + i]) any = true;

@@ -778,6 +778,23 @@
     var html = parts.map(function (p) { return '<span>' + p[0] + ' <b>' + p[1] + '</b></span>'; }).join('');
     if (g && g.enabled !== false) html += '<span title="Ganon’s Tower: chests opened, and which chest had the big key">GT chests <b>' + (g.chests || 0) + '</b>/' + (g.total || 22) + (g.found ? ' · big key at <b>' + (g.at != null ? g.at : '?') + '</b>' : '') + '</span>';
     s.innerHTML = html;
+    paintSideStats(KS, g, parts);
+  }
+  // iPad layout: the counters in the space beside the items (HydeOut): checks, deaths, bonks on
+  // the left; the GT big key game and the digging game on the right
+  function paintSideStats(KS, g, parts) {
+    var L = $('sst-l'), R = $('sst-r'); if (!L || !R) return;
+    function box(label, val, sub, title) {
+      return '<div class="sst" title="' + (title || label) + '"><small>' + label + '</small><b>' + val + '</b>' + (sub ? '<i>' + sub + '</i>' : '') + '</div>';
+    }
+    var get = function (n) { var p = parts.filter(function (x) { return x[0] === n; })[0]; return p ? p[1] : (KS && KS[n.toLowerCase()]) || 0; };
+    var l = box('Checks', get('Checks')) + box('Deaths', get('Deaths')) + box('Bonks', get('Bonks'));
+    var r = '';
+    if (g && g.enabled !== false) r += box('GT chests', (g.chests || 0) + '<span>/' + (g.total || 22) + '</span>', g.found ? 'big key at ' + (g.at != null ? g.at : '?') : '', 'Ganon’s Tower: chests opened, and which chest had the big key');
+    var dg = KS && KS.dig;
+    if (dg) r += box('Dig game', dg.found ? '✓' : (dg.digs || 0) + '<span>/' + (dg.total || 30) + '</span>', dg.found ? 'prize on dig ' + (dg.at != null ? dg.at : '?') : 'digs', 'The digging game: digs, and which dig gave the prize');
+    if (L.__h !== l) { L.__h = l; L.innerHTML = l; }
+    if (R.__h !== r) { R.__h = r; R.innerHTML = r; }
   }
 
   // ── link status ───────────────────────────────────────────────────────────
