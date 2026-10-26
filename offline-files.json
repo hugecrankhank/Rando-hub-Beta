@@ -1,6 +1,6 @@
 {
  "edition": "full",
- "version": "d369610b3243",
+ "version": "2e81855c9e9b",
  "cache": "rando-hub-v1",
  "files": [
   "./",
@@ -334,6 +334,7 @@
   "tracker-settings.js",
   "credits.js",
   "randomizer/hub-credits.js",
-  "addons/map-prizes.js"
+  "addons/map-prizes.js",
+  "mudora-stack.js"
  ]
 }

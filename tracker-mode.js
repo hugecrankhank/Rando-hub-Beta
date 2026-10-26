@@ -31,7 +31,10 @@
     if (mode === 'mudora' && !localStorage.getItem('rhb-tracker-m2')) { mode = 'mudora2'; localStorage.setItem(KEY, mode); }
     localStorage.setItem('rhb-tracker-m2', '1');
   } catch (e) {}
-  if (mode !== 'release' && mode !== 'beta' && mode !== 'off' && mode !== 'emo' && mode !== 'mudora' && !((mode === 'mfns' || mode === 'mudora2') && mfnsTest)) mode = 'mudora2';
+  // EmoTracker and Muffins' own tracker are no longer offered (Oct 2026): Mudora
+  // 2.0 runs Muffins' logic with Mudora's items and maps instead
+  if (mode === 'emo' || mode === 'mfns') { mode = 'mudora2'; try { localStorage.setItem(KEY, mode); } catch (e) {} }
+  if (mode !== 'release' && mode !== 'beta' && mode !== 'off' && mode !== 'mudora' && mode !== 'mudora2') mode = 'mudora2';
 
   function off() { return mode === 'off'; }
   // emo(): a tracker in its own frame (emo-host.js) — EmoTracker, or Mudora
@@ -49,8 +52,7 @@
   function base() { return mode === 'beta' && V.beta ? V.beta.path : V.release.path; }
   function options() {
     var rv = V.release.version ? ' ' + V.release.version : '';
-    var mf = mfnsTest ? [['mudora2', 'Mudora 2.0 (beta, Muffins logic)'], ['mfns', 'Muffins Tracker 2.0 (beta)']] : [];
-    return [['release', 'Hutch' + rv], ['beta', 'Hutch Beta'], ['mudora', 'Mudora (beta)']].concat(mf).concat([['emo', 'EmoTracker (beta)'], ['off', 'Off (game full screen)']]);
+    return [['release', 'Hutch' + rv], ['beta', 'Hutch Beta'], ['mudora2', 'Mudora 2.0 (Muffins logic)'], ['mudora', 'Mudora (Hutch logic)'], ['off', 'Off (game full screen)']];
   }
   function applyBody() {
     if (!document.body) return;

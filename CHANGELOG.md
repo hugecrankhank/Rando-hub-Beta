@@ -5,6 +5,19 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.10.12 (2026-10-25)
+
+- **iPad layout with Mudora and Mudora 2.0** looks like it does with Hutch's tracker: the game
+  on top, items and dungeons under it, and the maps below (upright) or in a column beside it
+  (sideways). Mudora fills the area and the game sits over the space it leaves; Mudora's options
+  are behind its ⚙. (`mudora-stack.js`)
+- **"Stacked" is now called "iPad"** and is the starting layout on an iPad. Every other tablet
+  starts on **Tablet**. Picking a layout by hand still wins.
+- **Trackers:** Hutch, Hutch Beta, Mudora 2.0 (Muffins logic), Mudora (Hutch logic), Off.
+  EmoTracker and Muffins' own tracker are no longer offered: Mudora 2.0 already runs Muffins'
+  logic with Mudora's items and maps. Anyone on either is moved to Mudora 2.0. (His tracker is
+  still there inside Mudora 2.0, for his launch page, settings and entrance menu.)
+
 ## Beta v1.10.11 (2026-10-25)
 
 Mudora and Mudora 2.0, from HydeOut's notes:

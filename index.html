@@ -8,7 +8,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <title>Rando Hub Beta</title>
 <meta name="application-name" content="Rando Hub">
-<meta name="version" content="1.10.11">
+<meta name="version" content="1.10.12">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#161b22">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
@@ -460,6 +460,13 @@
     display: block !important; position: fixed !important; left: -12000px !important; top: 0 !important;
     width: 900px !important; height: 700px !important; flex: none !important; opacity: 0 !important; pointer-events: none !important; }
   html body.tracker-emo.tracker-mudora #frames #items-wrap iframe { width: 900px; height: 700px; }
+  /* iPad layout with Mudora (mudora-stack.js): Mudora fills the area, the game sits over its top left */
+  html body.mud-stack { position: fixed !important; inset: 0 !important; height: auto !important; display: grid !important; grid-template-rows: auto auto minmax(0, 1fr) !important; }
+  html body.mud-stack main { display: block !important; position: relative !important; min-height: 0 !important; grid-row: 3 !important; }
+  html body.mud-stack aside { position: absolute !important; left: 0; right: 0; top: 0; bottom: env(safe-area-inset-bottom, 0px); width: auto !important; border: 0 !important; }
+  html body.mud-stack aside .tabs, html body.mud-stack #dock-split { display: none !important; }
+  html body.mud-stack #frames #emo-frame { height: 100% !important; }
+  html body.mud-stack #game-wrap { position: absolute !important; z-index: 3; aspect-ratio: auto !important; max-height: none !important; }
   body.tracker-emo.emo-away main { grid-template-columns: minmax(0, 1fr) 0 0; }
   body.tracker-emo.emo-away aside { width: 0; overflow: hidden; }
   body.tracker-emo.emo-away #dock-split { visibility: hidden; }
@@ -569,7 +576,7 @@
 </head>
 <body>
 <header>
-  <h1 title="Rando Hub Beta (v1.10.11 + EmoTracker)"><svg class="app-die" viewBox="-130 -130 260 260" aria-hidden="true"><g transform="rotate(-12)"><rect x="-108" y="-108" width="216" height="216" rx="32" fill="#fff" stroke="#c8102e" stroke-width="16"/><circle cx="-56" cy="-56" r="23" fill="#c8102e"/><circle cx="56" cy="-56" r="23" fill="#14213d"/><circle r="23" fill="#c8102e"/><circle cx="-56" cy="56" r="23" fill="#14213d"/><circle cx="56" cy="56" r="23" fill="#c8102e"/></g></svg><span class="app-name">RANDO <span>HUB</span></span><small class="app-ver">v1.10.11 beta</small></h1>
+  <h1 title="Rando Hub Beta (v1.10.12 + EmoTracker)"><svg class="app-die" viewBox="-130 -130 260 260" aria-hidden="true"><g transform="rotate(-12)"><rect x="-108" y="-108" width="216" height="216" rx="32" fill="#fff" stroke="#c8102e" stroke-width="16"/><circle cx="-56" cy="-56" r="23" fill="#c8102e"/><circle cx="56" cy="-56" r="23" fill="#14213d"/><circle r="23" fill="#c8102e"/><circle cx="-56" cy="56" r="23" fill="#14213d"/><circle cx="56" cy="56" r="23" fill="#c8102e"/></g></svg><span class="app-name">RANDO <span>HUB</span></span><small class="app-ver">v1.10.12 beta</small></h1>
 
   <div id="rando-split">
     <button id="r-toggle" aria-expanded="false" aria-controls="rando-bar" title="Show or hide the randomizer settings (they fold away by themselves when you go back to playing)">Randomizer<span id="r-gen-name"> · alttpr.com</span></button>
@@ -607,11 +614,11 @@
       <option value="keysanity">Key Sanity</option>
     </select>
   </label>
-  <label class="ctl" id="layout-sel" title="Desktop: the game with the trackers beside it, and tracker windows you can pop out. Tablet: items on top, maps on the sides, dungeons at the bottom">Layout
+  <label class="ctl" id="layout-sel" title="Desktop: the game with the trackers beside it, and tracker windows you can pop out. Tablet: items on top, maps on the sides, dungeons at the bottom (the starting choice on tablets). iPad: the game on top, items and dungeons under it, the maps below or beside (the starting choice on an iPad)">Layout
     <select id="layout">
       <option value="auto">Auto</option>
 <option value="desktop">Desktop</option>      <option value="tablet">Tablet</option>
-      <option value="stacked">Stacked</option>
+      <option value="stacked">iPad</option>
       <option value="classic">Classic</option>
       <option value="phone">Phone</option>
     </select>
@@ -971,7 +978,7 @@
 <script src="tracker/hutch-versions.js"></script>
 <script src="tracker-mode.js"></script>
 <script src="onlyadkd.js"></script>
-<script src="tablet.js"></script>
+<script src="tablet.js"></script><script src="mudora-stack.js"></script>
 
 <script src="portal.js"></script>
 <script src="desktop.js"></script>

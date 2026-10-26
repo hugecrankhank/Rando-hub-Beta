@@ -794,7 +794,7 @@
   function applySize() {
     var side = $('side'), px;
     if (isize === 'auto') {
-      var W = phoneTab === 'items' ? innerWidth - 24 : Math.min(innerWidth * 0.32, 340);
+      var W = phoneTab === 'items' ? innerWidth - 24 : document.body.classList.contains('stack') ? Math.min(($('side').clientWidth || 600) * 0.45, 340) : Math.min(innerWidth * 0.32, 340);
       px = Math.max(26, Math.min(phoneTab ? 48 : 64, Math.floor((W - 30 - 5 * 4) / 6)));
     } else px = +isize;
     document.documentElement.style.setProperty('--isz', px + 'px');
@@ -887,13 +887,13 @@
   $('gear').addEventListener('click', function (e) { e.stopPropagation(); document.body.classList.toggle('bar-open'); });
   // phone: tapping anywhere else closes the options
   document.addEventListener('pointerdown', function (e) {
-    if (!document.body.classList.contains('bar-open') || !document.body.classList.contains('phone')) return;
+    if (!document.body.classList.contains('bar-open') || !(document.body.classList.contains('phone') || document.body.classList.contains('stack'))) return;
     if (e.target.closest('#bar') || e.target.closest('#gear') || e.target.closest('#set') || e.target.closest('#card')) return;
     document.body.classList.remove('bar-open');
   });
   // on a phone the colour key lives with the options, not under the map
   function placeLegend() {
-    var lg = $('legend'), want = document.body.classList.contains('phone') ? $('bar') : $('foot');
+    var lg = $('legend'), want = document.body.classList.contains('phone') || document.body.classList.contains('stack') ? $('bar') : $('foot');
     if (lg && lg.parentNode !== want) want.appendChild(lg);
   }
   $('b-help').addEventListener('click', function () {
@@ -924,6 +924,27 @@
   };
   var qs = new URLSearchParams(location.search);
   if (qs.get('phone')) window.MudoraPhone.set(qs.get('phone'));
+
+  // ── Rando Hub's iPad layout (mudora-stack.js): the game sits over this page ─
+  // Rando Hub says how big a space to leave for it, top left; the items and
+  // dungeons go under it, the maps beside (sideways) or below (upright), as
+  // with Hutch's tracker in that layout. The options go behind ⚙.
+  var stackSig = '';
+  window.addEventListener('message', function (e) {
+    var d = e.data; if (!d || d.type !== 'mudora-stack') return;
+    var b = document.body, r = document.documentElement.style;
+    var sig = d.on ? [d.hole.w, d.hole.h, d.each, d.side].join() : 'off';
+    if (sig === stackSig) return;
+    stackSig = sig;
+    b.classList.toggle('stack', !!d.on);
+    b.classList.toggle('stack-side', !!(d.on && d.side));
+    if (d.on) {
+      r.setProperty('--hole-w', d.hole.w + 'px'); r.setProperty('--hole-h', d.hole.h + 'px');
+      r.setProperty('--each', d.each + 'px'); r.setProperty('--sgap', (d.gap || 4) + 'px');
+    } else b.classList.remove('bar-open');
+    placeLegend(); applySize(); layoutWorlds();
+  });
+  try { if (window.parent !== window) window.parent.postMessage({ type: 'mudora-stack-ask' }, '*'); } catch (e) {}
 
   // ── start ─────────────────────────────────────────────────────────────────
   function onResize() { applySize(); layoutWorlds(); }

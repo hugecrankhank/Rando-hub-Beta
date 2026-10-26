@@ -19,7 +19,7 @@
   }
   function wanted() {
     var b = document.body;
-    return b.classList.contains('tablet') && !b.classList.contains('phone') && touchScreen();
+    return (b.classList.contains('tablet') || b.classList.contains('mud-stack')) && !b.classList.contains('phone') && touchScreen();
   }
 
   function closeRando() {

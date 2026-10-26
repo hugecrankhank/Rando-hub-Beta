@@ -194,6 +194,26 @@
   #toast { position: fixed; left: 50%; top: 44px; transform: translateX(-50%); background: #1d2126; border: 1px solid var(--gold); border-radius: 8px;
     padding: 6px 12px; z-index: 60; display: none; max-width: 90%; }
 
+
+  /* Rando Hub's iPad layout (mudora-stack.js): the game sits over the top left of this page */
+  body.stack #bar, body.stack #foot { display: none; }
+  body.stack.bar-open #bar { display: flex; position: fixed; left: 0; right: 0; top: 0; z-index: 55; padding: 8px 10px; gap: 8px 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.7); border-bottom: 1px solid #3b434b; }
+  body.stack #bar #legend { width: 100%; margin: 2px 0 0; gap: 8px; font-size: 11px; }
+  body.stack #gear { display: block; }
+  body.stack.bar-open #gear { background: #3a4652; }
+  body.stack #app { position: relative; }
+  body.stack #main { position: absolute; inset: 0; display: block; }
+  body.stack #side { position: absolute; left: 0; right: 0; top: var(--hole-h); bottom: calc(var(--each) + var(--sgap)); width: auto; max-width: none;
+    border: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto 1fr; align-content: start; overflow: auto; }
+  body.stack #side .h-items { grid-column: 1; grid-row: 1; } body.stack #side #items { grid-column: 1; grid-row: 2 / 4; align-content: start; }
+  body.stack #side .h-dg { grid-column: 2; grid-row: 1; } body.stack #side #dungeons { grid-column: 2; grid-row: 2; }
+  body.stack #side #dghere { grid-column: 2; grid-row: 3; }
+  body.stack.dg-here-only #side #dghere { grid-row: 2; }
+  body.stack #dungeons { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+  body.stack #maps { position: absolute; left: 0; right: 0; bottom: 0; height: var(--each); border-top: 1px solid var(--line); }
+  body.stack.stack-side #side { right: auto; width: var(--hole-w); bottom: 0; }
+  body.stack.stack-side #maps { left: auto; top: 0; width: var(--each); height: auto; border-top: 0; border-left: 1px solid var(--line); }
   /* phone: one panel at a time (Rando Hub's tabs pick it) */
   body.phone #bar { display: none; }
   /* phone: the options open over the map (⚙), so the map keeps its room */
