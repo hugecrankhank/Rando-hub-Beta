@@ -14,8 +14,9 @@ played again later.
   Under the game, as in Hutch's: the items in two long rows across, and the 13 dungeons as a
   row of small cards (name, prize, big key / map / compass, keys, chests left), so the game gets
   most of the height.
-  Beside the items: checks, deaths and bonks on the left; the GT big key game (chests opened,
-  which had the big key) and the digging game (digs, which dig gave the prize) on the right.
+  The items sit at the left, and right of them the counters: checks out of the places there are
+  (45/216), deaths, bonks, the GT big key game (chests opened, which had the big key) and the
+  digging game (digs, which dig gave the prize).
 - **"Stacked" is now called "iPad"** and is the starting layout on an iPad. Every other tablet
   starts on **Tablet**. Picking a layout by hand still wins.
 - **Trackers:** Hutch, Hutch Beta, Mudora 2.0 (Muffins logic), Mudora (Hutch logic), Off.

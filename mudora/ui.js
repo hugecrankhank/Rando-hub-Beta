@@ -780,15 +780,17 @@
     s.innerHTML = html;
     paintSideStats(KS, g, parts);
   }
-  // iPad layout: the counters in the space beside the items (HydeOut): checks, deaths, bonks on
-  // the left; the GT big key game and the digging game on the right
+  // iPad layout: the counters in the space right of the items (HydeOut): checks, deaths, bonks,
+  // then the GT big key game and the digging game
   function paintSideStats(KS, g, parts) {
     var L = $('sst-l'), R = $('sst-r'); if (!L || !R) return;
     function box(label, val, sub, title) {
       return '<div class="sst" title="' + (title || label) + '"><small>' + label + '</small><b>' + val + '</b>' + (sub ? '<i>' + sub + '</i>' : '') + '</div>';
     }
     var get = function (n) { var p = parts.filter(function (x) { return x[0] === n; })[0]; return p ? p[1] : (KS && KS[n.toLowerCase()]) || 0; };
-    var l = box('Checks', get('Checks')) + box('Deaths', get('Deaths')) + box('Bonks', get('Bonks'));
+    // checks out of the places there are, when the logic knows them ("Locations 46/216")
+    var loc = parts.filter(function (x) { return x[0] === 'Locations'; })[0], tot = loc ? String(loc[1]).split('/')[1] : '';
+    var l = box('Checks', get('Checks') + (tot ? '<span>/' + tot + '</span>' : ''), '', 'Checks: items picked up' + (tot ? ', out of ' + tot + ' places' : '')) + box('Deaths', get('Deaths')) + box('Bonks', get('Bonks'));
     var r = '';
     if (g && g.enabled !== false) r += box('GT chests', (g.chests || 0) + '<span>/' + (g.total || 22) + '</span>', g.found ? 'big key at ' + (g.at != null ? g.at : '?') : '', 'Ganon’s Tower: chests opened, and which chest had the big key');
     var dg = KS && KS.dig;

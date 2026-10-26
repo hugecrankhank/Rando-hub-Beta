@@ -260,11 +260,11 @@
   body.stack.stack-side #maps { left: auto; top: 0; width: var(--each); height: auto; border-top: 0; border-left: 1px solid var(--line); }
   /* the counters beside the items (iPad layout) */
   #sst-l, #sst-r { display: none; }
-  body.stack #side { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-content: start; }
+  body.stack #side { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr); align-content: start; }
   body.stack #side > * { grid-column: 1 / -1; }
-  body.stack #side > #items { grid-column: 2; grid-row: 1; }
+  body.stack #side > #items { grid-column: 1; grid-row: 1; justify-content: start; }
   body.stack #side > #sst-l, body.stack #side > #sst-r { grid-row: 1; display: flex; flex-wrap: wrap; align-content: center; justify-content: center; gap: 4px; padding: 4px; }
-  body.stack #side > #sst-l { grid-column: 1; } body.stack #side > #sst-r { grid-column: 3; }
+  body.stack #side > #sst-l { grid-column: 2; } body.stack #side > #sst-r { grid-column: 3; }
   .sst { min-width: 58px; padding: 3px 6px; border-radius: 6px; background: #1b1f23; border: 1px solid #2c3238; text-align: center; line-height: 1.15; }
   .sst small { display: block; font-size: 10px; color: var(--dim); text-transform: uppercase; letter-spacing: .04em; }
   .sst b { display: block; font-size: 18px; color: #fff; font-variant-numeric: tabular-nums; }
