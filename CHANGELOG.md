@@ -5,6 +5,14 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.11.1 (2026-10-26)
+
+- **Counters under the dungeons on computers.** Mudora 2.0 and Mudora now show the counters
+  (Checks out of the places there are, Deaths, Bonks, and Ganon's Tower chests with where the
+  big key was, plus the digging game when it's on) in a **Counters** section below the dungeon
+  list, in the Desktop, Tablet and Classic layouts and the Windows app. Until now they only
+  showed beside the items in the iPad layout.
+
 ## Beta v1.11.0 (2026-10-26)
 
 - **Windows app.** Rando Hub now comes as a Windows program too:

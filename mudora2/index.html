@@ -271,6 +271,20 @@
   .sst b { display: block; font-size: clamp(9px, 19cqi, 14px); color: #fff; font-variant-numeric: tabular-nums; }
   .sst b span { font-size: .6em; color: var(--dim); font-weight: 600; }
   .sst i { display: block; font-style: normal; font-size: clamp(6.5px, 16cqi, 8.5px); color: var(--gold); }
+  /* computer layouts (not iPad, not phone): the same counters in a section under the dungeons */
+  .h-ct { display: none; }
+  body:not(.stack):not(.phone) #side { display: flex; flex-direction: column; }
+  body:not(.stack):not(.phone) #side > * { flex: none; }
+  body:not(.stack):not(.phone) #side > .h-ct { display: block; order: 10; border-top: 1px solid var(--line); }
+  body:not(.stack):not(.phone) #side > #sst-l, body:not(.stack):not(.phone) #side > #sst-r { order: 11; display: grid; grid-template-columns: repeat(auto-fit, minmax(64px, 1fr));
+    gap: 4px; padding: 6px 8px 0; }
+  body:not(.stack):not(.phone) #side > #sst-r { order: 12; }
+  body:not(.stack):not(.phone) #side > #sst-r:empty { display: none; }
+  body:not(.stack):not(.phone) #side > #sst-r:not(:empty), body:not(.stack):not(.phone) #side > #sst-l:has(+ #items + #sst-r:empty) { padding-bottom: 8px; }
+  body:not(.stack):not(.phone) #side .sst { min-width: 0; padding: 4px 4px 5px; }
+  body:not(.stack):not(.phone) #side .sst small { font-size: 10px; letter-spacing: .04em; }
+  body:not(.stack):not(.phone) #side .sst b { font-size: 17px; margin-top: 2px; }
+  body:not(.stack):not(.phone) #side .sst i { font-size: 10px; white-space: normal; }
   /* phone: one panel at a time (Rando Hub's tabs pick it) */
   body.phone #bar { display: none; }
   /* phone: the options open over the map (⚙), so the map keeps its room */
@@ -323,6 +337,7 @@
       <h3 class="h-dg">Dungeons</h3>
       <div id="dungeons"></div>
       <div id="dghere" class="dghere empty" title="The dungeon Link is in"></div>
+      <h3 class="h-ct">Counters</h3>
     </div>
     <div id="maps">
       <div class="dg-bar" id="dgbar"></div>
