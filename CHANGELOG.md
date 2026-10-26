@@ -5,6 +5,15 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.11.3 (2026-10-26)
+
+- **Zelda Classic ↗** next to the other games (the header and the Randomizer bar's Game row,
+  on the hub, Zelda 1 and GLR): opens **ZQuest Classic**, Zelda Classic's engine (renamed and
+  still developed since zeldaclassic.com closed), in its official web player with the original
+  Zelda and its whole quest database. It runs in its own window: a pop-up in a browser, a
+  window of its own in the Windows app, which stays open if you close Rando Hub. Its saves are
+  its own.
+
 ## Beta v1.11.2 (2026-10-26)
 
 - **Z1R Training** (Zelda 1, beta): **🎯 Training** in Zelda 1's header. Record a speedrun

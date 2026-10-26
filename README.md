@@ -111,6 +111,15 @@ the top right turns green (**Update vX.Y.Z**) and **Download update** gets it. U
 version over the old folder: saves stay in `%APPDATA%\Rando Hub Beta`. **Menu → Version** switches
 to the live website instead. How it's built: [`desktop/README.md`](desktop/README.md).
 
+## Zelda Classic
+
+**Zelda Classic ↗** (in the header and the Game row) opens [ZQuest Classic](https://zquestclassic.com),
+Zelda Classic's engine (renamed and still developed; zeldaclassic.com closed in October 2026),
+in its official web player: the original Zelda plus thousands of fan-made quests. It needs a
+page of its own, so it opens in its own window (in the Windows app, a window of its own that
+stays open after Rando Hub closes). ZQuest Classic is GPL-3.0, by its own developers; Rando Hub
+only opens it (`zclassic.js`).
+
 ## Quick start
 
 1. Open the app and press **Randomizer** (top left).
