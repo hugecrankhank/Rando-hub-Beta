@@ -5,6 +5,11 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.11.4 (2026-10-26)
+
+- **Zelda Classic button removed** (from 1.11.3): ZQuest Classic is better used as its own
+  program. Everything else is unchanged.
+
 ## Beta v1.11.3 (2026-10-26)
 
 - **Zelda Classic ↗** next to the other games (the header and the Randomizer bar's Game row,

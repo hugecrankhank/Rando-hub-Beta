@@ -173,13 +173,6 @@ function isAppUrl(url) {
   return url === WEBSITE.slice(0, -1) || url.startsWith(WEBSITE);
 }
 
-// Other web apps the hub opens in a window of their own (not the browser):
-// ZQuest Classic's player (Zelda Classic; ../zclassic.js). They keep their own
-// site's address, saves and headers, get no preload, and can outlive the hub.
-const PARTNERS = ['https://web.zquestclassic.com/'];
-const isPartnerUrl = (url) => !!url && PARTNERS.some((p) => url === p.slice(0, -1) || url.startsWith(p));
-const partnerWindows = new WeakSet();
-
 function openOutside(url) {
   if (/^(https?|mailto):/i.test(url)) shell.openExternal(url).catch(() => {});
 }
@@ -217,8 +210,8 @@ function createMainWindow() {
   mainWin.on('close', () => keepBounds(true));
   mainWin.on('closed', () => {
     mainWin = null;
-    // The pop-outs only work with the main window: close them too (not ZQuest Classic).
-    BrowserWindow.getAllWindows().forEach((w) => { if (!w.isDestroyed() && !partnerWindows.has(w)) w.destroy(); });
+    // The pop-outs only work with the main window: close them too.
+    BrowserWindow.getAllWindows().forEach((w) => { if (!w.isDestroyed()) w.destroy(); });
   });
 
   mainWin.webContents.on('did-fail-load', (e, code, desc, url, isMainFrame) => {
@@ -237,16 +230,6 @@ function createMainWindow() {
 
 app.on('web-contents-created', (_e, contents) => {
   contents.setWindowOpenHandler(({ url }) => {
-    if (isPartnerUrl(url)) {
-      return {
-        action: 'allow',
-        outlivesOpener: true,
-        overrideBrowserWindowOptions: {
-          icon: ICON, backgroundColor: '#000000', autoHideMenuBar: true, width: 1100, height: 860,
-          webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true, backgroundThrottling: false, spellcheck: false },
-        },
-      };
-    }
     if (isAppUrl(url)) {
       return {
         action: 'allow',
@@ -259,22 +242,11 @@ app.on('web-contents-created', (_e, contents) => {
     openOutside(url);
     return { action: 'deny' };
   });
-  contents.on('did-create-window', (w, { url }) => { if (isPartnerUrl(url)) partnerWindows.add(w); });
   contents.on('will-navigate', (e, url) => {
-    if (isPartnerUrl(url)) return;                       // ZQuest Classic stays in its window
-    const w = BrowserWindow.fromWebContents(contents);
-    const partner = (w && partnerWindows.has(w)) || isPartnerUrl(contents.getURL());
-    if (partner || !isAppUrl(url)) { e.preventDefault(); openOutside(url); }
+    if (!isAppUrl(url)) { e.preventDefault(); openOutside(url); }
   });
-  // The hub only saves on leaving; never let it hold a window open. A partner
-  // (ZQuest Classic's editor, say) may have unsaved work: ask.
-  contents.on('will-prevent-unload', (e) => {
-    const w = BrowserWindow.fromWebContents(contents);
-    if (!w || !partnerWindows.has(w)) { e.preventDefault(); return; }
-    const pick = dialog.showMessageBoxSync(w, { type: 'question', buttons: ['Leave', 'Stay'], defaultId: 1, cancelId: 1,
-      title: w.getTitle(), message: 'Leave this page?', detail: 'Changes you haven’t saved may be lost.' });
-    if (pick === 0) e.preventDefault();
-  });
+  // The app only saves on leaving; never let a page hold a window open.
+  contents.on('will-prevent-unload', (e) => e.preventDefault());
   contents.on('render-process-gone', (_e, details) => {
     if (details.reason === 'clean-exit') return;
     const win = BrowserWindow.fromWebContents(contents);
@@ -291,7 +263,7 @@ function setSource(source, quiet) {
   if (settings.source === source) return;
   const go = () => {
     settings.source = source; saveSettings();
-    BrowserWindow.getAllWindows().forEach((w) => { if (w !== mainWin && !w.isDestroyed() && !partnerWindows.has(w)) w.destroy(); });
+    BrowserWindow.getAllWindows().forEach((w) => { if (w !== mainWin && !w.isDestroyed()) w.destroy(); });
     if (mainWin) mainWin.loadURL(startUrl());
     buildMenu();
     findUpdate().catch(() => {});   // what counts as an update depends on the version played
@@ -514,9 +486,7 @@ function buildMenu() {
 
 // ── start ───────────────────────────────────────────────────────────────────
 app.on('second-instance', () => {
-  if (!mainWin) { createMainWindow(); return; }   // only ZQuest Classic was still open
-  if (mainWin.isMinimized()) mainWin.restore();
-  mainWin.focus();
+  if (mainWin) { if (mainWin.isMinimized()) mainWin.restore(); mainWin.focus(); }
 });
 
 app.whenReady().then(async () => {

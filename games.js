@@ -62,15 +62,11 @@
     row.id = 'game-row';
     row.innerHTML = '<span>Game</span><span class="gm"><span aria-current="page">Zelda 3 · ALTTP</span>' +
       '<a href="' + Z1_URL + '" title="Zelda 1 randomizer (Z1R): roll, play and track Zelda 1 seeds">Zelda 1 ▸</a>' +
-      '<a href="' + GLR_URL + '" title="The Guardian Legend randomizer (GLR): roll, play and track its seeds. Rerolls and Crowd Control never pick it.">Guardian Legend ▸</a>' +
-      '<a href="https://web.zquestclassic.com/play/" id="zc-row" target="_blank" rel="noopener">Zelda Classic ↗</a></span>' +
+      '<a href="' + GLR_URL + '" title="The Guardian Legend randomizer (GLR): roll, play and track its seeds. Rerolls and Crowd Control never pick it.">Guardian Legend ▸</a></span>' +
       '<label title="The 🎲 Reroll button and Crowd Control’s Random preset and CHAOS seeds pick Zelda 3 or Zelda 1 at random. Crowd Control’s New seed (same settings) stays in the game you’re playing.">' +
       '<input type="checkbox" id="either-game"> Rerolls can land on either game</label>';
     var after = document.getElementById('r-shared');
     bar.insertBefore(row, after ? after.nextSibling : bar.firstChild);
-    var zc = row.querySelector('#zc-row');
-    if (window.RandoZC) zc.title = window.RandoZC.TITLE;
-    zc.addEventListener('click', function (e) { if (window.RandoZC) { e.preventDefault(); window.RandoZC.open(); } });
     var cb = row.querySelector('#either-game');
     cb.checked = either();
     cb.addEventListener('change', function () { setEither(cb.checked); });
