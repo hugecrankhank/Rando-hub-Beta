@@ -5,6 +5,12 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.10.15 (2026-10-25)
+
+- **Mudora / Mudora 2.0 maps on phones and iPads: press and hold works as a right click again.**
+  Holding a check opened its card but, on letting go, also marked it (or unmarked it) as if
+  it had been tapped. The hold now only opens the card; a tap still marks.
+
 ## Beta v1.10.14 (2026-10-25)
 
 - **The Guardian Legend (GLR) is in Rando Hub** at glr/, a copy of the GLR app kept up to date

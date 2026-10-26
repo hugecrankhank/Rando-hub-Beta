@@ -315,11 +315,19 @@
   M.popOutDungeon = popOut;
 
   // ── long press (phones): the same as a right click ────────────────────────
+  // The tap a hold ends with must not also count as a tap (iOS still sends
+  // that click at times, which marked the check as well as opening its card),
+  // so any click within a moment of a hold is dropped before anything sees it.
+  var heldAt = 0, heldNode = null;
+  document.addEventListener('click', function (e) {
+    if (heldAt && Date.now() - heldAt < 900 && heldNode && heldNode.contains(e.target)) { heldAt = 0; e.stopPropagation(); e.preventDefault(); }
+  }, true);
   function longPress(node, fn) {
     var t = null, sx = 0, sy = 0;
-    node.addEventListener('touchstart', function (e) { var p = e.touches[0]; sx = p.clientX; sy = p.clientY; t = setTimeout(function () { t = 'done'; fn(); }, 480); }, { passive: true });
+    node.addEventListener('touchstart', function (e) { var p = e.touches[0]; sx = p.clientX; sy = p.clientY; heldAt = 0; t = setTimeout(function () { t = 'done'; heldAt = Date.now(); heldNode = node; fn(); }, 480); }, { passive: true });
     node.addEventListener('touchmove', function (e) { var p = e.touches[0]; if (t && t !== 'done' && Math.abs(p.clientX - sx) + Math.abs(p.clientY - sy) > 10) { clearTimeout(t); t = null; } }, { passive: true });
-    node.addEventListener('touchend', function (e) { if (t === 'done') e.preventDefault(); else clearTimeout(t); t = null; });
+    node.addEventListener('touchend', function (e) { if (t === 'done') { e.preventDefault(); heldAt = Date.now(); } else clearTimeout(t); t = null; });
+    node.addEventListener('touchcancel', function () { if (t !== 'done') clearTimeout(t); t = null; });
   }
 
   // ── the two worlds ────────────────────────────────────────────────────────
