@@ -65,8 +65,8 @@
       each = Math.floor(Math.min((W - MAP_GAP) / 2, H * 0.4));
       colW = W;
     }
-    isz = Math.max(22, Math.min(46, Math.floor((colW - 16 - 16 * 3) / 17)));
-    band = 2 * isz + 3 + 14 + 96;   // two item rows, gaps, the dungeon cards
+    isz = Math.max(22, Math.min(40, Math.floor((colW - 16 - 16 * 3) / 17)));
+    band = 2 * isz + 3 + 14 + 112;   // two item rows, gaps, the dungeon cards (Mudora shrinks the items if they still don't fit)
     gameW = colW;
     gameH = Math.round(Math.min(colW * 7 / 8, (side ? H : H - each - MAP_GAP) - band));
     gameH = Math.max(140, gameH);

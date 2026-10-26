@@ -944,19 +944,28 @@
       r.setProperty('--hole-w', d.hole.w + 'px'); r.setProperty('--hole-h', d.hole.h + 'px');
       r.setProperty('--each', d.each + 'px'); r.setProperty('--sgap', (d.gap || 4) + 'px');
     } else b.classList.remove('bar-open');
-    placeLegend(); applySize(); layoutWorlds();
+    placeLegend(); applySize(); layoutWorlds(); fitStack();
   });
+  // the items shrink until the items and dungeons fit under the game without scrolling (HydeOut)
+  function fitStack() {
+    if (!stackIsz || !document.body.classList.contains('stack')) return;
+    var side = $('side'), px = stackIsz;
+    document.documentElement.style.setProperty('--isz', px + 'px');
+    while (px > 18 && side.scrollHeight > side.clientHeight + 1) {
+      px -= 1; document.documentElement.style.setProperty('--isz', px + 'px');
+    }
+  }
   try { if (window.parent !== window) window.parent.postMessage({ type: 'mudora-stack-ask' }, '*'); } catch (e) {}
 
   // ── start ─────────────────────────────────────────────────────────────────
-  function onResize() { applySize(); layoutWorlds(); }
+  function onResize() { applySize(); layoutWorlds(); fitStack(); }
   var rt = null;
   window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(onResize, 80); });
   buildItems(); buildDungeons(); buildHere(); buildDgBar(); applyList();
   ['lw', 'dw'].forEach(function (w) { $('worlds').appendChild(new WorldView(w).box); });
   applySize(); dgModes(); paintDg(); paintStats(); paintLink();
   M.on(function (what) {
-    if (what === 'items') { paintItems(); paintDungeons(); paintStats(); paintLink(); views.forEach(function (v) { v.paintPins(); }); }
+    if (what === 'items') { paintItems(); paintDungeons(); fitStack(); paintStats(); paintLink(); views.forEach(function (v) { v.paintPins(); }); }
     else if (what === 'checks') { views.forEach(function (v) { v.paintPins(); }); paintDungeons(); if (cardFor && !cardSticky) fillCard(false); }
     else if (what === 'dungeons') paintDungeons();
     else if (what === 'maps') views.forEach(function (v) { v.paintTiles(); });
