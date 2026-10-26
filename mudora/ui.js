@@ -794,7 +794,7 @@
     var r = '';
     if (g && g.enabled !== false) r += box('GT chests', (g.chests || 0) + '<span>/' + (g.total || 22) + '</span>', g.found ? 'big key at ' + (g.at != null ? g.at : '?') : '', 'Ganon’s Tower: chests opened, and which chest had the big key');
     var dg = KS && KS.dig;
-    if (dg) r += box('Dig game', dg.found ? '✓' : (dg.digs || 0) + '<span>/' + (dg.total || 30) + '</span>', dg.found ? 'prize on dig ' + (dg.at != null ? dg.at : '?') : 'digs', 'The digging game: digs, and which dig gave the prize');
+    if (dg) r += box('Dig game', dg.found ? '✓' : (dg.digs || 0) + '<span>/' + (dg.total || 30) + '</span>', dg.found ? 'prize on dig ' + (dg.at != null ? dg.at : '?') : '', 'The digging game: digs, and which dig gave the prize');
     if (L.__h !== l) { L.__h = l; L.innerHTML = l; }
     if (R.__h !== r) { R.__h = r; R.innerHTML = r; }
   }

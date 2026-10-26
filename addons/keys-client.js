@@ -40,6 +40,8 @@
   } catch (e) {}
   window.addEventListener('storage', function (e) { if (e.key === KEY) notify(); });
   // deaths, bonks, checks and the GT big key game, read from the game by the hub
-  function stats() { var d = latest(); return d && d.live && d.stats ? d.stats : null; }
+  // the last ones known stay up while the game isn't in normal play (its map open, a menu)
+  var lastStats = null;
+  function stats() { var d = latest(); if (d && d.live && d.stats) lastStats = d.stats; return lastStats; }
   window.RandoKeysClient = { mode: mode, held: held, text: text, stats: stats, onChange: function (fn) { subs.push(fn); } };
 })();

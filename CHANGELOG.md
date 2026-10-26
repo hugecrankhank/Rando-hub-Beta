@@ -17,6 +17,8 @@ played again later.
   The items sit at the left, and right of them the counters: checks out of the places there are
   (45/216), deaths, bonks, the GT big key game (chests opened, which had the big key) and the
   digging game (digs, which dig gave the prize).
+  The counters stay up while the game's map or a menu is open, are a little smaller and shrink
+  to fit an upright iPad, and never make the items smaller (they're back to full size).
 - **"Stacked" is now called "iPad"** and is the starting layout on an iPad. Every other tablet
   starts on **Tablet**. Picking a layout by hand still wins.
 - **Prizes on the game's map:** whatever crystal or pendant the game itself draws on its world map

@@ -228,13 +228,15 @@
   body.stack #side { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr); align-content: start; }
   body.stack #side > * { grid-column: 1 / -1; }
   body.stack #side > #items { grid-column: 1; grid-row: 1; justify-content: start; }
-  body.stack #side > #sst-l, body.stack #side > #sst-r { grid-row: 1; display: flex; flex-wrap: wrap; align-content: center; justify-content: center; gap: 4px; padding: 4px; }
+  /* the counters never make the band taller than the two item rows (so the items keep their size) */
+  body.stack #side > #sst-l, body.stack #side > #sst-r { grid-row: 1; display: flex; flex-wrap: wrap; align-content: center; justify-content: center; gap: 3px; padding: 2px 4px;
+    height: 0; min-height: 100%; overflow: hidden; container-type: inline-size; }
   body.stack #side > #sst-l { grid-column: 2; } body.stack #side > #sst-r { grid-column: 3; }
-  .sst { min-width: 58px; padding: 3px 6px; border-radius: 6px; background: #1b1f23; border: 1px solid #2c3238; text-align: center; line-height: 1.15; }
-  .sst small { display: block; font-size: 10px; color: var(--dim); text-transform: uppercase; letter-spacing: .04em; }
-  .sst b { display: block; font-size: 18px; color: #fff; font-variant-numeric: tabular-nums; }
-  .sst b span { font-size: 11px; color: var(--dim); font-weight: 600; }
-  .sst i { display: block; font-style: normal; font-size: 10px; color: var(--gold); }
+  .sst { min-width: min(46px, 100%); max-width: 100%; box-sizing: border-box; overflow: hidden; white-space: nowrap; padding: 2px clamp(1px, 4cqi, 4px); border-radius: 5px; background: #1b1f23; border: 1px solid #2c3238; text-align: center; line-height: 1.1; }
+  .sst small { display: block; font-size: clamp(6px, 16cqi, 8.5px); color: var(--dim); text-transform: uppercase; letter-spacing: 0; white-space: normal; line-height: 1; }
+  .sst b { display: block; font-size: clamp(9px, 19cqi, 14px); color: #fff; font-variant-numeric: tabular-nums; }
+  .sst b span { font-size: .6em; color: var(--dim); font-weight: 600; }
+  .sst i { display: block; font-style: normal; font-size: clamp(6.5px, 16cqi, 8.5px); color: var(--gold); }
   /* phone: one panel at a time (Rando Hub's tabs pick it) */
   body.phone #bar { display: none; }
   /* phone: the options open over the map (⚙), so the map keeps its room */
