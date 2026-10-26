@@ -7,11 +7,13 @@
  *    green with the item once you got it there).
  *  - Other item area: wood/white/magical sword caves, letter cave, coast and
  *    armos item boxes, and the four take-any hearts.
- *  - Overworld: the seed's real map (js/owmap.js), fully lit at the start;
- *    screens fade as you walk them. Every screen with an entrance carries a
- *    check indicator: a dot colored by whether you can open it now, a gold
- *    ring when you've been in but left something behind, a check mark when
- *    it's done. Once you've been inside, the tile shows what it is.
+ *  - Overworld: the seed's real map (js/owmap.js) at full detail, zoomable
+ *    (wheel / pinch, drag to move, double-tap or ⟲ for the whole map), with
+ *    every check pinned on its own square: the cave mouth, bombable wall,
+ *    burnable bush, pushed rock or armos that opens it. A pin's colour says
+ *    whether you can open it now; a gold ring when you've been in but left
+ *    something behind, a check mark when it's done; once you've been inside
+ *    it shows what it is. Screens dim once walked; Link is the blinking dot.
  *
  * RAM (aldonunez's disassembly labels, as ZORA's inventory module uses):
  *   $0010 CurLevel  $0012 GameMode (5 play, $B cave, $C any road)  $0016 slot
@@ -270,6 +272,7 @@
     if (p !== (pos && pos.key)) { pos = p ? { key: p, level, room } : null; dirty = true; }
     if (pos && pos.level >= 1 && !dgPinned && dgLevel !== pos.level) { dgLevel = pos.level; dirty = true; }
     if (dirty) { save(); render(); }
+    else if (el.linkDot && !el.ow.hidden) linkSpot();
   }
 
   function setLink(s) {
@@ -403,18 +406,16 @@
       el.tabBtns[id] = b; el.tabs.append(b);
     });
 
-    // Overworld: the map canvas with a grid of tappable screens over it
+    // Overworld: the map, zoomable, with a pin on every check (see "the map view")
     el.ow = h('div', { class: 't-view ow' });
-    el.map = h('div', { class: 'ow-map' });
+    el.map = h('div', { class: 'ow-map', role: 'group', 'aria-label': 'Overworld map' });
     el.mapCanvas = h('canvas', { class: 'ow-canvas', 'aria-hidden': 'true' });
-    el.grid = h('div', { class: 'ow-grid', role: 'grid', 'aria-label': 'Overworld screens' });
-    el.owCells = [];
-    for (let s = 0; s < 128; s++) {
-      const cell = h('button', { class: 'ow-cell', type: 'button', 'aria-label': 'Screen ' + coord(s),
-        onclick: (e) => openPicker(s, e.currentTarget) }, h('span', { class: 'lbl' }), h('span', { class: 'chk' }));
-      el.owCells.push(cell); el.grid.append(cell);
-    }
-    el.map.append(el.mapCanvas, el.grid);
+    el.pins = h('div', { class: 'ow-pins' });
+    el.linkDot = h('div', { class: 'ow-link', hidden: '' });
+    el.owReset = h('button', { class: 'ow-reset', type: 'button', title: 'Whole map', 'aria-label': 'Show the whole map',
+      onclick: (e) => { e.stopPropagation(); fitView(); } }, '⟲');
+    el.map.append(el.mapCanvas, el.pins, el.linkDot, el.owReset);
+    hookMap();
     el.owBar = h('div', { class: 'ow-bar' },
       h('span', { class: 'ow-count' }),
       h('label', { class: 'ow-toggle' }, h('input', { type: 'checkbox', onchange: (e) => { S.hideSpots = !e.target.checked; dirty = true; save(); render(); } }), 'Spots'));
@@ -451,7 +452,7 @@
       dirty = true; render();
     });
     document.addEventListener('pointerdown', (e) => {
-      if (!el.picker.hidden && !el.picker.contains(e.target) && !e.target.closest('.ow-cell')) closePicker();
+      if (!el.picker.hidden && !el.picker.contains(e.target) && !e.target.closest('.ow-map')) closePicker();
     });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closePicker(); });
     dirty = true; render();
@@ -467,16 +468,17 @@
     // Overworld: 16x8 screens of 16:11, the whole map as large as fits.
     if (!el.ow.hidden) {
       let w = W, hgt = w * 11 * 8 / (16 * 16);
-      if (compact && !el.root.classList.contains('with-items')) {
-        const H = el.ow.clientHeight - el.owBar.offsetHeight - 4;
-        if (H > 0 && hgt > H) { hgt = H; w = hgt * 16 * 16 / (11 * 8); }
-      }
       w = Math.floor(w / 16) * 16;
       hgt = Math.round(w * 11 * 8 / 256);
+      // Phones without the items under it: the map takes the panel's height
+      // (it zooms and pans, so the box needn't keep the map's shape).
+      if (compact && !el.root.classList.contains('with-items')) {
+        const H = el.ow.clientHeight - el.owBar.offsetHeight - 4;
+        if (H > 0) hgt = Math.max(Math.min(hgt, H), H);
+      }
       if (el.map.clientWidth !== w || el.map.clientHeight !== hgt) {
         el.map.style.width = w + 'px'; el.map.style.height = hgt + 'px';
-        el.map.style.setProperty('--owh', (hgt / 8) + 'px');
-        mapDirty = true;
+        mv.sized = true;
       }
     }
     // Items panel: 9 level columns; one size for every box ("cell").
@@ -503,20 +505,179 @@
     }
   }
 
-  // ── the map image ────────────────────────────────────────────────────────
-  // Drawn at the map's display size (times the screen's pixel density) from
-  // the ROM; redrawn when the size changes or a secret is found.
+  // ── the map view ─────────────────────────────────────────────────────────
+  // The whole overworld is 16 x 8 screens of 256 x 176 pixels (4096 x 1408).
+  // The canvas is only the size of the view: zoomed out it shows a half-size
+  // copy of the map; zoomed in, the screens in view at full detail (kept in a
+  // small cache), sharp pixels from 1:1 up. Pins are elements over it, placed
+  // on each check's own square, the same size on screen at any zoom.
+  const MW = 4096, MH = 1408, SW = 256, SH = 176;
+  const mv = { zoom: 0.1, pan: [0, 0], fitZ: 0.1, userMoved: false, sized: true, raf: 0,
+    over: null, scr: new Map(), pins: {}, spots: null, link: null };
+  function scrCanvas(s) {
+    let c = mv.scr.get(s);
+    if (c) { mv.scr.delete(s); mv.scr.set(s, c); return c; }          // most recent last
+    c = document.createElement('canvas'); c.width = SW; c.height = SH;
+    ow.drawScreen(c.getContext('2d'), s, !!mapSecret[s]);
+    mv.scr.set(s, c);
+    if (mv.scr.size > 72) mv.scr.delete(mv.scr.keys().next().value);
+    return c;
+  }
+  function overview() {
+    if (mv.over) return mv.over;
+    const c = document.createElement('canvas'); c.width = MW / 2; c.height = MH / 2;
+    ow.drawMap(c.getContext('2d'), c.width, c.height, (s) => !!mapSecret[s]);
+    return (mv.over = c);
+  }
+  // A secret found or the live tables read: draw the map again.
   function drawMap() {
-    if (!mapDirty || el.ow.hidden) return;
+    if (!mapDirty) return;
     mapDirty = false;
-    const c = el.mapCanvas;
+    mv.over = null; mv.scr.clear(); mv.spots = null;
+    scheduleDraw();
+  }
+  function fitView() {
     const cw = el.map.clientWidth, ch = el.map.clientHeight;
     if (!cw || !ch) return;
+    mv.fitZ = Math.min(cw / MW, ch / MH);
+    mv.zoom = mv.fitZ; mv.pan = [(cw - MW * mv.zoom) / 2, (ch - MH * mv.zoom) / 2];
+    mv.userMoved = false;
+    applyView();
+  }
+  function clampZ(z) { return Math.max(mv.fitZ, Math.min(4, z)); }
+  function clampPan() {
+    const cw = el.map.clientWidth, ch = el.map.clientHeight, w = MW * mv.zoom, hh = MH * mv.zoom;
+    mv.pan[0] = w <= cw ? (cw - w) / 2 : Math.max(cw - w, Math.min(0, mv.pan[0]));
+    mv.pan[1] = hh <= ch ? (ch - hh) / 2 : Math.max(ch - hh, Math.min(0, mv.pan[1]));
+  }
+  function zoomAt(cx, cy, z) {
+    const r = el.map.getBoundingClientRect(), x = cx - r.left, y = cy - r.top;
+    z = clampZ(z);
+    mv.pan = [x - (x - mv.pan[0]) * z / mv.zoom, y - (y - mv.pan[1]) * z / mv.zoom];
+    mv.zoom = z; mv.userMoved = mv.zoom > mv.fitZ * 1.001;
+    applyView();
+  }
+  function applyView() { clampPan(); positionPins(); scheduleDraw(); }
+  function scheduleDraw() { if (!mv.raf) mv.raf = requestAnimationFrame(() => { mv.raf = 0; paint(); }); }
+  function paint() {
+    const c = el.mapCanvas, cw = el.map.clientWidth, ch = el.map.clientHeight;
+    if (!cw || !ch || el.ow.hidden) return;
     const dpr = Math.min(window.devicePixelRatio || 1, 3);
-    c.width = Math.round(cw * dpr); c.height = Math.round(ch * dpr);
+    if (c.width !== Math.round(cw * dpr) || c.height !== Math.round(ch * dpr)) { c.width = Math.round(cw * dpr); c.height = Math.round(ch * dpr); }
     const ctx = c.getContext('2d');
-    if (!ow) { ctx.clearRect(0, 0, c.width, c.height); return; }
-    ow.drawMap(ctx, c.width, c.height, (s) => !!mapSecret[s]);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.fillStyle = '#000'; ctx.fillRect(0, 0, c.width, c.height);
+    if (!ow) return;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const z = mv.zoom, px = mv.pan[0], py = mv.pan[1];
+    const X = (mx) => Math.round((px + mx * z) * dpr) / dpr, Y = (my) => Math.round((py + my * z) * dpr) / dpr;
+    const c0 = Math.max(0, Math.floor(-px / z / SW)), c1 = Math.min(15, Math.floor((cw - px) / z / SW));
+    const r0 = Math.max(0, Math.floor(-py / z / SH)), r1 = Math.min(7, Math.floor((ch - py) / z / SH));
+    if (SW * z * dpr < SW * 0.55) {                       // zoomed out: the half-size map
+      ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(overview(), X(0), Y(0), X(MW) - X(0), Y(MH) - Y(0));
+    } else {
+      ctx.imageSmoothingEnabled = SW * z * dpr < SW;      // sharp pixels from 1:1 up
+      ctx.imageSmoothingQuality = 'high';
+      for (let r = r0; r <= r1; r++) for (let q = c0; q <= c1; q++) {
+        const x0 = X(q * SW), y0 = Y(r * SH);
+        ctx.drawImage(scrCanvas(r * 16 + q), x0, y0, X((q + 1) * SW) - x0, Y((r + 1) * SH) - y0);
+      }
+    }
+    // Screens walked: dimmed. The screen lines once there's room for them.
+    const visited = new Set(S.visited), here = pos && pos.level === 0 ? pos.room : -1;
+    ctx.fillStyle = 'rgba(0,0,0,.45)';
+    for (let r = r0; r <= r1; r++) for (let q = c0; q <= c1; q++) {
+      const s = r * 16 + q;
+      if (visited.has(s) && s !== here) ctx.fillRect(X(q * SW), Y(r * SH), X((q + 1) * SW) - X(q * SW), Y((r + 1) * SH) - Y(r * SH));
+    }
+    if (SW * z > 40) {
+      ctx.strokeStyle = 'rgba(0,0,0,.5)'; ctx.lineWidth = 1 / dpr;
+      ctx.beginPath();
+      for (let q = c0; q <= c1 + 1; q++) { ctx.moveTo(X(q * SW), Y(r0 * SH)); ctx.lineTo(X(q * SW), Y((r1 + 1) * SH)); }
+      for (let r = r0; r <= r1 + 1; r++) { ctx.moveTo(X(c0 * SW), Y(r * SH)); ctx.lineTo(X((c1 + 1) * SW), Y(r * SH)); }
+      ctx.stroke();
+    }
+    if (here >= 0) {
+      ctx.strokeStyle = '#B8F818'; ctx.lineWidth = 2;
+      const q = here & 15, r = here >> 4;
+      ctx.strokeRect(X(q * SW) + 1, Y(r * SH) + 1, X((q + 1) * SW) - X(q * SW) - 2, Y((r + 1) * SH) - Y(r * SH) - 2);
+    }
+  }
+  // Where each screen's check is, in map pixels (the middle of its square).
+  function spotXY(s) {
+    if (!mv.spots) mv.spots = {};
+    if (mv.spots[s]) return mv.spots[s];
+    const e = ow.entranceSquare(s);
+    return (mv.spots[s] = { x: (s & 15) * SW + e.col * 16 + 8, y: (s >> 4) * SH + e.row * 16 + 8 });
+  }
+  // Link, where he stands ($70 X, $84 Y; the play area starts 64 px down)
+  function linkSpot() {
+    mv.link = null;
+    if (ow && ram && pos && pos.level === 0) {
+      const x = ram[0x70], y = ram[0x84] + 3 - 0x40;
+      if (y >= 0 && y < SH) mv.link = { x: (pos.room & 15) * SW + x + 8, y: (pos.room >> 4) * SH + y + 8 };
+    }
+    el.linkDot.hidden = !mv.link;
+    if (mv.link) { el.linkDot.style.left = (mv.pan[0] + mv.link.x * mv.zoom) + 'px'; el.linkDot.style.top = (mv.pan[1] + mv.link.y * mv.zoom) + 'px'; }
+  }
+  function positionPins() {
+    const z = mv.zoom, ps = Math.min(2.2, Math.max(1, Math.sqrt(z / mv.fitZ)));
+    el.pins.style.setProperty('--pz', ps.toFixed(3));
+    Object.values(mv.pins).forEach((p) => {
+      p.style.left = (mv.pan[0] + p.__x * z) + 'px'; p.style.top = (mv.pan[1] + p.__y * z) + 'px';
+    });
+    if (mv.link) {
+      el.linkDot.style.left = (mv.pan[0] + mv.link.x * z) + 'px'; el.linkDot.style.top = (mv.pan[1] + mv.link.y * z) + 'px';
+    }
+  }
+  // Wheel / pinch zoom, drag to move, double-click / double-tap for the whole
+  // map; a tap on the map (not a pin) opens that screen's menu.
+  function hookMap() {
+    const box = el.map, pts = new Map();
+    let pinch = null, drag = null, lastTap = 0, tapT = 0, swallow = false;
+    box.addEventListener('wheel', (e) => { e.preventDefault(); zoomAt(e.clientX, e.clientY, mv.zoom * (e.deltaY < 0 ? 1.25 : 0.8)); }, { passive: false });
+    box.addEventListener('dblclick', (e) => { if (!e.target.closest('.ow-pin, .ow-reset')) { e.preventDefault(); fitView(); } });
+    box.addEventListener('pointerdown', (e) => {
+      if (e.target.closest('.ow-reset')) return;
+      if (e.isPrimary) { pts.clear(); pinch = null; drag = null; swallow = false; }
+      pts.set(e.pointerId, [e.clientX, e.clientY]);
+      if (!e.target.closest('.ow-pin')) { try { box.setPointerCapture(e.pointerId); } catch (x) {} }
+      if (pts.size === 2) {
+        const a = Array.from(pts.values()), d = Math.hypot(a[0][0] - a[1][0], a[0][1] - a[1][1]);
+        pinch = d > 20 ? { d, z: mv.zoom, c: [(a[0][0] + a[1][0]) / 2, (a[0][1] + a[1][1]) / 2] } : null; drag = null;
+      } else drag = { x: e.clientX, y: e.clientY, p: mv.pan.slice(), moved: false, onPin: !!e.target.closest('.ow-pin') };
+    });
+    box.addEventListener('pointermove', (e) => {
+      if (!pts.has(e.pointerId)) return;
+      pts.set(e.pointerId, [e.clientX, e.clientY]);
+      if (pinch && pts.size === 2) {
+        const a = Array.from(pts.values()), d = Math.hypot(a[0][0] - a[1][0], a[0][1] - a[1][1]);
+        zoomAt(pinch.c[0], pinch.c[1], pinch.z * d / pinch.d); swallow = true;
+      } else if (drag) {
+        if (Math.abs(e.clientX - drag.x) + Math.abs(e.clientY - drag.y) > 5) { drag.moved = true; swallow = true; }
+        if (drag.moved) { mv.pan = [drag.p[0] + e.clientX - drag.x, drag.p[1] + e.clientY - drag.y]; mv.userMoved = true; applyView(); }
+      }
+    });
+    const up = (e) => {
+      if (!pts.has(e.pointerId)) return;
+      pts.delete(e.pointerId); if (pts.size < 2) pinch = null;
+      if (pts.size || !drag) { if (!pts.size) drag = null; return; }
+      const d = drag; drag = null;
+      if (d.moved || d.onPin || e.type === 'pointercancel' || !ow) return;
+      // a tap on the map itself: double tap = whole map, single tap = the screen's menu
+      const now = Date.now();
+      if (now - lastTap < 300) { clearTimeout(tapT); lastTap = 0; fitView(); return; }
+      lastTap = now;
+      const cx = e.clientX, cy = e.clientY, r = box.getBoundingClientRect();
+      const mx = (cx - r.left - mv.pan[0]) / mv.zoom, my = (cy - r.top - mv.pan[1]) / mv.zoom;
+      if (mx < 0 || my < 0 || mx >= MW || my >= MH) return;
+      const s = Math.floor(my / SH) * 16 + Math.floor(mx / SW);
+      tapT = setTimeout(() => openPicker(s, { getBoundingClientRect: () => ({ left: cx - 10, right: cx + 10, top: cy - 10, bottom: cy + 10, width: 20, height: 20 }) }), 280);
+    };
+    box.addEventListener('pointerup', up); box.addEventListener('pointercancel', up);
+    // a drag that started on a pin isn't a click on it
+    box.addEventListener('click', (e) => { if (swallow && e.target.closest('.ow-pin')) { e.stopPropagation(); e.preventDefault(); } swallow = false; }, true);
   }
 
   // ── interactions ─────────────────────────────────────────────────────────
@@ -817,29 +978,60 @@
   function renderOverworld() {
     drawMap();
     el.map.classList.toggle('no-rom', !ow);
-    const visited = new Set(S.visited);
+    el.owReset.hidden = !ow;
+    if (mv.sized) { mv.sized = false; const z0 = mv.fitZ; mv.fitZ = Math.min(el.map.clientWidth / MW, el.map.clientHeight / MH) || z0;
+      if (!mv.userMoved) fitView(); else { mv.zoom = clampZ(mv.zoom * mv.fitZ / z0); applyView(); } }
     let left = 0, gettable = 0;
-    for (let s = 0; s < 128; s++) {
-      const cell = el.owCells[s];
-      const k = kindAt(s), st = checkState(s);
-      cell.classList.toggle('seen', visited.has(s));
-      cell.classList.toggle('here', !!(pos && pos.level === 0 && pos.room === s));
-      cell.querySelector('.lbl').innerHTML = labelHtml(s, k);
-      const chk = cell.querySelector('.chk');
-      let cls = 'chk';
-      if (st === 'todo') {
-        const spot = spotAt(s);
-        const open = ram && (ram[A.WORLD + s] & 0x80);
-        const can = open ? true : spot ? canOpen(spot.how) : null;
-        left++; if (can) gettable++;
-        if (!S.hideSpots) cls += ' todo ' + (can === null ? 'maybe' : can ? 'go' : 'no');
-      } else if (st === 'return') cls += ' return';
-      else if (st === 'done') cls += ' done';
-      chk.className = cls;
-      const t = tileText(s);
-      cell.title = t;
-      cell.setAttribute('aria-label', t);
+    const want = {};
+    if (ow) {
+      for (let s = 0; s < 128; s++) {
+        const k = kindAt(s), st = checkState(s), spot = spotAt(s);
+        if (!k && !st) continue;
+        let cls = 'ow-pin';
+        if (st === 'todo') {
+          const open = ram && (ram[A.WORLD + s] & 0x80);
+          const can = open ? true : spot ? canOpen(spot.how) : null;
+          left++; if (can) gettable++;
+          if (S.hideSpots && !k) continue;
+          cls += ' todo ' + (can === null ? 'maybe' : can ? 'go' : 'no');
+        } else if (st === 'return') cls += ' return';
+        else if (st === 'done') cls += ' done';
+        if (k) cls += ' has-lbl';
+        const xy = spot ? spotXY(s) : { x: (s & 15) * SW + SW / 2, y: (s >> 4) * SH + SH / 2 };
+        want['s' + s] = { s, cls, xy, html: labelHtml(s, k), title: tileText(s) };
+      }
+      // The armos item: under its armos, done once taken
+      const ai = ow.armosItem && ow.armosItem();
+      if (ai) {
+        const got = S.log.find((x) => x.lv === 0 && x.cave === undefined && x.room === ai.s && x.id !== 'bombup');
+        want.armos = { s: ai.s, cls: 'ow-pin item' + (got ? ' done has-lbl' : ''), xy: { x: (ai.s & 15) * SW + ai.col * 16 + 8, y: (ai.s >> 4) * SH + ai.row * 16 + 8 },
+          html: got ? '<span class="ico1">' + itemIcon(got.id, got.v) + '</span>' : '<b class="gl">!</b>',
+          title: 'Armos item, screen ' + coord(ai.s) + (got ? ': ' + itemName(got.id, got.v) : ': under this armos') };
+      }
     }
+    Object.keys(mv.pins).forEach((key) => { if (!want[key]) { mv.pins[key].remove(); delete mv.pins[key]; } });
+    Object.entries(want).forEach(([key, w]) => {
+      let p = mv.pins[key];
+      if (!p) {
+        p = mv.pins[key] = h('button', { type: 'button', class: 'ow-pin' }, h('span', { class: 'lbl' }));
+        p.addEventListener('click', (e) => { e.stopPropagation(); openPicker(w.s, p); });
+        el.pins.append(p);
+      }
+      p.__x = w.xy.x; p.__y = w.xy.y;
+      if (p.className !== w.cls) p.className = w.cls;
+      const l = p.firstChild; if (l.innerHTML !== w.html) l.innerHTML = w.html;
+      p.title = w.title; p.setAttribute('aria-label', w.title);
+    });
+    linkSpot();
+    // Zoomed in and Link went off the view: bring his screen in
+    if (mv.link && mv.userMoved && pos.room !== mv.followed) {
+      mv.followed = pos.room;
+      const cw = el.map.clientWidth, ch = el.map.clientHeight, z = mv.zoom;
+      const sx = (pos.room & 15) * SW, sy = (pos.room >> 4) * SH;
+      const vx = mv.pan[0] + sx * z, vy = mv.pan[1] + sy * z;
+      if (vx < 0 || vy < 0 || vx + SW * z > cw || vy + SH * z > ch) mv.pan = [cw / 2 - (sx + SW / 2) * z, ch / 2 - (sy + SH / 2) * z];
+    }
+    applyView();
     el.owBar.querySelector('.ow-count').textContent = ow
       ? left + (left === 1 ? ' spot' : ' spots') + ' left · ' + gettable + ' gettable'
       : 'Map appears when a Zelda ROM is running';
@@ -939,5 +1131,11 @@
     get link() { return link; },
     get mapInfo() { return mapInfo + (mapTables ? '; ' + mapTables : ''); },
     _tick: tick, _state: () => S, _ow: () => ow,   // for tests
+    _view(screen, zoom) {          // centre a screen at a zoom (tests)
+      const cw = el.map.clientWidth, ch = el.map.clientHeight;
+      mv.zoom = clampZ(zoom); mv.userMoved = true;
+      mv.pan = [cw / 2 - ((screen & 15) * SW + SW / 2) * mv.zoom, ch / 2 - ((screen >> 4) * SH + SH / 2) * mv.zoom];
+      applyView();
+    },
   };
 })();

@@ -5,6 +5,16 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.10.18 (2026-10-25)
+
+- **Zelda 1's overworld map works like Mudora's:** drawn from the ROM at full detail (sharp
+  pixels when zoomed in), zoom with the wheel or a pinch, drag to move, double-tap or ⟲ for the
+  whole map. Every check is a pin on its own square, read from the ROM: the cave mouth, bombable
+  wall, burnable bush, pushed rock or armos that opens it, the secret armos stairs and the armos
+  item, and the Level 7 lake's stairs. Link is a blinking dot where he stands, and zoomed in the
+  view follows him to a new screen. On phones the map takes the panel's height. Tap a pin (or a
+  screen) for the same menu as before.
+
 ## Beta v1.10.17 (2026-10-25)
 
 - **No "Light World" / "Dark World" names over Mudora's maps** any more, on any device.

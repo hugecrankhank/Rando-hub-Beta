@@ -184,6 +184,9 @@
           dest, kind: kindOf(dest),
           quest: (T(5, s) >> 6) & 3,               // 0 both, 1 first only, 2 second only, 3 neither
           entrance: E[ENTRANCE[s]] || null,
+          // Where Link comes out of the screen's cave or level: square column
+          // (A bits 4-7) and row (F bits 0-2, plus one: ZORA's exit_x / exit_y).
+          exitCol: T(0, s) >> 4, exitRow: (T(5, s) & 7) + 1,
         });
        }
       }
@@ -216,6 +219,57 @@
         }
         buildScreens();
         return changed;
+      }
+
+      // The square a screen's entrance really is on, for pins on the map:
+      // a cave mouth ($0C), or the secret square that opens it (the game's
+      // tile objects $E5-$EA: pushed rock, bombable wall, burnable bush,
+      // armos...). The one where Link comes out wins; otherwise the nearest of
+      // the kind its entrance needs; otherwise the exit spot itself (caves
+      // drawn with other squares, recorder stairs). → {col, row}
+      // The secret armos formation (bank 4 $8CB2 / $8CB9): seven screens and the
+      // X of their armos; the first hides the armos item, the rest stairs.
+      const armosRooms = Array.from(bytes(0x10CB2, 7)), armosXs = Array.from(bytes(0x10CB9, 7));
+      function armosSquare(s, k) {
+        const sc = screens[s];
+        if (sc.layout >= LAYOUTS) return null;
+        const c = armosXs[k] >> 4, cols = layout(sc.layout);
+        for (let r = 0; r < ROWS; r++) {
+          const q = cols[c][r], p = q < 0x38 ? primary[q] : 0;
+          if (p === 0xC0 || p === 0xE9 || p === 0xEA) return { col: c, row: r };
+        }
+        return null;
+      }
+      const NEED = { bomb: [0xE6], 'ladder+bomb': [0xE6], candle: [0xE7], bracelet: [0xE5, 0xE8, 0xE9, 0xEA] };
+      function entranceSquare(s) {
+        const sc = screens[s];
+        const ex = { col: Math.min(15, sc.exitCol), row: Math.min(10, sc.exitRow) };
+        if (sc.layout >= LAYOUTS) return ex;
+        const cols = layout(sc.layout);
+        const cand = [];
+        for (let c = 0; c < COLS; c++) for (let r = 0; r < ROWS; r++) {
+          const q = cols[c][r];
+          if (q === 0x0C) cand.push({ col: c, row: r, p: 0x0C });
+          else if (q >= 0x10 && primary[q] >= 0xE5 && primary[q] <= 0xEA) cand.push({ col: c, row: r, p: primary[q] });
+          else if (q < 0x10 && primary[q] >= 0xE5 && primary[q] <= 0xEA) cand.push({ col: c, row: r, p: primary[q] });
+        }
+        const at = cand.find((k) => k.col === ex.col && k.row === ex.row);
+        if (at) return { col: at.col, row: at.row };
+        // Stairs under one of the formation's armos
+        const ai = armosRooms.indexOf(s);
+        if (ai > 0) { const a = armosSquare(s, ai); if (a) return a; }
+        // The recorder drains a lake (Level 7): its stairs are in the middle
+        if (sc.entrance === 'recorder') {
+          let n = 0, sc2 = 0, sr = 0;
+          for (let c = 0; c < COLS; c++) for (let r = 0; r < ROWS; r++) if (cols[c][r] === 0x05) { n++; sc2 += c; sr += r; }
+          if (n >= 4) return { col: sc2 / n, row: sr / n };
+        }
+        const want = NEED[sc.entrance] || (sc.entrance === 'open' || sc.entrance === 'raft' ? [0x0C, 0xE8, 0xE9, 0xEA] : null);
+        const pool = want ? cand.filter((k) => want.indexOf(k.p) >= 0) : [];
+        if (!pool.length) return ex;
+        const d = (k) => Math.abs(k.col - ex.col) + Math.abs(k.row - ex.row);
+        pool.sort((a, b) => d(a) - d(b));
+        return { col: pool[0].col, row: pool[0].row };
       }
 
       // One screen as RGBA, 256 x 176.
@@ -303,7 +357,9 @@
           const i = (dest - 0x10) * 3;
           return [0, 1, 2].map((k) => block[4 * 0x80 + i + k] & 0x3F).filter((id) => id !== 0x3F);
         },
-        screenPixels, drawScreen, drawMap, layout, squareTiles,
+        screenPixels, drawScreen, drawMap, layout, squareTiles, entranceSquare,
+        // The armos item: its screen and square ({s, col, row}), or null
+        armosItem() { const a = armosSquare(armosRooms[0], 0); return a && armosRooms[0] < 128 ? Object.assign({ s: armosRooms[0] }, a) : null; },
       };
     } catch (e) {
       console.warn('[owmap] not a readable Zelda overworld', e);

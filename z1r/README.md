@@ -81,17 +81,23 @@ are kept in this browser (IndexedDB), never uploaded.
 - **Other item area:** the wood, white and magical sword caves, the letter
   cave, the coast and armos items, and the four take-any hearts.
 - **Overworld:** the seed's own map, drawn from the ROM you're playing
-  (`js/owmap.js`), so mixed-quest and other changed overworlds look right.
-  It starts fully lit; each screen fades once you've walked it. Every
-  screen with an entrance has a check indicator: a dot while unvisited
-  (green: you can open it now, red: you need bombs, a candle, the bracelet,
-  raft, ladder or recorder first), a gold ring when you've been in but left
-  its item behind, and a check mark when it's done. Once you've been in, the
-  tile shows what's there (level number, sword, take-any, a shop's wares...).
-  Tap a screen for a magnified view and to label it by hand. Mark a screen
-  as a **Shop** and tick up to three items it sells; they show on the tile
-  (once you've been inside, the shop's real items fill in by themselves). The **Spots**
-  box hides the entrance dots if you'd rather find them yourself.
+  (`js/owmap.js`) at full detail, so mixed-quest and other changed overworlds
+  look right. Zoom with the wheel or a pinch, drag to move, double-tap (or ⟲)
+  for the whole map; zoomed in, the pixels stay sharp. Every check is a pin on
+  its own square, read from the ROM: the cave mouth, bombable wall, burnable
+  bush, pushed rock or armos that opens it (the secret armos formation's
+  stairs and the armos item from its table, the Level 7 lake's stairs in the
+  middle of the lake). A pin is a dot while unvisited (green: you can open it
+  now, red: you need bombs, a candle, the bracelet, raft, ladder or recorder
+  first, yellow: unknown), a gold ring when you've been in but left its item
+  behind, and gets a check mark when it's done. Once you've been in, it shows
+  what's there (level number, sword, take-any, a shop's wares...). Screens dim
+  once walked, and Link is the blinking dot, where he stands; zoomed in, the
+  view follows him to a new screen. Tap a pin (or anywhere on a screen) for a
+  magnified view and to label it by hand. Mark a screen as a **Shop** and
+  tick up to three items it sells; they show on the pin (once you've been
+  inside, the shop's real items fill in by themselves). The **Spots** box
+  hides the entrance dots if you'd rather find them yourself.
 
 **Autotracking.** From the NES's RAM the tracker reads:
 
