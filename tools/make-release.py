@@ -23,7 +23,7 @@ REL = os.path.join(ROOT, 'release')
 
 # Not part of the app itself (they're placed elsewhere in the zip, or dev-only)
 APP_SKIP_TOP = {'.git', '.github', '.gitignore', '.nojekyll', 'release', 'tools', 'relay', 'crowd-plus', 'archive',
-                'dist', 'README.md', 'CHANGELOG.md', 'LICENSE.md', 'NOTICE.md', 'node_modules'}
+                'dist', 'README.md', 'CHANGELOG.md', 'LICENSE.md', 'NOTICE.md', 'node_modules', 'desktop'}
 APP_SKIP_PATHS = {'randomizer/test', 'randomizer/tools'}
 SKIP_NAMES = {'__pycache__', '.DS_Store', 'Thumbs.db', 'timer-state.json', 'node_modules'}
 

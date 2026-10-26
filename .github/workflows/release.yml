@@ -1,0 +1,86 @@
+name: Release
+
+# Rando Hub BETA. Publishes Rando-Hub-v<version>.zip as a GitHub Release, a frozen,
+# complete copy of that version: the app, Crowd Control+, relays and
+# INSTRUCTIONS.txt, plus the Windows app (Rando-Hub-Beta-Windows-v<version>.zip,
+# built by desktop/build/build-win.sh from that same app/ folder).
+#
+# It runs on every push to main and checks the version in index.html
+# (tools/set-version.py sets it). If there's no release for that version yet,
+# it builds the zip, creates the tag v<version> and publishes the release.
+# Pushing a tag like v1.2.0 by hand also works, and so does running it from
+# the Actions tab.
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*.*.*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Which version
+        id: ver
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          V=$(python3 -c "import re;print(re.search(r'<meta name=\"version\" content=\"([^\"]+)\">',open('index.html').read()).group(1))")
+          if [ "$GITHUB_REF_TYPE" = tag ] && [ "$GITHUB_REF_NAME" != "v$V" ]; then
+            echo "Tag $GITHUB_REF_NAME doesn't match index.html's version $V"; exit 1
+          fi
+          echo "TAG=v$V" >> "$GITHUB_ENV"
+          if gh release view "v$V" >/dev/null 2>&1; then
+            echo "Release v$V already exists; nothing to do."; echo "skip=1" >> "$GITHUB_OUTPUT"
+          fi
+      # Same steps as the website deploy, so the zip matches the site
+      - name: Refresh the sprite list
+        if: steps.ver.outputs.skip != '1'
+        run: |
+          if curl -fsS --max-time 60 https://alttpr.com/sprites -o sprites.new.json &&
+             python3 -c "import json,sys; d=json.load(open('sprites.new.json')); sys.exit(0 if isinstance(d, list) and len(d) > 50 else 1)"; then
+            mv sprites.new.json sprites.json
+          else
+            echo "Keeping the sprite list from the repository"; rm -f sprites.new.json
+          fi
+      - name: Refresh Hutch's tracker
+        if: steps.ver.outputs.skip != '1'
+        run: python3 tools/update-hutch.py || { echo "Keeping the tracker copies from the repository"; git checkout -- tracker offline-files.json; git clean -fdq tracker-beta; }
+      - name: Pack Kara's generator
+        if: steps.ver.outputs.skip != '1'
+        run: python3 tools/kara-bundle.py
+      - name: Download Pyodide
+        if: steps.ver.outputs.skip != '1'
+        run: sh tools/fetch-pyodide.sh
+      - name: Build the zip
+        if: steps.ver.outputs.skip != '1'
+        run: python3 tools/make-release.py "$TAG"
+      # The Windows app (desktop/): the zip's app/ folder in a Rando Hub Beta.exe
+      - name: Build the Windows app
+        if: steps.ver.outputs.skip != '1'
+        run: |
+          python3 -m pip install --quiet --break-system-packages pefile || python3 -m pip install --quiet pefile
+          rm -rf build-win && mkdir build-win && unzip -q "dist/Rando-Hub-$TAG.zip" -d build-win
+          bash desktop/build/build-win.sh "build-win/Rando-Hub-$TAG/app" dist
+      - name: Release notes from CHANGELOG.md
+        if: steps.ver.outputs.skip != '1'
+        run: |
+          V="${TAG#v}"
+          awk -v v="$V" '$0 ~ "^## (Beta v)?"v"( |$)" {on=1; next} /^## / && on {exit} on' CHANGELOG.md > notes.md
+          [ -s notes.md ] || echo "Rando Hub Beta $TAG" > notes.md
+          printf '\n---\n**Downloads** (below, under Assets):\n- `Rando-Hub-Beta-Windows-%s.zip`: **Windows app (beta).** Unzip, double-click `Rando Hub Beta.exe`. No browser or Node.js needed; it tells you when an update is out (button at the top right)\n- `Rando-Hub-%s.zip`: the whole app and relays, to play from your computer in a browser (open INSTRUCTIONS.txt)\n- `Crowd-Control-Plus-%s.zip`: TikTok LIVE crowd control (gift bridge, control panel, alerts, goals, top gifters, votes, boss detours, read-aloud)\n\n**Play the beta online:** https://hugecrankhank.github.io/Rando-hub-Beta/ · stable version: https://hugecrankhank.github.io/Rando-hub/\n' "$TAG" "$TAG" "$TAG" >> notes.md
+      - name: Publish the release
+        if: steps.ver.outputs.skip != '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" dist/*.zip --clobber
+          else
+            gh release create "$TAG" dist/*.zip --target "$GITHUB_SHA" --title "Rando Hub Beta $TAG" --notes-file notes.md
+          fi

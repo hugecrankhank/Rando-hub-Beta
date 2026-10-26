@@ -1,0 +1,8 @@
+{
+  "productName": "Rando Hub Beta",
+  "appId": "com.hugecrankhank.randohub.beta",
+  "repo": "hugecrankhank/Rando-hub-Beta",
+  "website": "https://hugecrankhank.github.io/Rando-hub-Beta/",
+  "port": 47068,
+  "assetPrefix": "Rando-Hub-Beta-Windows"
+}

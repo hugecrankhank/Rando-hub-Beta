@@ -15,3 +15,9 @@ crowd-plus/clips.json
 
 # Crowd Control+ local signer browser profile (TikTok login cookies)
 crowd-plus/tiktok-window/
+
+# Windows app build (desktop/build/build-win.sh)
+desktop/dist/
+desktop/.cache/
+desktop/.work/
+build-win/

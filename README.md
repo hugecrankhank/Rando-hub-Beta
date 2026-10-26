@@ -16,6 +16,7 @@
 <p align="center">
   <a href="https://hugecrankhank.github.io/Rando-hub/"><b>▶ Play now</b></a> ·
   <a href="https://github.com/hugecrankhank/Rando-hub/releases/latest"><b>⬇ Download</b></a> ·
+  <a href="https://github.com/hugecrankhank/Rando-hub-Beta/releases/latest"><b>⊞ Windows app</b></a> ·
   <a href="#quick-start">Quick start</a> ·
   <a href="#crowd-control-tiktok-live">Crowd control</a> ·
   <a href="#shout-outs">Shout-outs</a>
@@ -27,6 +28,7 @@
 
 - [What it is](#what-it-is)
 - [Install it on any device](#install-it-on-any-device)
+- [Windows app](#windows-app)
 - [Quick start](#quick-start)
 - [How the app works](#how-the-app-works)
 - [Crowd control (TikTok LIVE)](#crowd-control-tiktok-live)
@@ -82,6 +84,7 @@ Rando Hub is a web app (PWA), so the website **is** the installer. Open
 |---|---|
 | **iPhone / iPad** | Safari → **Share** → **Add to Home Screen** → Add. Always open it from that icon: iOS can clear a website's saves after a few weeks unused, but not an installed app's. |
 | **Android** | Chrome → **Install app** (or menu ⋮ → *Install app* / *Add to Home screen*). |
+| **Windows (app)** | Download **`Rando-Hub-Beta-Windows-v<version>.zip`** from the [Releases page](https://github.com/hugecrankhank/Rando-hub-Beta/releases/latest), unzip it, double-click **`Rando Hub Beta.exe`**. A real Windows program: no browser needed, plays offline, tells you when an update is out. See [Windows app](#windows-app). |
 | **Windows / Mac / Linux / Chromebook** | Chrome or Edge → the **install icon** at the right end of the address bar → Install. |
 
 It opens in its own window with the Rando Hub icon. Updates arrive by themselves
@@ -90,6 +93,23 @@ Make available offline** once while online.
 
 Prefer a file? Every version is also a **[download](https://github.com/hugecrankhank/Rando-hub/releases/latest)**
 (a zip you can run on a computer; see [Downloads and versions](#downloads-and-versions)).
+
+## Windows app
+
+Every release also has **`Rando-Hub-Beta-Windows-v<version>.zip`**: Rando Hub Beta as a Windows program.
+
+1. Download it from the **[Releases page](https://github.com/hugecrankhank/Rando-hub-Beta/releases/latest)** (under *Assets*) and unzip it anywhere,
+   for example `C:\Games\Rando Hub Beta`.
+2. Double-click **`Rando Hub Beta.exe`**. The first time, Windows may say *"Windows protected your PC"*
+   (the app isn't code-signed): **More info → Run anyway**.
+3. Optional: right-click the .exe → *Pin to Start*, or *Send to → Desktop (create shortcut)*.
+
+It's the same app as the website, in its own window: nothing else to install (no browser,
+no Node.js), plays offline, and pop-out trackers, Stream windows, Timer and Broadcast are real
+windows for OBS. It checks for updates by itself; when there's a new version the button at
+the top right turns green (**Update vX.Y.Z**) and **Download update** gets it. Unzip the new
+version over the old folder: saves stay in `%APPDATA%\Rando Hub Beta`. **Menu → Version** switches
+to the live website instead. How it's built: [`desktop/README.md`](desktop/README.md).
 
 ## Quick start
 
@@ -688,8 +708,10 @@ list (plus `localhost`), and keep seeds for a day so a race asks the seed site o
 
 That's it. The website updates, and the `Release` workflow
 (`.github/workflows/release.yml`) sees a version with no release yet, builds
-`Rando-Hub-v1.1.0.zip` with `tools/make-release.py`, creates the tag `v1.1.0` and
-publishes it on the Releases page with that version's changelog as the notes.
+`Rando-Hub-v1.1.0.zip` with `tools/make-release.py` and the Windows app
+`Rando-Hub-Beta-Windows-v1.1.0.zip` from it (`desktop/`), creates the tag `v1.1.0` and
+publishes them on the Releases page with that version's changelog as the notes.
+The Windows apps already out there see the new release and offer the update.
 Pushes that don't change the version don't make a release. Old releases stay
 up, so every version remains downloadable and playable. To build the zip
 yourself: `python3 tools/make-release.py` (output in `dist/`).

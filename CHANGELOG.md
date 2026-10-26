@@ -5,6 +5,27 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.11.0 (2026-10-26)
+
+- **Windows app.** Rando Hub now comes as a Windows program too:
+  **`Rando-Hub-Beta-Windows-v1.11.0.zip`** on the [Releases page](https://github.com/hugecrankhank/Rando-hub-Beta/releases/latest). Unzip it anywhere and double-click
+  **`Rando Hub Beta.exe`**. Nothing to install: no browser, no Node.js. It's the same app as the
+  website, in its own window with its own icon, and it plays offline (Kara's generator and
+  its Python are built in).
+  - Pop-out trackers, Stream windows, Timer and Broadcast open as real windows you can
+    capture in OBS; the game keeps full speed when another window is in front.
+  - **Updates:** it checks when it starts and every few hours. A new version gets a
+    one-time alert and a green **Update vX.Y.Z** button at the top right of the header
+    (otherwise the button reads **Check for updates**). **Download update** saves the new
+    zip to Downloads; unzip it over the old folder and your saves stay.
+  - **Menu → Version** switches between the built-in copy and the live website.
+  - Saves stay in `%APPDATA%\Rando Hub Beta`; a `data` folder next to the .exe makes it portable.
+  - Seed links shared from the app point at the website, so anyone can open them.
+  - Windows may say "Windows protected your PC" the first time (the app isn't
+    code-signed): **More info → Run anyway**.
+  - Built from each release by the Release workflow (`desktop/`, see `desktop/README.md`),
+    so every new version gets its Windows zip automatically.
+
 ## Beta v1.10.18 (2026-10-25)
 
 - **Zelda 1's overworld map works like Mudora's:** drawn from the ROM at full detail (sharp
