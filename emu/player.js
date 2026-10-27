@@ -550,7 +550,7 @@
   // windows) pace frames with a time accumulator.
   var acc = 0, last = 0, ema = 0;
   // What happened, for the Diagnostics section of the menu.
-  var stats = { frames: 0, draws: 0, glLost: 0, glRestored: 0, error: null, started: 0 };
+  var stats = { frames: 0, draws: 0, glLost: 0, glRestored: 0, error: null, started: 0, missed: 0, ticks: 0 };
   function stopWithError(where, e) {
     stats.error = where + ': ' + (e && (e.message || e.name) || e);
     console.error('[snes9x]', where, e);
@@ -573,6 +573,8 @@
     var frameMs = 1000 / core.fps, pad = input.read(), n = 0;
     if (hooks.input) { try { pad = hooks.input(pad) | 0; } catch (e) { console.warn('[snes9x] input hook', e); } }
     autoTune(dt, frameMs);
+    if (dt > frameMs * 1.5) stats.missed++;
+    stats.ticks++;
     var vsync = !ff && speedMul === 1 && Math.abs(ema - frameMs) / frameMs < 0.01;
     if (vsync) { n = 1; acc = 0; }
     else {
@@ -646,6 +648,9 @@
       ['Filter', (video && video.presetId) || cfg.filter],
       ['Graphics', gl ? (gl.isContextLost() ? 'LOST' : 'ok') + ', lost ' + stats.glLost + '×, restored ' + stats.glRestored + '×' : 'none'],
       ['Audio', audio && audio.ctx ? audio.ctx.state + ' @ ' + audio.ctx.sampleRate : 'not started'],
+      ['Screen', ema ? (1000 / ema).toFixed(1) + ' Hz, ' + (Math.abs(ema - 1000 / (core && core.loaded ? core.fps : 60.1)) / ema < 0.01 ? 'one game frame per refresh' : 'paced by the clock') : '\u2014'],
+      ['Refreshes missed', stats.missed + ' of ' + stats.ticks + (stats.ticks ? ' (' + (100 * stats.missed / stats.ticks).toFixed(1) + '%)' : '')],
+      ['Run-ahead', cfg.runAhead ? 'on' : 'off'],
     ];
     if (stats.error) info.push(['Error', stats.error]);
     if (stats.gfxErr) info.push(['Video error', stats.gfxErr]);

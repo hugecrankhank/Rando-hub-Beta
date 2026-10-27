@@ -113,6 +113,15 @@
       try { new Uint8Array(this.x.memory.buffer, p, bytes.length).set(bytes); return !!this.x.z_state_load(p, bytes.length); }
       finally { this.x.z_free(p); }
     },
+    // Run-ahead: a snapshot kept in one buffer inside the core's heap (no copy
+    // out, no allocation per frame), restored a frame later.
+    snapshot() {
+      const n = this.x.z_state_size();
+      if (!n) return false;
+      if (!this._snap || this._snap.n !== n) { if (this._snap) this.x.z_free(this._snap.p); this._snap = { p: this.x.z_alloc(n), n }; }
+      return !!this.x.z_state_save(this._snap.p, n);
+    },
+    restore() { return !!(this._snap && this.x.z_state_load(this._snap.p, this._snap.n)); },
   };
 
   // NES pad bits (libretro RETRO_DEVICE_ID_JOYPAD_* order, same as the SNES player uses)

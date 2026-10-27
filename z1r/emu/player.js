@@ -21,6 +21,7 @@
     filter: 'xbrz6', aspect: '8:7', volume: 0.5, muted: false,
     touch: 'auto', opacity: 0.45, size: 1, haptics: true, slot: 1,
     keymap: null, padmap: null,
+    runAhead: null,        // one frame of run-ahead: null = on with a keyboard / controller, off on touch screens
   };
   var LABELS = { UP: 'Up', DOWN: 'Down', LEFT: 'Left', RIGHT: 'Right', A: 'A', B: 'B', START: 'Start', SELECT: 'Select' };
   var ORDER = ['UP', 'DOWN', 'LEFT', 'RIGHT', 'B', 'A', 'START', 'SELECT'];
@@ -268,6 +269,7 @@
   }
 
   var coarse = window.matchMedia ? window.matchMedia('(pointer: coarse)') : { matches: false };
+  function runAheadOn() { return cfg.runAhead == null ? !coarse.matches : !!cfg.runAhead; }
   var padUsed = false;    // a physical controller is in use: hide the on-screen one (auto mode)
   function applyTouch() {
     var touchy = coarse.matches || (navigator.maxTouchPoints > 0 && !window.matchMedia('(hover: hover)').matches);
@@ -320,6 +322,8 @@
       '<div class="row"><span>Filter</span><select data-s="filter">' + opts(Object.keys(P).map(function (k) { return [k, P[k].name]; }), cfg.filter) + '</select></div>' +
       '<div class="row"><span>Aspect ratio</span><select data-s="aspect">' + opts([['8:7', 'Pixel-perfect (8:7)'], ['4:3', 'TV (4:3)'], ['fill', 'Fill the box']], cfg.aspect) + '</select></div>' +
       '<p class="hint">6xBRZ runs on the graphics chip. If an older phone stutters, try 4xBRZ or Sharp pixels.</p>' +
+      '<div class="row"><span>Run-ahead (less input lag)</span><input type="checkbox" data-s="runAhead"' + (runAheadOn() ? ' checked' : '') + '></div>' +
+      '<p class="hint">Shows each frame one frame early, like RetroArch\u2019s run-ahead: a press shows up about 16 ms sooner. The game runs twice per frame (cheap for the NES), so it\u2019s on by default with a keyboard or controller and off on touch screens.</p>' +
       '<h4>On-screen controller</h4>' +
       '<div class="row"><span>Show</span><select data-s="touch">' + opts([['auto', 'Auto (touch screens)'], ['on', 'Always'], ['off', 'Never']], cfg.touch) + '</select></div>' +
       '<div class="row"><span>Opacity</span><input type="range" min="0.1" max="1" step="0.05" data-s="opacity" value="' + cfg.opacity + '"></div>' +
@@ -353,6 +357,7 @@
       if (s === 'volume' || s === 'muted') { ejs.volume = cfg.volume; ejs.muted = cfg.muted; ejs.setVolume(cfg.volume); }
       else if (s === 'filter') applyFilter();
       else if (s === 'aspect') applyAspect();
+      else if (s === 'runAhead') { /* takes effect next frame */ }
       else applyTouch();
     });
   }
@@ -481,7 +486,7 @@
   // windows) pace frames with a time accumulator.
   var acc = 0, last = 0, ema = 0;
   // What happened, for the Diagnostics section of the menu.
-  var stats = { frames: 0, draws: 0, glLost: 0, glRestored: 0, error: null, started: 0 };
+  var stats = { frames: 0, draws: 0, glLost: 0, glRestored: 0, error: null, started: 0, missed: 0, ticks: 0, aheadMs: 0 };
   function stopWithError(where, e) {
     stats.error = where + ': ' + (e && (e.message || e.name) || e);
     console.error('[emu]', where, e);
@@ -503,6 +508,8 @@
     if (!running || paused) { try { video.draw(); } catch (e) {} return; }
     var frameMs = 1000 / core.fps, pad = input.read(), n = 0;
     if (hooks.input) { try { pad = hooks.input(pad) | 0; } catch (e) { console.warn('[emu] input hook', e); } }
+    if (dt > frameMs * 1.5) stats.missed++;
+    stats.ticks++;
     var vsync = !ff && speedMul === 1 && Math.abs(ema - frameMs) / frameMs < 0.01;
     if (vsync) { n = 1; acc = 0; }
     else {
@@ -511,21 +518,41 @@
       var max = ff ? 8 : 3;
       if (n > max) { n = max; acc = 0; }
     }
+    var ahead = runAheadOn() && !ff && speedMul === 1 && n > 0;
     try {
       for (var i = 0; i < n; i++) {
         core.runFrame(pad, 0);
         stats.frames++;
         if (hooks.frame) { try { hooks.frame(core); } catch (e) { console.warn('[emu] frame hook', e); } }
         var a = core.audio();
+        // Run-ahead: the real frames' sound plays, except the last one's, whose
+        // place the frame run ahead takes (below), so no frame's sound plays twice.
+        if (ahead && i === n - 1) continue;
         if (!ff) {
           // faster than normal: drop some frames' sound so it doesn't pile up
           audioAcc += speedMul > 1 ? 1 / speedMul : 1;
           if (audioAcc >= 1) { audioAcc -= 1; try { audio.push(a); } catch (e) {} }
         }
       }
+      // Run-ahead (one frame, as RetroArch's single-instance run-ahead): keep
+      // the real state, run one more frame with the same input and show that,
+      // then go back. What's on screen is a frame ahead of the game, so a
+      // press shows up a frame sooner. The tracker and crowd effects only see
+      // the real state (the frame hook isn't called for the frame ahead).
+      if (ahead) {
+        var t0 = performance.now();
+        if (core.snapshot()) {
+          core.runFrame(pad, 0);
+          var a2 = core.audio();
+          try { audio.push(a2); } catch (e) {}
+          video.upload(core.frame());
+          if (!core.restore()) { cfg.runAhead = false; saveCfg(); toast('Run-ahead stopped: the game state couldn\u2019t be restored.'); }
+        } else { cfg.runAhead = false; saveCfg(); toast('Run-ahead isn\u2019t possible with this game.'); }
+        stats.aheadMs = stats.aheadMs ? stats.aheadMs * 0.95 + (performance.now() - t0) * 0.05 : performance.now() - t0;
+      }
     } catch (e) { stopWithError('Emulator', e); return; }
     try {
-      if (n) video.upload(core.frame());
+      if (n && !ahead) video.upload(core.frame());
       video.draw();
       stats.draws++;
     } catch (e) {
@@ -557,6 +584,9 @@
       ['Filter', (video && video.presetId) || cfg.filter],
       ['Graphics', gl ? (gl.isContextLost() ? 'LOST' : 'ok') + ', lost ' + stats.glLost + '×, restored ' + stats.glRestored + '×' : 'none'],
       ['Audio', audio && audio.ctx ? audio.ctx.state + ' @ ' + audio.ctx.sampleRate : 'not started'],
+      ['Screen', ema ? (1000 / ema).toFixed(1) + ' Hz, ' + (Math.abs(ema - 1000 / (core && core.loaded ? core.fps : 60.0988)) / (1000 / 60.0988) < 0.01 ? 'one game frame per refresh' : 'paced by the clock') : '\u2014'],
+      ['Refreshes missed', stats.missed + ' of ' + stats.ticks + (stats.ticks ? ' (' + (100 * stats.missed / stats.ticks).toFixed(1) + '%)' : '')],
+      ['Run-ahead', runAheadOn() ? 'on, ' + stats.aheadMs.toFixed(2) + ' ms per frame' : 'off'],
     ];
     if (stats.error) info.push(['Error', stats.error]);
     if (stats.gfxErr) info.push(['Video error', stats.gfxErr]);
