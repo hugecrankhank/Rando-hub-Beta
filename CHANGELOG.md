@@ -5,6 +5,23 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.12.1 (2026-10-26)
+
+- **Tablet layout fits wide tablets** (16:10, like the Galaxy Tab S9 FE), using the whole screen:
+  - **Mudora / Mudora 2.0, sideways:** a new arrangement. The game top left at exactly its
+    picture's shape (no black bars), the counters (Checks, Deaths, Bonks, GT chests, dig game) in
+    the strip under it, the items and dungeons in a column beside it, and Light World over Dark
+    World filling the right side full height. Before, Tablet with Mudora fell back to the
+    classic layout (two-row header, Mudora's options taking room, cramped maps). Auto picks it on
+    Android tablets too.
+  - **Upright (and on iPads):** the game box is cut to the picture's width, with the counters
+    in the space beside it instead of black bars; the items get the full width again.
+  - **Hutch's tracker, sideways:** the gap between the maps is sized for the screen (the game
+    fills it at the maps' height, 24% bigger on a Tab S9 FE) until you set it with −/+; the
+    bands no longer scale into two rows of dungeons on wide screens. **Upright**, Tablet now uses
+    the upright arrangement (game on top) instead of squeezing the game between the maps.
+  - The compact header fits on one row on an upright tablet.
+
 ## Beta v1.12.0 (2026-10-26)
 
 - **Patched games** (new page, `patched/`; **Patched ▸** next to Zelda 1 and GLR): play NES and

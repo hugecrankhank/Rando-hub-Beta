@@ -250,6 +250,43 @@
   body:not(.stack):not(.phone) #side .sst small { font-size: 10px; letter-spacing: .04em; }
   body:not(.stack):not(.phone) #side .sst b { font-size: 17px; margin-top: 2px; }
   body:not(.stack):not(.phone) #side .sst i { font-size: 10px; white-space: normal; }
+
+  /* Rando Hub's Tablet layout on wide screens (mudora-stack.js, wide): the game sits
+     top left over this page; the counters go in the strip under it, the items and
+     dungeons in a column beside it, both maps in a column on the right */
+  #sst-strip { display: none; }
+  body.wide #bar, body.wide #foot { display: none; }
+  body.wide.bar-open #bar { display: flex; flex-wrap: wrap; position: fixed; left: 0; right: 0; top: 0; z-index: 55; padding: 8px 10px; gap: 8px 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.7); border-bottom: 1px solid #3b434b; }
+  body.wide #bar #legend { width: 100%; margin: 2px 0 0; gap: 8px; font-size: 11px; }
+  body.wide #gear { display: block; }
+  body.wide.bar-open #gear { background: #3a4652; }
+  body.wide #app { position: relative; }
+  body.wide #main { position: absolute; inset: 0; display: block; }
+  body.wide #side { position: absolute; left: var(--hole-w); top: 0; bottom: 0; width: var(--side-w); max-width: none; border-left: 1px solid var(--line); }
+  body.wide #side h3 { display: none; }
+  body.wide:not(.stack):not(.phone) #side > .h-ct { display: none; }
+  body.wide #items { padding: 6px 4px; gap: 4px; }
+  body.wide #dungeons { padding: 2px 6px 6px; }
+  body.wide #maps { position: absolute; right: 0; top: 0; bottom: 0; width: var(--each); border-left: 1px solid var(--line); }
+  /* the counters in the room the game leaves (Rando Hub says where: --strip-*) */
+  body.has-strip #sst-strip { display: flex; position: absolute; left: var(--strip-x); top: var(--strip-y); width: var(--strip-w); height: var(--strip-h);
+    align-items: stretch; justify-content: center; gap: 6px; padding: 5px 8px; background: var(--panel); overflow: hidden; z-index: 1; }
+  body.has-strip:not(.strip-col) #sst-strip { border-top: 1px solid var(--line); }
+  body.has-strip #sst-strip > div { display: flex; gap: 6px; }
+  body.has-strip #sst-strip .sst { min-width: 78px; display: flex; flex-direction: column; justify-content: center; padding: 2px 12px; }
+  body.has-strip #sst-strip .sst small { font-size: 10px; letter-spacing: .04em; }
+  body.has-strip #sst-strip .sst b { font-size: 20px; }
+  body.has-strip #sst-strip .sst i { font-size: 10px; white-space: normal; }
+  /* beside the game (upright): one column, top to bottom */
+  body.strip-col #sst-strip { flex-direction: column; justify-content: center; padding: 8px 6px; border-left: 1px solid var(--line); }
+  body.strip-col #sst-strip > div { flex-direction: column; }
+  body.strip-col #sst-strip .sst { min-width: 0; padding: 6px 4px; }
+  /* the iPad layout's counter columns beside the items aren't needed then */
+  body.stack.has-strip #side { grid-template-columns: minmax(0, 1fr); }
+  body.stack.has-strip #side > #items { justify-content: center; }
+  /* sideways: the items and dungeons span the game and the counters beside it */
+  body.stack.stack-side.has-strip #side { width: calc(var(--hole-w) + var(--strip-w)); }
   /* phone: one panel at a time (Rando Hub's tabs pick it) */
   body.phone #bar { display: none; }
   /* phone: the options open over the map (⚙), so the map keeps its room */

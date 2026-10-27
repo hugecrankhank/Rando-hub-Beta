@@ -817,10 +817,12 @@
 
   // ── options ───────────────────────────────────────────────────────────────
   var SIZE_KEY = 'rhb-mudora-isize', isize = 'auto';
+  // Rando Hub laying this page out around its game (iPad layout, or Tablet on a wide screen)
+  function hosted() { var c = document.body.classList; return c.contains('stack') || c.contains('wide'); }
   try { isize = localStorage.getItem(SIZE_KEY) || 'auto'; } catch (e) {}
   function applySize() {
     var side = $('side'), px;
-    if (stackIsz && document.body.classList.contains('stack')) px = stackIsz;
+    if (stackIsz && hosted()) px = stackIsz;
     else if (isize === 'auto') {
       var W = phoneTab === 'items' ? innerWidth - 24 : document.body.classList.contains('stack') ? Math.min(($('side').clientWidth || 600) * 0.45, 340) : Math.min(innerWidth * 0.32, 340);
       px = Math.max(26, Math.min(phoneTab ? 48 : 64, Math.floor((W - 30 - 5 * 4) / 6)));
@@ -915,13 +917,13 @@
   $('gear').addEventListener('click', function (e) { e.stopPropagation(); document.body.classList.toggle('bar-open'); });
   // phone: tapping anywhere else closes the options
   document.addEventListener('pointerdown', function (e) {
-    if (!document.body.classList.contains('bar-open') || !(document.body.classList.contains('phone') || document.body.classList.contains('stack'))) return;
+    if (!document.body.classList.contains('bar-open') || !(document.body.classList.contains('phone') || hosted())) return;
     if (e.target.closest('#bar') || e.target.closest('#gear') || e.target.closest('#set') || e.target.closest('#card')) return;
     document.body.classList.remove('bar-open');
   });
   // on a phone the colour key lives with the options, not under the map
   function placeLegend() {
-    var lg = $('legend'), want = document.body.classList.contains('phone') || document.body.classList.contains('stack') ? $('bar') : $('foot');
+    var lg = $('legend'), want = document.body.classList.contains('phone') || hosted() ? $('bar') : $('foot');
     if (lg && lg.parentNode !== want) want.appendChild(lg);
   }
   $('b-help').addEventListener('click', function () {
@@ -961,21 +963,39 @@
   window.addEventListener('message', function (e) {
     var d = e.data; if (!d || d.type !== 'mudora-stack') return;
     var b = document.body, r = document.documentElement.style;
-    var sig = d.on ? [d.hole.w, d.hole.h, d.each, d.side, d.isz].join() : 'off';
+    var st = d.on && d.strip;
+    var sig = d.on ? [d.hole.w, d.hole.h, d.each, d.side, d.isz, d.wide, d.sideW, st ? [st.x, st.y, st.w, st.h].join(':') : ''].join() : 'off';
     stackIsz = d.on ? d.isz || 0 : 0;
     if (sig === stackSig) return;
     stackSig = sig;
-    b.classList.toggle('stack', !!d.on);
-    b.classList.toggle('stack-side', !!(d.on && d.side));
+    b.classList.toggle('stack', !!(d.on && !d.wide));
+    b.classList.toggle('wide', !!(d.on && d.wide));
+    b.classList.toggle('stack-side', !!(d.on && d.side && !d.wide));
     if (d.on) {
       r.setProperty('--hole-w', d.hole.w + 'px'); r.setProperty('--hole-h', d.hole.h + 'px');
       r.setProperty('--each', d.each + 'px'); r.setProperty('--sgap', (d.gap || 4) + 'px');
+      r.setProperty('--side-w', (d.sideW || 0) + 'px');
+      if (st) { r.setProperty('--strip-x', st.x + 'px'); r.setProperty('--strip-y', st.y + 'px'); r.setProperty('--strip-w', st.w + 'px'); r.setProperty('--strip-h', st.h + 'px'); }
     } else b.classList.remove('bar-open');
+    b.classList.toggle('has-strip', !!st);
+    b.classList.toggle('strip-col', !!(st && st.h > st.w));
+    stripStats(!!st);
     placeLegend(); applySize(); layoutWorlds(); fitStack();
   });
-  // the items shrink until the items and dungeons fit under the game without scrolling (HydeOut)
+  // The counters go in the room the game leaves, beside or under it (and back after)
+  function stripStats(on) {
+    var L = $('sst-l'), R = $('sst-r'), st = $('sst-strip'), it = $('items');
+    if (!L || !R || !it) return;
+    if (on) {
+      if (!st) { st = document.createElement('div'); st.id = 'sst-strip'; $('main').appendChild(st); }
+      if (L.parentNode !== st) { st.appendChild(L); st.appendChild(R); }
+    } else if (st && L.parentNode === st) {
+      it.parentNode.insertBefore(L, it); it.parentNode.insertBefore(R, it.nextSibling);
+    }
+  }
+  // the items shrink until the items and dungeons fit under (or beside) the game without scrolling (HydeOut)
   function fitStack() {
-    if (!stackIsz || !document.body.classList.contains('stack')) return;
+    if (!stackIsz || !hosted()) return;
     var side = $('side'), px = stackIsz;
     document.documentElement.style.setProperty('--isz', px + 'px');
     while (px > 18 && side.scrollHeight > side.clientHeight + 1) {

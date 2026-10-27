@@ -72,7 +72,9 @@
   function wantMode() {
     if (trackerOff() || trackerEmo()) return false;
     var p = pref(), W = window.innerWidth, H = window.innerHeight;
-    if (p === 'tablet') return p;
+    // Tablet held upright: the sideways arrangement would leave the game a
+    // sliver between the maps, so it's the upright one (game on top) then
+    if (p === 'tablet') return H > W * 1.1 ? 'portrait' : p;
     if (p === 'stacked') return 'portrait';
     // Phone (phone.js) is built on the classic frames, so for this file it's classic
     if (p === 'classic' || p === 'desktop' || p === 'phone') return false;
@@ -116,7 +118,12 @@
     var gameW = Math.max(0, z.W - 2 * each - 2 * MARGIN);
     var need = Math.max(each, gameW * 3 / 4) + 8;
     var kt = (z.H - need) / (lastT + lastB);
-    kt = Math.max(1, Math.min(K_MAX, kt));
+    // Scaling lays the bands out narrower: below ~1250 px Hutch's bottom band
+    // (prizes + twelve dungeons) wraps onto two rows and the maps lose more than
+    // the bands gain. Wide screens (16:10, e.g. Galaxy Tab S9 FE) run out of
+    // width first, so there the bands only grow while that much width is left.
+    var kMax = z.W / z.H >= 1.45 ? Math.max(1, Math.min(K_MAX, z.W / 1250)) : K_MAX;
+    kt = Math.max(1, Math.min(kMax, kt));
     if (Math.abs(kt - k) > 0.02) { k = kt; tries++; applyK(); }
   }
   function resetTune() { tries = 0; retune(); }
@@ -148,8 +155,11 @@
     m.style.top = mid.top + 'px';
     m.style.height = mid.height + 'px';
     placeGameSoon();
-    retune();
+    // Hutch's tracker reports several in-between sizes while it lays out;
+    // scale the bands only once it has settled (each try used to count one)
+    clearTimeout(retuneTimer); retuneTimer = setTimeout(retune, 250);
   });
+  var retuneTimer = null;
 
   // ── the game goes in the gap between the two maps ─────────────────────────
   var MARGIN = 6;          // breathing room between the game and each map
@@ -344,6 +354,27 @@
 
   function withMobile(u) { return u + (u.indexOf('?') === -1 ? '?' : '&') + 'mobile=1'; }
 
+  // The gap between the two maps, sized for this screen until the player
+  // sets it with −/+: just wide enough for the game at the maps' height, so
+  // the game fills the gap with no black bars above and below it, and the
+  // item and dungeon bands get the spare height (they scale up, retune()).
+  // On a 16:10 tablet (Galaxy Tab S9 FE) that's about 0.36 of the width.
+  var AUTO_GAP_KEY = 'rhb-tablet-gap-auto';
+  function autoGap() {
+    var W = window.innerWidth;
+    if (!W) return;
+    var aspect = 8 / 7;
+    try { if (JSON.parse(localStorage.getItem('s9x-player-settings') || '{}').aspect === '4:3') aspect = 4 / 3; } catch (e) {}
+    var each = (W - 2 * MARGIN) / (2 + aspect);
+    var g = Math.max(0.2, Math.min(0.6, 1 - 2 * each / W));
+    try {
+      var cur = localStorage.getItem(GAP_KEY), mine = localStorage.getItem(AUTO_GAP_KEY);
+      if (cur !== null && cur !== mine) return;           // the player's own size: keep it
+      var v = g.toFixed(3);
+      localStorage.setItem(GAP_KEY, v); localStorage.setItem(AUTO_GAP_KEY, v);
+    } catch (e) {}
+  }
+
   function load() {
     if (!urls) return;
     var blank = 'about:blank';
@@ -354,6 +385,7 @@
     mid = null; lastT = lastB = null; tries = 0; k = 1; itemsH = 400;
     settingsOpen = false; $('tab-map').style.visibility = ''; $('tab-items').style.zIndex = '';
     if (on === 'tablet') applyK(); else if (on === 'portrait') placePortrait();
+    if (on === 'tablet') autoGap();
     if (on) {
       $('items-frame').src = blank;
       $('map-frame').src = blank;

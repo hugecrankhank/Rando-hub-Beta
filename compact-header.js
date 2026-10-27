@@ -81,7 +81,11 @@
     // room kept for it, so the rest of the header wraps around it
     'body.hdr-compact header { position: relative; padding-right: 72px !important; }',
     'body.hdr-compact #hdr-gear { position: absolute; right: 16px; top: max(6px, env(safe-area-inset-top)); margin: 0; z-index: 1; }',
-    'body.hdr-compact.hdr-menu #hdr-gear { border-color: var(--accent); }'
+    'body.hdr-compact.hdr-menu #hdr-gear { border-color: var(--accent); }',
+    // narrower (an upright tablet): drop the version and the word "Layout", tighter gaps
+    '@media (max-width: 960px) { body.hdr-compact:not(.hdr-menu) header { column-gap: 8px !important; }' +
+    ' body.hdr-compact:not(.hdr-menu) header .app-ver { display: none; }' +
+    ' body.hdr-compact:not(.hdr-menu) #layout-sel { font-size: 0; gap: 0; } body.hdr-compact:not(.hdr-menu) #layout-sel select { font-size: 14px; } }'
   ].join('\n');
 
   // The Randomizer bar can open without ⚙ (first visit, a shared seed link),
