@@ -29,12 +29,13 @@
 
   function init() {
     var css = document.createElement('style');
-    css.textContent = '#hub-back, #hub-z1, #hub-patched { text-decoration: none; white-space: nowrap; }';
+    css.textContent = '#hub-back, #hub-z1, #hub-ff6, #hub-patched { text-decoration: none; white-space: nowrap; }';
     document.head.appendChild(css);
     var newSeed = document.getElementById('new-seed');
     if (newSeed) {
       newSeed.parentNode.insertBefore(link('hub-back', HUB, 'Zelda 3', 'Back to Rando Hub (A Link to the Past)'), newSeed);
       newSeed.parentNode.insertBefore(link('hub-z1', HUB + 'z1r/', 'Zelda 1', 'The Zelda 1 randomizer (Z1R)'), newSeed);
+      newSeed.parentNode.insertBefore(link('hub-ff6', HUB + 'ff6wc/', 'FF6', 'Final Fantasy VI: Worlds Collide'), newSeed);
       newSeed.parentNode.insertBefore(link('hub-patched', HUB + 'patched/', 'Patched', 'Patched games: NES and SNES ROM hacks on these emulators'), newSeed);
     }
     var play = document.getElementById('play');

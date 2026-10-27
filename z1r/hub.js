@@ -96,6 +96,11 @@
       glr.textContent = 'GLR'; glr.title = 'The Guardian Legend randomizer (picked by hand only: rerolls never go there)';
       glr.style.textDecoration = 'none';
       newSeed.parentNode.insertBefore(glr, newSeed);
+      var ff = document.createElement('a');
+      ff.className = 'btn'; ff.id = 'hub-ff6'; ff.href = HUB + 'ff6wc/';
+      ff.textContent = 'FF6'; ff.title = 'Final Fantasy VI: Worlds Collide (picked by hand only: rerolls never go there)';
+      ff.style.textDecoration = 'none';
+      newSeed.parentNode.insertBefore(ff, newSeed);
       var pt = document.createElement('a');
       pt.className = 'btn'; pt.id = 'hub-patched'; pt.href = HUB + 'patched/';
       pt.textContent = 'Patched'; pt.title = 'Patched games: NES and SNES ROM hacks on these emulators';

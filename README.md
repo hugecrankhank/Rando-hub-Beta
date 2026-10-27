@@ -64,9 +64,9 @@ Rando Hub puts everything you need for an ALttP Randomizer run in one page:
   Customizer, saved presets, Reroll, seed links and race seeds.
 - **Layouts for every screen:** Phone, iPad, Tablet, Desktop (tracker pieces
   pop out into their own windows) and Classic. **Layout → Auto** picks one for you.
-- **More games:** the **Zelda 1** randomizer (Z1R, seeds by ZORA) and **The Guardian
-  Legend** randomizer (GLR), each with its own emulator and tracker, a click away.
-  Both seed generators are in beta.
+- **More games:** the **Zelda 1** randomizer (Z1R, seeds by ZORA), **The Guardian
+  Legend** randomizer (GLR) and **FF6 Worlds Collide**, each with its own emulator and
+  tracker, a click away. The seed generators are in beta.
 - **Extras:** Link sprites from the alttpr.com library, MSU-1 music packs, item sound
   packs, Resume last game, a seed history, offline play.
 - **TikTok LIVE crowd control:** viewers' gifts change your game, roll new
@@ -477,9 +477,9 @@ work without touching Hutch's code:
   Mudora, `mudora-stack.js` lays Mudora out the same way around the game.
 - *Classic:* the original layout, with the game and both trackers on one page.
 
-## Other games: Zelda 1 and The Guardian Legend
+## Other games: Zelda 1, The Guardian Legend and FF6 Worlds Collide
 
-The **Game** row at the top of the Randomizer bar (and **Zelda 1 ▸** / **GLR ▸** in the
+The **Game** row at the top of the Randomizer bar (and **Zelda 1 ▸** / **GLR ▸** / **FF6 ▸** in the
 header) switches games. Each is its own app inside the hub, with its own emulator,
 seed generator, tracker and saves, and buttons back to the others.
 
@@ -492,6 +492,14 @@ seed generator, tracker and saves, and buttons back to the others.
 - **The Guardian Legend** (`glr/`):
   seeds from your own Guardian Legend (USA) ROM, with the labyrinth map drawn from the
   ROM. Only ever picked by hand: rerolls and crowd control never switch to it.
+- **Final Fantasy VI: Worlds Collide** (`ff6wc/`):
+  seeds made by [Worlds Collide](https://github.com/ff6wc/WorldsCollide) itself (the
+  open-worlds FF6 randomizer, run in your browser with Pyodide) from your own Final
+  Fantasy III (USA) v1.0 ROM, played on the hub's Snes9x. The tracker reads the game's
+  memory: characters, espers, the 62 checks by area, dragons, bosses, Kefka's Tower,
+  plus the seed's objectives and hash. Presets: the Ultros League flags (character
+  gating or open world) or any flag string from ff6worldscollide.com. Picked by hand
+  only, like GLR.
 
 Both seed generators are **beta**: new and not fully vetted yet, so a seed may have
 mistakes; please report anything odd. Both live in this repository (each folder is a

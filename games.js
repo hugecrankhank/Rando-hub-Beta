@@ -22,6 +22,7 @@
   var EITHER_KEY = 'rando-hub-either-game';
   var Z1_URL = 'z1r/';
   var GLR_URL = 'glr/';   // The Guardian Legend: picked by hand only, never by a reroll or Crowd Control
+  var FF6_URL = 'ff6wc/'; // FF6 Worlds Collide: the same
 
   function either() { try { return localStorage.getItem(EITHER_KEY) === '1'; } catch (e) { return false; } }
   function setEither(on) { try { localStorage.setItem(EITHER_KEY, on ? '1' : '0'); } catch (e) {} }
@@ -32,7 +33,7 @@
     location.href = Z1_URL + '?roll=1' + (mode && mode !== 'same' ? '&mode=' + mode : '') + (by ? '&by=' + encodeURIComponent(by) : '');
   }
 
-  window.RandoGames = { either: either, setEither: setEither, pickZ1: pickZ1, goZ1: goZ1, Z1_URL: Z1_URL, GLR_URL: GLR_URL };
+  window.RandoGames = { either: either, setEither: setEither, pickZ1: pickZ1, goZ1: goZ1, Z1_URL: Z1_URL, GLR_URL: GLR_URL, FF6_URL: FF6_URL };
 
   // ── the 🎲 Reroll button: maybe Zelda 1 instead ───────────────────────────
   // Runs before reroll.js's own click handler (capture phase on the document).
@@ -63,6 +64,7 @@
     row.innerHTML = '<span>Game</span><span class="gm"><span aria-current="page">Zelda 3 · ALTTP</span>' +
       '<a href="' + Z1_URL + '" title="Zelda 1 randomizer (Z1R): roll, play and track Zelda 1 seeds">Zelda 1 ▸</a>' +
       '<a href="' + GLR_URL + '" title="The Guardian Legend randomizer (GLR): roll, play and track its seeds. Rerolls and Crowd Control never pick it.">Guardian Legend ▸</a>' +
+      '<a href="' + FF6_URL + '" title="Final Fantasy VI: Worlds Collide: roll, play and track its seeds (characters, espers, checks). Rerolls and Crowd Control never pick it.">FF6 ▸</a>' +
       '<a href="patched/" title="Patched games: NES and SNES ROM hacks (your ROM + the hack\u2019s patch)">Patched games ▸</a></span>' +
       '<label title="The 🎲 Reroll button and Crowd Control’s Random preset and CHAOS seeds pick Zelda 3 or Zelda 1 at random. Crowd Control’s New seed (same settings) stays in the game you’re playing.">' +
       '<input type="checkbox" id="either-game"> Rerolls can land on either game</label>';

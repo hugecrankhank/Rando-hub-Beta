@@ -5,6 +5,32 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.13.0 (2026-10-26)
+
+- **New game: Final Fantasy VI: Worlds Collide** (`ff6wc/`, **FF6 ▸** in the Game row and
+  the header). Roll a seed from your own Final Fantasy III (USA) v1.0 ROM, play it on the
+  hub's Snes9x, and the tracker follows along.
+  - **The generator is Worlds Collide itself** (MIT), run in your browser with Pyodide,
+    the way Z1R runs ZORA: the same seed and flags give the same game as a computer
+    would. Downloaded the first time you roll, then cached. Nothing is uploaded.
+  - **Presets:** the Ultros League flags (character gating), the same with an open
+    world, or any flag string pasted from ff6worldscollide.com. Download the ROM and
+    the spoiler log, or play straight away.
+  - **Tracker, read from the game's memory:** characters, espers, the 62 checks by
+    area, dragons, bosses, Kefka's Tower open or not, the game's own counters, plus
+    the seed's objectives and hash. Tick by hand what the game can't tell.
+  - **Layout:** the picture gets exactly its size and the tracker the rest, on every
+    screen: sideways (desktop, iPad and tablets held sideways) the picture is as tall
+    as the page with the tracker on the right; upright (phones and tablets) it is as
+    wide as the page with the tracker under it; narrow trackers show one tab at a time.
+  - Saves, states (F5 / F8), Continue after the app was closed, Reroll (same flags),
+    seed history, installable app. Picked by hand only: rerolls and Crowd Control
+    never switch to it.
+  - *Caveat:* built and tested against Worlds Collide's code with a stand-in ROM (no
+    FF6 ROM here), so the first real seeds are the real test. The generator runs
+    unchanged, so a seed's contents are Worlds Collide's; the page's job is the plumbing.
+  - Not yet: FF6 crowd control effects and an FF6 item/shop reference. Say the word.
+
 ## Beta v1.12.5 (2026-10-26)
 
 - **Zelda 1 crowd control: 17 new effects** (mapped like the others in Crowd Control+; the

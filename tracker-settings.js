@@ -122,6 +122,14 @@
       if (window.EJS_emulator && !confirm('Switch to The Guardian Legend?\n\nThe current game will be closed.')) return;
       location.href = window.RandoGames.GLR_URL;
     });
+    var ff = document.createElement('button');
+    ff.type = 'button'; ff.id = 'ff6-btn';
+    ff.textContent = 'FF6 ▸';
+    ff.title = 'Switch to Final Fantasy VI: Worlds Collide';
+    ff.addEventListener('click', function () {
+      if (window.EJS_emulator && !confirm('Switch to FF6 Worlds Collide?\n\nThe current game will be closed.')) return;
+      location.href = window.RandoGames.FF6_URL;
+    });
     var pt = document.createElement('button');
     pt.type = 'button'; pt.id = 'patched-btn';
     pt.textContent = 'Patched ▸';
@@ -131,7 +139,7 @@
       location.href = 'patched/';
     });
     var after = $('reroll-btn') || $('rando-split');
-    if (after) { after.parentNode.insertBefore(b, after.nextSibling); b.parentNode.insertBefore(g, b.nextSibling); g.parentNode.insertBefore(pt, g.nextSibling); }
+    if (after) { after.parentNode.insertBefore(b, after.nextSibling); b.parentNode.insertBefore(g, b.nextSibling); g.parentNode.insertBefore(ff, g.nextSibling); ff.parentNode.insertBefore(pt, ff.nextSibling); }
   }
 
   function init() { build(); z1Button(); }

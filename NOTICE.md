@@ -53,6 +53,8 @@ under their own licenses, and nothing here restricts what those licenses allow:
 | Dungeon floor tables, boss rooms, RAM/VRAM layout (`emotracker/dungeons.js`, `dgworker.js`) | snesrev (zelda3) | MIT |
 | fengari-web (`emotracker/fengari-web.js`) | Benoit Giannangeli, Daurnimator | MIT, `emotracker/LICENSE-fengari-web.txt` |
 | Pyodide | Pyodide contributors | MPL-2.0 |
+| Worlds Collide, the FF6 randomizer (`ff6wc/wc/worldscollide.zip`, its source unchanged, run in the browser) | AtmaTek and the Worlds Collide contributors | MIT, `ff6wc/wc/LICENSE-WorldsCollide.txt` |
+| The FF6 tracker's memory map (`ff6wc/js/data.js`): check and boss bits from Worlds Collide's source; counters and character/esper bytes as documented by Stats Companion (FF6WCTools) | AtmaTek; peroquenariz | MIT (Worlds Collide); addresses, with thanks |
 | Press Start 2P font (`fonts/`) | CodeMan38 | SIL Open Font License, `fonts/PressStart2P-OFL.txt` |
 
 The full list of credits is in the [README](README.md#credits). No ROMs are included.
