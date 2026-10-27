@@ -5,6 +5,12 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.12.2 (2026-10-26)
+
+- **Auto layout:** iPads get the iPad layout; every other touch tablet (Android) gets the Tablet
+  layout, sideways and upright, with either tracker. Upright with Hutch's tracker, Auto now uses
+  the upright arrangement like Tablet picked by hand (it squeezed the game between the maps).
+
 ## Beta v1.12.1 (2026-10-26)
 
 - **Tablet layout fits wide tablets** (16:10, like the Galaxy Tab S9 FE), using the whole screen:

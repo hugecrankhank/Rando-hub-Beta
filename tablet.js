@@ -82,7 +82,8 @@
     if (wantDesktop()) return false;
     // Auto: an iPad gets the iPad layout (formerly "Stacked"), any other tablet the Tablet layout
     if (isIPad() && Math.max(W, H) >= 700) return 'portrait';
-    if (Math.max(W, H) >= 900 && Math.min(W, H) >= 600) return 'tablet';
+    // any other tablet: Tablet (upright, its upright arrangement, as when picked by hand)
+    if (Math.max(W, H) >= 900 && Math.min(W, H) >= 600) return H > W * 1.1 ? 'portrait' : 'tablet';
     return false;
   }
 
