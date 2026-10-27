@@ -5,6 +5,23 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.2 (2026-10-27)
+
+- **Games shown.** A **Games shown ▾** list in the Game row: untick the games you don't
+  play and they disappear from the Game row, the header buttons, the other games'
+  headers and menus, and the "Rerolls can land on" list (a hidden game can't be rolled
+  into). Zelda 3 always stays. Hidden games still open by address.
+- **EmoTracker removed** (18 MB): the web EmoTracker runtime and its ALTTPR pack, which
+  hadn't been offered as a tracker since Mudora 2.0 took over. The overworld and dungeon
+  map modules it shared with Mudora moved to `mudora/` (`romap.js`, `dungeons.js`,
+  `dgworker.js`); nothing changes on screen.
+- **Muffins' Tracker trimmed** (33 MB → 6 MB): it isn't a tracker you can pick any more,
+  only the logic engine Mudora 2.0 runs out of sight, so his build no longer ships the old
+  overlay images (his build never loaded them) or the 3,000 Link sprite previews for his
+  own sprite picker (the hub has its own sprites). His launch page, presets, settings and
+  logic are untouched; future builds (`mfns-build.yml`) stay trimmed.
+- Download sizes: the site zip and the Windows app are about 45 MB smaller.
+
 ## Beta v1.14.1 (2026-10-27)
 
 - **Rerolls can land on: your pick of games.** The old "either game" checkbox is now one

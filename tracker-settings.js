@@ -132,7 +132,7 @@
     });
     var fx = document.createElement('select');
     fx.id = 'ffr-sel'; fx.title = 'More Final Fantasy randomizers: FF1R, FF4 Free Enterprise, FF5 Career Day (rolled on their own sites, played and tracked here)';
-    fx.innerHTML = '<option value="">FF1·4·5 ▾</option><option value="ff1">FF1 Randomizer</option><option value="ff4">FF4 Free Enterprise</option><option value="ff5">FF5 Career Day</option>';
+    fx.innerHTML = '<option value="">FF1·4·5 ▾</option><option value="ff1" data-game="ff1">FF1 Randomizer</option><option value="ff4" data-game="ff4">FF4 Free Enterprise</option><option value="ff5" data-game="ff5">FF5 Career Day</option>';
     fx.addEventListener('change', function () {
       var v = fx.value; fx.value = '';
       if (!v) return;
@@ -147,6 +147,19 @@
       if (window.EJS_emulator && !confirm('Switch to Patched games?\n\nThe current game will be closed.')) return;
       location.href = 'patched/';
     });
+    // "Games shown" (the Game row): hidden games lose their button here too
+    b.dataset.game = 'z1'; g.dataset.game = 'glr'; ff.dataset.game = 'ff6'; pt.dataset.game = 'patched';
+    function applyShown() {
+      var R = window.RandoRoll; if (!R) return;
+      var s = R.shown();
+      [b, g, ff, pt].forEach(function (el) { el.style.display = s[el.dataset.game] === false ? 'none' : ''; });
+      var any = false;
+      fx.querySelectorAll('option[data-game]').forEach(function (o) { o.hidden = s[o.dataset.game] === false; if (!o.hidden) any = true; });
+      fx.style.display = any ? '' : 'none';
+    }
+    applyShown();
+    document.body.addEventListener('rh-games-shown', applyShown);
+    window.addEventListener('storage', function (e) { if (window.RandoRoll && e.key === window.RandoRoll.SHOWN_KEY) applyShown(); });
     var after = $('reroll-btn') || $('rando-split');
     if (after) { after.parentNode.insertBefore(b, after.nextSibling); b.parentNode.insertBefore(g, b.nextSibling); g.parentNode.insertBefore(ff, g.nextSibling); ff.parentNode.insertBefore(fx, ff.nextSibling); fx.parentNode.insertBefore(pt, fx.nextSibling); }
   }

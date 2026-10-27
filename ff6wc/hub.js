@@ -34,17 +34,19 @@
     var newSeed = document.getElementById('new-seed');
     if (newSeed) {
       newSeed.parentNode.insertBefore(link('hub-back', HUB, 'Zelda 3', 'Back to Rando Hub (A Link to the Past)'), newSeed);
-      newSeed.parentNode.insertBefore(link('hub-z1', HUB + 'z1r/', 'Zelda 1', 'The Zelda 1 randomizer (Z1R)'), newSeed);
-      newSeed.parentNode.insertBefore(link('hub-glr', HUB + 'glr/', 'GLR', 'The Guardian Legend randomizer'), newSeed);
+      newSeed.parentNode.insertBefore(link('hub-z1', HUB + 'z1r/', 'Zelda 1', 'The Zelda 1 randomizer (Z1R)'), newSeed).dataset.game = 'z1';
+      newSeed.parentNode.insertBefore(link('hub-glr', HUB + 'glr/', 'GLR', 'The Guardian Legend randomizer'), newSeed).dataset.game = 'glr';
       var fsel = document.createElement('select');
       fsel.className = 'btn'; fsel.id = 'hub-ff'; fsel.title = 'The Final Fantasy randomizers: FF1R, FF4 Free Enterprise, FF5 Career Day, FF6 Worlds Collide';
       fsel.style.cssText = '-webkit-appearance: none; appearance: none; padding-right: 10px;';
       fsel.innerHTML = '<option value="">FF ▾</option>' + [['ffr/ff1/', 'FF1 Randomizer'], ['ffr/ff4/', 'FF4 Free Enterprise'], ['ffr/ff5/', 'FF5 Career Day'], ['ff6wc/', 'FF6 Worlds Collide']]
-        .filter(function (x) { return x[0] !== 'ff6wc/'; }).map(function (x) { return '<option value="' + HUB + x[0] + '">' + x[1] + '</option>'; }).join('');
+        .filter(function (x) { return x[0] !== 'ff6wc/' && (!window.RandoRoll || RandoRoll.isShown({ 'ffr/ff1/': 'ff1', 'ffr/ff4/': 'ff4', 'ffr/ff5/': 'ff5' }[x[0]])); }).map(function (x) { return '<option value="' + HUB + x[0] + '">' + x[1] + '</option>'; }).join('');
+      if (fsel.options.length < 2) fsel.hidden = true;
       fsel.addEventListener('change', function () { if (fsel.value) location.href = fsel.value; });
       newSeed.parentNode.insertBefore(fsel, newSeed);
-      newSeed.parentNode.insertBefore(link('hub-patched', HUB + 'patched/', 'Patched', 'Patched games: NES and SNES ROM hacks on these emulators'), newSeed);
+      newSeed.parentNode.insertBefore(link('hub-patched', HUB + 'patched/', 'Patched', 'Patched games: NES and SNES ROM hacks on these emulators'), newSeed).dataset.game = 'patched';
       var R = window.RandoRoll;
+      if (R) R.applyShown(newSeed.parentNode);
       if (R) newSeed.parentNode.insertBefore(R.gamesMenu('ff6wc/', ['hub-back', 'hub-z1', 'hub-glr', 'hub-ff', 'hub-patched']), newSeed);
       var rr = document.createElement('button');
       rr.className = 'btn'; rr.id = 'hub-reroll'; rr.type = 'button'; rr.textContent = '🎲 Reroll';

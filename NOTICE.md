@@ -39,7 +39,7 @@ under their own licenses, and nothing here restricts what those licenses allow:
 | Part | Author | License |
 | --- | --- | --- |
 | `tracker/` (item tracker and map) | Hutch (hutchch) | MIT, `tracker/LICENSE` |
-| Muffins' Tracker 2.0 (`mfns-tracker/app/`, built unchanged) | Muffins / Kristofer Davie (MFNS) | MIT, `mfns-tracker/LICENSE` |
+| Muffins' Tracker 2.0 (`mfns-tracker/app/`, his build with the unused overlay images and sprite previews left out; it runs out of sight as Mudora 2.0's logic) | Muffins / Kristofer Davie (MFNS) | MIT, `mfns-tracker/LICENSE` |
 | Mudora's logic (`mudora/`, read from `tracker/` as it runs) | Hutch (hutchch) | MIT, `tracker/LICENSE` |
 | Entrance names and table layout (`mudora/entrances.json`, made by `tools/entrances.py` from the game ROM and her generator's entrance tables) | Kara, LLCoolDave, Aerinon, codemann8 (alttpr-python) | MIT, `randomizer/kara/alttpr-python/LICENSE` |
 | Mudora 2.0's logic and square list (`mudora2/`, read from `mfns-tracker/` as it runs; `mfns-tracker/data.json` extracted from his source) | Muffins / Kristofer Davie (MFNS) | MIT, `mfns-tracker/LICENSE` |
@@ -47,11 +47,8 @@ under their own licenses, and nothing here restricts what those licenses allow:
 | Shaders (`emu/`) | libretro contributors | each file's header (xBRZ: GPL-3.0) |
 | Randomizer logic and base patch (`randomizer/`) | sporchia; KatDevsGames | MIT, `randomizer/LICENSE-THIRD-PARTY.md` |
 | Kara's branch (`randomizer/kara/`) | Kara, LLCoolDave, Aerinon, codemann8 | MIT, `randomizer/kara/alttpr-python/LICENSE` |
-| EmoTracker web runtime's model (`emotracker/`) | follows EmoTracker by EmoSaru and the EmoTracker Community | MIT, `emotracker/LICENSE-EmoTracker.txt` |
-| Official ALTTPR EmoTracker pack (`emotracker/packs/alttpr_emosaru/`) | EmoSaru | MIT, its `LICENSE` |
-| Overworld map formats and tileset tables (`emotracker/romap.js`) | snesrev (zelda3) | MIT |
-| Dungeon floor tables, boss rooms, RAM/VRAM layout (`emotracker/dungeons.js`, `dgworker.js`) | snesrev (zelda3) | MIT |
-| fengari-web (`emotracker/fengari-web.js`) | Benoit Giannangeli, Daurnimator | MIT, `emotracker/LICENSE-fengari-web.txt` |
+| Overworld map formats and tileset tables (`mudora/romap.js`) | snesrev (zelda3) | MIT |
+| Dungeon floor tables, boss rooms, RAM/VRAM layout (`mudora/dungeons.js`, `dgworker.js`) | snesrev (zelda3) | MIT |
 | Pyodide | Pyodide contributors | MPL-2.0 |
 | Worlds Collide, the FF6 randomizer (`ff6wc/wc/worldscollide.zip`, its source unchanged, run in the browser) | AtmaTek and the Worlds Collide contributors | MIT, `ff6wc/wc/LICENSE-WorldsCollide.txt` |
 | The FF1, FF4 and FF5 trackers' memory maps (`ffr/*/game.js`): FF1R's RAM symbols (FiendsOfTheElements/FF1Randomizer, GPL-3.0; addresses only), Free Enterprise's tracker block as read by Rando Companion (Kyuuden, GPL-3.0; addresses only), Career Day's flags from its source (caerulius/FFVCareerDay) | FiendsOfTheElements; Kyuuden; Studio Big Bridge | addresses and tables, with thanks |

@@ -2,7 +2,7 @@
  * emo-host.js — EmoTracker (beta) in Rando Hub.
  *
  * When the Tracker choice is EmoTracker (tracker-mode.js), Hutch's frames
- * stay empty and emotracker/index.html runs in #emo-frame instead. It reads
+ * stay empty and the tracker's page (mudora/, mudora2/) runs in #emo-frame instead. It reads
  * the game through window.AlttpBridge, like Hutch's tracker does.
  *
  * Which of the pack's trackers it shows follows the app's tracker settings:
@@ -34,7 +34,7 @@
     if (isMfns()) return 'mfns-tracker/index.html';
     if (isMudora2()) return 'mudora2/index.html' + (phoneTab ? '?phone=' + phoneTab : '');
     if (isMudora()) return 'mudora/index.html' + (phoneTab ? '?phone=' + phoneTab : '');
-    return 'emotracker/index.html?variant=' + encodeURIComponent(v) + '&placement=' + placement() + (phoneTab ? '&phone=' + phoneTab : '');
+    return 'mudora2/index.html' + (phoneTab ? '?phone=' + phoneTab : '');   // (EmoTracker's page is gone: Mudora 2.0 is the frame's default)
   }
   function setPhone(t) {
     phoneTab = t || null;
@@ -71,7 +71,7 @@
     var f = $('emo-frame');
     if (away()) { try { win.close(); } catch (e) {} return; }
     var v = (last || 'standard').replace(/^(mudora2|mudora|mfns):/, '');
-    win = window.open(url(v), isMfns() ? 'rh-mfns' : isMudora2() ? 'rh-mudora2' : isMudora() ? 'rh-mudora' : 'rh-emotracker', 'popup=yes,resizable=yes,width=1000,height=720');
+    win = window.open(url(v), isMfns() ? 'rh-mfns' : isMudora2() ? 'rh-mudora2' : isMudora() ? 'rh-mudora' : 'rh-tracker', 'popup=yes,resizable=yes,width=1000,height=720');
     if (!win) { var n = $('popup-note'); if (n) { n.hidden = false; setTimeout(function () { n.hidden = true; }, 9000); } return; }
     f.src = 'about:blank';          // one copy at a time
     document.body.classList.add('emo-away');

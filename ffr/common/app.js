@@ -20,10 +20,11 @@
   // ── header links (the way back to the hub and the other games) ───────────
   (function links() {
     const bar = $('hub-links');
-    const all = [['Zelda 3', HUB, 'Back to Rando Hub (A Link to the Past)'], ['Zelda 1', HUB + 'z1r/', 'The Zelda 1 randomizer'], ['GLR', HUB + 'glr/', 'The Guardian Legend randomizer'],
-      ['FF1', HUB + 'ffr/ff1/', 'Final Fantasy Randomizer (FF1)'], ['FF4', HUB + 'ffr/ff4/', 'Final Fantasy IV: Free Enterprise'], ['FF5', HUB + 'ffr/ff5/', 'Final Fantasy V: Career Day'],
-      ['FF6', HUB + 'ff6wc/', 'Final Fantasy VI: Worlds Collide'], ['Patched', HUB + 'patched/', 'Patched games: NES and SNES ROM hacks']];
-    const others = all.filter((l) => l[0] !== G.short);
+    const all = [['Zelda 3', HUB, 'Back to Rando Hub (A Link to the Past)', 'z3'], ['Zelda 1', HUB + 'z1r/', 'The Zelda 1 randomizer', 'z1'], ['GLR', HUB + 'glr/', 'The Guardian Legend randomizer', 'glr'],
+      ['FF1', HUB + 'ffr/ff1/', 'Final Fantasy Randomizer (FF1)', 'ff1'], ['FF4', HUB + 'ffr/ff4/', 'Final Fantasy IV: Free Enterprise', 'ff4'], ['FF5', HUB + 'ffr/ff5/', 'Final Fantasy V: Career Day', 'ff5'],
+      ['FF6', HUB + 'ff6wc/', 'Final Fantasy VI: Worlds Collide', 'ff6'], ['Patched', HUB + 'patched/', 'Patched games: NES and SNES ROM hacks', 'patched']];
+    const R = window.RandoRoll;
+    const others = all.filter((l) => l[0] !== G.short && (!R || R.isShown(l[3])));
     // wide: a row of links; narrow: one "Games" dropdown (the header must stay one line)
     bar.innerHTML = others.map((l) => '<a class="btn hub-a" href="' + l[1] + '" title="' + l[2] + '">' + l[0] + '</a>').join('') +
       '<select class="btn hub-sel" id="hub-go" aria-label="Other games"><option value="">Games ▾</option>' + others.map((l) => '<option value="' + l[1] + '">' + l[0] + '</option>').join('') + '</select>';

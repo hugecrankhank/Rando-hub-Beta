@@ -92,22 +92,24 @@
       back.title = 'Back to Rando Hub (A Link to the Past)';
       newSeed.parentNode.insertBefore(back, newSeed);
       var glr = document.createElement('a');
-      glr.className = 'btn'; glr.id = 'hub-glr'; glr.href = HUB + 'glr/';
+      glr.className = 'btn'; glr.id = 'hub-glr'; glr.href = HUB + 'glr/'; glr.dataset.game = 'glr';
       glr.textContent = 'GLR'; glr.title = 'The Guardian Legend randomizer (picked by hand only: rerolls never go there)';
       glr.style.textDecoration = 'none';
       newSeed.parentNode.insertBefore(glr, newSeed);
       var fsel = document.createElement('select');
       fsel.className = 'btn'; fsel.id = 'hub-ff'; fsel.title = 'The Final Fantasy randomizers: FF1R, FF4 Free Enterprise, FF5 Career Day, FF6 Worlds Collide';
       fsel.style.cssText = '-webkit-appearance: none; appearance: none; padding-right: 10px;';
-      fsel.innerHTML = '<option value="">FF ▾</option>' + [['ffr/ff1/', 'FF1 Randomizer'], ['ffr/ff4/', 'FF4 Free Enterprise'], ['ffr/ff5/', 'FF5 Career Day'], ['ff6wc/', 'FF6 Worlds Collide']]
-        .filter(function (x) { return x[0] !== ''; }).map(function (x) { return '<option value="' + HUB + x[0] + '">' + x[1] + '</option>'; }).join('');
+      fsel.innerHTML = '<option value="">FF ▾</option>' + [['ffr/ff1/', 'FF1 Randomizer', 'ff1'], ['ffr/ff4/', 'FF4 Free Enterprise', 'ff4'], ['ffr/ff5/', 'FF5 Career Day', 'ff5'], ['ff6wc/', 'FF6 Worlds Collide', 'ff6']]
+        .filter(function (x) { return x[0] !== '' && (!R || R.isShown(x[2])); }).map(function (x) { return '<option value="' + HUB + x[0] + '">' + x[1] + '</option>'; }).join('');
+      if (fsel.options.length < 2) fsel.hidden = true;
       fsel.addEventListener('change', function () { if (fsel.value) location.href = fsel.value; });
       newSeed.parentNode.insertBefore(fsel, newSeed);
       var pt = document.createElement('a');
       pt.className = 'btn'; pt.id = 'hub-patched'; pt.href = HUB + 'patched/';
       pt.textContent = 'Patched'; pt.title = 'Patched games: NES and SNES ROM hacks on these emulators';
-      pt.style.textDecoration = 'none';
+      pt.style.textDecoration = 'none'; pt.dataset.game = 'patched';
       newSeed.parentNode.insertBefore(pt, newSeed);
+      if (R) R.applyShown(newSeed.parentNode);
       // phones: one "Games ▾" menu instead of the row of links, so New seed stays on screen
       if (R) newSeed.parentNode.insertBefore(R.gamesMenu('z1r/', ['hub-back', 'hub-glr', 'hub-ff', 'hub-patched']), newSeed);
       var rr = document.createElement('button');

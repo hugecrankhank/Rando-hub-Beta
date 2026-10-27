@@ -482,7 +482,8 @@ work without touching Hutch's code:
 ## Other games: Zelda 1, The Guardian Legend and Final Fantasy I, IV, V and VI
 
 The **Game** row at the top of the Randomizer bar (and **Zelda 1 ▸** / **GLR ▸** / **FF6 ▸** /
-**FF1·4·5 ▾** in the header) switches games. Each is its own app inside the hub, with its own emulator,
+**FF1·4·5 ▾** in the header) switches games. **Games shown ▾** in that row hides the games
+you don't play everywhere (Game row, headers, menus, the reroll list); Zelda 3 always stays. Each is its own app inside the hub, with its own emulator,
 seed generator, tracker and saves, and buttons back to the others.
 
 - **Zelda 1** (`z1r/`):
@@ -962,8 +963,8 @@ Gumby" and so on (`randomizer/hub-credits.js`; the captions that hint at items s
 - Zelda 1: seeds by [ZORA](https://github.com/tetraly/zora) by Tetra (MIT, `z1r/zora/LICENSE`);
   Zelda 1 and The Guardian Legend run on [libretro FCEUmm](https://github.com/libretro/libretro-fceumm)
   (GPL-2.0, `z1r/core/LICENSES/`). See `z1r/README.md` and `glr/README.md`.
-- An earlier web EmoTracker (the official ALTTPR pack by EmoSaru, MIT, on
-  [fengari](https://fengari.io)) is kept in `emotracker/` but no longer offered as a tracker.
+- The earlier web EmoTracker is gone (1.14.2); its overworld and dungeon map code lives on in
+  `mudora/romap.js` and `mudora/dungeons.js`.
 - Link sprites: the [alttpr.com sprite library](https://alttpr.com/en/sprites) and its artists.
 - TikTok connection: [TikFinity](https://tikfinity.zerody.one).
 - Logo lettering: [Press Start 2P](https://fonts.google.com/specimen/Press+Start+2P) by CodeMan38,

@@ -25,7 +25,6 @@
     ['Muffins’ Tracker 2.0 (alttptracker)', 'Muffins / Kristofer Davie (MIT)', 'https://github.com/KrisDavie/alttptracker'],
     ['alttpr-python (Kara’s branch)', 'Kara, on Aerinon’s Door Randomizer and codemann8’s Overworld Shuffle (MIT)', 'https://alttpr.gwaa.kiwi'],
     ['alttp_vt_randomizer', 'sporchia (MIT), base patch from z3randomizer', 'https://github.com/sporchia/alttp_vt_randomizer'],
-    ['EmoTracker and its ALTTPR pack', 'EmoTracker community, EmoSaru (MIT)', 'https://github.com/EmoTracker-Community/EmoTracker'],
     ['Snes9x', 'the Snes9x team (non-commercial license)', 'https://github.com/snes9xgit/snes9x'],
     ['AVIANART', 'avianart.games', 'https://avianart.games'],
     ['Link sprites', 'the alttpr.com sprite library and its artists', 'https://alttpr.com/en/sprites'],

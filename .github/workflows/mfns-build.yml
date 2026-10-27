@@ -29,6 +29,8 @@ jobs:
       - name: Commit the build to this branch
         run: |
           rm -rf mfns-tracker/app && mkdir -p mfns-tracker && cp -r src-mfns/dist mfns-tracker/app
+          # Mudora 2.0 only needs his logic: drop his old overlay images (unused by the build) and the sprite previews but Link's
+          rm -rf mfns-tracker/app/overlay && find mfns-tracker/app/sprites -type f ! -name 'link_*' -delete
           cp src-mfns/LICENSE mfns-tracker/LICENSE
           python3 tools/mfns-settings.py src-mfns > mfns-tracker/settings.json
           rm -rf src-mfns

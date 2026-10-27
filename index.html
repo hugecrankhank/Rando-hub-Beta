@@ -8,7 +8,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <title>Rando Hub Beta</title>
 <meta name="application-name" content="Rando Hub">
-<meta name="version" content="1.14.1">
+<meta name="version" content="1.14.2">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#161b22">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
@@ -455,7 +455,7 @@
   #frames.items-only #map-frame { display: none; }
   #frames.items-only #items-wrap { flex: 1; height: auto; }
   #frames.map-only #items-wrap { display: none; }
-  /* EmoTracker (beta, emo-host.js): its own frame fills the column */
+  /* Mudora / Mudora 2.0 (emo-host.js): its own frame fills the column */
   #frames #emo-frame { display: none; width: 100%; flex: 1; min-height: 0; border: 0; background: #1b1b1b; }
   body.tracker-emo #frames #emo-frame { display: block; }
   body.tracker-emo #items-wrap, body.tracker-emo #map-frame, body.tracker-emo aside .tabs,
@@ -587,7 +587,7 @@
 </head>
 <body>
 <header>
-  <h1 title="Rando Hub Beta (v1.14.1)"><svg class="app-die" viewBox="-130 -130 260 260" aria-hidden="true"><g transform="rotate(-12)"><rect x="-108" y="-108" width="216" height="216" rx="32" fill="#fff" stroke="#c8102e" stroke-width="16"/><circle cx="-56" cy="-56" r="23" fill="#c8102e"/><circle cx="56" cy="-56" r="23" fill="#14213d"/><circle r="23" fill="#c8102e"/><circle cx="-56" cy="56" r="23" fill="#14213d"/><circle cx="56" cy="56" r="23" fill="#c8102e"/></g></svg><span class="app-name">RANDO <span>HUB</span></span><small class="app-ver">v1.14.1 beta</small></h1>
+  <h1 title="Rando Hub Beta (v1.14.2)"><svg class="app-die" viewBox="-130 -130 260 260" aria-hidden="true"><g transform="rotate(-12)"><rect x="-108" y="-108" width="216" height="216" rx="32" fill="#fff" stroke="#c8102e" stroke-width="16"/><circle cx="-56" cy="-56" r="23" fill="#c8102e"/><circle cx="56" cy="-56" r="23" fill="#14213d"/><circle r="23" fill="#c8102e"/><circle cx="-56" cy="56" r="23" fill="#14213d"/><circle cx="56" cy="56" r="23" fill="#c8102e"/></g></svg><span class="app-name">RANDO <span>HUB</span></span><small class="app-ver">v1.14.2 beta</small></h1>
 
   <div id="rando-split">
     <button id="r-toggle" aria-expanded="false" aria-controls="rando-bar" title="Show or hide the randomizer settings (they fold away by themselves when you go back to playing)">Randomizer<span id="r-gen-name"> · alttpr.com</span></button>
@@ -649,7 +649,7 @@
     <button id="pop-dungeons" type="button">&#10697; Dungeons</button>
     <button id="pop-light" type="button">&#10697; Light World</button>
     <button id="pop-dark" type="button">&#10697; Dark World</button>
-    <button id="pop-emo" type="button" title="EmoTracker in its own window. Click again to put it back here.">&#10697; EmoTracker</button>
+    <button id="pop-emo" type="button" title="The tracker in its own window. Click again to put it back here.">&#10697; Tracker</button>
     <button id="open-stream-pair" type="button" title="Two windows set up for stream capture: items + dungeons in one, both worlds side by side in the other. Click again to put them back.">&#127909; Stream windows</button>
     <button id="open-stream" type="button" title="One window with items, dungeons and both worlds, set up for a single stream capture. Click again to put it back.">&#127909; Stream</button>
     <button id="open-broadcast" type="button" title="Hutch's broadcast view: a stream overlay of the items and dungeons">&#128225; Broadcast</button>
@@ -945,7 +945,7 @@
     <div id="frames">
       <div id="items-wrap"><iframe id="items-frame" title="Item tracker"></iframe></div>
       <iframe id="map-frame" title="Map tracker"></iframe>
-      <iframe id="emo-frame" title="EmoTracker"></iframe>
+      <iframe id="emo-frame" title="Tracker"></iframe>
     </div>
   </aside>
   <div class="tab-pane" id="tab-full">

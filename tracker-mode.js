@@ -38,7 +38,7 @@
 
   function off() { return mode === 'off'; }
   // emo(): a tracker in its own frame (emo-host.js) — EmoTracker, or Mudora
-  function emo() { return mode === 'emo' || mode === 'mudora' || mode === 'mudora2' || mode === 'mfns'; }
+  function emo() { return mode === 'mudora' || mode === 'mudora2' || mode === 'mfns'; }
   // Muffins' Tracker 2.0 (mfns-tracker/): his own logic and autotracking
   function mfns() { return mode === 'mfns'; }
   // Mudora (mudora/): Rando Hub's own tracker. Hutch's release still runs,

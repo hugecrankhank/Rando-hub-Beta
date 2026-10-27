@@ -11,8 +11,8 @@
  *
  * Pictures: all from the game being played.
  *   - item icons: cut from the game's own pause menu (iconworker.js)
- *   - the Light and Dark World: drawn from the ROM (../emotracker/romap.js)
- *   - dungeon maps: ../emotracker/dungeons.js
+ *   - the Light and Dark World: drawn from the ROM (romap.js)
+ *   - dungeon maps: dungeons.js
  *   - where each check is: the game's own door, hole and sprite positions,
  *     read from the ROM (CHECK_AT below, in game pixels, 4096 per world)
  *
@@ -64,7 +64,7 @@
   M.mapWin = function () { var w = frameWin('map-frame'); return w && w.checkColor ? w : null; };
   M.itemsWin = function () { var w = frameWin('items-frame'); return w && w.document && w.document.querySelector('[data-item-key]') ? w : null; };
 
-  // dungeons.js (shared with the EmoTracker page) asks for these
+  // dungeons.js asks for these
   window.EmoWeb = { bridge: function () { return M.bridge(); }, get game() { return M.game; } };
 
   // ── Hutch's answers ───────────────────────────────────────────────────────

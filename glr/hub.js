@@ -34,16 +34,18 @@
     var newSeed = document.getElementById('new-seed');
     if (newSeed) {
       newSeed.parentNode.insertBefore(link('hub-back', HUB, 'Zelda 3', 'Back to Rando Hub (A Link to the Past)'), newSeed);
-      newSeed.parentNode.insertBefore(link('hub-z1', HUB + 'z1r/', 'Zelda 1', 'The Zelda 1 randomizer (Z1R)'), newSeed);
+      newSeed.parentNode.insertBefore(link('hub-z1', HUB + 'z1r/', 'Zelda 1', 'The Zelda 1 randomizer (Z1R)'), newSeed).dataset.game = 'z1';
       var fsel = document.createElement('select');
       fsel.className = 'btn'; fsel.id = 'hub-ff'; fsel.title = 'The Final Fantasy randomizers: FF1R, FF4 Free Enterprise, FF5 Career Day, FF6 Worlds Collide';
       fsel.style.cssText = '-webkit-appearance: none; appearance: none; padding-right: 10px;';
-      fsel.innerHTML = '<option value="">FF ▾</option>' + [['ffr/ff1/', 'FF1 Randomizer'], ['ffr/ff4/', 'FF4 Free Enterprise'], ['ffr/ff5/', 'FF5 Career Day'], ['ff6wc/', 'FF6 Worlds Collide']]
-        .filter(function (x) { return x[0] !== ''; }).map(function (x) { return '<option value="' + HUB + x[0] + '">' + x[1] + '</option>'; }).join('');
+      fsel.innerHTML = '<option value="">FF ▾</option>' + [['ffr/ff1/', 'FF1 Randomizer', 'ff1'], ['ffr/ff4/', 'FF4 Free Enterprise', 'ff4'], ['ffr/ff5/', 'FF5 Career Day', 'ff5'], ['ff6wc/', 'FF6 Worlds Collide', 'ff6']]
+        .filter(function (x) { return x[0] !== '' && (!window.RandoRoll || RandoRoll.isShown(x[2])); }).map(function (x) { return '<option value="' + HUB + x[0] + '">' + x[1] + '</option>'; }).join('');
+      if (fsel.options.length < 2) fsel.hidden = true;
       fsel.addEventListener('change', function () { if (fsel.value) location.href = fsel.value; });
       newSeed.parentNode.insertBefore(fsel, newSeed);
-      newSeed.parentNode.insertBefore(link('hub-patched', HUB + 'patched/', 'Patched', 'Patched games: NES and SNES ROM hacks on these emulators'), newSeed);
+      newSeed.parentNode.insertBefore(link('hub-patched', HUB + 'patched/', 'Patched', 'Patched games: NES and SNES ROM hacks on these emulators'), newSeed).dataset.game = 'patched';
       var R = window.RandoRoll;
+      if (R) R.applyShown(newSeed.parentNode);
       if (R) newSeed.parentNode.insertBefore(R.gamesMenu('glr/', ['hub-back', 'hub-z1', 'hub-ff', 'hub-patched']), newSeed);
       // 🎲 Reroll: a new seed with the flags you used last, or another game if the
       // hub's "Rerolls can land on" says so

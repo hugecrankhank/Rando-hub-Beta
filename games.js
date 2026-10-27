@@ -61,35 +61,49 @@
       '#game-row .gm span { background: #1f6feb; color: #fff; }' +
       '#game-row .gm a:hover { background: rgba(255,255,255,.06); }' +
       '#game-row label { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; margin-left: 6px; }' +
-      '#roll-games { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 2px 4px; }';
+      '#roll-games { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 2px 4px; }' +
+      '#games-shown { display: inline-block; position: relative; } #games-shown summary { cursor: pointer; list-style: none; padding: 4px 8px; border: 1px solid var(--line, #30363d); border-radius: 8px; }' +
+      '#games-shown summary::-webkit-details-marker { display: none; } #games-shown[open] summary { background: rgba(255,255,255,.06); }' +
+      '#games-shown .gs-list { position: absolute; z-index: 30; top: calc(100% + 4px); left: 0; display: flex; flex-direction: column; gap: 4px; padding: 8px 10px; background: var(--panel, #161b22); border: 1px solid var(--line, #30363d); border-radius: 8px; white-space: nowrap; box-shadow: 0 8px 24px rgba(0,0,0,.5); }';
     document.head.appendChild(css);
     var row = document.createElement('div');
     row.id = 'game-row';
     row.innerHTML = '<span>Game</span><span class="gm"><span aria-current="page">Zelda 3 · ALTTP</span>' +
-      '<a href="' + Z1_URL + '" title="Zelda 1 randomizer (Z1R): roll, play and track Zelda 1 seeds">Zelda 1 ▸</a>' +
-      '<a href="' + GLR_URL + '" title="The Guardian Legend randomizer (GLR): roll, play and track its seeds. Rerolls and Crowd Control never pick it.">Guardian Legend ▸</a>' +
-      '<a href="' + FF6_URL + '" title="Final Fantasy VI: Worlds Collide: roll, play and track its seeds (characters, espers, checks). Rerolls and Crowd Control never pick it.">FF6 ▸</a>' +
-      '<a href="' + FFR_URLS.ff1 + '" title="Final Fantasy Randomizer (FF1): roll on its site, play and track here">FF1 ▸</a>' +
-      '<a href="' + FFR_URLS.ff4 + '" title="FF4 Free Enterprise: roll on its site, play and track here (key items, characters, bosses, objectives)">FF4 ▸</a>' +
-      '<a href="' + FFR_URLS.ff5 + '" title="FF5 Career Day: roll on its site, play and track here (key items, jobs, checks)">FF5 ▸</a>' +
-      '<a href="patched/" title="Patched games: NES and SNES ROM hacks (your ROM + the hack\u2019s patch)">Patched games ▸</a></span>' +
+      '<a data-game="z1" href="' + Z1_URL + '" title="Zelda 1 randomizer (Z1R): roll, play and track Zelda 1 seeds">Zelda 1 ▸</a>' +
+      '<a data-game="glr" href="' + GLR_URL + '" title="The Guardian Legend randomizer (GLR): roll, play and track its seeds">Guardian Legend ▸</a>' +
+      '<a data-game="ff6" href="' + FF6_URL + '" title="Final Fantasy VI: Worlds Collide: roll, play and track its seeds (characters, espers, checks)">FF6 ▸</a>' +
+      '<a data-game="ff1" href="' + FFR_URLS.ff1 + '" title="Final Fantasy Randomizer (FF1): roll on its site, play and track here">FF1 ▸</a>' +
+      '<a data-game="ff4" href="' + FFR_URLS.ff4 + '" title="FF4 Free Enterprise: roll on its site, play and track here (key items, characters, bosses, objectives)">FF4 ▸</a>' +
+      '<a data-game="ff5" href="' + FFR_URLS.ff5 + '" title="FF5 Career Day: roll on its site, play and track here (key items, jobs, checks)">FF5 ▸</a>' +
+      '<a data-game="patched" href="patched/" title="Patched games: NES and SNES ROM hacks (your ROM + the hack\u2019s patch)">Patched games ▸</a></span>' +
+      '<details id="games-shown" title="Which games appear here, in the headers and in the reroll list. Untick the ones you don’t play."><summary>Games shown ▾</summary><span class="gs-list"></span></details>' +
       '<span id="roll-games" title="The 🎲 Reroll button and Crowd Control’s Random preset and CHAOS seeds pick one of the ticked games at random (the game you’re playing counts too). Crowd Control’s New seed (same settings) always stays in the game you’re playing. FF1, FF4 and FF5 are rolled on their own sites, so rerolls can’t go there.">Rerolls can land on:</span>';
     var after = document.getElementById('r-shared');
     bar.insertBefore(row, after ? after.nextSibling : bar.firstChild);
     var holder = row.querySelector('#roll-games');
     function paintGames() {
       if (!R) return;
-      var a = R.allowed();
-      holder.innerHTML = 'Rerolls can land on: ' + R.GAMES.map(function (g) {
-        return '<label><input type="checkbox" data-game="' + g.id + '"' + (g.id === 'z3' ? ' checked disabled title="This game"' : (a[g.id] ? ' checked' : '')) + '> ' + g.name + '</label>';
+      var a = R.allowed(), s = R.shown();
+      holder.innerHTML = 'Rerolls can land on: ' + R.GAMES.filter(function (g) { return s[g.id]; }).map(function (g) {
+        return '<label><input type="checkbox" data-roll="' + g.id + '"' + (g.id === 'z3' ? ' checked disabled title="This game"' : (a[g.id] ? ' checked' : '')) + '> ' + g.name + '</label>';
       }).join('');
+      // the links: only the games shown
+      row.querySelectorAll('.gm a[data-game]').forEach(function (el) { el.style.display = s[el.dataset.game] === false ? 'none' : ''; });
+      var gl = row.querySelector('.gs-list');
+      gl.innerHTML = R.SHOWABLE.map(function (x) { return '<label><input type="checkbox" data-shown="' + x[0] + '"' + (s[x[0]] ? ' checked' : '') + '> ' + x[1] + '</label>'; }).join('');
+      document.body.dispatchEvent(new CustomEvent('rh-games-shown'));
     }
     paintGames();
-    holder.addEventListener('change', function (e) {
-      var cb = e.target; if (!cb || !cb.dataset.game) return;
-      var a = R.allowed(); a[cb.dataset.game] = cb.checked; a.z3 = true; R.setAllowed(a);
+    row.querySelector('#games-shown').addEventListener('change', function (e) {
+      var cb = e.target; if (!cb || !cb.dataset.shown) return;
+      var s = R.shown(); s[cb.dataset.shown] = cb.checked; R.setShown(s);
+      paintGames();
     });
-    window.addEventListener('storage', function (e) { if (e.key === R.KEY || e.key === EITHER_KEY) paintGames(); });
+    holder.addEventListener('change', function (e) {
+      var cb = e.target; if (!cb || !cb.dataset.roll) return;
+      var a = R.allowed(); a[cb.dataset.roll] = cb.checked; a.z3 = true; R.setAllowed(a);
+    });
+    window.addEventListener('storage', function (e) { if (e.key === R.KEY || e.key === EITHER_KEY || e.key === R.SHOWN_KEY) paintGames(); });
   }
 
   // ── ?roll=1: arrived from Zelda 1's reroll ────────────────────────────────

@@ -30,6 +30,20 @@
   // where the hub is from this page (set by the page: '' on the hub, '../' in a game's folder)
   var base = (document.currentScript && document.currentScript.dataset.hub) || '';
 
+  // "Games shown": which games appear in the Game row, the headers and the
+  // reroll list at all (Zelda 3 always). Hidden games still work by address.
+  var SHOWN_KEY = 'rando-hub-games-shown';
+  var SHOWABLE = [['z1', 'Zelda 1'], ['glr', 'Guardian Legend'], ['ff1', 'FF1 Randomizer'], ['ff4', 'FF4 Free Enterprise'], ['ff5', 'FF5 Career Day'], ['ff6', 'FF6 Worlds Collide'], ['patched', 'Patched games']];
+  function shown() {
+    var s = null;
+    try { s = JSON.parse(localStorage.getItem(SHOWN_KEY) || 'null'); } catch (e) {}
+    var out = { z3: true };
+    SHOWABLE.forEach(function (x) { out[x[0]] = !s || typeof s !== 'object' || s[x[0]] !== false; });
+    return out;
+  }
+  function setShown(s) { s.z3 = true; try { localStorage.setItem(SHOWN_KEY, JSON.stringify(s)); } catch (e) {} }
+  function isShown(id) { return id === 'z3' || shown()[id] !== false; }
+
   function allowed() {
     var a = null;
     try { a = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) {}
@@ -48,8 +62,8 @@
   }
   // The games a reroll from `current` may land on (always including current)
   function pool(current) {
-    var a = allowed();
-    return GAMES.filter(function (g) { return g.id === current || a[g.id]; });
+    var a = allowed(), s = shown();
+    return GAMES.filter(function (g) { return g.id === current || (a[g.id] && s[g.id]); });
   }
   function pick(current, mode) {
     if (mode === 'same') return null;
@@ -68,8 +82,8 @@
   function others(current) { return pool(current).filter(function (g) { return g.id !== current; }).map(function (g) { return g.name; }); }
 
   // All the hub's games, for the header's compact "Games ▾" menu on narrow screens
-  var ALL = [['', 'Zelda 3'], ['z1r/', 'Zelda 1'], ['glr/', 'Guardian Legend'], ['ffr/ff1/', 'FF1 Randomizer'], ['ffr/ff4/', 'FF4 Free Enterprise'],
-    ['ffr/ff5/', 'FF5 Career Day'], ['ff6wc/', 'FF6 Worlds Collide'], ['patched/', 'Patched games']];
+  var ALL = [['', 'Zelda 3', 'z3'], ['z1r/', 'Zelda 1', 'z1'], ['glr/', 'Guardian Legend', 'glr'], ['ffr/ff1/', 'FF1 Randomizer', 'ff1'], ['ffr/ff4/', 'FF4 Free Enterprise', 'ff4'],
+    ['ffr/ff5/', 'FF5 Career Day', 'ff5'], ['ff6wc/', 'FF6 Worlds Collide', 'ff6'], ['patched/', 'Patched games', 'patched']];
   // Returns a <select> that goes to any other game; the page shows it instead of
   // its row of link buttons when the header is too narrow for them (the ids
   // given are hidden then).
@@ -77,7 +91,8 @@
     var sel = document.createElement('select');
     sel.className = 'btn'; sel.id = 'hub-games'; sel.setAttribute('aria-label', 'Other games');
     sel.style.cssText = '-webkit-appearance: none; appearance: none; padding-right: 10px; display: none; max-width: 104px; text-overflow: ellipsis;';
-    sel.innerHTML = '<option value="">Games ▾</option>' + ALL.filter(function (x) { return x[0] !== currentUrl; })
+    var s = shown();
+    sel.innerHTML = '<option value="">Games ▾</option>' + ALL.filter(function (x) { return x[0] !== currentUrl && s[x[2]]; })
       .map(function (x) { return '<option value="' + base + x[0] + '">' + x[1] + '</option>'; }).join('');
     sel.addEventListener('change', function () { if (sel.value) location.href = sel.value; });
     var css = document.createElement('style');
@@ -86,5 +101,10 @@
     return sel;
   }
 
-  root.RandoRoll = { gamesMenu: gamesMenu, GAMES: GAMES, KEY: KEY, allowed: allowed, setAllowed: setAllowed, pool: pool, pick: pick, go: go, url: url, name: name, others: others, get base() { return base; }, set base(b) { base = b; } };
+  // Hide a page's own game links for games that aren't shown: el.dataset.game = id
+  function applyShown(rootEl) {
+    var s = shown();
+    (rootEl || document).querySelectorAll('[data-game]').forEach(function (el) { if (s[el.dataset.game] === false) el.remove(); });
+  }
+  root.RandoRoll = { SHOWN_KEY: SHOWN_KEY, SHOWABLE: SHOWABLE, shown: shown, setShown: setShown, isShown: isShown, applyShown: applyShown, ALL: ALL, gamesMenu: gamesMenu, GAMES: GAMES, KEY: KEY, allowed: allowed, setAllowed: setAllowed, pool: pool, pick: pick, go: go, url: url, name: name, others: others, get base() { return base; }, set base(b) { base = b; } };
 })(window);
