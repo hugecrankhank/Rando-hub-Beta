@@ -20,8 +20,8 @@
     filter: 'auto', aspect: '8:7', volume: 0.5, muted: false,
     touch: 'auto', opacity: 0.45, size: 1, haptics: true, slot: 1,
     keymap: null, padmap: null,
-    runAhead: false,       // one frame of run-ahead (less input lag, about twice the CPU)
-    v: 2,
+    runAhead: null,        // one frame of run-ahead: null = on with a keyboard / controller, off on touch screens (about twice the CPU)
+    v: 3,
   };
   var LABELS = { UP: 'Up', DOWN: 'Down', LEFT: 'Left', RIGHT: 'Right', A: 'A', B: 'B', X: 'X', Y: 'Y',
     L: 'L', R: 'R', START: 'Start', SELECT: 'Select' };
@@ -33,6 +33,8 @@
   // Settings saved before the Auto filter existed hold the old default (6xBRZ)
   // whether or not the player ever chose it: those move to Auto.
   if ((savedCfg.v | 0) < 2) { if (cfg.filter === 'xbrz6') cfg.filter = 'auto'; cfg.v = 2; saveCfg(); }
+  // v3: run-ahead became automatic; a saved "off" from when off was the default isn't a choice
+  if ((savedCfg.v | 0) < 3) { if (cfg.runAhead === false) cfg.runAhead = null; cfg.v = 3; saveCfg(); }
 
   // ── storage: in-game saves (SRAM) and save-state slots, per game ────────
   var dbp = null;
@@ -278,6 +280,7 @@
   }
 
   var coarse = window.matchMedia ? window.matchMedia('(pointer: coarse)') : { matches: false };
+  function runAheadOn() { return cfg.runAhead == null ? !coarse.matches : !!cfg.runAhead; }
   var padUsed = false;    // a physical controller is in use: hide the on-screen one (auto mode)
   function applyTouch() {
     var touchy = coarse.matches || (navigator.maxTouchPoints > 0 && !window.matchMedia('(hover: hover)').matches);
@@ -348,8 +351,8 @@
       '<div class="row"><span>Filter</span><select data-s="filter">' + opts([['auto', 'Auto (now: ' + ((P[autoFilter()] || {}).name || autoFilter()) + ')']].concat(Object.keys(P).map(function (k) { return [k, P[k].name]; })), cfg.filter) + '</select></div>' +
       '<div class="row"><span>Aspect ratio</span><select data-s="aspect">' + opts([['8:7', 'Pixel-perfect (8:7)'], ['4:3', 'TV (4:3)'], ['fill', 'Fill the box']], cfg.aspect) + '</select></div>' +
       '<p class="hint">Auto starts at 6xBRZ and steps down to 4xBRZ or Sharp if this device can\u2019t keep up. 6xBRZ runs on the graphics chip.</p>' +
-      '<div class="row"><span>Run-ahead (less input lag)</span><input type="checkbox" data-s="runAhead"' + (cfg.runAhead ? ' checked' : '') + '></div>' +
-      '<p class="hint">Run-ahead shows each frame one frame early, like RetroArch\u2019s: about 16 ms less lag. It runs the game twice per frame, so leave it off on phones and tablets.</p>' +
+      '<div class="row"><span>Run-ahead (less input lag)</span><input type="checkbox" data-s="runAhead"' + (runAheadOn() ? ' checked' : '') + '></div>' +
+      '<p class="hint">Shows each frame one frame early, like RetroArch\u2019s run-ahead: a press shows up about 16 ms sooner. It runs the game twice per frame, so it\u2019s on by default with a keyboard or controller and off on touch screens.</p>' +
       '<h4>On-screen controller</h4>' +
       '<div class="row"><span>Show</span><select data-s="touch">' + opts([['auto', 'Auto (touch screens)'], ['on', 'Always'], ['off', 'Never']], cfg.touch) + '</select></div>' +
       '<div class="row"><span>Opacity</span><input type="range" min="0.1" max="1" step="0.05" data-s="opacity" value="' + cfg.opacity + '"></div>' +
@@ -583,7 +586,7 @@
       var max = ff ? 8 : 3;
       if (n > max) { n = max; acc = 0; }
     }
-    var ahead = cfg.runAhead && !ff && speedMul === 1 && n > 0;
+    var ahead = runAheadOn() && !ff && speedMul === 1 && n > 0;
     try {
       for (var i = 0; i < n; i++) {
         core.runFrame(pad, 0);
@@ -650,7 +653,7 @@
       ['Audio', audio && audio.ctx ? audio.ctx.state + ' @ ' + audio.ctx.sampleRate : 'not started'],
       ['Screen', ema ? (1000 / ema).toFixed(1) + ' Hz, ' + (Math.abs(ema - 1000 / (core && core.loaded ? core.fps : 60.1)) / ema < 0.01 ? 'one game frame per refresh' : 'paced by the clock') : '\u2014'],
       ['Refreshes missed', stats.missed + ' of ' + stats.ticks + (stats.ticks ? ' (' + (100 * stats.missed / stats.ticks).toFixed(1) + '%)' : '')],
-      ['Run-ahead', cfg.runAhead ? 'on' : 'off'],
+      ['Run-ahead', runAheadOn() ? 'on' : 'off'],
     ];
     if (stats.error) info.push(['Error', stats.error]);
     if (stats.gfxErr) info.push(['Video error', stats.gfxErr]);

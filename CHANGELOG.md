@@ -12,8 +12,10 @@ played again later.
   each frame is shown one frame early, so a press shows up about 16 ms sooner and
   movement feels tighter. It runs the game twice per frame (about 1–3 ms on the NES), and
   is off on touch screens; ⋯ → Graphics → Run-ahead turns it on or off. The tracker and
-  crowd effects still see the real game state. (Zelda 3 has had the same switch, off by
-  default, since 1.10.)
+  crowd effects still see the real game state. **Zelda 3's run-ahead (there since 1.10) is
+  now on by default too** with a keyboard or controller; a saved "off" from before, when off
+  was the default, is treated as "automatic". Phones and tablets stay off; the box turns it
+  on or off either way.
 - **Diagnostics that explain "it feels off"** (⋯ → Diagnostics, every emulator): the
   screen's refresh rate and whether the game runs one frame per refresh or paced by the
   clock, how many refreshes were missed, and run-ahead's cost per frame. A 120/144 Hz
