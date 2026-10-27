@@ -331,6 +331,7 @@
   "seed-log.js",
   "games.js",
   "addons/hub-items.js",
+  "addons/live-games.js",
   "addons/keys-client.js",
   "tracker-settings.js",
   "credits.js",

@@ -760,6 +760,19 @@
       dgView = new D.View($('dgview'));
       // follow Link into a dungeon's map only when asked (HydeOut: the world map stays up to plan the way on)
       D.onEnter = function (dg) { if (follow) selectDg(dg); paintHere(); };
+    }    // The live games (GT big key, Digging Game) without Crowd Control: Rando Hub
+    // runs them (addons/live-games.js); here they're a tap away, by the maps (HydeOut)
+    var hub = null;
+    try { hub = (window.parent !== window && window.parent.RandoLiveGames) || (window.opener && window.opener.RandoLiveGames) || null; } catch (e) {}
+    if (hub) {
+      var box = el('span', 'lg-btns');
+      [['gt', '🗝', 'GT big key game: take guesses on which Ganon\u2019s Tower chest has the big key'],
+       ['dig', '⛏', 'Digging Game: take guesses on which dig gives the prize']].forEach(function (g) {
+        var b = el('button', 'dg-btn lg-btn', g[1]); b.type = 'button'; b.title = g[2];
+        b.addEventListener('click', function () { try { hub.open(g[0]); } catch (e) {} });
+        box.appendChild(b);
+      });
+      bar.appendChild(box);
     }
   }
   function selectDg(i) { dgSel = i; paintDg(); }

@@ -5,6 +5,18 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.12.3 (2026-10-26)
+
+- **Live games without Crowd Control** (HydeOut): the **GT big key game** (which Ganon's
+  Tower chest has the big key, 1-22) and the **Digging Game** (which dig gives the prize,
+  1-30), run right in Rando Hub. **🗝** and **⛏** at the right end of Mudora's map bar (by the
+  maps, in every layout), and **🗝 Key game** / **⛏ Dig game** in the Desktop layout's window
+  bar. Start a round, type in the guesses (a name and a number; one guess per name), and play:
+  guesses close at the first GT chest / first dig, the game counts the chests and digs, and when
+  the big key or the prize turns up the result shows over the game: exact guesses win, otherwise
+  the closest. If the game can't tell (the big key came from outside GT), enter the number by
+  hand. Rounds are kept per seed through a reload.
+
 ## Beta v1.12.2 (2026-10-26)
 
 - **Auto layout:** iPads get the iPad layout; every other touch tablet (Android) gets the Tablet
