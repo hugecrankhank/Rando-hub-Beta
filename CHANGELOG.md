@@ -5,6 +5,11 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.3 (2026-10-27)
+
+- **Games shown starts with Zelda 3 and Zelda 1 only.** The Guardian Legend, the Final
+  Fantasy games and Patched games are off until you tick them in **Games shown ▾**.
+
 ## Beta v1.14.2 (2026-10-27)
 
 - **Games shown.** A **Games shown ▾** list in the Game row: untick the games you don't

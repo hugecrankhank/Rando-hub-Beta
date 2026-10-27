@@ -76,7 +76,7 @@
       '<a data-game="ff4" href="' + FFR_URLS.ff4 + '" title="FF4 Free Enterprise: roll on its site, play and track here (key items, characters, bosses, objectives)">FF4 ▸</a>' +
       '<a data-game="ff5" href="' + FFR_URLS.ff5 + '" title="FF5 Career Day: roll on its site, play and track here (key items, jobs, checks)">FF5 ▸</a>' +
       '<a data-game="patched" href="patched/" title="Patched games: NES and SNES ROM hacks (your ROM + the hack\u2019s patch)">Patched games ▸</a></span>' +
-      '<details id="games-shown" title="Which games appear here, in the headers and in the reroll list. Untick the ones you don’t play."><summary>Games shown ▾</summary><span class="gs-list"></span></details>' +
+      '<details id="games-shown" title="Which games appear here, in the headers and in the reroll list. Zelda 3 and Zelda 1 to start; tick the others you play."><summary>Games shown ▾</summary><span class="gs-list"></span></details>' +
       '<span id="roll-games" title="The 🎲 Reroll button and Crowd Control’s Random preset and CHAOS seeds pick one of the ticked games at random (the game you’re playing counts too). Crowd Control’s New seed (same settings) always stays in the game you’re playing. FF1, FF4 and FF5 are rolled on their own sites, so rerolls can’t go there.">Rerolls can land on:</span>';
     var after = document.getElementById('r-shared');
     bar.insertBefore(row, after ? after.nextSibling : bar.firstChild);

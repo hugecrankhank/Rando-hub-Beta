@@ -482,8 +482,9 @@ work without touching Hutch's code:
 ## Other games: Zelda 1, The Guardian Legend and Final Fantasy I, IV, V and VI
 
 The **Game** row at the top of the Randomizer bar (and **Zelda 1 ▸** / **GLR ▸** / **FF6 ▸** /
-**FF1·4·5 ▾** in the header) switches games. **Games shown ▾** in that row hides the games
-you don't play everywhere (Game row, headers, menus, the reroll list); Zelda 3 always stays. Each is its own app inside the hub, with its own emulator,
+**FF1·4·5 ▾** in the header) switches games. **Games shown ▾** in that row picks which games
+appear anywhere (Game row, headers, menus, the reroll list): Zelda 3 and Zelda 1 to start,
+tick the others you play. Each is its own app inside the hub, with its own emulator,
 seed generator, tracker and saves, and buttons back to the others.
 
 - **Zelda 1** (`z1r/`):

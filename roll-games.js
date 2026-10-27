@@ -34,11 +34,13 @@
   // reroll list at all (Zelda 3 always). Hidden games still work by address.
   var SHOWN_KEY = 'rando-hub-games-shown';
   var SHOWABLE = [['z1', 'Zelda 1'], ['glr', 'Guardian Legend'], ['ff1', 'FF1 Randomizer'], ['ff4', 'FF4 Free Enterprise'], ['ff5', 'FF5 Career Day'], ['ff6', 'FF6 Worlds Collide'], ['patched', 'Patched games']];
+  // Default: Zelda 3 and Zelda 1 only; the rest are ticked on by the player.
   function shown() {
     var s = null;
     try { s = JSON.parse(localStorage.getItem(SHOWN_KEY) || 'null'); } catch (e) {}
+    var fresh = !s || typeof s !== 'object';
     var out = { z3: true };
-    SHOWABLE.forEach(function (x) { out[x[0]] = !s || typeof s !== 'object' || s[x[0]] !== false; });
+    SHOWABLE.forEach(function (x) { out[x[0]] = fresh ? x[0] === 'z1' : s[x[0]] === true; });
     return out;
   }
   function setShown(s) { s.z3 = true; try { localStorage.setItem(SHOWN_KEY, JSON.stringify(s)); } catch (e) {} }
