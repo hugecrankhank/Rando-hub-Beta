@@ -1,72 +1,77 @@
-CROWD CONTROL+  -  SETTING UP THE DIRECT CONNECTION
-TikTok LIVE without TikFinity and without a browser window
+CROWD CONTROL+  -  THE DIRECT CONNECTION
+Crowd Control+ joins your TikTok LIVE itself. No TikFinity, no browser
+window, no key.
 =========================================================================
 
 WHAT "DIRECT" IS
 ----------------
 Crowd Control+ has three ways to hear your TikTok LIVE:
 
-  TikFinity (default)   The free TikFinity app connects to TikTok; the
-                        bridge listens to it. Nothing to type.
+  Direct (default)      The bridge joins your LIVE itself, with the
+                        tiktok-live-connector library. Nothing else to
+                        run or log in to. Type your name, Connect.
+  TikFinity             The free TikFinity app connects to TikTok; the
+                        bridge listens to it. The backup.
   Local signer          The bridge opens your own LIVE page in a Chrome /
                         Edge window and reads what TikTok shows there.
-  Direct                The bridge joins your LIVE itself, with the
-                        tiktok-live-connector library. No TikFinity, no
-                        browser window. Needs a free Euler Stream key.
 
 Direct is the "own bridge" approach: the same library, the same connect-
 by-username idea, inside Crowd Control+ so the gifts go straight to
-your effects, alerts, goals and overlays. Everything in this guide
-happens on the PC you stream from.
+your effects, alerts, goals and overlays. Everything happens on the PC
+you stream from.
 
-WHY IT NEEDS A KEY
-------------------
+HOW IT WORKS WITHOUT A KEY
+--------------------------
 TikTok only accepts LIVE connections whose requests are signed. The
-library doesn't sign them itself; it asks a "sign server" to do it.
-Euler Stream runs one with a free Community plan, and the key is how it
-knows the request is yours. TikFinity and the local signer don't need a
-key because they use your TikTok login in an app or browser instead.
-(See "CAN IT WORK WITHOUT A KEY?" at the end.)
+library doesn't sign them itself; it asks Euler Stream's "sign server"
+to, once per connection. Euler Stream does that for free with no key,
+within a limit shared by everyone who has no key. One streamer
+connecting once per stream is well inside it.
+
+A key is optional. A free one (Community plan at
+https://www.eulerstream.com) gives you a limit of your own, so a busy
+evening for everyone else can't make you wait. If the free shared
+server is busy, the bridge says so and tries again in 3 minutes; the
+rest of Crowd Control+ keeps running.
+
+Can Crowd Control+ get a key for you? No: a key is tied to an Euler
+Stream account, which means signing up on their site, and it stays the
+same afterwards, so it's a paste-once thing, not a per-stream thing.
+And it isn't needed.
 
 
-STEP 1. Install the library (once)
-  Direct is the only way that needs an extra package.
-  Windows:
-    Open the Crowd Control+ folder, click in the address bar at the top
-    of the window, type   cmd   and press Enter. In the black window:
-        npm install
-    It downloads tiktok-live-connector into node_modules and finishes
-    in about a minute. Close that window.
-  Mac / Linux:
-    Open Terminal in the folder and run   npm install
+STEP 1. Start Crowd Control+
+  Double-click "Start Crowd Control+.bat" (Mac: the .command file).
+  The first time, it installs the library (tiktok-live-connector) into
+  node_modules: about a minute, needs internet. Then the control panel
+  opens at http://localhost:21214/studio
 
-STEP 2. Get a free Euler Stream key (once)
+STEP 2. Connect
+  On the Dashboard, in "TikTok connection":
+  - Leave it on "Direct (recommended)".
+  - Type your TikTok name (without @).
+  - Click Connect.
+  Your name is saved in mapping.json ("username"), so next time you
+  only click Connect (it connects by itself at startup anyway).
+
+  Not live yet? The dot stays red and the status says "Waiting for
+  TikTok LIVE"; the bridge retries every minute until you're live, then
+  shows "Live as @yourname" (green).
+
+STEP 3. The rest is the same as always
+  Connect the game (⋯ → Crowd effects → on, ws://localhost:21214), add
+  the overlays to OBS or TikTok LIVE Studio. See INSTRUCTIONS.txt Part
+  1, steps 5 and 6.
+
+OPTIONAL. A key of your own
   1. Go to https://www.eulerstream.com and sign up.
   2. Pick the Community plan (free).
   3. In your account, create an API key and copy it. Keep it private:
      it's tied to your account.
-
-STEP 3. Start Crowd Control+
-  Double-click "Start Crowd Control+.bat" (Mac: the .command file).
-  The control panel opens at http://localhost:21214/studio
-
-STEP 4. Connect
-  On the Dashboard, in "TikTok connection":
-  - Choose "Direct (joins the LIVE itself; needs a free Euler Stream key)".
-  - Type your TikTok name (without @).
-  - Paste the key into "Euler Stream API key".
-  - Click Connect.
-  The key and your name are saved in mapping.json ("signApiKey" and
-  "username"), so next time you only click Connect.
-
-  Not live yet? The dot stays red and the status says "Waiting for
-  TikTok LIVE"; the bridge retries every 30 seconds until you're live,
-  then shows "Live as @yourname" (green).
-
-STEP 5. The rest is the same as always
-  Connect the game (⋯ → Crowd effects → on, ws://localhost:21214), add
-  the overlays to OBS or TikTok LIVE Studio. See INSTRUCTIONS.txt Part
-  1, steps 5 and 6.
+  4. Paste it into "Euler Stream key (optional)" on the Dashboard and
+     click Connect. It's saved in mapping.json ("signApiKey").
+  With a key the bridge retries every 30 seconds instead of every
+  minute.
 
 
 EVERY STREAM
@@ -78,31 +83,37 @@ EVERY STREAM
 IF YOU'D RATHER EDIT mapping.json
 ---------------------------------
   "source": "direct",
-  "username": "yourname",
-  "signServer": "euler",
-  "signApiKey": "paste_your_key_here"
-  Save, then start Crowd Control+. "signServer" can also be "tiktools"
-  (api.tik.tools, 7-day trial) or any https:// sign-server address.
+  "username": "yourname"
+  and, only if you have one:
+  "signApiKey": "your_key"
+  "signServer" can be "euler" (default), "tiktools" (api.tik.tools,
+  7-day trial, key required) or any https:// sign-server address.
 
 
 WHEN SOMETHING'S WRONG
 ----------------------
-"Direct: tiktok-live-connector not installed"
-  Step 1 wasn't done in this folder. Run npm install, start again.
+"Direct: library not installed yet"
+  The first-time setup didn't run (no internet, or you started with
+  "node bridge.mjs" by hand). Crowd Control+ uses TikFinity for that
+  run. Start it again from "Start Crowd Control+.bat", or run
+  npm install in this folder.
 
-"Direct: no sign-server key"
-  No key pasted yet (Step 2 and 4), or mapping.json still says
-  paste_your_key_here.
+"Sign server busy (free, no key), retrying"
+  Everyone without a key shares one limit and it's full right now. The
+  bridge waits 3 minutes and tries again. For a limit of your own, add
+  the optional key (above). Or switch to TikFinity meanwhile.
 
-"the sign server refused the connection"
-  The key is wrong, or the free plan's limit for the day is used up.
-  Check the key on eulerstream.com. Switch to TikFinity or the local
-  signer meanwhile; they don't use the key.
+"Sign server refused, retrying"
+  With a key: the key is wrong, or the plan's limit for the day is used
+  up; check it on eulerstream.com. Without one: Euler Stream may have
+  changed its free terms; add a key, or switch to TikFinity or the
+  local signer (they don't use the sign server).
 
 "couldn't join @name's LIVE ... Are you live?"
   You aren't live yet (normal: it keeps retrying), the name is wrong
   (no @, no spaces), or TikTok changed something and the library needs
   an update: run   npm update tiktok-live-connector   in the folder.
+  TikFinity is the backup until then.
 
 Gifts arrive but a streak counts once
   Correct: a gift sent 10 times in a row arrives as one gift with
@@ -115,21 +126,6 @@ Switching sources
   same for all three.
 
 
-CAN IT WORK WITHOUT A KEY, LIKE TIKFINITY?
-------------------------------------------
-Not with Direct. TikFinity and the local signer get away without a key
-because they run inside something that is logged in to TikTok (the
-TikFinity app, or your own LIVE page in Chrome / Edge): TikTok's own code
-does the signing there. Direct talks to TikTok from Node.js, where
-nothing of TikTok's runs, so the signing has to come from a sign server,
-and the key is what the server asks for.
-
-If you want "no key, no app", the local signer is that option: it is
-Crowd Control+'s own way of borrowing your login, and it needs nothing
-but Chrome or Edge. If you want "no browser window", TikFinity. Direct
-is for "nothing else running at all", at the price of the free key.
-
-
 THE STANDALONE rando-tiktok-bridge (server.js) YOU WROTE
 ---------------------------------------------------------
 It does the first half of Direct: tiktok-live-connector by username,
@@ -139,6 +135,6 @@ need the bridge's side: the game expects Crowd Control+'s messages
 the gift-to-effect mapping, streak handling for every gift type,
 follows / shares / superfans, reconnecting, and the control panel and
 overlays. All of that is already in Crowd Control+'s Direct source, so
-the shortest path is the four steps above. The pieces of yours that
-carry over as-is are the username connect and the repeatEnd check,
-which Direct does the same way.
+the shortest path is the steps above. The pieces of yours that carry
+over as-is are the username connect and the repeatEnd check, which
+Direct does the same way.

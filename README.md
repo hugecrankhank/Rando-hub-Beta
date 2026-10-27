@@ -207,14 +207,15 @@ top gifters, chat votes, team battles, mystery box, boss detours, read-aloud and
 1. Download **`Crowd-Control-Plus-v<version>.zip`** from the
    [latest release](https://github.com/hugecrankhank/Rando-hub/releases/latest) and unzip it.
 2. Install [Node.js](https://nodejs.org) (LTS). You also need Chrome or Edge.
-3. Double-click **`Start Crowd Control+.bat`** (Mac: the `.command` file). The control
-   panel opens in your browser at `http://localhost:21214/studio`.
-4. Install the free [TikFinity](https://tikfinity.zerody.one) app, log in with your
-   TikTok and keep it running. **Dashboard → TikTok connection** is on **TikFinity
-   (recommended)**: click **Connect**. Two other ways are in the same menu: the **local
-   signer** (Crowd Control+ opens your LIVE page in its own Chrome / Edge window and
-   reads it; no other apps or keys) and **Direct** (it joins the LIVE itself with a free
-   [Euler Stream](https://www.eulerstream.com) key).
+3. Double-click **`Start Crowd Control+.bat`** (Mac: the `.command` file). The first time
+   it installs the TikTok connection library (about a minute), then the control panel
+   opens in your browser at `http://localhost:21214/studio`.
+4. **Dashboard → TikTok connection** is on **Direct (recommended)**: type your TikTok
+   name and click **Connect**. Crowd Control+ joins your LIVE itself: no key, no login,
+   no other app (an optional free [Euler Stream](https://www.eulerstream.com) key gives
+   you a signing limit of your own). Two other ways are in the same menu: the free
+   [TikFinity](https://tikfinity.zerody.one) app (the backup) and the **local signer**
+   (Crowd Control+ opens your LIVE page in its own Chrome / Edge window and reads it).
 5. In Rando Hub on the **same PC**: **⋯ → Crowd effects** → turn on, address
    `ws://localhost:21214`. Allow local-network access if the browser asks.
 6. Test effects from either place (the game's **⋯ → Crowd effects** or the control
@@ -967,7 +968,7 @@ Gumby" and so on (`randomizer/hub-credits.js`; the captions that hint at items s
 - The earlier web EmoTracker is gone (1.14.2); its overworld and dungeon map code lives on in
   `mudora/romap.js` and `mudora/dungeons.js`.
 - Link sprites: the [alttpr.com sprite library](https://alttpr.com/en/sprites) and its artists.
-- TikTok connection: [TikFinity](https://tikfinity.zerody.one).
+- TikTok connection: [tiktok-live-connector](https://github.com/zerodytrash/TikTok-Live-Connector) (MIT; signing by [Euler Stream](https://www.eulerstream.com)), or [TikFinity](https://tikfinity.zerody.one).
 - Logo lettering: [Press Start 2P](https://fonts.google.com/specimen/Press+Start+2P) by CodeMan38,
   SIL Open Font License (`fonts/PressStart2P-OFL.txt`).
 

@@ -32,19 +32,19 @@ Crowd Control+ is Rando Hub's crowd control: the gift bridge, plus:
 
 How the pieces connect (all on the PC you stream from):
 
-  TikTok LIVE --> TikFinity --> Crowd Control+ --> the game
-  (viewers)       (free app)    (this folder)  |-> your overlays
-                                               '-> the control panel
+  TikTok LIVE --> Crowd Control+ --> the game
+  (viewers)       (this folder)  |-> your overlays
+                                 '-> the control panel
 
-TikFinity (a free app) connects to your TikTok LIVE and passes on the
-gifts, likes, follows, shares and chat; Crowd Control+ listens to it.
-This is the recommended way: the most reliable, and nothing to type.
+Crowd Control+ joins your TikTok LIVE itself ("Direct") and hears the
+gifts, likes, follows, shares and chat. Nothing else to install or log
+in to: type your TikTok name once and click Connect.
 
-Two other ways are one click away on the control panel if you'd rather
-not run TikFinity: the LOCAL SIGNER (Crowd Control+ opens your own LIVE
-page in a Chrome / Edge window and reads it) and DIRECT (it joins the
-LIVE itself, with a free Euler Stream key). See "OTHER WAYS TO CONNECT"
-at the end of Part 1.
+Two other ways are one click away on the control panel: TIKFINITY (the
+free TikFinity app connects to TikTok and Crowd Control+ listens to it;
+the backup if Direct ever stops working) and the LOCAL SIGNER (Crowd
+Control+ opens your own LIVE page in a Chrome / Edge window and reads
+it). See "OTHER WAYS TO CONNECT" at the end of Part 1.
 
 You set things up once (about 20 minutes). After that, starting it for a
 stream takes three clicks.
@@ -66,7 +66,7 @@ WHAT'S IN THIS FOLDER
   bridge.mjs, studio.mjs, package.json
                       The program itself. You never need to open these.
   INSTRUCTIONS.txt    This file.
-  DIRECT-SETUP.txt    The Direct connection (joins your LIVE itself; free key).
+  DIRECT-SETUP.txt    The Direct connection (joins your LIVE itself; no key).
   WHATS-NEW.txt       What's new compared to the regular Crowd Control.
   EFFECTS-OVERVIEW.md A technical overview of every effect.
 
@@ -110,18 +110,21 @@ STEP 2. Install Node.js (it runs Crowd Control+)
 
 STEP 3. Start Crowd Control+
   Double-click "Start Crowd Control+.bat". A black window opens (keep it
-  open) and the CONTROL PANEL opens in your browser:
+  open). The first time it sets up the TikTok connection (about a
+  minute, needs internet), then the CONTROL PANEL opens in your browser:
       http://localhost:21214/studio
   Bookmark it. If it didn't open by itself, type that address in.
 
-STEP 4. Connect to TikTok (TikFinity)
-  - Install TikFinity from https://tikfinity.zerody.one, open it and
-    log in with your TikTok account. Leave its WebSocket / Events API
-    port at 21213 (the default). Keep TikFinity running while you stream.
+STEP 4. Connect to TikTok (Direct)
   - On the control panel's Dashboard, in "TikTok connection", leave it
-    on "TikFinity (recommended)" and click Connect.
-  The dot turns green ("Connected to TikFinity"). Gifts, likes, follows,
-  shares and chat come through once you're LIVE.
+    on "Direct (recommended)", type your TikTok name (without @) and
+    click Connect. No key, no login, no other app.
+  Not live yet? The dot stays red ("Waiting for TikTok LIVE") and it
+  retries by itself. Once you're LIVE it turns green ("Live as @you")
+  and gifts, likes, follows, shares and chat come through.
+  Optional: a free key from https://www.eulerstream.com (Community
+  plan) pasted into "Euler Stream key" gives you a connection limit of
+  your own instead of the free shared one. See DIRECT-SETUP.txt.
 
 STEP 5. Connect the game
   - Open Rando Hub: https://hugecrankhank.github.io/Rando-hub/
@@ -154,29 +157,28 @@ OTHER WAYS TO CONNECT
   Your gift setup, overlays and everything else stay the same whichever
   you pick; switch any time on the Dashboard's "TikTok connection".
 
-  LOCAL SIGNER (no TikFinity): choose "Local signer", type your TikTok
+  TIKFINITY (the backup): install TikFinity from
+    https://tikfinity.zerody.one, open it and log in with your TikTok
+    account; leave its WebSocket / Events API port at 21213. Choose
+    "TikFinity" on the Dashboard, Connect. Keep TikFinity running while
+    you stream. Use this if Direct says the sign server refused or
+    TikTok changed something; nothing else changes.
+
+  LOCAL SIGNER (no other app): choose "Local signer", type your TikTok
     name (without @), Connect. A Chrome / Edge window opens on your own
     LIVE page; log in to TikTok there once (it remembers). Keep that
     window open while you stream (minimized is fine; its sound is
-    muted). Closed it by mistake? "Open my LIVE window". TikTok
-    sometimes changes its website, which can break this until a Crowd
-    Control+ update; TikFinity is the fallback then.
-
-  DIRECT (joins the LIVE itself): choose "Direct", type your TikTok
-    name and paste an API key from https://www.eulerstream.com (free
-    Community plan; TikTok requires these connections to be signed by
-    a sign server), Connect. Nothing else to run. Needs "npm install"
-    in this folder once (it installs tiktok-live-connector). The most
-    likely of the three to need an update when TikTok changes things.
+    muted). Closed it by mistake? "Open my LIVE window".
 
 
 =========================================================================
 PART 2 - EVERY TIME YOU STREAM
 =========================================================================
 
-1. Double-click "Start Crowd Control+.bat". The control panel opens,
-   and so does your LIVE window (it reconnects by itself).
-   (Open TikFinity first; it connects to your LIVE by itself.)
+1. Double-click "Start Crowd Control+.bat". The control panel opens
+   and Crowd Control+ waits for your LIVE (it connects by itself).
+   (TikFinity users: open TikFinity first. Local signer: your LIVE
+   window opens too.)
 2. Go LIVE on TikTok.
 3. Open (or refresh) Rando Hub. The panel's top bar should show:
      Connected to TikTok LIVE            (green)
@@ -185,7 +187,8 @@ PART 2 - EVERY TIME YOU STREAM
 4. Optional: Dashboard -> "Reset stream stats" for a fresh top-gifters
    board, and reset goals on the Goals tab.
 
-Keep the black window and the LIVE window open the whole stream.
+Keep the black window (and, with the local signer, the LIVE window)
+open the whole stream.
 Closing the black window stops everything. Keep the control panel tab open too if you use read-aloud.
 
 
@@ -194,8 +197,8 @@ PART 3 - THE CONTROL PANEL, TAB BY TAB
 =========================================================================
 
 DASHBOARD
-  "TikTok connection" at the top: TikFinity (recommended), the local
-  signer or Direct, your TikTok name (and key, for Direct), Connect,
+  "TikTok connection" at the top: Direct (recommended), TikFinity or
+  the local signer, your TikTok name (and an optional key), Connect,
   "Open my LIVE window" (local signer), and a green / red dot with
   what's happening.
   Totals for this stream, the top gifter, and every event as it happens
@@ -858,8 +861,7 @@ The dot stays red: "Waiting for the LIVE"
 Gifts stopped coming through with the local signer, but you're live
   First click "Open my LIVE window" (or reload that window). Still
   nothing? TikTok may have changed its site: switch the Dashboard's
-  TikTok connection to "TikFinity (recommended)" (Part 1, Step 4) and
-  keep streaming. Check the Releases page for a Crowd Control+ update.
+  TikTok connection to "Direct" or "TikFinity" and keep streaming. Check the Releases page for a Crowd Control+ update.
 
 The LIVE window opened with no sound
   On purpose: it's muted so your stream doesn't echo.
@@ -868,11 +870,20 @@ The LIVE window opened with no sound
   TikFinity isn't open, isn't logged in, or its port isn't 21213.
   The bridge keeps retrying, so just open TikFinity.
 
-"Direct: no sign-server key" / "the sign server refused the connection"
-  Direct needs an Euler Stream API key (free Community plan at
-  https://www.eulerstream.com): paste it on the Dashboard and Connect.
-  Refused with a key? The plan's limit may be reached, or the key is
-  wrong. TikFinity or the local signer need no key.
+"Direct: library not installed yet"
+  The first-time setup didn't run (no internet, or started with
+  "node bridge.mjs" by hand). Crowd Control+ uses TikFinity for that
+  run. Start it again from "Start Crowd Control+.bat", or run
+  "npm install" in this folder.
+
+"Sign server busy (free, no key)" / "the sign server refused"
+  Direct's connections are signed by Euler Stream's free sign server.
+  Without a key you share its free limit with everyone else; when it's
+  busy the bridge waits 3 minutes and tries again. For a limit of your
+  own, get a free key (Community plan) at https://www.eulerstream.com
+  and paste it on the Dashboard. Refused with a key? The plan's limit
+  may be reached, or the key is wrong. TikFinity and the local signer
+  don't use the sign server at all.
 
 "port 21214 is in use (bridge already running?)"
   The bridge is already open in another black window. Use that one,
@@ -963,8 +974,8 @@ Everything else is the same.
 THANK YOU
 =========================================================================
 Built for Rando Hub (https://hugecrankhank.github.io/Rando-hub/).
-TikTok events come from TikFinity, your own LIVE page (local signer) or
-tiktok-live-connector (direct). Message layout per the community's TikTok webcast notes
+TikTok events come from tiktok-live-connector (Direct), TikFinity or
+your own LIVE page (local signer). Message layout per the community's TikTok webcast notes
 (github.com/isaackogan/TikTok-Webcast-Protobuf). Pixel lettering: Press Start 2P
 (SIL Open Font License, studio\PressStart2P-OFL.txt).
 

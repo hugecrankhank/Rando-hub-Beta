@@ -5,6 +5,21 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.6 (2026-10-27)
+
+- **Crowd Control+: Direct is the default way to connect, with no key.** Crowd Control+
+  joins your TikTok LIVE itself (tiktok-live-connector): type your name and Connect;
+  nothing to install, log in to or keep open. Its connections are signed by Euler
+  Stream's free sign server without a key; a free Community-plan key is optional
+  (a signing limit of your own) and is pasted on the Dashboard. When the free
+  server is busy the bridge waits 3 minutes and retries; a missing library makes it
+  use TikFinity for that run instead of failing.
+- The Start scripts (Windows, Mac, Linux) run `npm install` the first time, so the
+  library arrives on its own (about a minute). Anyone who already picked a source
+  keeps it; TikFinity and the local signer stay one click away.
+- `DIRECT-SETUP.txt`, `INSTRUCTIONS.txt`, `WHATS-NEW.txt` and the README rewritten
+  for Direct-by-default.
+
 ## Beta v1.14.5 (2026-10-27)
 
 - **Crowd Control+: TikFinity is the default way to connect.** The Dashboard's TikTok

@@ -5,6 +5,18 @@ Crowd Control+ is Rando Hub's crowd control: the gift bridge with a
 control panel and stream overlays. Every gift effect, big-donation seed
 roll and the subathon clock work exactly as before.
 
+NEW IN 1.14.6
+-------------
+- Direct is now the recommended, default way to connect: Crowd Control+
+  joins your LIVE itself. No key, no login, no other app: type your
+  TikTok name and Connect. The library it needs is installed the first
+  time you double-click "Start Crowd Control+" (about a minute).
+- An Euler Stream key is optional now (a connection limit of your own
+  instead of the free shared one). If the free sign server is busy the
+  bridge waits 3 minutes and retries; if the library isn't installed it
+  uses TikFinity for that run. Your saved choice of source is kept.
+- TikFinity stays one click away as the backup; the local signer too.
+
 NEW IN 1.14.5
 -------------
 - TikFinity is the recommended, default way to connect (TikTok
