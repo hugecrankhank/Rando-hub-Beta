@@ -36,7 +36,17 @@
     HEARTS: 0x66F,                 // high nibble: containers - 1; low nibble: full hearts before the last one
     PARTIAL: 0x670,                // the last heart: 0 empty, 01-7F half, 80-FF full
     RUPEE_ADD: 0x67D, RUPEE_SUB: 0x67E,   // the game counts these into the wallet (with the sound), capped at 255
+    // gear (aldonunez's disassembly, Variables.inc)
+    SWORD: 0x657, ARROW: 0x659, BOW: 0x65A, CANDLE: 0x65B, RECORDER: 0x65C, ROD: 0x65F, RAFT: 0x660,
+    RING: 0x662, LADDER: 0x663, BRACELET: 0x665, BOOMERANG: 0x674, MAGIC_BOOMERANG: 0x675,
+    // the whirlwind (whistle warp): objects 1-11 (type $2E = whirlwind), Link's Y, the level it goes to
+    OBJ_X: 0x70, OBJ_Y: 0x84, OBJ_TYPE: 0x34F, SUMMONED: 0x508, TELEPORTING: 0x522, TELEPORT_LEVEL: 0x523,
+    TILEBUF_SEL: 0x14,
   };
+  // Cartridge RAM ($6000-$7FFF, core.sram()): Link's colour in the menu palettes
+  // (one row per save slot) and in the level palettes about to be sent
+  var S = { MENU_PAL: 0x67F0 + 20, LEVEL_PAL: 0x6B7E + 20 };
+  var LINK_COLORS = [0x29, 0x32, 0x16];   // green, blue ring, red ring
   var PLAY = 0x05, CAVE = 0x0B;
 
   function fileLoaded(r) { return r.length >= 0x800 && r[0xF5] === 0x5A && r[0x528] === 0x5A && r[A.SLOT] < 3; }
@@ -67,6 +77,51 @@
     if (ha) pad |= b;
     if (hb) pad |= a;
     return pad;
+  }
+
+  // ── gear on loan: an item held at a lower grade (or gone) for a while ────
+  // Each frame the slot is held at the loaned value; at the end the real one
+  // comes back, unless the game changed it meanwhile (Link found a better
+  // one: that stays). A save state loaded mid-loan can't get the item stuck:
+  // the loan ends on the clock either way.
+  var loans = {};   // id → { addr, was, hold }
+  function lend(id, addr, hold, r) { loans[id] = { addr: addr, was: r[addr], hold: hold }; r[addr] = hold; if (addr === A.RING) ringColor(r); }
+  function holdLoan(id, r) { var l = loans[id]; if (l && r[l.addr] === l.hold) return; if (l) r[l.addr] = l.hold; }
+  function giveBack(id) {
+    var l = loans[id], c = core(), r = c && c.wram(); delete loans[id];
+    if (!l || !r) return;
+    if (r[l.addr] === l.hold) { r[l.addr] = l.was; if (l.addr === A.RING) ringColor(r); }
+  }
+  // Link's colour follows the ring right away (as when a ring is picked up:
+  // the colour goes into the save slot's menu palette row and the level
+  // palettes, and a palette transfer is cued)
+  function ringColor(r) {
+    var c = core(), sr = c && c.sram(); if (!sr || sr.length < 0x2000) return;
+    var col = LINK_COLORS[Math.min(2, r[A.RING])] ;
+    sr[S.MENU_PAL + 4 * r[A.SLOT] - 0x6000] = col;
+    sr[S.LEVEL_PAL - 0x6000] = col;
+    r[A.TILEBUF_SEL] = 0x18;
+  }
+  var ITEMS = [['candle', A.CANDLE, 'Candle'], ['bow', A.BOW, 'Bow'], ['boomerang', A.BOOMERANG, 'Boomerang'], ['mboomerang', A.MAGIC_BOOMERANG, 'Magical Boomerang'],
+    ['rod', A.ROD, 'Magical Rod'], ['recorder', A.RECORDER, 'Recorder'], ['raft', A.RAFT, 'Raft'], ['ladder', A.LADDER, 'Ladder'], ['bracelet', A.BRACELET, 'Power Bracelet']];
+  function gearOff(id, addr, what, secs) {
+    return { name: what + ' gone', good: false, secs: secs || 30,
+      check: function (r) { return r[addr] ? '' : 'Link has no ' + what.toLowerCase(); },
+      start: function (r) { lend(id, addr, 0, r); }, frame: function (r) { holdLoan(id, r); }, end: function () { giveBack(id); } };
+  }
+  // The whirlwind, as the recorder summons it, but to a level of chat's choosing:
+  // it sweeps in along Link's row, carries him off and drops him at that
+  // level's entrance (the game's own tables, so shuffled entrances work too)
+  function whirlwind(r, level) {
+    if (r[A.LEVEL]) return 'Only on the overworld';
+    if (r[A.MODE] !== PLAY) return 'Link isn\u2019t out in the open';
+    if (r[A.SUMMONED] || r[A.TELEPORTING]) return 'A whirlwind is already here';
+    var slot = 0;
+    for (var y = 11; y >= 1; y--) if (!r[A.OBJ_TYPE + y]) { slot = y; break; }
+    if (!slot) return 'The screen is too full';
+    r[A.TELEPORT_LEVEL] = level & 7;
+    r[A.SUMMONED] = 1;
+    r[A.OBJ_Y + slot] = r[A.OBJ_Y]; r[A.OBJ_X + slot] = 0; r[A.OBJ_TYPE + slot] = 0x2E;
   }
 
   // ── the effects ─────────────────────────────────────────────────────────
@@ -114,6 +169,49 @@
     crt:         { name: 'Retro CRT', good: true, secs: 30, start: function () { fx() && fx().setTempFilter('crt'); }, end: function () { fx() && fx().setTempFilter(null); } },
     speed_up:    { name: 'Speed up (1.5x)', good: false, secs: 20, start: function () { fx() && fx().setSpeed(1.5); }, end: function () { fx() && fx().setSpeed(1); } },
     slow_mo:     { name: 'Slow motion', good: true, secs: 15, start: function () { fx() && fx().setSpeed(0.5); }, end: function () { fx() && fx().setSpeed(1); } },
+
+    // ── warps ──
+    warp_random: { name: 'Whirlwind: random level', good: false,
+      apply: function (r) { return whirlwind(r, Math.floor(Math.random() * 8)); } },
+    warp_1:      { name: 'Whirlwind: Level 1', good: false, apply: function (r) { return whirlwind(r, 0); } },
+    warp_8:      { name: 'Whirlwind: Level 8', good: false, apply: function (r) { return whirlwind(r, 7); } },
+
+    // ── gear: swords ($657: 1 wood, 2 white, 3 magical) and rings ($662: 1 blue, 2 red) ──
+    sword_off:   { name: 'Sword gone', good: false, secs: 30,
+      check: function (r) { return r[A.SWORD] ? '' : 'Link has no sword'; },
+      start: function (r) { lend('sword_off', A.SWORD, 0, r); }, frame: function (r) { holdLoan('sword_off', r); }, end: function () { giveBack('sword_off'); } },
+    sword_down:  { name: 'Sword downgrade', good: false, secs: 30,
+      check: function (r) { return r[A.SWORD] >= 2 ? '' : r[A.SWORD] ? 'Link only has the Wooden Sword' : 'Link has no sword'; },
+      start: function (r) { lend('sword_down', A.SWORD, r[A.SWORD] - 1, r); }, frame: function (r) { holdLoan('sword_down', r); }, end: function () { giveBack('sword_down'); } },
+    sword_up:    { name: 'Sword upgrade', good: true,
+      apply: function (r) { if (r[A.SWORD] >= 3) return 'Link already has the Magical Sword'; r[A.SWORD]++; } },
+    ring_off:    { name: 'Ring gone', good: false, secs: 30,
+      check: function (r) { return r[A.RING] ? '' : 'Link has no ring'; },
+      start: function (r) { lend('ring_off', A.RING, 0, r); }, frame: function (r) { holdLoan('ring_off', r); }, end: function () { giveBack('ring_off'); } },
+    ring_down:   { name: 'Ring downgrade', good: false, secs: 30,
+      check: function (r) { return r[A.RING] >= 2 ? '' : r[A.RING] ? 'Link only has the Blue Ring' : 'Link has no ring'; },
+      start: function (r) { lend('ring_down', A.RING, 1, r); }, frame: function (r) { holdLoan('ring_down', r); }, end: function () { giveBack('ring_down'); } },
+    ring_up:     { name: 'Ring upgrade', good: true,
+      apply: function (r) { if (r[A.RING] >= 2) return 'Link already has the Red Ring'; r[A.RING]++; ringColor(r); } },
+
+    // ── items on loan: one gone for 30 s ──
+    item_off:    { name: 'Item gone (random)', good: false, secs: 30,
+      check: function (r) { return ITEMS.some(function (it) { return r[it[1]]; }) ? '' : 'Link has no items to take'; },
+      start: function (r) {
+        var have = ITEMS.filter(function (it) { return r[it[1]]; });
+        var it = have[Math.floor(Math.random() * have.length)];
+        if (it) { lend('item_off', it[1], 0, r); feed('Took the ' + it[2] + ' for a while', 'bad'); }
+      }, frame: function (r) { holdLoan('item_off', r); }, end: function () { giveBack('item_off'); } },
+    candle_off:  gearOff('candle_off', A.CANDLE, 'Candle'),
+    bow_off:     gearOff('bow_off', A.BOW, 'Bow'),
+    boomerang_off: { name: 'Boomerang gone', good: false, secs: 30,
+      check: function (r) { return r[A.BOOMERANG] || r[A.MAGIC_BOOMERANG] ? '' : 'Link has no boomerang'; },
+      start: function (r) { lend('boomerang_off', A.BOOMERANG, 0, r); lend('boomerang_off2', A.MAGIC_BOOMERANG, 0, r); },
+      frame: function (r) { holdLoan('boomerang_off', r); holdLoan('boomerang_off2', r); },
+      end: function () { giveBack('boomerang_off'); giveBack('boomerang_off2'); } },
+    rod_off:     gearOff('rod_off', A.ROD, 'Magical Rod'),
+    ladder_off:  gearOff('ladder_off', A.LADDER, 'Ladder'),
+    raft_off:    gearOff('raft_off', A.RAFT, 'Raft'),
 
     seed_roll:   { name: 'New seed (same flags)', good: false,
       app: function (job) { return startReroll(job, 'same'); } },
@@ -215,8 +313,13 @@
     note('running ' + job.id);
     var fe = EFFECTS[job.id];
     var secs = secsOf(job.id);
+    if (fe.check) {
+      var why = fe.check(ram);
+      if (why) { feed(fe.name + ': ' + why, 'info'); render(); return; }
+    }
     if (secs) {
-      if (!active[job.id] && fe.start) { try { fe.start(); } catch (e) { console.warn('[crowd]', job.id, e); } }
+      if (active[job.id]) { /* already on: the time just adds up */ }
+      else if (fe.start) { try { fe.start(ram); } catch (e) { console.warn('[crowd]', job.id, e); } }
       active[job.id] = (active[job.id] || 0) + Math.round(secs * (c.fps || 60.1));
     } else if (fe.app) {
       try { if (fe.app(job) === false) { render(); return; } } catch (e) { console.warn('[crowd]', job.id, e); }

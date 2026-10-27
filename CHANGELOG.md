@@ -5,6 +5,21 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.12.5 (2026-10-26)
+
+- **Zelda 1 crowd control: 17 new effects** (mapped like the others in Crowd Control+; the
+  bridge gets the new list when Zelda 1 connects):
+  - **Whirlwind: random level / Level 1 / Level 8:** the recorder's whirlwind, summoned by chat.
+    It sweeps in along Link's row, carries him off and drops him at that level's entrance, using
+    the game's own tables, so shuffled entrances land right. Overworld only; one at a time.
+  - **Sword gone / Sword downgrade (30 s), Sword upgrade:** the sword held at nothing or one
+    grade lower for a while, or stepped up for good (Wooden → White → Magical).
+  - **Ring gone / Ring downgrade (30 s), Ring upgrade:** the same for the Blue and Red Rings.
+    Link's colour changes right away, as when a ring is picked up.
+  - **Item gone (random)** and **Candle / Bow / Boomerang / Magical Rod / Ladder / Raft gone**
+    (30 s): the item is taken for a while and comes back by itself. An item Link finds again
+    (or upgrades) during the loan is his to keep. Each says why when Link doesn't have the item.
+
 ## Beta v1.12.4 (2026-10-26)
 
 - **Lighter on the PC, less input lag** (the SNES emulator):
