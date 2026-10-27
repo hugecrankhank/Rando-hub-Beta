@@ -5,6 +5,17 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.5 (2026-10-27)
+
+- **Crowd Control+: TikFinity is the default way to connect.** The Dashboard's TikTok
+  connection now reads TikFinity (recommended), Local signer (your LIVE page in a
+  Chrome / Edge window) and Direct. Anyone who already picked a source keeps it; new
+  setups start on TikFinity. The instructions and README follow.
+- **Direct can be set up from the panel:** your TikTok name and a free Euler Stream key,
+  no editing mapping.json; and a missing key or package no longer stops the bridge, it
+  reports what's wrong so you can switch. Switching away from Direct now closes its
+  connection.
+
 ## Beta v1.14.4 (2026-10-27)
 
 - **Mudora 2.0 runs Muffins' logic as a library.** His tracker used to run whole, out of

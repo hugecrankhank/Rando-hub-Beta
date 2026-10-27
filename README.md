@@ -209,12 +209,12 @@ top gifters, chat votes, team battles, mystery box, boss detours, read-aloud and
 2. Install [Node.js](https://nodejs.org) (LTS). You also need Chrome or Edge.
 3. Double-click **`Start Crowd Control+.bat`** (Mac: the `.command` file). The control
    panel opens in your browser at `http://localhost:21214/studio`.
-4. **Dashboard → TikTok connection:** type your TikTok name and click **Connect**. This
-   is the **local signer** (recommended): Crowd Control+ opens your LIVE page in its own
-   Chrome / Edge window (log in to TikTok there once, keep it open; it's muted) and reads
-   gifts, likes, follows, shares and chat from it. Free, no other apps, no keys.
-   If a TikTok update ever breaks it, pick **TikFinity (backup)** there instead: the
-   free [TikFinity](https://tikfinity.zerody.one) app does the listening.
+4. Install the free [TikFinity](https://tikfinity.zerody.one) app, log in with your
+   TikTok and keep it running. **Dashboard → TikTok connection** is on **TikFinity
+   (recommended)**: click **Connect**. Two other ways are in the same menu: the **local
+   signer** (Crowd Control+ opens your LIVE page in its own Chrome / Edge window and
+   reads it; no other apps or keys) and **Direct** (it joins the LIVE itself with a free
+   [Euler Stream](https://www.eulerstream.com) key).
 5. In Rando Hub on the **same PC**: **⋯ → Crowd effects** → turn on, address
    `ws://localhost:21214`. Allow local-network access if the browser asks.
 6. Test effects from either place (the game's **⋯ → Crowd effects** or the control

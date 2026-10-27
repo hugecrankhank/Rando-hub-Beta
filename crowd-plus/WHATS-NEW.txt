@@ -5,6 +5,18 @@ Crowd Control+ is Rando Hub's crowd control: the gift bridge with a
 control panel and stream overlays. Every gift effect, big-donation seed
 roll and the subathon clock work exactly as before.
 
+NEW IN 1.14.5
+-------------
+- TikFinity is the recommended, default way to connect (TikTok
+  connection on the Dashboard). The local signer (your LIVE page in a
+  browser window) is still there as "Local signer", one click away, and
+  your saved choice is kept.
+- "Direct" can now be picked on the Dashboard too: Crowd Control+ joins
+  your LIVE itself (tiktok-live-connector), with a free Euler Stream key
+  pasted on the panel instead of in mapping.json. A missing key or
+  package no longer stops the bridge; it says what's wrong and you can
+  switch sources.
+
 NEW IN 1.10.10
 -------------
 - enemy_any (Any enemy): one of 74 enemies appears near Link, anywhere,

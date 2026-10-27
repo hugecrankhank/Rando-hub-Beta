@@ -118,10 +118,12 @@
     <h3>TikTok connection</h3>
     <div class="row" style="flex-wrap:wrap;gap:8px">
       <select id="conn-source">
-        <option value="local">Local signer (recommended)</option>
-        <option value="tikfinity">TikFinity (backup)</option>
+        <option value="tikfinity">TikFinity (recommended)</option>
+        <option value="local">Local signer (your LIVE page in a browser window)</option>
+        <option value="direct">Direct (joins the LIVE itself; needs a free Euler Stream key)</option>
       </select>
       <input id="conn-user" placeholder="your TikTok name (without @)" style="min-width:220px" autocomplete="off" spellcheck="false">
+      <input id="conn-key" placeholder="Euler Stream API key" style="min-width:220px" autocomplete="off" spellcheck="false">
       <button class="primary" id="conn-go">Connect</button>
       <button id="conn-open">Open my LIVE window</button>
     </div>
@@ -540,11 +542,13 @@ function paintConn() {
   const s = (S && S.status) || {};
   const src = $('conn-source'), u = $('conn-user');
   if (!connEdited && document.activeElement !== u && document.activeElement !== src) {
-    src.value = s.source === 'tikfinity' ? 'tikfinity' : 'local';
+    src.value = s.source === 'local' ? 'local' : s.source === 'direct' ? 'direct' : 'tikfinity';
     u.value = s.username || '';
   }
-  const local = src.value === 'local';
-  u.style.display = local ? '' : 'none';
+  const local = src.value === 'local', direct = src.value === 'direct';
+  u.style.display = local || direct ? '' : 'none';
+  $('conn-key').style.display = direct ? '' : 'none';
+  $('conn-key').placeholder = s.hasKey ? 'Euler Stream API key (saved; paste to change)' : 'Euler Stream API key';
   $('conn-open').style.display = local ? '' : 'none';
   const live = s.source === 'test' ? 'Test mode (no TikTok). Close this and use "Start Crowd Control+" to go live.' : (s.live || 'Starting…');
   const ok = /connected|live as/i.test(live) && !/dis/i.test(live);
@@ -553,14 +557,17 @@ function paintConn() {
     ? (s.browser === false ? '<b>No Chrome or Edge found.</b> Install Google Chrome, then click Connect again. ' : '') +
       'Opens your LIVE page in its own Chrome / Edge window and reads gifts, likes, follows and chat from it. Free, no other apps or keys. ' +
       'Log in to TikTok in that window once (it remembers). Keep it open while you stream (minimizing is fine; its sound is muted).'
-    : 'Uses the free TikFinity app: open TikFinity, log in, keep it running. Use this if the local signer stops working after a TikTok update.';
+    : direct
+    ? 'Crowd Control+ joins your LIVE itself (tiktok-live-connector). TikTok requires these connections to be signed, so it needs a key from <a href="https://www.eulerstream.com" target="_blank" rel="noopener">eulerstream.com</a> (free Community plan). Nothing else to run; if TikTok changes something, this is the one most likely to need an update.'
+    : 'Uses the free <a href="https://tikfinity.zerody.one" target="_blank" rel="noopener">TikFinity</a> app: open TikFinity, log in with your TikTok, keep it running (its Events API on port 21213). The most reliable way; nothing to type here.';
 }
 $('conn-source').onchange = () => { connEdited = true; paintConn(); };
 $('conn-user').oninput = () => { connEdited = true; };
 $('conn-go').onclick = () => {
-  const source = $('conn-source').value, username = $('conn-user').value.replace(/^@/, '').trim();
-  if (source === 'local' && !username) { toast('Type your TikTok name first', true); $('conn-user').focus(); return; }
-  call('connect', { source, username }, source === 'local' ? 'Opening your LIVE…' : 'Connecting to TikFinity…').then(() => { connEdited = false; });
+  const source = $('conn-source').value, username = $('conn-user').value.replace(/^@/, '').trim(), signApiKey = $('conn-key').value.trim();
+  if ((source === 'local' || source === 'direct') && !username) { toast('Type your TikTok name first', true); $('conn-user').focus(); return; }
+  if (source === 'direct' && !signApiKey && !((S && S.status) || {}).hasKey) { toast('Paste your Euler Stream API key first', true); $('conn-key').focus(); return; }
+  call('connect', { source, username, signApiKey }, source === 'local' ? 'Opening your LIVE…' : source === 'direct' ? 'Joining your LIVE…' : 'Connecting to TikFinity…').then(() => { connEdited = false; $('conn-key').value = ''; });
 };
 $('conn-open').onclick = () => call('open-live', {}, 'Opening your LIVE window');
 

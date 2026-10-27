@@ -32,18 +32,19 @@ Crowd Control+ is Rando Hub's crowd control: the gift bridge, plus:
 
 How the pieces connect (all on the PC you stream from):
 
-  TikTok LIVE --> your LIVE page --> Crowd Control+ --> the game
-  (viewers)       (a Chrome/Edge    (this folder)  |-> your overlays
-                   window it opens)                '-> the control panel
+  TikTok LIVE --> TikFinity --> Crowd Control+ --> the game
+  (viewers)       (free app)    (this folder)  |-> your overlays
+                                               '-> the control panel
 
-Crowd Control+ opens your own TikTok LIVE page in a separate Chrome or
-Edge window and reads the gifts, likes, follows, shares and chat that
-TikTok shows there. This is the LOCAL SIGNER, and it's the recommended
-way: free, no other apps, no accounts or keys.
+TikFinity (a free app) connects to your TikTok LIVE and passes on the
+gifts, likes, follows, shares and chat; Crowd Control+ listens to it.
+This is the recommended way: the most reliable, and nothing to type.
 
-If a TikTok update ever breaks it, switch to the backup, TikFinity (a
-free app that does the listening instead), with one click on the
-control panel. See "THE BACKUP: TIKFINITY" at the end of Part 1.
+Two other ways are one click away on the control panel if you'd rather
+not run TikFinity: the LOCAL SIGNER (Crowd Control+ opens your own LIVE
+page in a Chrome / Edge window and reads it) and DIRECT (it joins the
+LIVE itself, with a free Euler Stream key). See "OTHER WAYS TO CONNECT"
+at the end of Part 1.
 
 You set things up once (about 20 minutes). After that, starting it for a
 stream takes three clicks.
@@ -112,17 +113,14 @@ STEP 3. Start Crowd Control+
       http://localhost:21214/studio
   Bookmark it. If it didn't open by itself, type that address in.
 
-STEP 4. Connect to TikTok (the local signer)
-  On the control panel's Dashboard, in "TikTok connection":
-  - Leave it on "Local signer (recommended)".
-  - Type your TikTok name (without @) and click Connect.
-  - A new Chrome / Edge window opens on your LIVE page. Log in to
-    TikTok in that window (once; it remembers you next time).
-  - Keep that window open while you stream. You can minimize it or put
-    it behind other windows. Its sound is muted, so it won't echo.
-  The dot turns green ("Connected to TikTok LIVE") once you're LIVE.
-  Before you go live it says "Waiting for the LIVE"; that's normal.
-  Closed the window by mistake? Click "Open my LIVE window".
+STEP 4. Connect to TikTok (TikFinity)
+  - Install TikFinity from https://tikfinity.zerody.one, open it and
+    log in with your TikTok account. Leave its WebSocket / Events API
+    port at 21213 (the default). Keep TikFinity running while you stream.
+  - On the control panel's Dashboard, in "TikTok connection", leave it
+    on "TikFinity (recommended)" and click Connect.
+  The dot turns green ("Connected to TikFinity"). Gifts, likes, follows,
+  shares and chat come through once you're LIVE.
 
 STEP 5. Connect the game
   - Open Rando Hub: https://hugecrankhank.github.io/Rando-hub/
@@ -151,16 +149,24 @@ STEP 6. Add the overlays to your stream
 
 That's the setup done.
 
-THE BACKUP: TIKFINITY
-  Only if the local signer stops working (TikTok sometimes changes its
-  website, and a Crowd Control+ update will fix it):
-  1. Install TikFinity from https://tikfinity.zerody.one, open it and
-     log in with your TikTok account. Its WebSocket / Events API port
-     should be 21213 (the default).
-  2. Control panel -> Dashboard -> TikTok connection -> choose
-     "TikFinity (backup)" -> Connect.
-  Switch back to "Local signer" the same way once it's fixed. Your gift
-  setup, overlays and everything else stay the same either way.
+OTHER WAYS TO CONNECT
+  Your gift setup, overlays and everything else stay the same whichever
+  you pick; switch any time on the Dashboard's "TikTok connection".
+
+  LOCAL SIGNER (no TikFinity): choose "Local signer", type your TikTok
+    name (without @), Connect. A Chrome / Edge window opens on your own
+    LIVE page; log in to TikTok there once (it remembers). Keep that
+    window open while you stream (minimized is fine; its sound is
+    muted). Closed it by mistake? "Open my LIVE window". TikTok
+    sometimes changes its website, which can break this until a Crowd
+    Control+ update; TikFinity is the fallback then.
+
+  DIRECT (joins the LIVE itself): choose "Direct", type your TikTok
+    name and paste an API key from https://www.eulerstream.com (free
+    Community plan; TikTok requires these connections to be signed by
+    a sign server), Connect. Nothing else to run. Needs "npm install"
+    in this folder once (it installs tiktok-live-connector). The most
+    likely of the three to need an update when TikTok changes things.
 
 
 =========================================================================
@@ -169,7 +175,7 @@ PART 2 - EVERY TIME YOU STREAM
 
 1. Double-click "Start Crowd Control+.bat". The control panel opens,
    and so does your LIVE window (it reconnects by itself).
-   (Using the TikFinity backup? Open TikFinity first.)
+   (Open TikFinity first; it connects to your LIVE by itself.)
 2. Go LIVE on TikTok.
 3. Open (or refresh) Rando Hub. The panel's top bar should show:
      Connected to TikTok LIVE            (green)
@@ -187,9 +193,10 @@ PART 3 - THE CONTROL PANEL, TAB BY TAB
 =========================================================================
 
 DASHBOARD
-  "TikTok connection" at the top: local signer (recommended) or the
-  TikFinity backup, your TikTok name, Connect, "Open my LIVE window",
-  and a green / red dot with what's happening.
+  "TikTok connection" at the top: TikFinity (recommended), the local
+  signer or Direct, your TikTok name (and key, for Direct), Connect,
+  "Open my LIVE window" (local signer), and a green / red dot with
+  what's happening.
   Totals for this stream, the top gifter, and every event as it happens
   (gifts, follows, shares, chat), with what it did in the game.
   "Test without going live": pretend a viewer sent a gift, followed,
@@ -850,15 +857,21 @@ The dot stays red: "Waiting for the LIVE"
 Gifts stopped coming through with the local signer, but you're live
   First click "Open my LIVE window" (or reload that window). Still
   nothing? TikTok may have changed its site: switch the Dashboard's
-  TikTok connection to "TikFinity (backup)" (Part 1, "THE BACKUP") and
+  TikTok connection to "TikFinity (recommended)" (Part 1, Step 4) and
   keep streaming. Check the Releases page for a Crowd Control+ update.
 
 The LIVE window opened with no sound
   On purpose: it's muted so your stream doesn't echo.
 
-"can't reach TikFinity on port 21213" (TikFinity backup only)
+"can't reach TikFinity on port 21213"
   TikFinity isn't open, isn't logged in, or its port isn't 21213.
   The bridge keeps retrying, so just open TikFinity.
+
+"Direct: no sign-server key" / "the sign server refused the connection"
+  Direct needs an Euler Stream API key (free Community plan at
+  https://www.eulerstream.com): paste it on the Dashboard and Connect.
+  Refused with a key? The plan's limit may be reached, or the key is
+  wrong. TikFinity or the local signer need no key.
 
 "port 21214 is in use (bridge already running?)"
   The bridge is already open in another black window. Use that one,
@@ -949,8 +962,8 @@ Everything else is the same.
 THANK YOU
 =========================================================================
 Built for Rando Hub (https://hugecrankhank.github.io/Rando-hub/).
-TikTok events come from your own LIVE page (local signer) or TikFinity
-(backup). Message layout per the community's TikTok webcast notes
+TikTok events come from TikFinity, your own LIVE page (local signer) or
+tiktok-live-connector (direct). Message layout per the community's TikTok webcast notes
 (github.com/isaackogan/TikTok-Webcast-Protobuf). Pixel lettering: Press Start 2P
 (SIL Open Font License, studio\PressStart2P-OFL.txt).
 
