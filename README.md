@@ -187,8 +187,9 @@ attacks, instant death and one-hit KO, random sprites or music, and brand-new se
 
 There's also a **subathon clock** (gifts, likes, follows, shares, comments, checks and
 bosses add time) and a **scrolling gift list** for OBS / TikTok LIVE Studio. With
-*Rerolls can land on either game*, new-seed gifts can switch between Zelda 3 and
-Zelda 1 (never The Guardian Legend). The ROM is never changed; any seed works.
+*Rerolls can land on* (tick the games in the Game row), new-seed gifts can switch
+between Zelda 3, Zelda 1, The Guardian Legend and FF6 Worlds Collide. The ROM is
+never changed; any seed works.
 
 ```
 TikTok LIVE ──► your LIVE page (Chrome/Edge window) ──► Crowd Control+ ──ws://localhost:21214──► Rando Hub ──► Snes9x
@@ -487,20 +488,22 @@ seed generator, tracker and saves, and buttons back to the others.
 - **Zelda 1** (`z1r/`):
   seeds made by [ZORA](https://github.com/tetraly/zora) from your own Legend of Zelda
   (USA) ROM. Crowd control works there too: effects both games have keep their names,
-  ALTTP-only ones are skipped. **Rerolls can land on either game** lets 🎲 Reroll and
-  Crowd Control's random preset / CHAOS seeds pick Zelda 3 or Zelda 1 at random
-  (*New seed (same settings)* always stays in the game being played).
+  ALTTP-only ones are skipped. **Rerolls can land on** (tick Zelda 3, Zelda 1, Guardian
+  Legend, FF6 in the Game row) lets 🎲 Reroll and Crowd Control's random preset / CHAOS
+  seeds pick one of the ticked games at random, so you can keep it to the Zelda series,
+  or mix in Final Fantasy, as you like (*New seed (same settings)* always stays in the
+  game being played). FF1, FF4 and FF5 are rolled on their own sites, so rerolls can't
+  land there.
 - **The Guardian Legend** (`glr/`):
   seeds from your own Guardian Legend (USA) ROM, with the labyrinth map drawn from the
-  ROM. Only ever picked by hand: rerolls and crowd control never switch to it.
+  ROM. Has its own 🎲 Reroll.
 - **Final Fantasy VI: Worlds Collide** (`ff6wc/`):
   seeds made by [Worlds Collide](https://github.com/ff6wc/WorldsCollide) itself (the
   open-worlds FF6 randomizer, run in your browser with Pyodide) from your own Final
   Fantasy III (USA) v1.0 ROM, played on the hub's Snes9x. The tracker reads the game's
   memory: characters, espers, the 62 checks by area, dragons, bosses, Kefka's Tower,
   plus the seed's objectives and hash. Presets: the Ultros League flags (character
-  gating or open world) or any flag string from ff6worldscollide.com. Picked by hand
-  only, like GLR.
+  gating or open world) or any flag string from ff6worldscollide.com.
 - **Final Fantasy Randomizer (FF1), FF4 Free Enterprise, FF5 Career Day** (`ffr/`):
   seeds are rolled on each randomizer's own site (FF1R and FE generate in your
   browser there), then played here on the hub's NES or SNES with a tracker that reads

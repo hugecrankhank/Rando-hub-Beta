@@ -1218,11 +1218,13 @@
     // "Rerolls can land on either game" (games.js): a random preset or a
     // CHAOS seed may be Zelda 1 (a random Zelda 1 preset, rolled in z1r/).
     // "New seed (same settings)" always stays in this game.
-    var G = root.RandoGames;
-    if (G && rerollMode !== 'same' && rerollTry === 0 && G.pickZ1()) {
-      feed('The new seed is Zelda 1!', 'bad');
-      banner('roll', rerollMode === 'chaos' ? 'CHAOS: Zelda 1 seed!' : 'Zelda 1 seed!', (rerollBy ? 'Courtesy of ' + rerollBy + ' · ' : '') + 'switching games', 0);
-      setTimeout(function () { G.goZ1(rerollBy, rerollMode); }, 1500);
+    var G = root.RandoGames, R = root.RandoRoll;
+    var other = (G && R && rerollMode !== 'same' && rerollTry === 0) ? G.pickOther(rerollMode) : null;
+    if (other) {
+      var gname = R.name(other);
+      feed('The new seed is ' + gname + '!', 'bad');
+      banner('roll', rerollMode === 'chaos' ? 'CHAOS: ' + gname + ' seed!' : gname + ' seed!', (rerollBy ? 'Courtesy of ' + rerollBy + ' · ' : '') + 'switching games', 0);
+      setTimeout(function () { G.goTo(other, rerollBy, rerollMode); }, 1500);
       return;
     }
     var gen = document.getElementById('r-generate');

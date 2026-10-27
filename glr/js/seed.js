@@ -94,25 +94,30 @@
 
   // ── generate ─────────────────────────────────────────────────────────────
   $('dice').addEventListener('click', () => { $('seed').value = String(Math.floor(Math.random() * 1e9)); });
-  $('generate').addEventListener('click', () => {
-    if (!base) return;
-    if (!$('seed').value.trim()) $('seed').value = String(Math.floor(Math.random() * 1e9));
-    setStatus('Generating…', 'busy');
-    setTimeout(() => {
-      try {
-        const out = G.generate(base.bytes, { seed: $('seed').value, flags: $('flags').value });
-        const name = 'GLR_' + out.seed + '_' + out.flags + '.nes';
-        last = { rom: out.rom, name, text: out.text, meta: { seed: out.seed, flags: out.flags, code: out.code, version: out.version } };
-        $('result-seed').textContent = 'Seed ' + out.seed + ' · flags ' + out.flags;
-        $('result-code').textContent = out.code;
-        $('result').hidden = false;
-        setStatus('');
-        $('result').scrollIntoView({ block: 'nearest' });
-      } catch (e) {
-        setStatus(e.message, 'bad');
-      }
-    }, 20);
-  });
+  function generate() {
+    return new Promise((resolve, reject) => {
+      if (!base) { reject(new Error('Choose your Guardian Legend ROM first (New seed).')); return; }
+      if (!$('seed').value.trim()) $('seed').value = String(Math.floor(Math.random() * 1e9));
+      setStatus('Generating…', 'busy');
+      setTimeout(() => {
+        try {
+          const out = G.generate(base.bytes, { seed: $('seed').value, flags: $('flags').value });
+          const name = 'GLR_' + out.seed + '_' + out.flags + '.nes';
+          last = { rom: out.rom, name, text: out.text, meta: { seed: out.seed, flags: out.flags, code: out.code, version: out.version } };
+          $('result-seed').textContent = 'Seed ' + out.seed + ' · flags ' + out.flags;
+          $('result-code').textContent = out.code;
+          $('result').hidden = false;
+          setStatus('');
+          $('result').scrollIntoView({ block: 'nearest' });
+          resolve(last);
+        } catch (e) {
+          setStatus(e.message, 'bad');
+          reject(e);
+        }
+      }, 20);
+    });
+  }
+  $('generate').addEventListener('click', () => { generate().catch(() => {}); });
   function download(bytes, name, type) {
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([bytes], { type }));
@@ -139,6 +144,22 @@
       paintBase();
     },
     open() { $('result').hidden = true; setStatus(''); if (!$('seed').value) $('seed').value = String(Math.floor(Math.random() * 1e9)); $('seed-dlg').showModal(); },
+    // A reroll (the hub's 🎲, or one that landed here from another game): the flags
+    // you used last, or a random preset for Crowd Control's preset / chaos modes,
+    // a fresh seed number, then play. The dialog shows while it works.
+    async rollAndPlay(opts) {
+      const mode = opts && opts.mode;
+      $('result').hidden = true; setStatus('');
+      if (mode === 'preset' || mode === 'chaos') setFlags(PRESETS[Math.floor(Math.random() * PRESETS.length)].flags);
+      $('seed').value = String(Math.floor(Math.random() * 1e9));
+      if (!base) await loadBaseFromStore().then(paintBase);
+      $('seed-dlg').showModal();
+      const r = await generate();
+      await GLRStore.set('current', { bytes: r.rom.buffer.slice(0), name: r.name, meta: r.meta }).catch(() => {});
+      $('seed-dlg').close();
+      onPlay({ rom: r.rom, name: r.name, meta: r.meta });
+      return r;
+    },
     release() {},
   };
 })();

@@ -5,6 +5,21 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.1 (2026-10-27)
+
+- **Rerolls can land on: your pick of games.** The old "either game" checkbox is now one
+  tick per game in the Game row: Zelda 3, Zelda 1, Guardian Legend, FF6 Worlds Collide.
+  🎲 Reroll and Crowd Control's random preset / CHAOS seeds pick one of the ticked games
+  at random (the game you're playing counts too), so you can keep rerolls inside the
+  Zelda series, or open them up to Final Fantasy. *New seed (same settings)* always stays
+  put. FF1, FF4 and FF5 are rolled on their own sites, so they can't be landed on. GLR
+  and FF6 now take a reroll that lands on them (GLR gained a 🎲 Reroll button of its own)
+  and roll a random preset for Crowd Control's preset / CHAOS kinds. Your old "either
+  game" setting carries over.
+- **Phone headers:** in Zelda 1, GLR and FF6 the row of game links folds into one
+  **Games ▾** menu on narrow screens, so **New seed** is back on screen (it had been
+  pushed off the right edge on iPhone).
+
 ## Beta v1.14.0 (2026-10-27)
 
 - **Three more Final Fantasy randomizers** (`ffr/`): **FF1 Randomizer**, **FF4 Free

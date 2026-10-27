@@ -25,26 +25,28 @@
   var FF6_URL = 'ff6wc/'; // FF6 Worlds Collide: the same
   var FFR_URLS = { ff1: 'ffr/ff1/', ff4: 'ffr/ff4/', ff5: 'ffr/ff5/' };   // FF1R, Free Enterprise, Career Day: played here, rolled on their own sites
 
-  function either() { try { return localStorage.getItem(EITHER_KEY) === '1'; } catch (e) { return false; } }
-  function setEither(on) { try { localStorage.setItem(EITHER_KEY, on ? '1' : '0'); } catch (e) {} }
-  // For a reroll: true = this one goes to Zelda 1.
-  function pickZ1() { return either() && Math.random() < 0.5; }
-  // mode: 'preset' or 'chaos' from Crowd Control (Zelda 1 then rolls a random preset)
-  function goZ1(by, mode) {
-    location.href = Z1_URL + '?roll=1' + (mode && mode !== 'same' ? '&mode=' + mode : '') + (by ? '&by=' + encodeURIComponent(by) : '');
-  }
+  // Which games a reroll may land on: roll-games.js (RandoRoll), ticked in the Game row.
+  var R = window.RandoRoll;
+  function either() { return R ? R.others('z3').length > 0 : false; }
+  // For a reroll from here: the id of another game to go to, or null to stay (mode 'same' always stays)
+  function pickOther(mode) { return R ? R.pick('z3', mode) : null; }
+  function goTo(id, by, mode) { if (R) R.go(id, { by: by, mode: mode }); }
+  // kept for older add-ons
+  function pickZ1() { return pickOther() === 'z1'; }
+  function goZ1(by, mode) { goTo('z1', by, mode); }
 
-  window.RandoGames = { either: either, setEither: setEither, pickZ1: pickZ1, goZ1: goZ1, Z1_URL: Z1_URL, GLR_URL: GLR_URL, FF6_URL: FF6_URL, FFR_URLS: FFR_URLS };
+  window.RandoGames = { either: either, pickOther: pickOther, goTo: goTo, pickZ1: pickZ1, goZ1: goZ1, Z1_URL: Z1_URL, GLR_URL: GLR_URL, FF6_URL: FF6_URL, FFR_URLS: FFR_URLS };
 
   // ── the 🎲 Reroll button: maybe Zelda 1 instead ───────────────────────────
   // Runs before reroll.js's own click handler (capture phase on the document).
   document.addEventListener('click', function (e) {
     var b = e.target && e.target.closest ? e.target.closest('#reroll-btn') : null;
     if (!b || !either()) return;
-    if (!pickZ1()) return;                 // ALTTP this time: reroll.js carries on
+    var id = pickOther();
+    if (!id) return;                       // ALTTP this time: reroll.js carries on
     e.stopPropagation(); e.preventDefault();
-    if (window.EJS_emulator && !confirm('Reroll landed on Zelda 1!\n\nThe current game will be closed.')) return;
-    goZ1();
+    if (window.EJS_emulator && !confirm('Reroll landed on ' + R.name(id) + '!\n\nThe current game will be closed.')) return;
+    goTo(id);
   }, true);
 
   // ── the Game row ──────────────────────────────────────────────────────────
@@ -58,7 +60,8 @@
       '#game-row .gm a, #game-row .gm span { padding: 4px 10px; color: var(--text, #e6edf3); text-decoration: none; font-weight: 600; }' +
       '#game-row .gm span { background: #1f6feb; color: #fff; }' +
       '#game-row .gm a:hover { background: rgba(255,255,255,.06); }' +
-      '#game-row label { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; }';
+      '#game-row label { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; margin-left: 6px; }' +
+      '#roll-games { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 2px 4px; }';
     document.head.appendChild(css);
     var row = document.createElement('div');
     row.id = 'game-row';
@@ -70,14 +73,23 @@
       '<a href="' + FFR_URLS.ff4 + '" title="FF4 Free Enterprise: roll on its site, play and track here (key items, characters, bosses, objectives)">FF4 ▸</a>' +
       '<a href="' + FFR_URLS.ff5 + '" title="FF5 Career Day: roll on its site, play and track here (key items, jobs, checks)">FF5 ▸</a>' +
       '<a href="patched/" title="Patched games: NES and SNES ROM hacks (your ROM + the hack\u2019s patch)">Patched games ▸</a></span>' +
-      '<label title="The 🎲 Reroll button and Crowd Control’s Random preset and CHAOS seeds pick Zelda 3 or Zelda 1 at random. Crowd Control’s New seed (same settings) stays in the game you’re playing.">' +
-      '<input type="checkbox" id="either-game"> Rerolls can land on either game</label>';
+      '<span id="roll-games" title="The 🎲 Reroll button and Crowd Control’s Random preset and CHAOS seeds pick one of the ticked games at random (the game you’re playing counts too). Crowd Control’s New seed (same settings) always stays in the game you’re playing. FF1, FF4 and FF5 are rolled on their own sites, so rerolls can’t go there.">Rerolls can land on:</span>';
     var after = document.getElementById('r-shared');
     bar.insertBefore(row, after ? after.nextSibling : bar.firstChild);
-    var cb = row.querySelector('#either-game');
-    cb.checked = either();
-    cb.addEventListener('change', function () { setEither(cb.checked); });
-    window.addEventListener('storage', function (e) { if (e.key === EITHER_KEY) cb.checked = either(); });
+    var holder = row.querySelector('#roll-games');
+    function paintGames() {
+      if (!R) return;
+      var a = R.allowed();
+      holder.innerHTML = 'Rerolls can land on: ' + R.GAMES.map(function (g) {
+        return '<label><input type="checkbox" data-game="' + g.id + '"' + (g.id === 'z3' ? ' checked disabled title="This game"' : (a[g.id] ? ' checked' : '')) + '> ' + g.name + '</label>';
+      }).join('');
+    }
+    paintGames();
+    holder.addEventListener('change', function (e) {
+      var cb = e.target; if (!cb || !cb.dataset.game) return;
+      var a = R.allowed(); a[cb.dataset.game] = cb.checked; a.z3 = true; R.setAllowed(a);
+    });
+    window.addEventListener('storage', function (e) { if (e.key === R.KEY || e.key === EITHER_KEY) paintGames(); });
   }
 
   // ── ?roll=1: arrived from Zelda 1's reroll ────────────────────────────────

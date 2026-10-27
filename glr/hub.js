@@ -43,9 +43,38 @@
       fsel.addEventListener('change', function () { if (fsel.value) location.href = fsel.value; });
       newSeed.parentNode.insertBefore(fsel, newSeed);
       newSeed.parentNode.insertBefore(link('hub-patched', HUB + 'patched/', 'Patched', 'Patched games: NES and SNES ROM hacks on these emulators'), newSeed);
+      var R = window.RandoRoll;
+      if (R) newSeed.parentNode.insertBefore(R.gamesMenu('glr/', ['hub-back', 'hub-z1', 'hub-ff', 'hub-patched']), newSeed);
+      // 🎲 Reroll: a new seed with the flags you used last, or another game if the
+      // hub's "Rerolls can land on" says so
+      var rr = document.createElement('button');
+      rr.className = 'btn'; rr.id = 'hub-reroll'; rr.type = 'button'; rr.textContent = '🎲 Reroll';
+      rr.title = 'A new seed with the flags you used last' + (R && R.others('glr').length ? ' (or a ' + R.others('glr').join(' / ') + ' seed: ticked in the hub’s Game row)' : '');
+      rr.style.whiteSpace = 'nowrap';
+      rr.addEventListener('click', function () {
+        if (document.body.classList.contains('playing') && !confirm('Reroll: start a new seed?\n\nThe current game will be closed (its save stays).')) return;
+        var other = R ? R.pick('glr') : null;
+        if (other) { R.go(other, {}); return; }
+        if (window.GLRSeed && GLRSeed.rollAndPlay) GLRSeed.rollAndPlay({}).catch(function (e) { alert('Couldn’t roll a seed: ' + (e && e.message || e)); });
+      });
+      var romLabel = document.querySelector('header label[for="rom-input"]');
+      (romLabel || newSeed).insertAdjacentElement('afterend', rr);
     }
     var play = document.getElementById('play');
     if (play) play.addEventListener('click', logSeed, true);
+    // ?roll=1 (a reroll that landed here from another game): roll right away;
+    // mode=preset / chaos from Crowd Control = a random preset
+    var q = new URLSearchParams(location.search);
+    if (q.get('roll') === '1') {
+      var mode = q.get('mode') || '', by = q.get('by') || '';
+      try { history.replaceState(null, '', location.pathname); } catch (e) {}
+      var tries = 0, t = setInterval(function () {
+        if (++tries > 40) { clearInterval(t); return; }
+        if (!window.GLRSeed || !GLRSeed.rollAndPlay) return;
+        clearInterval(t);
+        GLRSeed.rollAndPlay({ mode: mode, by: by }).catch(function (e) { alert('Couldn’t roll a Guardian Legend seed: ' + (e && e.message || e)); });
+      }, 250);
+    }
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
