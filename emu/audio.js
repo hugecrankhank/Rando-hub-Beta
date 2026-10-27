@@ -10,6 +10,11 @@
     this.volume = 0.7; this.muted = false; this.ready = false;
     this.inRate = 32040;
     this._starting = null;
+    // How much sound is queued ahead: phones and tablets need ~60 ms to stay
+    // free of crackle when the browser stalls; a computer is fine with ~40,
+    // and the hit lands that much sooner after the button.
+    var mobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && !window.matchMedia('(pointer: fine)').matches);
+    this.queueMs = mobile ? 60 : 40;
     // iOS 16.4+: treat as media playback (volume buttons work, silent switch doesn't mute)
     try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}
   }
@@ -24,7 +29,7 @@
     this.applyVolume();
     this._starting = this.ctx.audioWorklet.addModule((window.EMU_BASE || 'emu/') + 'audio-worklet.js').then(function () {
       self.node = new AudioWorkletNode(self.ctx, 'snes9x-audio', {
-        numberOfInputs: 0, outputChannelCount: [2], processorOptions: { inRate: self.inRate } });
+        numberOfInputs: 0, outputChannelCount: [2], processorOptions: { inRate: self.inRate, queueMs: self.queueMs } });
       self.node.connect(self.gain);
       self.ready = true;
     }).catch(function (e) { console.warn('[audio] worklet failed', e); });
@@ -41,7 +46,8 @@
   };
   Audio.prototype.push = function (s16) {
     if (!this.ready || !s16.length || this.ctx.state !== 'running') return;
-    this.node.port.postMessage({ type: 'samples', data: s16.slice() });
+    var copy = s16.slice();
+    this.node.port.postMessage({ type: 'samples', data: copy }, [copy.buffer]);   // handed over, not cloned again
   };
   Audio.prototype.clear = function () { if (this.node) this.node.port.postMessage({ type: 'clear' }); };
   Audio.prototype.applyVolume = function () {

@@ -110,6 +110,11 @@
       new Uint8Array(this.x.memory.buffer, p, bytes.length).set(bytes);
       return !!this.x.s9x_state_load(bytes.length);
     },
+    // Run-ahead: a snapshot kept inside the core's own buffer, restored
+    // without copying anything in or out (a saveState()/loadState() pair
+    // would copy the whole state twice a frame).
+    snapshot() { return !!this.x.s9x_state_save(); },
+    restore() { return !!this.x.s9x_state_load(this.x.s9x_state_size()); },
   };
 
   // .smc dumps sometimes carry a 512-byte copier header.

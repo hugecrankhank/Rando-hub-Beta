@@ -56,6 +56,14 @@
     gl.bindBuffer(gl.ARRAY_BUFFER, this.tbGl);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, 0, 1, 0, 0, 1, 1, 1]), gl.STATIC_DRAW);
     this.maxTex = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+    // The renderer's name, to spot software rendering (SwiftShader, llvmpipe,
+    // Mesa's softpipe), where a heavy filter costs most of the CPU.
+    this.renderer = '';
+    try {
+      var dbg = gl.getExtension('WEBGL_debug_renderer_info');
+      this.renderer = dbg ? String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) || '') : '';
+    } catch (e) {}
+    this.software = /swiftshader|llvmpipe|softpipe|software/i.test(this.renderer);
   }
 
   Video.PRESETS = PRESETS;

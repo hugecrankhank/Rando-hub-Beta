@@ -5,6 +5,22 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.12.4 (2026-10-26)
+
+- **Lighter on the PC, less input lag** (the SNES emulator):
+  - **Filter → Auto** (the new default): starts at 6xBRZ and, if frames keep running long,
+    steps down to 4xBRZ, then Sharp, and says so. Software rendering (no usable graphics
+    driver) goes straight to Sharp. The level it settles on is remembered. Picking a filter by
+    hand still works as before.
+  - **Run-ahead** (⋯ → Graphics, off by default): shows each frame one frame early, like
+    RetroArch's run-ahead, so a press shows up about 16 ms sooner. It runs the game twice per
+    frame (about double the CPU): for computers, not phones.
+  - **Sound 20 ms sooner on computers:** the sound queue is 40 ms there instead of 60 (phones
+    and tablets keep 60, which they need), and each frame's sound is handed to the output
+    without an extra copy.
+  - **Windows app:** the GPU is used for the picture even where Chromium's driver blocklist
+    would fall back to software rendering, and the page is rasterized on it too.
+
 ## Beta v1.12.3 (2026-10-26)
 
 - **Live games without Crowd Control** (HydeOut): the **GT big key game** (which Ganon's

@@ -13,13 +13,14 @@ class Snes9xAudio extends AudioWorkletProcessor {
     this.buf = new Float32Array(this.cap * 2);
     this.r = 0; this.w = 0;                   // frame indices, wrap at cap
     this.pos = 0;                             // fractional read offset
-    this.target = Math.round(this.inRate * 0.06);   // ~60 ms queued
+    this.queueMs = (opts.processorOptions && opts.processorOptions.queueMs) || 60;
+    this.target = Math.round(this.inRate * this.queueMs / 1000);   // ~40 ms queued on a computer, ~60 on a phone
     this.primed = false;
     this.port.onmessage = (e) => {
       const d = e.data;
       if (d.type === 'samples') this.push(d.data);
       else if (d.type === 'clear') { this.r = this.w = 0; this.pos = 0; this.primed = false; }
-      else if (d.type === 'rate') this.inRate = d.rate;
+      else if (d.type === 'rate') { this.inRate = d.rate; this.target = Math.round(this.inRate * this.queueMs / 1000); }
     };
   }
   avail() { return (this.w - this.r + this.cap) % this.cap; }

@@ -17,17 +17,22 @@
   var BASE = window.EMU_BASE || 'emu/';   // EMU_BASE: a page in another folder (patched/)
   var SETTINGS_KEY = 's9x-player-settings';
   var DEFAULTS = {
-    filter: 'xbrz6', aspect: '8:7', volume: 0.5, muted: false,
+    filter: 'auto', aspect: '8:7', volume: 0.5, muted: false,
     touch: 'auto', opacity: 0.45, size: 1, haptics: true, slot: 1,
     keymap: null, padmap: null,
+    runAhead: false,       // one frame of run-ahead (less input lag, about twice the CPU)
+    v: 2,
   };
   var LABELS = { UP: 'Up', DOWN: 'Down', LEFT: 'Left', RIGHT: 'Right', A: 'A', B: 'B', X: 'X', Y: 'Y',
     L: 'L', R: 'R', START: 'Start', SELECT: 'Select' };
   var ORDER = ['UP', 'DOWN', 'LEFT', 'RIGHT', 'B', 'A', 'Y', 'X', 'L', 'R', 'START', 'SELECT'];
 
-  var cfg = Object.assign({}, DEFAULTS);
-  try { Object.assign(cfg, JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}')); } catch (e) {}
+  var cfg = Object.assign({}, DEFAULTS), savedCfg = {};
+  try { savedCfg = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}') || {}; Object.assign(cfg, savedCfg); } catch (e) {}
   function saveCfg() { try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(cfg)); } catch (e) {} }
+  // Settings saved before the Auto filter existed hold the old default (6xBRZ)
+  // whether or not the player ever chose it: those move to Auto.
+  if ((savedCfg.v | 0) < 2) { if (cfg.filter === 'xbrz6') cfg.filter = 'auto'; cfg.v = 2; saveCfg(); }
 
   // ── storage: in-game saves (SRAM) and save-state slots, per game ────────
   var dbp = null;
@@ -340,9 +345,11 @@
       '<h4>Sound</h4><div class="row"><span>Volume</span><input type="range" min="0" max="1" step="0.05" data-s="volume" value="' + cfg.volume + '"></div>' +
       '<div class="row"><span>Mute</span><input type="checkbox" data-s="muted"' + (cfg.muted ? ' checked' : '') + '></div>' +
       '<h4>Graphics</h4>' +
-      '<div class="row"><span>Filter</span><select data-s="filter">' + opts(Object.keys(P).map(function (k) { return [k, P[k].name]; }), cfg.filter) + '</select></div>' +
+      '<div class="row"><span>Filter</span><select data-s="filter">' + opts([['auto', 'Auto (now: ' + ((P[autoFilter()] || {}).name || autoFilter()) + ')']].concat(Object.keys(P).map(function (k) { return [k, P[k].name]; })), cfg.filter) + '</select></div>' +
       '<div class="row"><span>Aspect ratio</span><select data-s="aspect">' + opts([['8:7', 'Pixel-perfect (8:7)'], ['4:3', 'TV (4:3)'], ['fill', 'Fill the box']], cfg.aspect) + '</select></div>' +
-      '<p class="hint">6xBRZ runs on the graphics chip. If an older phone stutters, try 4xBRZ or Sharp pixels.</p>' +
+      '<p class="hint">Auto starts at 6xBRZ and steps down to 4xBRZ or Sharp if this device can\u2019t keep up. 6xBRZ runs on the graphics chip.</p>' +
+      '<div class="row"><span>Run-ahead (less input lag)</span><input type="checkbox" data-s="runAhead"' + (cfg.runAhead ? ' checked' : '') + '></div>' +
+      '<p class="hint">Run-ahead shows each frame one frame early, like RetroArch\u2019s: about 16 ms less lag. It runs the game twice per frame, so leave it off on phones and tablets.</p>' +
       '<h4>On-screen controller</h4>' +
       '<div class="row"><span>Show</span><select data-s="touch">' + opts([['auto', 'Auto (touch screens)'], ['on', 'Always'], ['off', 'Never']], cfg.touch) + '</select></div>' +
       '<div class="row"><span>Opacity</span><input type="range" min="0.1" max="1" step="0.05" data-s="opacity" value="' + cfg.opacity + '"></div>' +
@@ -379,8 +386,9 @@
       if (s === 'volume' || s === 'opacity' || s === 'size') v = +v;
       cfg[s] = v; saveCfg();
       if (s === 'volume' || s === 'muted') { ejs.volume = cfg.volume; ejs.muted = cfg.muted; ejs.setVolume(cfg.volume); }
-      else if (s === 'filter') applyFilter();
+      else if (s === 'filter') { if (v === 'auto') { autoLevel = 0; try { localStorage.removeItem(AUTO_KEY); } catch (x) {} autoWatch = { since: 0, slow: 0, total: 0 }; } applyFilter(); renderMenu(); }
       else if (s === 'aspect') applyAspect();
+      else if (s === 'runAhead') { /* takes effect next frame */ }
       else applyTouch();
     });
   }
@@ -440,10 +448,43 @@
     canvas.style.setProperty('--s9x-tf', t.length ? t.join(' ') : 'scale(1)');   // never 'none': 'none rotate(..)' is invalid and kills the wobble
     canvas.classList.toggle('s9x-wobble', !!screenFx.wobble);
   }
+  // ── Auto filter: the best filter this device keeps smooth ─────────────────
+  // Starts at 6xBRZ (or Sharp on software rendering), and steps down to 4xBRZ,
+  // then Sharp, when frames keep running long. The level it settles on is
+  // remembered, so the next game starts there instead of stuttering first.
+  var AUTO_KEY = 's9x-auto-filter', AUTO_LEVELS = ['xbrz6', 'xbrz4', 'sharpbl'];
+  var autoLevel = 0, autoWatch = { since: 0, slow: 0, total: 0 };
+  try { var al = parseInt(localStorage.getItem(AUTO_KEY), 10); if (al >= 0 && al < AUTO_LEVELS.length) autoLevel = al; } catch (e) {}
+  function autoFilter() {
+    if (video && video.software) return 'sharpbl';
+    return AUTO_LEVELS[autoLevel];
+  }
+  function filterNow() { return cfg.filter === 'auto' ? autoFilter() : cfg.filter; }
+  // called every tick: dt is the time since the last screen refresh
+  function autoTune(dt, frameMs) {
+    if (cfg.filter !== 'auto' || !running || paused || ff || autoLevel >= AUTO_LEVELS.length - 1) return;
+    if (video && video.software) return;          // already on Sharp
+    if (document.visibilityState !== 'visible') return;
+    var now = performance.now();
+    if (!autoWatch.since) { autoWatch.since = now + 3000; return; }   // settle first
+    if (now < autoWatch.since) return;
+    autoWatch.total++;
+    if (dt > frameMs * 1.6) autoWatch.slow++;
+    if (autoWatch.total < 300) return;                               // about 5 s at 60 Hz
+    var share = autoWatch.slow / autoWatch.total;
+    autoWatch.total = 0; autoWatch.slow = 0;
+    if (share < 0.08) return;
+    autoLevel++;
+    try { localStorage.setItem(AUTO_KEY, String(autoLevel)); } catch (e) {}
+    applyFilter();
+    var P = window.Video ? Video.PRESETS : {};
+    toast('Graphics set to ' + ((P[autoFilter()] || {}).name || autoFilter()) + ' to keep the game smooth (⋯ → Filter to change)');
+    autoWatch.since = now + 3000;
+  }
   function applyFilter() {
     if (tempFilter && video) { video.setPreset(tempFilter).catch(function () {}); return; }
     if (!video) return;
-    video.setPreset(cfg.filter).catch(function (e) {
+    video.setPreset(filterNow()).catch(function (e) {
       console.warn('[snes9x] filter', e);
       toast('That filter isn’t supported here; using sharp pixels.');
       cfg.filter = 'nearest'; saveCfg(); video.setPreset('nearest');
@@ -531,6 +572,7 @@
     if (!running || paused) { try { video.draw(); } catch (e) {} return; }
     var frameMs = 1000 / core.fps, pad = input.read(), n = 0;
     if (hooks.input) { try { pad = hooks.input(pad) | 0; } catch (e) { console.warn('[snes9x] input hook', e); } }
+    autoTune(dt, frameMs);
     var vsync = !ff && speedMul === 1 && Math.abs(ema - frameMs) / frameMs < 0.01;
     if (vsync) { n = 1; acc = 0; }
     else {
@@ -539,21 +581,40 @@
       var max = ff ? 8 : 3;
       if (n > max) { n = max; acc = 0; }
     }
+    var ahead = cfg.runAhead && !ff && speedMul === 1 && n > 0;
     try {
       for (var i = 0; i < n; i++) {
         core.runFrame(pad, 0);
         stats.frames++;
         if (hooks.frame) { try { hooks.frame(core); } catch (e) { console.warn('[snes9x] frame hook', e); } }
         var a = core.audio();
+        // Run-ahead: the real frames' sound plays, except the last one's, whose
+        // place the frame run ahead takes (below), so the sound keeps pace with
+        // the picture and no frame's sound is played twice.
+        if (ahead && i === n - 1) continue;
         if (!ff) {
           // faster than normal: drop some frames' sound so it doesn't pile up
           audioAcc += speedMul > 1 ? 1 / speedMul : 1;
           if (audioAcc >= 1) { audioAcc -= 1; try { audio.push(a); } catch (e) {} }
         }
       }
+      // Run-ahead (one frame, as RetroArch's single-instance run-ahead): keep
+      // the real state, run one more frame with the same input and show that,
+      // then go back. What's on screen is a frame ahead of the game, so a
+      // press shows up a frame sooner. The tracker and crowd effects only see
+      // the real state (the frame hook isn't called for the frame ahead).
+      if (ahead) {
+        if (core.snapshot()) {
+          core.runFrame(pad, 0);
+          var a2 = core.audio();
+          try { audio.push(a2); } catch (e) {}
+          video.upload(core.frame());
+          if (!core.restore()) { cfg.runAhead = false; saveCfg(); toast('Run-ahead stopped: the game state couldn\u2019t be restored.'); }
+        } else { cfg.runAhead = false; saveCfg(); toast('Run-ahead isn\u2019t possible with this game.'); }
+      }
     } catch (e) { stopWithError('Emulator', e); return; }
     try {
-      if (n) video.upload(core.frame());
+      if (n && !ahead) video.upload(core.frame());
       video.draw();
       stats.draws++;
     } catch (e) {

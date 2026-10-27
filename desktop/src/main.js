@@ -49,6 +49,12 @@ app.commandLine.appendSwitch('disable-renderer-backgrounding');
 app.commandLine.appendSwitch('disable-background-timer-throttling');
 app.commandLine.appendSwitch('disable-backgrounding-occluded-windows');
 app.commandLine.appendSwitch('disable-features', 'CalculateNativeWinOcclusion');
+// The picture filters (6xBRZ) run on the GPU: use it even where Chromium's
+// driver blocklist would fall back to software rendering, and rasterize the
+// page on it too, so the emulator's frame budget goes to the emulator.
+app.commandLine.appendSwitch('ignore-gpu-blocklist');
+app.commandLine.appendSwitch('enable-gpu-rasterization');
+app.commandLine.appendSwitch('enable-zero-copy');
 if (process.platform === 'win32') app.setAppUserModelId(CFG.appId);
 
 if (!app.requestSingleInstanceLock()) { app.quit(); }
