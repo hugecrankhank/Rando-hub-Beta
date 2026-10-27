@@ -96,11 +96,13 @@
       glr.textContent = 'GLR'; glr.title = 'The Guardian Legend randomizer (picked by hand only: rerolls never go there)';
       glr.style.textDecoration = 'none';
       newSeed.parentNode.insertBefore(glr, newSeed);
-      var ff = document.createElement('a');
-      ff.className = 'btn'; ff.id = 'hub-ff6'; ff.href = HUB + 'ff6wc/';
-      ff.textContent = 'FF6'; ff.title = 'Final Fantasy VI: Worlds Collide (picked by hand only: rerolls never go there)';
-      ff.style.textDecoration = 'none';
-      newSeed.parentNode.insertBefore(ff, newSeed);
+      var fsel = document.createElement('select');
+      fsel.className = 'btn'; fsel.id = 'hub-ff'; fsel.title = 'The Final Fantasy randomizers: FF1R, FF4 Free Enterprise, FF5 Career Day, FF6 Worlds Collide';
+      fsel.style.cssText = '-webkit-appearance: none; appearance: none; padding-right: 10px;';
+      fsel.innerHTML = '<option value="">FF ▾</option>' + [['ffr/ff1/', 'FF1 Randomizer'], ['ffr/ff4/', 'FF4 Free Enterprise'], ['ffr/ff5/', 'FF5 Career Day'], ['ff6wc/', 'FF6 Worlds Collide']]
+        .filter(function (x) { return x[0] !== ''; }).map(function (x) { return '<option value="' + HUB + x[0] + '">' + x[1] + '</option>'; }).join('');
+      fsel.addEventListener('change', function () { if (fsel.value) location.href = fsel.value; });
+      newSeed.parentNode.insertBefore(fsel, newSeed);
       var pt = document.createElement('a');
       pt.className = 'btn'; pt.id = 'hub-patched'; pt.href = HUB + 'patched/';
       pt.textContent = 'Patched'; pt.title = 'Patched games: NES and SNES ROM hacks on these emulators';

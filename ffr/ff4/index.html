@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FF4 Free Enterprise - Rando Hub</title>
+<meta name="description" content="Play Final Fantasy IV: Free Enterprise seeds with a tracker that follows the game: key items, characters, bosses and the seed’s objectives.">
+<meta name="theme-color" content="#0a1428">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FF4 FE">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Pixelify+Sans:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../common/style.css">
+<style>:root { --bg: #060c1e; --win: #122a66; --win2: #0a1636; --line: #c8d8f8; --cell: #101e4c; --cell-line: #2a4088; --gold: #78c8ff; }</style>
+</head>
+<body>
+<header>
+  <h1 class="brand" aria-label="FF4 Free Enterprise"><span class="brand-text">FF4 FE</span></h1>
+  <span id="hub-links" style="display:contents"></span>
+  <button class="btn primary" id="new-seed" type="button">Roll a seed</button>
+  <label class="btn" for="rom-input">Play ROM file</label>
+  <input type="file" id="rom-input" hidden>
+  <div class="spacer"></div>
+  <div id="pad-status" class="pill"><i></i><span>No controller</span></div>
+  <div id="link-status" class="pill"><i></i><span>No game running</span></div>
+</header>
+
+<main>
+  <div id="game-wrap">
+    <div id="game"></div>
+    <div id="placeholder">
+      <svg class="mark" viewBox="0 0 64 64" aria-hidden="true"><path d="M32 4l6 18 18 2-14 12 4 18-14-10-14 10 4-18L8 24l18-2z" fill="#78c8ff"/><circle cx="32" cy="34" r="6" fill="#0a1428"/></svg>
+      <h2>FF4 Free Enterprise</h2>
+      <p>Roll a seed at ff4fe.com, play the ROM right here on the hub’s Snes9x, and the tracker follows along: the 18 key items (and which are used), characters found, bosses beaten, chests, and the seed’s objectives with live progress, read from the ROM.</p>
+      <div class="actions">
+        <button class="btn primary" id="ph-new" type="button">Roll a seed</button>
+        <button class="btn" id="ph-continue" type="button" hidden>Continue</button>
+        <label class="btn" for="rom-input">Play ROM file</label>
+      </div>
+      <p class="fine">Seeds are made on Free Enterprise’s own site (it patches in your browser there). Your ROM never leaves this device; saves are kept in this browser. F5 / F8 save and load a state.</p>
+      <p class="fine beta-note">Beta: new here. If the tracker misses something, please say so.</p>
+    </div>
+  </div>
+  <aside id="tracker" aria-label="Tracker"></aside>
+</main>
+
+<dialog id="roll-dlg" aria-labelledby="roll-title">
+  <form method="dialog" class="dlg">
+    <div class="dlg-head">
+      <div><h2 id="roll-title">Roll a seed</h2><small class="gen-name"></small></div>
+      <button class="x" value="close" aria-label="Close">×</button>
+    </div>
+    <section class="step">
+      <h3>On the randomizer’s website</h3>
+      <p class="msg">Seeds are made by <span class="gen-name"></span> itself, at <a class="gen-link" href="#" target="_blank" rel="noopener"></a>. Then play the finished ROM here.</p>
+      <ol class="steps" id="roll-steps"></ol>
+    </section>
+    <div class="dlg-foot">
+      <p class="msg">The ROM you pick is kept in this browser so <b>Continue</b> brings it straight back.</p>
+      <label class="btn primary" for="rom-input-2">Play ROM file</label>
+      <input type="file" id="rom-input-2" hidden>
+    </div>
+  </form>
+</dialog>
+
+<script>window.EMU_BASE = '../../emu/';</script>
+<script src="../../emu/core.js"></script>
+<script src="../../emu/video.js"></script>
+<script src="../../emu/audio.js"></script>
+<script src="../../emu/input.js"></script>
+<script src="../../emu/player.js"></script>
+<script src="game.js"></script>
+<script src="../common/store.js"></script>
+<script src="../common/tracker.js"></script>
+<script src="../common/app.js"></script>
+</body>
+</html>

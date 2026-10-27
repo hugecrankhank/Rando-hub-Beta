@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>{{TITLE}} - Rando Hub</title>
+<meta name="description" content="{{DESC}}">
+<meta name="theme-color" content="{{THEME}}">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="{{SHORT}}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Pixelify+Sans:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../common/style.css">
+<style>{{THEME_CSS}}</style>
+</head>
+<body>
+<header>
+  <h1 class="brand" aria-label="{{TITLE}}"><span class="brand-text">{{BRAND}}</span></h1>
+  <span id="hub-links" style="display:contents"></span>
+  <button class="btn primary" id="new-seed" type="button">Roll a seed</button>
+  <label class="btn" for="rom-input">Play ROM file</label>
+  <input type="file" id="rom-input" hidden>
+  <div class="spacer"></div>
+  <div id="pad-status" class="pill"><i></i><span>No controller</span></div>
+  <div id="link-status" class="pill"><i></i><span>No game running</span></div>
+</header>
+
+<main>
+  <div id="game-wrap">
+    <div id="game"></div>
+    <div id="placeholder">
+      {{MARK}}
+      <h2>{{TITLE}}</h2>
+      <p>{{BLURB}}</p>
+      <div class="actions">
+        <button class="btn primary" id="ph-new" type="button">Roll a seed</button>
+        <button class="btn" id="ph-continue" type="button" hidden>Continue</button>
+        <label class="btn" for="rom-input">Play ROM file</label>
+      </div>
+      <p class="fine">{{FINE}} Your ROM never leaves this device; saves are kept in this browser. F5 / F8 save and load a state.</p>
+      <p class="fine beta-note">Beta: new here. If the tracker misses something, please say so.</p>
+    </div>
+  </div>
+  <aside id="tracker" aria-label="Tracker"></aside>
+</main>
+
+<dialog id="roll-dlg" aria-labelledby="roll-title">
+  <form method="dialog" class="dlg">
+    <div class="dlg-head">
+      <div><h2 id="roll-title">Roll a seed</h2><small class="gen-name"></small></div>
+      <button class="x" value="close" aria-label="Close">×</button>
+    </div>
+    <section class="step">
+      <h3>On the randomizer’s website</h3>
+      <p class="msg">Seeds are made by <span class="gen-name"></span> itself, at <a class="gen-link" href="#" target="_blank" rel="noopener"></a>. Then play the finished ROM here.</p>
+      <ol class="steps" id="roll-steps"></ol>
+    </section>
+    <div class="dlg-foot">
+      <p class="msg">The ROM you pick is kept in this browser so <b>Continue</b> brings it straight back.</p>
+      <label class="btn primary" for="rom-input-2">Play ROM file</label>
+      <input type="file" id="rom-input-2" hidden>
+    </div>
+  </form>
+</dialog>
+
+<script>window.EMU_BASE = '{{EMU}}';</script>
+{{EMU_SCRIPTS}}
+<script src="game.js"></script>
+<script src="../common/store.js"></script>
+<script src="../common/tracker.js"></script>
+<script src="../common/app.js"></script>
+</body>
+</html>

@@ -5,6 +5,29 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.0 (2026-10-27)
+
+- **Three more Final Fantasy randomizers** (`ffr/`): **FF1 Randomizer**, **FF4 Free
+  Enterprise** and **FF5 Career Day**, in the Game row (**FF1 ▸ FF4 ▸ FF5 ▸**), the header
+  (**FF1·4·5 ▾**) and every other game's header (**FF ▾**).
+  - Seeds are rolled on each randomizer's own site (a **Roll a seed** button explains the
+    three steps; FF1R and Free Enterprise generate in your browser there), then **Play
+    ROM file** here: the hub's NES for FF1, Snes9x for FF4 and FF5. The ROM is kept in
+    this browser so **Continue** brings it back; saves, states (F5 / F8), autosave.
+  - **Trackers read the running game:** FF1's 17 key items, orbs, ship/airship/bridge/
+    canal, gold and shards; FE's 18 key items (found, and struck through once used),
+    characters found, 35 bosses, chests, the key-item check count, and the seed's
+    objectives with live progress and flags, read from the ROM; Career Day's 20 key
+    items, 22 jobs, the key-item bosses and the event rewards, by area. Anything the
+    game can't tell you, tick by hand.
+  - Same screen rule as FF6: the picture at exactly its size, the tracker gets the rest,
+    on desktop, iPad, tablets and phones.
+  - *Caveat:* built from the randomizers' own source and tracker tools, tested against
+    simulated memory (no real seeds here). FF4's "characters found" and FF5's key
+    items are the two readings I'd check first on a real seed.
+  - Not yet: in-page generators (FF1R's is .NET; Free Enterprise's API needs a key
+    from its author; Career Day's runs on its server) and crowd control.
+
 ## Beta v1.13.0 (2026-10-26)
 
 - **New game: Final Fantasy VI: Worlds Collide** (`ff6wc/`, **FF6 ▸** in the Game row and

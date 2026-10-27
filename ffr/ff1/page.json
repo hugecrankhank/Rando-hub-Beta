@@ -1,0 +1,12 @@
+{
+ "system": "nes",
+ "TITLE": "Final Fantasy Randomizer",
+ "SHORT": "FF1R",
+ "BRAND": "FF1R",
+ "THEME": "#101010",
+ "DESC": "Play Final Fantasy Randomizer (FF1) seeds with a tracker that follows the game: key items, orbs, vehicles.",
+ "BLURB": "Roll a seed at finalfantasyrandomizer.com, play the ROM right here on the hub’s NES, and the tracker follows along: the 17 key items, the four orbs, ship, airship, bridge and canal, gold, and shards in Shard Hunt.",
+ "FINE": "Seeds are made on the randomizer’s own site (it runs in your browser there too).",
+ "MARK": "<svg class=\"mark\" viewBox=\"0 0 64 64\" aria-hidden=\"true\"><path d=\"M32 4l6 18 18 2-14 12 4 18-14-10-14 10 4-18L8 24l18-2z\" fill=\"#f0f0f0\"/><circle cx=\"32\" cy=\"34\" r=\"6\" fill=\"#1a1a1a\"/></svg>",
+ "THEME_CSS": ":root { --bg: #080808; --win: #1c1c2c; --win2: #101018; --line: #d8d8e8; --cell: #181828; --cell-line: #34344c; --gold: #f8e8a0; }"
+}

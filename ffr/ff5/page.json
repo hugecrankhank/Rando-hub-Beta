@@ -1,0 +1,12 @@
+{
+ "system": "snes",
+ "TITLE": "FF5 Career Day",
+ "SHORT": "FF5 CD",
+ "BRAND": "FF5 CD",
+ "THEME": "#0c1a10",
+ "DESC": "Play Final Fantasy V: Career Day seeds with a tracker that follows the game: key items, jobs and every check.",
+ "BLURB": "Roll a seed at bigbridge.studio, play the ROM right here on the hub’s Snes9x, and the tracker follows along: the 20 key items, the 22 jobs, the key-item bosses and the event rewards (crystals, espers, songs, NPCs), by area.",
+ "FINE": "Seeds are made on Career Day’s own site.",
+ "MARK": "<svg class=\"mark\" viewBox=\"0 0 64 64\" aria-hidden=\"true\"><path d=\"M32 4l6 18 18 2-14 12 4 18-14-10-14 10 4-18L8 24l18-2z\" fill=\"#a0e890\"/><circle cx=\"32\" cy=\"34\" r=\"6\" fill=\"#0c1a10\"/></svg>",
+ "THEME_CSS": ":root { --bg: #06120a; --win: #14402a; --win2: #0a2016; --line: #c8f0d0; --cell: #103020; --cell-line: #255a3a; --gold: #a0e890; --green: #ffd060; }"
+}

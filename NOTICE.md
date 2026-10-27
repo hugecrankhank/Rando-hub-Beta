@@ -54,6 +54,7 @@ under their own licenses, and nothing here restricts what those licenses allow:
 | fengari-web (`emotracker/fengari-web.js`) | Benoit Giannangeli, Daurnimator | MIT, `emotracker/LICENSE-fengari-web.txt` |
 | Pyodide | Pyodide contributors | MPL-2.0 |
 | Worlds Collide, the FF6 randomizer (`ff6wc/wc/worldscollide.zip`, its source unchanged, run in the browser) | AtmaTek and the Worlds Collide contributors | MIT, `ff6wc/wc/LICENSE-WorldsCollide.txt` |
+| The FF1, FF4 and FF5 trackers' memory maps (`ffr/*/game.js`): FF1R's RAM symbols (FiendsOfTheElements/FF1Randomizer, GPL-3.0; addresses only), Free Enterprise's tracker block as read by Rando Companion (Kyuuden, GPL-3.0; addresses only), Career Day's flags from its source (caerulius/FFVCareerDay) | FiendsOfTheElements; Kyuuden; Studio Big Bridge | addresses and tables, with thanks |
 | The FF6 tracker's memory map (`ff6wc/js/data.js`): check and boss bits from Worlds Collide's source; counters and character/esper bytes as documented by Stats Companion (FF6WCTools) | AtmaTek; peroquenariz | MIT (Worlds Collide); addresses, with thanks |
 | Press Start 2P font (`fonts/`) | CodeMan38 | SIL Open Font License, `fonts/PressStart2P-OFL.txt` |
 

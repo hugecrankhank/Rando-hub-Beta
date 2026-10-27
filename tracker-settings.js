@@ -130,6 +130,15 @@
       if (window.EJS_emulator && !confirm('Switch to FF6 Worlds Collide?\n\nThe current game will be closed.')) return;
       location.href = window.RandoGames.FF6_URL;
     });
+    var fx = document.createElement('select');
+    fx.id = 'ffr-sel'; fx.title = 'More Final Fantasy randomizers: FF1R, FF4 Free Enterprise, FF5 Career Day (rolled on their own sites, played and tracked here)';
+    fx.innerHTML = '<option value="">FF1·4·5 ▾</option><option value="ff1">FF1 Randomizer</option><option value="ff4">FF4 Free Enterprise</option><option value="ff5">FF5 Career Day</option>';
+    fx.addEventListener('change', function () {
+      var v = fx.value; fx.value = '';
+      if (!v) return;
+      if (window.EJS_emulator && !confirm('Switch games?\n\nThe current game will be closed.')) return;
+      location.href = window.RandoGames.FFR_URLS[v];
+    });
     var pt = document.createElement('button');
     pt.type = 'button'; pt.id = 'patched-btn';
     pt.textContent = 'Patched ▸';
@@ -139,7 +148,7 @@
       location.href = 'patched/';
     });
     var after = $('reroll-btn') || $('rando-split');
-    if (after) { after.parentNode.insertBefore(b, after.nextSibling); b.parentNode.insertBefore(g, b.nextSibling); g.parentNode.insertBefore(ff, g.nextSibling); ff.parentNode.insertBefore(pt, ff.nextSibling); }
+    if (after) { after.parentNode.insertBefore(b, after.nextSibling); b.parentNode.insertBefore(g, b.nextSibling); g.parentNode.insertBefore(ff, g.nextSibling); ff.parentNode.insertBefore(fx, ff.nextSibling); fx.parentNode.insertBefore(pt, fx.nextSibling); }
   }
 
   function init() { build(); z1Button(); }

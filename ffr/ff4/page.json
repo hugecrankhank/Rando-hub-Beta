@@ -1,0 +1,12 @@
+{
+ "system": "snes",
+ "TITLE": "FF4 Free Enterprise",
+ "SHORT": "FF4 FE",
+ "BRAND": "FF4 FE",
+ "THEME": "#0a1428",
+ "DESC": "Play Final Fantasy IV: Free Enterprise seeds with a tracker that follows the game: key items, characters, bosses and the seed’s objectives.",
+ "BLURB": "Roll a seed at ff4fe.com, play the ROM right here on the hub’s Snes9x, and the tracker follows along: the 18 key items (and which are used), characters found, bosses beaten, chests, and the seed’s objectives with live progress, read from the ROM.",
+ "FINE": "Seeds are made on Free Enterprise’s own site (it patches in your browser there).",
+ "MARK": "<svg class=\"mark\" viewBox=\"0 0 64 64\" aria-hidden=\"true\"><path d=\"M32 4l6 18 18 2-14 12 4 18-14-10-14 10 4-18L8 24l18-2z\" fill=\"#78c8ff\"/><circle cx=\"32\" cy=\"34\" r=\"6\" fill=\"#0a1428\"/></svg>",
+ "THEME_CSS": ":root { --bg: #060c1e; --win: #122a66; --win2: #0a1636; --line: #c8d8f8; --cell: #101e4c; --cell-line: #2a4088; --gold: #78c8ff; }"
+}

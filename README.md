@@ -65,8 +65,9 @@ Rando Hub puts everything you need for an ALttP Randomizer run in one page:
 - **Layouts for every screen:** Phone, iPad, Tablet, Desktop (tracker pieces
   pop out into their own windows) and Classic. **Layout → Auto** picks one for you.
 - **More games:** the **Zelda 1** randomizer (Z1R, seeds by ZORA), **The Guardian
-  Legend** randomizer (GLR) and **FF6 Worlds Collide**, each with its own emulator and
-  tracker, a click away. The seed generators are in beta.
+  Legend** randomizer (GLR), **FF6 Worlds Collide**, and trackers for **FF1R**, **FF4
+  Free Enterprise** and **FF5 Career Day** seeds, each with its own emulator, a click
+  away. The seed generators are in beta.
 - **Extras:** Link sprites from the alttpr.com library, MSU-1 music packs, item sound
   packs, Resume last game, a seed history, offline play.
 - **TikTok LIVE crowd control:** viewers' gifts change your game, roll new
@@ -477,10 +478,10 @@ work without touching Hutch's code:
   Mudora, `mudora-stack.js` lays Mudora out the same way around the game.
 - *Classic:* the original layout, with the game and both trackers on one page.
 
-## Other games: Zelda 1, The Guardian Legend and FF6 Worlds Collide
+## Other games: Zelda 1, The Guardian Legend and Final Fantasy I, IV, V and VI
 
-The **Game** row at the top of the Randomizer bar (and **Zelda 1 ▸** / **GLR ▸** / **FF6 ▸** in the
-header) switches games. Each is its own app inside the hub, with its own emulator,
+The **Game** row at the top of the Randomizer bar (and **Zelda 1 ▸** / **GLR ▸** / **FF6 ▸** /
+**FF1·4·5 ▾** in the header) switches games. Each is its own app inside the hub, with its own emulator,
 seed generator, tracker and saves, and buttons back to the others.
 
 - **Zelda 1** (`z1r/`):
@@ -500,6 +501,12 @@ seed generator, tracker and saves, and buttons back to the others.
   plus the seed's objectives and hash. Presets: the Ultros League flags (character
   gating or open world) or any flag string from ff6worldscollide.com. Picked by hand
   only, like GLR.
+- **Final Fantasy Randomizer (FF1), FF4 Free Enterprise, FF5 Career Day** (`ffr/`):
+  seeds are rolled on each randomizer's own site (FF1R and FE generate in your
+  browser there), then played here on the hub's NES or SNES with a tracker that reads
+  the game: FF1's key items, orbs and vehicles; FE's key items (found and used),
+  characters, bosses and the seed's objectives with live progress (read from the ROM);
+  Career Day's key items, jobs and every check by area.
 
 Both seed generators are **beta**: new and not fully vetted yet, so a seed may have
 mistakes; please report anything odd. Both live in this repository (each folder is a
