@@ -16,7 +16,7 @@ export default defineConfig({
     outDir: "dist-lib",
     emptyOutDir: true,
     lib: { entry: path.resolve(__dirname, "./src/mfns-lib-entry.ts"), formats: ["es"], fileName: () => "mfns.js" },
-    minify: false,
+    minify: true,
     sourcemap: false,
     rollupOptions: { output: { inlineDynamicImports: true } },
   },

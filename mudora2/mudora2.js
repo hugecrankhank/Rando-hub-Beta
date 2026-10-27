@@ -2,11 +2,12 @@
  * mudora2.js — Mudora 2.0: Mudora's look, Muffins' logic.
  *
  * Logic and settings: Muffins' Tracker 2.0 (https://github.com/KrisDavie/alttptracker,
- * react_rewrite), unchanged. It runs in a frame on this page
- * (../mfns-tracker/, his own build): you pick settings on his launch page, then
- * his tracker keeps running out of sight while Mudora shows its answers. This
- * file reads his tracker's state (items, dungeons, every location's logic
- * status) and sends clicks back as the same actions his own buttons send.
+ * react_rewrite), unchanged, built as a library (../mfns-tracker/lib/mfns.js,
+ * from tools/mfns-lib/): his logic engine, his Redux store and his sessions,
+ * without his pages. This file keeps his store for the game in progress,
+ * feeds his autotracker the emulator's memory, reads his state (items,
+ * dungeons, every location's logic status) and sends clicks back as the same
+ * actions his own buttons send.
  *
  * Which locations sit in each map square, and where his squares are, come
  * from his data (../mfns-tracker/data.json, made from his source by
@@ -34,53 +35,66 @@
   var COLOR = { available: 'green', possible: 'yellow', ool: 'purple', information: 'orange', unavailable: 'red' };
   var ORDER = { unavailable: 0, information: 1, possible: 2, ool: 3, available: 4 };
   var DATA = null, store = null, state = null, launched = false;
-  var frame = document.getElementById('mf-frame'), over = document.getElementById('mf');
   var SKEY = 'rhb-mudora2-session';
+  var LIB = null;              // his tracker as a library (../mfns-tracker/lib/mfns.js)
+  var libReady = import('../mfns-tracker/lib/mfns.js').then(function (m) { LIB = m; return m; })
+    .catch(function (e) { M.toast('Couldn’t load Muffins’ logic: ' + (e && e.message || e)); throw e; });
 
   fetch('../mfns-tracker/data.json').then(function (r) { return r.json(); }).then(function (d) { DATA = d; read(); })
     .catch(function () { M.toast('Couldn’t load Muffins’ tracker data.'); });
 
-  // ── his tracker, in the frame ─────────────────────────────────────────────
-  var curId = null, unsub = null;
+  // ── his tracker, as a library ─────────────────────────────────────────────
+  // His store for the game in progress: his reducers, his logic (startLogic:
+  // his LogicProvider), his sessions in his IndexedDB, so a game started in
+  // his own tracker carries on here. No page of his runs any more.
+  var curId = null, unsub = null, stopLogic = null;
   function drop() {
     if (unsub) { try { unsub(); } catch (e) {} }
-    unsub = null; store = null; state = null; M.linked = false; M.emit('link');
-  }
-  function open(route) {
-    drop(); launched = false; curId = null;
-    frame.src = '../mfns-tracker/index.html?route=' + encodeURIComponent(route);
+    if (stopLogic) { try { stopLogic(); } catch (e) {} }
+    unsub = null; stopLogic = null; store = null; state = null; launched = false; curId = null;
     M.linked = false; M.emit('link');
   }
-  function show(on) { over.classList.toggle('show', !!on); document.body.classList.toggle('mf-open', !!on); }
+  var opening = 0;
+  function openSession(id) {
+    var my = ++opening;
+    drop();
+    launched = true; curId = id;
+    try { localStorage.setItem(SKEY, id); } catch (e) {}
+    M.emit('link');
+    return libReady.then(function (L) {
+      var st = L.createTrackerStore(id);
+      return st.ready.then(function () {
+        if (my !== opening) return null;          // another game was opened meanwhile
+        store = st;
+        if (!store.getState().settings.autotracking) action('trackerSettings/setSettings', { autotracking: true });
+        unsub = store.subscribe(soon);
+        stopLogic = L.startLogic(store);
+        L.sessions.touchSession(id).catch(function () {});
+        M.linked = true; M.emit('link'); read();
+        return store;
+      });
+    }).catch(function (e) { M.toast('Couldn’t open the game: ' + (e && e.message || e)); drop(); });
+  }
+  // a new game: his launch flow (defaults + his launcher prefs + a preset, or
+  // settings given outright), then open it
+  function startGame(opts) {
+    return libReady.then(function (L) {
+      return L.newSession(opts || {}).then(function (id) { return openSession(id); });
+    });
+  }
+  function show() {}
   Mudora2.show = show;
-  Mudora2.newGame = function () { open('/'); show(true); };
-  // a new game straight from one of his presets: his launch page, his preset
-  // button, his Launch (so the preset's entrances and checks come with it)
+  Mudora2.newGame = function () { Mudora2.settings(true); M.toast('Pick a preset to start a new game (the settings below change the game in progress).'); };
+  // a new game straight from one of his presets (name or id)
   Mudora2.startPreset = function (name) {
-    open('/'); show(true);
-    var t0 = Date.now(), picked = false;
-    var iv = setInterval(function () {
-      var d = null;
-      try { d = frame.contentDocument; } catch (e) {}
-      if (Date.now() - t0 > 20000) { clearInterval(iv); M.toast('Couldn’t pick the preset: pick it on Muffins’ page, then Launch Tracker.'); return; }
-      if (!d) return;
-      var btns = Array.prototype.slice.call(d.querySelectorAll('button'));
-      if (!picked) {
-        var b = btns.filter(function (x) { return x.textContent.trim() === name; })[0];
-        // not one of his buttons: his "Browse all presets…" list
-        if (!b) b = btns.filter(function (x) { var s = x.querySelector('span'); return s && s.textContent.trim() === name && x.closest('.max-h-64'); })[0];
-        if (!b) { var br = btns.filter(function (x) { return /Browse all presets/.test(x.textContent); })[0]; if (br && !d.querySelector('.max-h-64')) br.click(); return; }
-        b.click(); picked = true;
-        return;
-      }
-      var go = btns.filter(function (x) { return /Launch Tracker/.test(x.textContent); })[0];
-      if (go) { clearInterval(iv); go.click(); }
-    }, 300);
+    var all = (SET && SET.allPresets) || [], p = all.filter(function (x) { return x.id === name || x.name === name; })[0];
+    if (!p) { M.toast('No preset called “' + name + '”.'); return; }
+    startGame({ presetId: p.id }).then(function (st) { if (st) M.toast('New game: Muffins’ “' + p.name + '” preset.'); });
   };
   // ── a new seed rolled in Rando Hub: a new game with its settings ──────────
   // The hub writes the seed's settings to rhb-seed-tracker when it starts one
-  // (index.html, playRom). Each seed is set up once: a new game from his launch
-  // page, then his own setSettings with everything the seed says.
+  // (index.html, playRom). Each seed is set up once: a new game with
+  // everything the seed says.
   var SEED_KEY = 'rhb-seed-tracker', DONE_KEY = 'rhb-mudora2-seed';
   function norm(v) { return String(v == null ? '' : v).toLowerCase().replace(/[\s_-]+/g, ''); }
   function crystals(v, d) { v = norm(v); return /^[0-7]$/.test(v) ? v : /random/.test(v) ? 'random' : d; }
@@ -142,25 +156,9 @@
     seedJob = r.at;
     var patch = Mudora2.fromSeed(r.flags);
     try { localStorage.setItem(DONE_KEY, String(r.at)); } catch (e) {}
-    open('/');
-    var t0 = Date.now(), clicked = false;
-    var iv = setInterval(function () {
-      if (Date.now() - t0 > 30000) { clearInterval(iv); M.toast('Couldn’t start a new game for this seed: press New game.'); show(true); return; }
-      var d = null, w = null;
-      try { d = frame.contentDocument; w = frame.contentWindow; } catch (e) {}
-      if (!d || !w) return;
-      var path = ''; try { path = w.location.pathname; } catch (e) {}
-      if (path !== '/tracker') {
-        var go = Array.prototype.slice.call(d.querySelectorAll('button')).filter(function (x) { return /Launch Tracker/.test(x.textContent); })[0];
-        if (go && !go.dataset.rh) { go.dataset.rh = '1'; go.click(); clicked = true; }
-        return;
-      }
-      // (the old game's page can still be in the frame for a moment: wait for the new one)
-      if (!clicked || !store) return;
-      clearInterval(iv);
-      action('trackerSettings/setSettings', patch);
-      M.toast('New seed: Muffins’ settings set to match it' + (r.name ? ' (' + String(r.name).replace(/\.sfc$/i, '') + ')' : '') + '. ⚙ Settings to check or change.');
-    }, 300);
+    startGame({ settings: patch, name: r.name ? String(r.name).replace(/\.sfc$/i, '') : undefined }).then(function (st) {
+      if (st) M.toast('New seed: Muffins’ settings set to match it' + (r.name ? ' (' + String(r.name).replace(/\.sfc$/i, '') + ')' : '') + '. ⚙ Settings to check or change.');
+    });
     return true;
   };
   window.addEventListener('storage', function (e) { if (e.key === SEED_KEY) Mudora2.matchSeed(); });
@@ -168,79 +166,40 @@
   var saved = null;
   try { saved = localStorage.getItem(SKEY); } catch (e) {}
   if (Mudora2.matchSeed()) {}
-  else if (saved) open('/tracker?id=' + saved); else { open('/'); show(true); }
-  document.getElementById('b-mf').addEventListener('click', function () { show(!over.classList.contains('show')); });
-  document.getElementById('b-new').addEventListener('click', function () {
-    if (confirm('Start a new game? Muffins’ launch page opens to pick the settings (your current game stays in his list of sessions).')) Mudora2.newGame();
-  });
-  document.getElementById('mf-close').addEventListener('click', function () { show(false); });
+  else if (saved) openSession(saved);
+  else startGame({ presetId: 'open' }).then(function (st) { if (st) M.toast('New game with Muffins’ Open preset. ⚙ Settings for another preset or to change settings.'); });
+  var bmf = document.getElementById('b-mf'); if (bmf) bmf.remove();
+  document.getElementById('b-new').addEventListener('click', function () { Mudora2.newGame(); });
+  var mfEl = document.getElementById('mf'); if (mfEl) mfEl.remove();
 
   function action(type, payload) {
-    var w = frame.contentWindow;
-    // made in his page's own world, so his code sees an ordinary object
-    var a = w.JSON.parse(JSON.stringify({ type: type, payload: payload }));
-    store.dispatch(a);
+    if (!store) return;
+    store.dispatch({ type: type, payload: payload });
   }
 
-  setInterval(function () {
-    var w = null;
-    try { w = frame.contentWindow; } catch (e) {}
-    if (!w) return;
-    var path = '';
-    try { path = w.location.pathname; } catch (e) { return; }
-    // Follow whichever of his pages is in the frame now. Starting a new game
-    // (a preset, New game) loads his launch page and then a new tracker page,
-    // each with its own store; holding on to the old page's store would show a
-    // game that no longer updates (autotracking looked dead). So the store is
-    // checked on every tick, not just found once.
-    if (path !== '/tracker') {
-      if (launched || store) { launched = false; drop(); }
-      return;
-    }
-    var id = null;
-    try { id = new URLSearchParams(w.location.search).get('id'); } catch (e) {}
-    if (!id) return;
-    if (!launched || id !== curId) { launched = true; curId = id; try { localStorage.setItem(SKEY, id); } catch (e) {} show(false); }
-    var s = null;
-    try { s = w.__rhStore && w.__rhStore(); } catch (e) {}
-    if (s && s !== store) {
-      drop();
-      store = s; unsub = store.subscribe(soon); M.linked = true; M.emit('link'); read();
-    } else if (!s && store) {
-      drop();
-    }
-  }, 300);
-  // autotracking watchdog: while the game is being played (overworld or inside),
-  // his tracker reads it a couple of times a second. If those reads stop for a
-  // while, his tracker is reloaded on the same game (nothing is lost).
-  // It also watches that what he reads gets used (his results keep coming): if
-  // he reads but nothing comes of it, that's logged (⚙ Settings → Autotracking
-  // details) and his tracker is reloaded too.
-  var lastReads = -1, quietSince = Date.now(), lastKick = 0, lastApplied = -1, idleSince = Date.now(), kicks = 0;
+  // ── autotracking: his processing, the emulator's memory ───────────────────
+  // His MEMORY_RANGES are read from the built-in emulator (../bridge/sni-bridge.js,
+  // FxPak Pro addresses) twice a second and handed to his AutotrackerProvider's
+  // processing step (createAutotracker in the library): nothing between the
+  // game and his code but a copy of the bytes.
+  var tracker = null, trackerFor = null, lastPoll = { at: 0, mode: -1, rom: '', ok: false, n: 0 };
   Mudora2.diag = [];
   function note(msg) { Mudora2.diag.push(new Date().toLocaleTimeString() + ' ' + msg); if (Mudora2.diag.length > 30) Mudora2.diag.shift(); try { console.warn('[mudora2] ' + msg); } catch (e) {} }
   setInterval(function () {
-    if (!launched || !store || !state || !state.settings.autotracking) { quietSince = idleSince = Date.now(); return; }
-    var w = null, n = 0, ap = 0;
-    try { w = frame.contentWindow; n = w.__rhShimReads || 0; ap = w.__rhShimSram || 0; } catch (e) { return; }
-    var b = M.bridge && M.bridge(), mode = -1;
-    try { mode = b ? b.read(0xF50010, 1)[0] : -1; } catch (e) {}
-    var playing = mode === 0x07 || mode === 0x09;
-    if (n !== lastReads || !playing) { lastReads = n; quietSince = Date.now(); }
-    if (ap !== lastApplied || !playing) { lastApplied = ap; idleSince = Date.now(); }
-    var stalled = Date.now() - quietSince > 8000, unused = Date.now() - idleSince > 10000;
-    if ((stalled || unused) && Date.now() - lastKick > 30000) {
-      var lr = (w && w.__rhLastReads) || {}, gm = lr.f50010, rn = lr['7fc0'];
-      note((stalled ? 'his reads stopped' : 'his reads aren’t being used') + ' (game mode ' + mode + ', he saw ' + (gm ? gm.v[0] + (gm.ready ? '' : ' [emulator not ready]') : '–') +
-        ', ROM ' + (rn ? String.fromCharCode.apply(null, rn.v.filter(function (c) { return c >= 32 && c < 127; })) : '–') + ', status ' + ((state.autotracker || {}).status || '–') +
-        ((w && w.__rhErrors && w.__rhErrors.length) ? ', last error: ' + w.__rhErrors[w.__rhErrors.length - 1].msg : '') + ')');
-      lastKick = Date.now(); quietSince = idleSince = Date.now(); kicks++;
-      var id = null;
-      try { id = new URLSearchParams(w.location.search).get('id'); } catch (e) {}
-      try { id = id || localStorage.getItem(SKEY); } catch (e) {}
-      if (id) { M.toast(kicks > 2 ? 'Autotracking keeps stopping: see ⚙ Settings → Autotracking details.' : 'Reconnecting autotracking…'); open('/tracker?id=' + id); }
-    }
-  }, 2000);
+    if (!store || !LIB || !state) return;
+    var b = M.bridge && M.bridge();
+    if (!b) { if (lastPoll.ok) { lastPoll.ok = false; action('autotracker/setConnected', { selectedDevice: null, isConnected: false }); } return; }
+    if (!state.settings.autotracking) return;
+    if (trackerFor !== store) { tracker = LIB.createAutotracker(store); trackerFor = store; }
+    var data = {}, R = LIB.data.MEMORY_RANGES, ok = true;
+    try {
+      Object.keys(R).forEach(function (k) { data[k] = b.read(R[k].start, R[k].size); });
+    } catch (e) { ok = false; note('read failed: ' + (e && e.message || e)); }
+    if (!ok) return;
+    lastPoll.at = Date.now(); lastPoll.mode = data.gamemode ? data.gamemode[0] : -1; lastPoll.n++;
+    if (!lastPoll.ok) { lastPoll.ok = true; action('autotracker/setConnected', { selectedDevice: 'Rando Hub emulator', isConnected: true }); }
+    try { lastPoll.rom = tracker.process(data) || ''; } catch (e) { note('his processing failed: ' + (e && e.message || e)); }
+  }, 500);
   var t = 0;
   function soon() { if (!t) t = setTimeout(function () { t = 0; read(); }, 60); }
 
@@ -427,7 +386,7 @@
   }
 
   // ── entrances: his clicks, his entrance menu, and the emulator's finds ─────
-  var entInfo = {}, menuOpen = false, told = false;
+  var entInfo = {}, told = false;
   M.entClick = function (n) {
     if (!ready()) return;
     var x = entInfo[n] || {}, LC = state.checks.locationsChecks;
@@ -473,17 +432,7 @@
   M.entPending = function () { return pending; };
   M.entCancel = function () { pending = null; M.emit('checks'); };
   M.entConnectTo = function (to) { var n = pending; pending = null; if (n) M.entLabel(n, to); M.emit('checks'); };
-  M.entMoreLabel = 'Muffins’ menu'; M.entMoreTitle = 'His own entrance menu: connectors, notes, scouting';
-  M.entMore = function (n) {
-    if (!ready()) return;
-    action('trackerState/setSelectedEntrance', [n, true]);
-    menuOpen = true; show(true);
-  };
-  setInterval(function () {
-    if (!menuOpen || !store) return;
-    var t = store.getState().trackerState || {};
-    if ((t.modalOpen === 'none' || !t.modalOpen) && (t.currentMode === 'none' || !t.currentMode)) { menuOpen = false; show(false); }
-  }, 250);
+  // (his own entrance menu with connectors, notes and scouting needs his pages: not here)
   // the emulator saw where a door led (../mudora/entrack.js): link it, as his menu would
   M.on(function (w) {
     if (!w || !w.entrance || !store || !state) return;
@@ -545,7 +494,7 @@
   };
 
   // ── clicks, as his own buttons send them ──────────────────────────────────
-  function ready() { if (store) return true; M.toast(launched ? 'Muffins’ tracker is still starting…' : 'Pick your settings in Muffins’ tracker first.'); if (!launched) show(true); return false; }
+  function ready() { if (store) return true; M.toast(launched ? 'Muffins’ logic is still starting…' : 'Start a game first (New game).'); if (!launched) Mudora2.settings(true); return false; }
   M.toggleCheck = function (id, on) {
     if (!ready()) return;
     var LC = state.checks.locationsChecks, up = {};
@@ -644,9 +593,9 @@
     var mine = Object.keys(patch).filter(function (k) { return keep.indexOf(k) >= 0; });
     if (mine.length) {
       try {
-        var ls = frame.contentWindow.localStorage, prefs = JSON.parse(ls.getItem('muffins_launcher_prefs') || '{}');
+        var prefs = JSON.parse(localStorage.getItem('muffins_launcher_prefs') || '{}');
         mine.forEach(function (k) { prefs[k] = patch[k]; });
-        ls.setItem('muffins_launcher_prefs', JSON.stringify(prefs));
+        localStorage.setItem('muffins_launcher_prefs', JSON.stringify(prefs));
       } catch (e) {}
     }
   }
@@ -664,7 +613,7 @@
       sr.appendChild(q); sr.appendChild(cnt);
       var grouped = {}, all = (SET.allPresets || []).filter(function (p) { return p.id !== 'mystery'; });
       SET.presets.forEach(function (g) { g.presets.forEach(function (p) { grouped[p.id] = 1; }); });
-      function opt(p, parent) { var o = el('option', null, p.name + (p.desc ? ' — ' + p.desc : '')); o.value = p.name; parent.appendChild(o); }
+      function opt(p, parent) { var o = el('option', null, p.name + (p.desc ? ' — ' + p.desc : '')); o.value = p.id; parent.appendChild(o); }
       function fill() {
         var t = q.value.trim().toLowerCase(), was = sel.value, n = 0;
         sel.textContent = '';
@@ -693,30 +642,39 @@
       go.type = 'button';
       go.addEventListener('click', function () {
         if (!sel.value) return;
-        if (!confirm('Start a new game with Muffins’ “' + sel.value + '” preset? (Your current game stays in his list of sessions.)')) return;
+        if (!confirm('Start a new game with Muffins’ “' + sel.options[sel.selectedIndex].textContent.split(' — ')[0] + '” preset? (Your current game stays in his list of sessions.)')) return;
         Mudora2.settings(false); Mudora2.startPreset(sel.value);
       });
       pr.appendChild(sel); pr.appendChild(go); setBody.appendChild(pr);
       setBody.appendChild(el('div', 's-note', 'Presets set everything for a mode at the start, including known entrances and checks it leaves out (OnlyADKD is “ADKDF”). The settings below change the game in progress.'));
+      // earlier games (his sessions, shared with his own tracker)
+      var ss = el('div', 's-row'), sesSel = el('select'), back = el('button', null, 'Open');
+      sesSel.style.maxWidth = '260px'; sesSel.style.flex = '1'; back.type = 'button';
+      sesSel.appendChild(el('option', null, 'Earlier games…')).value = '';
+      if (LIB) LIB.sessions.getSessions().then(function (list) {
+        list.forEach(function (x) { if (x.id === curId) return; var o = el('option', null, (x.name || x.id) + ' · ' + new Date(x.lastAccessedAt || x.createdAt).toLocaleString()); o.value = x.id; sesSel.appendChild(o); });
+      }).catch(function () {});
+      back.addEventListener('click', function () { if (sesSel.value) { Mudora2.settings(false); openSession(sesSel.value); } });
+      ss.appendChild(sesSel); ss.appendChild(back); setBody.appendChild(ss);
     }
     // what autotracking is doing, for a screenshot when it doesn't work
     var dt = el('details'), sm = el('summary', null, 'Autotracking details'); dt.appendChild(sm);
     var pre = el('pre'); pre.style.cssText = 'white-space:pre-wrap;font-size:11px;color:var(--dim);margin:4px 0;';
     try {
-      var fw = frame.contentWindow, at = state && state.autotracker || {}, lr = fw.__rhLastReads || {};
+      var at = state && state.autotracker || {};
       var b2 = M.bridge && M.bridge(), md = -1; try { md = b2 ? b2.read(0xF50010, 1)[0] : -1; } catch (e) {}
       pre.textContent = [
-        'Autotracking: ' + (state ? (state.settings.autotracking ? 'on' : 'off') : '–') + ' · ' + (at.status || '–') + ' · ' + (at.connectionType || '') + ' ' + (at.host || '') + ':' + (at.port || ''),
-        'Game mode now: ' + md + ' · he last saw: ' + (lr.f50010 ? lr.f50010.v[0] + (lr.f50010.ready ? '' : ' (emulator not ready)') : '–'),
-        'ROM name he read: ' + (lr['7fc0'] ? String.fromCharCode.apply(null, lr['7fc0'].v.filter(function (c) { return c >= 32 && c < 127; })) : '–') + ' · stored: ' + (at.romName || '–').replace(/[^\x20-\x7e]/g, ''),
-        'Reads: ' + (fw.__rhShimReads || 0) + ' · save-data reads: ' + (fw.__rhShimSram || 0),
-        'Errors: ' + ((fw.__rhErrors || []).slice(-5).map(function (x) { return x.msg; }).join(' | ') || 'none'),
+        'Autotracking: ' + (state ? (state.settings.autotracking ? 'on' : 'off') : '–') + ' · ' + (at.isConnected ? 'reading the emulator' : 'no game running') +
+          (lastPoll.at ? ' · last read ' + Math.round((Date.now() - lastPoll.at) / 1000) + ' s ago (' + lastPoll.n + ' reads)' : ''),
+        'Game mode now: ' + md + ' · in the last read: ' + lastPoll.mode,
+        'ROM name read: ' + String(lastPoll.rom || '').replace(/[^\x20-\x7e]/g, '') + ' · stored: ' + (at.romName || '–').replace(/[^\x20-\x7e]/g, ''),
+        'His logic: ' + (LIB ? 'library ' + (LIB.SOURCE_COMMIT || '') : 'loading…') + ' · game ' + (curId || '–'),
         'Log: ' + (Mudora2.diag.join(' | ') || 'none'),
       ].join('\n');
     } catch (e) { pre.textContent = 'Not available yet.'; }
     dt.appendChild(pre); setBody.appendChild(dt);
     setBody.appendChild(el('h4', null, 'This game'));
-    if (!store || !state) { setBody.appendChild(el('div', 's-note', launched ? 'Muffins’ tracker is still starting…' : 'Start a game first: pick a preset above, or New game.')); return; }
+    if (!store || !state) { setBody.appendChild(el('div', 's-note', launched ? 'Muffins’ logic is still starting…' : 'Start a game first: pick a preset above.')); return; }
     var S = state.settings, n = 0;
     setBody.appendChild(el('div', 's-note', 'Muffins’ settings for this game. Changes apply right away, mid-game too, and stay with this game.'));
     function row(id, label, desc, input) {
@@ -769,20 +727,20 @@
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') Mudora2.settings(false); });
 
   M.linkText = function () {
-    if (!launched) return 'Pick settings in Muffins’ tracker';
-    if (!store) return 'Starting Muffins’ tracker…';
+    if (!launched) return 'No game: pick a preset (New game)';
+    if (!store) return 'Starting Muffins’ logic…';
     var at = state && state.autotracker, on = state && state.settings.autotracking;
     var auto = !on ? ' · autotracking off (⚙ Settings)' : at && at.isConnected ? ' · autotracking' : ' · autotracking: waiting for the game…';
     return (M.iconState === 'drawing' ? 'Drawing items from the game…' : 'Live') + auto;
   };
   M.helpText = 'Mudora 2.0 — Mudora’s look with Muffins’ logic.\n\n' +
-    'Logic and settings: Muffins’ Tracker 2.0, unchanged. Pick your settings on his launch page when you start (New game); his tracker then runs out of sight and Mudora shows its answers. ⚙ Settings changes them any time, mid-game too. Pictures, maps and where each square sits come from your game itself.\n\n' +
+    'Logic and settings: Muffins’ Tracker 2.0, unchanged, running here as a library (no page of his). New game starts one from his presets; ⚙ Settings changes anything any time, mid-game too. Pictures, maps and where each square sits come from your game itself.\n\n' +
     'Items: click to go up, right click (hold on a phone) to go back. Right click Bombos, Ether or Quake to mark which of Misery Mire / Turtle Rock it opens.\n' +
     'Map: click (tap) a square to mark everything in it done; click again to open it again. Right click (hold) a square to see what’s inside, tick off places one by one, or mark which item is there. A darker green square has some places available and some not. ⟲ on a map, or Reset maps at the top, puts the maps back as they started.\n' +
     'Dungeons: click a dungeon to open its map. Chests, small keys, big key, map and compass: click to count, right click to undo. Prize: click when you have it, right click to change which it is.\n' +
     'This dungeon: the card under the list shows the dungeon Link is in: its boss (click / right click to pick another, for boss shuffle), its prize (click / right click: which it is), keys, and a chest for every check, open when found. It’s blank outside dungeons. List → This dungeon only shows just the card in the panel; ⧉ Dungeon card puts it in a small window of its own (for stream). Ready first puts the dungeons you can clear on top, crystals first.\n' +
     'Icons: Game pixels (the game’s own pictures), Smooth (the same pictures, enlarged smoothly), or Custom pictures: PNG files named after the item (hookshot.png, crystal_red.png…) take the place of the game’s, one by one.\n' +
     'Follow into dungeons: open a dungeon’s map when Link goes in (off: the world map stays up). The game’s own map (X): a button by each dungeon marks its prize here, click for the next, right click for the one before (⚙ Settings in Rando Hub turns it off).\n\n' +
-    'Entrance shuffle: every shuffled door shows on the map. Walk through one and Rando Hub fills in where it leads, from the game itself. Click a door to mark it done; right click (hold) for Muffins’ entrance menu, to set where it leads by hand, make a connector or add a note.\n\n' +
+    'Entrance shuffle: every shuffled door shows on the map. Walk through one and Rando Hub fills in where it leads, from the game itself. Click a door to mark it done; right click (hold) to set where it leads by hand.\n\n' +
     'Problems with the logic: Muffins (his Discord). Problems with how it looks here: Rando Hub.';
 })();

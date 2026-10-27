@@ -198,7 +198,7 @@
     moldorm: '../tracker/boss/boss3.png', helmasaurking: '../tracker/boss/boss4.png', arrghus: '../tracker/boss/boss5.png',
     mothula: '../tracker/boss/boss6.png', blind: '../tracker/boss/boss7.png', kholdstare: '../tracker/boss/boss8.png',
     vitreous: '../tracker/boss/boss9.png', trinexx: '../tracker/boss/boss10.png', agahnim: '../tracker/map/agahnim0.png',
-    agahnim2: '../tracker/map/agahnim0.png', bnc: '../mfns-tracker/app/dungeons/ballnchain.png' };
+    agahnim2: '../tracker/map/agahnim0.png', bnc: '../mudora/img/ballnchain.png' };
   var BOSS_NAME = { unknown: 'Boss not known yet', armos: 'Armos Knights', lanmolas: 'Lanmolas', moldorm: 'Moldorm', helmasaurking: 'Helmasaur King',
     arrghus: 'Arrghus', mothula: 'Mothula', blind: 'Blind', kholdstare: 'Kholdstare', vitreous: 'Vitreous', trinexx: 'Trinexx',
     agahnim: 'Agahnim', agahnim2: 'Agahnim 2', bnc: 'Ball and Chain Trooper' };
@@ -274,7 +274,7 @@
     var openN = Math.max(0, show - Math.min(left, show));
     for (var i = 0; i < show; i++) {
       var c = el('img', 'ch' + (i < openN ? ' open' : '')); c.alt = ''; c.draggable = false;
-      c.src = abs(i < openN ? '../mfns-tracker/app/dungeons/chest0.png' : '../mfns-tracker/app/dungeons/smallchest.png');
+      c.src = abs(i < openN ? '../mudora/img/chest0.png' : '../mudora/img/smallchest.png');
       here.chests.appendChild(c);
     }
     here.chests.appendChild(el('span', 'hl' + (left ? '' : ' none'), left ? left + ' left' + (max > 16 ? ' of ' + max : '') : 'all done'));

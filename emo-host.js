@@ -31,7 +31,6 @@
   function isMudora2() { return !!(window.UnifiedTracker && window.UnifiedTracker.mudora2 && window.UnifiedTracker.mudora2()); }
   function isMfns() { return !!(window.UnifiedTracker && window.UnifiedTracker.mfns && window.UnifiedTracker.mfns()); }
   function url(v) {
-    if (isMfns()) return 'mfns-tracker/index.html';
     if (isMudora2()) return 'mudora2/index.html' + (phoneTab ? '?phone=' + phoneTab : '');
     if (isMudora()) return 'mudora/index.html' + (phoneTab ? '?phone=' + phoneTab : '');
     return 'mudora2/index.html' + (phoneTab ? '?phone=' + phoneTab : '');   // (EmoTracker's page is gone: Mudora 2.0 is the frame's default)

@@ -4,14 +4,16 @@ name: Build Muffins' logic library
 # (tools/mfns-lib/entry.ts + vite.lib.config.ts). The result,
 # mfns-tracker/lib/mfns.js, is committed back to the branch this ran on.
 #
-# Pinned to the commit in mfns-tracker/app/SOURCE_COMMIT (or the input).
+# Pinned to the commit in mfns-tracker/lib/SOURCE_COMMIT (or the input). His
+# map squares (data.json) and settings form (settings.json) are made from the
+# same commit (tools/mfns-extract.ts, tools/mfns-settings.py).
 # "Check for a newer commit" runs weekly and opens an issue when his branch
 # has moved, so his logic updates are taken on purpose, one diff at a time.
 on:
   workflow_dispatch:
     inputs:
       commit:
-        description: "His commit (default: mfns-tracker/app/SOURCE_COMMIT)"
+        description: "His commit (default: mfns-tracker/lib/SOURCE_COMMIT)"
         required: false
   push:
     branches: [main, mfns-build]
@@ -30,7 +32,7 @@ jobs:
       - name: Fetch his tracker
         run: |
           COMMIT="${{ github.event.inputs.commit }}"
-          [ -n "$COMMIT" ] || COMMIT=$(cat mfns-tracker/app/SOURCE_COMMIT 2>/dev/null || echo react_rewrite)
+          [ -n "$COMMIT" ] || COMMIT=$(cat mfns-tracker/lib/SOURCE_COMMIT 2>/dev/null || echo react_rewrite)
           git clone -q -b react_rewrite https://github.com/KrisDavie/alttptracker.git src-mfns
           cd src-mfns && git checkout -q "$COMMIT" && git log -1 --format='%H %ad %s' --date=iso
       - uses: oven-sh/setup-bun@v2
@@ -43,15 +45,21 @@ jobs:
           bunx vite build --config vite.lib.config.ts
           ls -la dist-lib
           git rev-parse HEAD > dist-lib/SOURCE_COMMIT
+          # Mudora 2.0: his map squares and dungeon lists, and his settings form, from the same commit
+          cp ../tools/mfns-extract.ts . && bun run mfns-extract.ts > ../mfns-data.json && rm mfns-extract.ts
+          python3 ../tools/mfns-settings.py . > ../mfns-settings.json
       - name: Commit the library
         run: |
           mkdir -p mfns-tracker/lib
           cp src-mfns/dist-lib/mfns.js mfns-tracker/lib/mfns.js
           cp src-mfns/dist-lib/SOURCE_COMMIT mfns-tracker/lib/SOURCE_COMMIT
           cp src-mfns/LICENSE mfns-tracker/lib/LICENSE
+          cp src-mfns/LICENSE mfns-tracker/LICENSE
+          mv mfns-data.json mfns-tracker/data.json
+          mv mfns-settings.json mfns-tracker/settings.json
           rm -rf src-mfns
           git config user.name "github-actions" && git config user.email "github-actions@users.noreply.github.com"
-          git add mfns-tracker/lib
+          git add mfns-tracker
           git diff --cached --quiet || git commit -qm "Muffins' logic library: build $(cut -c1-7 mfns-tracker/lib/SOURCE_COMMIT) [skip ci]"
           git push -q origin HEAD:${GITHUB_REF_NAME}
       - uses: actions/upload-artifact@v4
@@ -67,10 +75,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          HAVE=$(cat mfns-tracker/lib/SOURCE_COMMIT 2>/dev/null || cat mfns-tracker/app/SOURCE_COMMIT)
+          HAVE=$(cat mfns-tracker/lib/SOURCE_COMMIT)
           LATEST=$(git ls-remote https://github.com/KrisDavie/alttptracker.git refs/heads/react_rewrite | cut -f1)
           echo "have $HAVE, latest $LATEST"
           [ "$HAVE" = "$LATEST" ] && exit 0
           T="Muffins' tracker moved: $(echo $LATEST | cut -c1-7)"
           gh issue list --search "$T in:title" --state open --json number --jq 'length' | grep -q '^0$' || exit 0
-          gh issue create --title "$T" --body "His react_rewrite branch is at $LATEST; the library is built from $HAVE. Compare: https://github.com/KrisDavie/alttptracker/compare/$HAVE...$LATEST — then run the 'Build Muffins' logic library' workflow with that commit, test Mudora 2.0, and update mfns-tracker/app/SOURCE_COMMIT."
+          gh issue create --title "$T" --body "His react_rewrite branch is at $LATEST; the library is built from $HAVE. Compare: https://github.com/KrisDavie/alttptracker/compare/$HAVE...$LATEST — then run the 'Build Muffins' logic library' workflow with that commit, and test Mudora 2.0."
