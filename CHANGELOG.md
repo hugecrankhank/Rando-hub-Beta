@@ -5,6 +5,25 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.4 (2026-10-27)
+
+- **Mudora 2.0 runs Muffins' logic as a library.** His tracker used to run whole, out of
+  sight, in a hidden frame; now his source is built as a library (`mfns-tracker/lib/`,
+  his logic engine, store, data and sessions, no React, no pages) and Mudora 2.0 drives it
+  directly. What you see is the same; what changed:
+  - **New game** starts from one of his presets right in ⚙ Settings (his launch page is
+    gone), a seed rolled in the hub starts a game with its settings at once, and
+    **Earlier games** lists his sessions to go back to. Games already started carry on
+    (same sessions, same storage, shared with his own tracker).
+  - **Autotracking** is his processing fed the emulator's memory directly, twice a
+    second: no QUsb2snes shim, no reconnecting watchdog.
+  - 33 MB → 2.8 MB for his part of the app; it loads in well under a second.
+  - His entrance menu (connectors, notes, scouting) needed his pages, so it's not
+    offered; setting where a door leads, and the emulator filling it in, work as before.
+  - His logic stays his: the library is built from his commit unchanged by
+    `mfns-lib.yml`, which also checks weekly whether his branch moved and opens an issue
+    with the diff to take.
+
 ## Beta v1.14.3 (2026-10-27)
 
 - **Games shown starts with Zelda 3 and Zelda 1 only.** The Guardian Legend, the Final

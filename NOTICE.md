@@ -39,7 +39,7 @@ under their own licenses, and nothing here restricts what those licenses allow:
 | Part | Author | License |
 | --- | --- | --- |
 | `tracker/` (item tracker and map) | Hutch (hutchch) | MIT, `tracker/LICENSE` |
-| Muffins' Tracker 2.0 (`mfns-tracker/app/`, his build with the unused overlay images and sprite previews left out; it runs out of sight as Mudora 2.0's logic) | Muffins / Kristofer Davie (MFNS) | MIT, `mfns-tracker/LICENSE` |
+| Muffins' Tracker 2.0 as a library (`mfns-tracker/lib/mfns.js`: his logic, store, data and sessions, built unchanged from his source with `tools/mfns-lib/`; three of his pictures in `mudora/img/`) | Muffins / Kristofer Davie (MFNS) | MIT, `mfns-tracker/LICENSE` |
 | Mudora's logic (`mudora/`, read from `tracker/` as it runs) | Hutch (hutchch) | MIT, `tracker/LICENSE` |
 | Entrance names and table layout (`mudora/entrances.json`, made by `tools/entrances.py` from the game ROM and her generator's entrance tables) | Kara, LLCoolDave, Aerinon, codemann8 (alttpr-python) | MIT, `randomizer/kara/alttpr-python/LICENSE` |
 | Mudora 2.0's logic and square list (`mudora2/`, read from `mfns-tracker/` as it runs; `mfns-tracker/data.json` extracted from his source) | Muffins / Kristofer Davie (MFNS) | MIT, `mfns-tracker/LICENSE` |

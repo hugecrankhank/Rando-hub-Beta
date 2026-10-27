@@ -321,11 +321,11 @@ away, mid-game too:
 
 - **Mudora 2.0 (Muffins logic)**, the default: Mudora's look with the logic and
   settings of [Muffins' Tracker 2.0](https://github.com/KrisDavie/alttptracker)
-  (`mudora2/`). His tracker runs out of sight (`mfns-tracker/`, built unchanged from
-  his source) and Mudora 2.0 shows its answers. Each seed rolled in the hub starts a
-  new game in it with the seed's settings; **⚙ Settings** has all his game and logic
-  settings (changeable mid-game), every one of his 67 presets with a search box, his
-  launch page and entrance menu, and Autotracking details. Logic problems: Muffins'
+  (`mudora2/`). His logic engine, store and sessions are built from his source,
+  unchanged, as a library (`mfns-tracker/lib/`) that Mudora 2.0 drives directly. Each
+  seed rolled in the hub starts a new game with the seed's settings; **⚙ Settings** has
+  all his game and logic settings (changeable mid-game), every one of his 67 presets
+  with a search box, his earlier games, and Autotracking details. Logic problems: Muffins'
   Discord; how it looks or runs here: Rando Hub.
 - **Mudora (Hutch logic)**: the same look with Hutch's logic (`mudora/`); his tracker
   runs out of sight and both stay in step.
@@ -765,7 +765,7 @@ emu/                    Snes9x compiled to WebAssembly and its player, input, vi
 bridge/                 memory bridge to the tracker (sni-bridge.js) and the fake-SNI shim
 tracker/                Hutch's tracker (refreshed from his repository on every deploy)
 mudora/, mudora2/       Mudora (Hutch's logic) and Mudora 2.0 (Muffins' logic)
-mfns-tracker/           Muffins' Tracker 2.0, built unchanged; Mudora 2.0 runs it out of sight
+mfns-tracker/           Muffins' logic as a library (built unchanged from his source), his data and settings
 addons/                 item sounds, keys in hand, map prizes and other additions to the trackers
 z1r/, glr/              the Zelda 1 and Guardian Legend apps (each complete, with its own README)
 sounds/                 item sound packs
