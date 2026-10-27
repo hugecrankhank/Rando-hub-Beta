@@ -66,6 +66,7 @@ WHAT'S IN THIS FOLDER
   bridge.mjs, studio.mjs, package.json
                       The program itself. You never need to open these.
   INSTRUCTIONS.txt    This file.
+  DIRECT-SETUP.txt    The Direct connection (joins your LIVE itself; free key).
   WHATS-NEW.txt       What's new compared to the regular Crowd Control.
   EFFECTS-OVERVIEW.md A technical overview of every effect.
 

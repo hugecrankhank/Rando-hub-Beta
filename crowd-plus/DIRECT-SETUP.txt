@@ -1,0 +1,144 @@
+CROWD CONTROL+  -  SETTING UP THE DIRECT CONNECTION
+TikTok LIVE without TikFinity and without a browser window
+=========================================================================
+
+WHAT "DIRECT" IS
+----------------
+Crowd Control+ has three ways to hear your TikTok LIVE:
+
+  TikFinity (default)   The free TikFinity app connects to TikTok; the
+                        bridge listens to it. Nothing to type.
+  Local signer          The bridge opens your own LIVE page in a Chrome /
+                        Edge window and reads what TikTok shows there.
+  Direct                The bridge joins your LIVE itself, with the
+                        tiktok-live-connector library. No TikFinity, no
+                        browser window. Needs a free Euler Stream key.
+
+Direct is the "own bridge" approach: the same library, the same connect-
+by-username idea, inside Crowd Control+ so the gifts go straight to
+your effects, alerts, goals and overlays. Everything in this guide
+happens on the PC you stream from.
+
+WHY IT NEEDS A KEY
+------------------
+TikTok only accepts LIVE connections whose requests are signed. The
+library doesn't sign them itself; it asks a "sign server" to do it.
+Euler Stream runs one with a free Community plan, and the key is how it
+knows the request is yours. TikFinity and the local signer don't need a
+key because they use your TikTok login in an app or browser instead.
+(See "CAN IT WORK WITHOUT A KEY?" at the end.)
+
+
+STEP 1. Install the library (once)
+  Direct is the only way that needs an extra package.
+  Windows:
+    Open the Crowd Control+ folder, click in the address bar at the top
+    of the window, type   cmd   and press Enter. In the black window:
+        npm install
+    It downloads tiktok-live-connector into node_modules and finishes
+    in about a minute. Close that window.
+  Mac / Linux:
+    Open Terminal in the folder and run   npm install
+
+STEP 2. Get a free Euler Stream key (once)
+  1. Go to https://www.eulerstream.com and sign up.
+  2. Pick the Community plan (free).
+  3. In your account, create an API key and copy it. Keep it private:
+     it's tied to your account.
+
+STEP 3. Start Crowd Control+
+  Double-click "Start Crowd Control+.bat" (Mac: the .command file).
+  The control panel opens at http://localhost:21214/studio
+
+STEP 4. Connect
+  On the Dashboard, in "TikTok connection":
+  - Choose "Direct (joins the LIVE itself; needs a free Euler Stream key)".
+  - Type your TikTok name (without @).
+  - Paste the key into "Euler Stream API key".
+  - Click Connect.
+  The key and your name are saved in mapping.json ("signApiKey" and
+  "username"), so next time you only click Connect.
+
+  Not live yet? The dot stays red and the status says "Waiting for
+  TikTok LIVE"; the bridge retries every 30 seconds until you're live,
+  then shows "Live as @yourname" (green).
+
+STEP 5. The rest is the same as always
+  Connect the game (⋯ → Crowd effects → on, ws://localhost:21214), add
+  the overlays to OBS or TikTok LIVE Studio. See INSTRUCTIONS.txt Part
+  1, steps 5 and 6.
+
+
+EVERY STREAM
+------------
+  Start Crowd Control+, go LIVE, open Rando Hub. Direct reconnects by
+  itself. No TikFinity to open, no LIVE window to keep.
+
+
+IF YOU'D RATHER EDIT mapping.json
+---------------------------------
+  "source": "direct",
+  "username": "yourname",
+  "signServer": "euler",
+  "signApiKey": "paste_your_key_here"
+  Save, then start Crowd Control+. "signServer" can also be "tiktools"
+  (api.tik.tools, 7-day trial) or any https:// sign-server address.
+
+
+WHEN SOMETHING'S WRONG
+----------------------
+"Direct: tiktok-live-connector not installed"
+  Step 1 wasn't done in this folder. Run npm install, start again.
+
+"Direct: no sign-server key"
+  No key pasted yet (Step 2 and 4), or mapping.json still says
+  paste_your_key_here.
+
+"the sign server refused the connection"
+  The key is wrong, or the free plan's limit for the day is used up.
+  Check the key on eulerstream.com. Switch to TikFinity or the local
+  signer meanwhile; they don't use the key.
+
+"couldn't join @name's LIVE ... Are you live?"
+  You aren't live yet (normal: it keeps retrying), the name is wrong
+  (no @, no spaces), or TikTok changed something and the library needs
+  an update: run   npm update tiktok-live-connector   in the folder.
+
+Gifts arrive but a streak counts once
+  Correct: a gift sent 10 times in a row arrives as one gift with
+  count 10 when the streak ends (TikTok reports it that way), and the
+  effect runs with that count.
+
+Switching sources
+  Pick another source on the Dashboard and Connect; Direct's
+  connection is closed. Your gift setup, overlays and stats are the
+  same for all three.
+
+
+CAN IT WORK WITHOUT A KEY, LIKE TIKFINITY?
+------------------------------------------
+Not with Direct. TikFinity and the local signer get away without a key
+because they run inside something that is logged in to TikTok (the
+TikFinity app, or your own LIVE page in Chrome / Edge): TikTok's own code
+does the signing there. Direct talks to TikTok from Node.js, where
+nothing of TikTok's runs, so the signing has to come from a sign server,
+and the key is what the server asks for.
+
+If you want "no key, no app", the local signer is that option: it is
+Crowd Control+'s own way of borrowing your login, and it needs nothing
+but Chrome or Edge. If you want "no browser window", TikFinity. Direct
+is for "nothing else running at all", at the price of the free key.
+
+
+THE STANDALONE rando-tiktok-bridge (server.js) YOU WROTE
+---------------------------------------------------------
+It does the first half of Direct: tiktok-live-connector by username,
+events re-sent on a WebSocket. To use it with Rando Hub it would also
+need the bridge's side: the game expects Crowd Control+'s messages
+(effects by id, durations, the effect list it sends when it connects),
+the gift-to-effect mapping, streak handling for every gift type,
+follows / shares / superfans, reconnecting, and the control panel and
+overlays. All of that is already in Crowd Control+'s Direct source, so
+the shortest path is the four steps above. The pieces of yours that
+carry over as-is are the username connect and the repeatEnd check,
+which Direct does the same way.
