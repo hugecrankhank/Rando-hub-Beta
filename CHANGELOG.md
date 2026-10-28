@@ -5,6 +5,12 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.18 (2026-10-28)
+
+- **The gift alert no longer hides under the reveal / reroll banner.** While that banner is
+  up at the top of the game, the gift card (over the hearts) sits just below it instead;
+  it moves down if the banner appears while it's showing, and back up when it goes.
+
 ## Beta v1.14.17 (2026-10-27)
 
 - **Crowd Control+: the local signer says what it sees.** The black window now logs when

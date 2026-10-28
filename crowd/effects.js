@@ -1429,9 +1429,11 @@
     var bar = bannerEl.querySelector('.bar');
     bar.hidden = !(kind === 'count' || kind === 'roll');
     if (kind === 'count') bar.firstChild.style.width = Math.max(0, Math.min(1, frac || 0)) * 100 + '%';
+    try { placeGift(); } catch (e) {}   // a gift card showing moves down out from under it
     if (hideAfter) bannerHideT = setTimeout(function () {
       if (!bannerEl) return;
       bannerEl.style.opacity = '0';
+      try { placeGift(); } catch (e) {}
       bannerHideT = setTimeout(function () { if (bannerEl) { bannerEl.remove(); bannerEl = null; } }, 550);
     }, hideAfter);
   }
@@ -1997,6 +1999,22 @@
     if (giftQ.length > 6) giftQ.splice(0, giftQ.length - 6);
     if (!giftBusy) giftNext();
   }
+  // Over the hearts (right part of the HUD, near the top of the picture); when
+  // the reveal / reroll banner is up at the top, just below it instead, so the
+  // two don't cover each other (Oct 2026).
+  function placeGift() {
+    if (!giftEl || !giftEl.isConnected) return;
+    var P = window.Snes9xPlayer, r = P && P.fx && P.fx.pictureRect && P.fx.pictureRect();
+    if (!(r && r.w > 0)) return;
+    var top = r.y + r.h * 0.035;
+    if (bannerEl && bannerEl.isConnected && bannerEl.style.opacity !== '0') {
+      var host = giftEl.parentNode, hb = host.getBoundingClientRect(), bb = bannerEl.getBoundingClientRect();
+      top = Math.max(top, bb.bottom - hb.top + 6);
+    }
+    giftEl.style.left = Math.round(r.x + r.w * 0.79) + 'px';
+    giftEl.style.top = Math.round(top) + 'px';
+    giftEl.style.maxWidth = Math.round(r.w * 0.4) + 'px';
+  }
   function giftNext() {
     var g = giftQ.shift(); if (!g) { giftBusy = false; return; }
     var host = document.querySelector('.s9x'); if (!host) { giftBusy = false; giftQ = []; return; }
@@ -2007,12 +2025,7 @@
       giftEl.innerHTML = '<span class="ic">🎁</span><span><span class="lab"></span><span class="nm"></span><span class="fx"></span></span>';
       host.appendChild(giftEl);
     }
-    var P = window.Snes9xPlayer, r = P && P.fx && P.fx.pictureRect && P.fx.pictureRect();
-    if (r && r.w > 0) {   // over the hearts: right part of the HUD, near the top of the picture
-      giftEl.style.left = Math.round(r.x + r.w * 0.79) + 'px';
-      giftEl.style.top = Math.round(r.y + r.h * 0.035) + 'px';
-      giftEl.style.maxWidth = Math.round(r.w * 0.4) + 'px';
-    }
+    placeGift();
     var lab = String(g.label || '');
     var kind = /^followed$/i.test(lab) ? 'NEW FOLLOWER' : /^shared$/i.test(lab) ? 'STREAM SHARED' : /^likes?\b/i.test(lab) ? 'LIKES' : lab && lab !== 'test' ? 'GIFT · ' + lab : 'CROWD EFFECT';
     giftEl.querySelector('.ic').textContent = /follow/i.test(kind) ? '⭐' : /share/i.test(kind) ? '📣' : /like/i.test(kind) ? '❤️' : '🎁';
@@ -2049,6 +2062,8 @@
     connected: function () { return status === 'connected'; },
     live: function () { return liveGames; },
     liveAction: function (action, args) { if (status !== 'connected') return false; send(Object.assign({ type: 'livegame', action: action }, args || {})); return true; },
+    // the on-game banner and gift card, for trying layouts (test pages)
+    show: { banner: function (k, t, sub, ms) { banner(k, t, sub, ms); }, gift: function (u, l, w, good) { giftCard(u, l, w, good); } },
   };
   function send(msg) { if (ws && ws.readyState === 1) { try { ws.send(JSON.stringify(msg)); } catch (e) {} } }
 
