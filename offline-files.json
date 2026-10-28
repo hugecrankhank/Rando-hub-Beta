@@ -23,6 +23,7 @@
   "manifest.webmanifest",
   "offline.js",
   "web-update.js",
+  "go-mode.js",
   "phone.js",
   "popout.html",
   "stream.html",

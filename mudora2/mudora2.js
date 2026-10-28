@@ -472,6 +472,13 @@
     return sq;
   };
 
+  // Go mode: his logic says Ganon can be beaten with what's in hand (the
+  // "Ganon" check is available). The hub's go-mode alert (go-mode.js) asks.
+  Mudora2.goMode = function () {
+    var c = state && state.checks && state.checks.locationsChecks && state.checks.locationsChecks.Ganon;
+    return !!(c && c.logic === 'available');
+  };
+
   // ── where things are ──────────────────────────────────────────────────────
   M.checkAt = function (c) {
     var p = AT[c.id]; if (p) return { x: p[0], y: p[1] };
