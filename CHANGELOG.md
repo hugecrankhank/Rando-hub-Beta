@@ -5,6 +5,15 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.10 (2026-10-27)
+
+- **Check for updates on the website** (computers): a button at the top right, like the
+  Windows app's. It asks the server for the newest version on a click, a few seconds
+  after opening, and every hour; a newer one turns it green ("Update v…") and a click
+  reloads into it. Phones and tablets don't get the button: the start screen says, under
+  Resume, that closing the app fully and opening it again brings the latest version,
+  and shows which version this is.
+
 ## Beta v1.14.9 (2026-10-27)
 
 - **A seed loaded from a file tells the tracker what it was rolled with.** Load ROM used

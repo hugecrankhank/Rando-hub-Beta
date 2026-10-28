@@ -22,6 +22,7 @@
   "longpress.js",
   "manifest.webmanifest",
   "offline.js",
+  "web-update.js",
   "phone.js",
   "popout.html",
   "stream.html",
