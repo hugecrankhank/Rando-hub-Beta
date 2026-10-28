@@ -857,15 +857,19 @@ function noteUnknown(method, key) {
 }
 
 // Start (or switch to) the source in mapping.json; the control panel calls this too.
-let activeSource = null;
+let activeSource = null, sourceGen = 0;
 function startSource() {
   if (TEST) return;
   try { activeSource && activeSource.stop && activeSource.stop(); } catch {}
   activeSource = null; liveText = '';
+  const gen = ++sourceGen;
   if (cfg.source === 'local') activeSource = startLocal();
   else if (cfg.source === 'tikfinity') activeSource = startTikFinity();
-  else if (cfg.source === 'direct') startTikTok().then((s) => {
-    if (cfg.source !== 'direct') return;
+  else if (cfg.source === 'direct') startTikTok(() => gen === sourceGen).then((s) => {
+    // Direct starts asynchronously: if the source was switched meanwhile, this
+    // one must not keep running beside the new one (it went on reconnecting and
+    // overwriting the status: "TikFinity disconnecting", Oct 2026).
+    if (gen !== sourceGen) { if (s && s.stop) try { s.stop(); } catch {} return; }
     if (s === 'missing') { log('using TikFinity for now (Direct needs its library)'); activeSource = startTikFinity(); }
     else if (s) activeSource = s;
   });
@@ -928,11 +932,11 @@ function onTikFinity(text) {
 
 // ── TikTok connection ──────────────────────────────────────────────────────
 let liveText = '';
-async function startTikTok() {
+async function startTikTok(current = () => true) {
   // Problems are reported (log + panel status) rather than exiting, so the
   // panel can switch to another source. Returns 'missing' when the library
   // isn't installed, so startSource() can fall back to TikFinity.
-  const fail = (text, ...lines) => { liveText = text; broadcast({ type: 'status', text }); lines.forEach((l) => log(l)); return null; };
+  const fail = (text, ...lines) => { if (!current()) return null; liveText = text; broadcast({ type: 'status', text }); lines.forEach((l) => log(l)); return null; };
   if (!cfg.username || cfg.username === 'your_tiktok_username') {
     return fail('Direct: no TikTok name', 'Set "username" in mapping.json (or on the panel) to your TikTok name (without @). Or run with --test.');
   }
@@ -963,56 +967,70 @@ async function startTikTok() {
 
   // Extended gift info is a separate TikTok lookup that often fails; gift names
   // already arrive with each gift, so it's not needed.
-  const conn = new TikTokLiveConnection(cfg.username, { enableExtendedGiftInfo: false, ...(key ? { signApiKey: key } : {}) });
-
   const who = (d) => ({ nickname: d.user?.nickname || '', avatar: d.user?.profilePicture?.url?.[0] || d.user?.profilePictureUrl || '' });
-  conn.on('gift', (d) => {
-    const type = d.giftDetails?.giftType;
-    if (type === 1 && !d.repeatEnd) return;         // streak still going: wait for the final count
-    const name = d.giftDetails?.giftName || d.extendedGiftInfo?.name || '';
-    onGift(d.user?.uniqueId || d.user?.nickname || 'someone', name, d.giftId, d.repeatCount || 1, d.giftDetails?.diamondCount ?? d.diamondCount, who(d));
-  });
-  conn.on('like', (d) => onLike(d.user?.uniqueId || 'someone', d.likeCount || 1, who(d)));
-  conn.on('follow', (d) => onSocial('follow', d.user?.uniqueId || 'someone', who(d)));
-  conn.on('share', (d) => onSocial('share', d.user?.uniqueId || 'someone', who(d)));
-  conn.on('subscribe', (d) => onSocial('superfan', d.user?.uniqueId || 'someone', who(d)));
-  conn.on('superFan', (d) => onSocial('superfan', d.user?.uniqueId || 'someone', who(d)));
-  conn.on('chat', (d) => onChat(d.user?.uniqueId || 'someone', d.comment || '', who(d)));
-  let stopped = false, retry = null;
+  let stopped = false, retry = null, conn = null;
+  const off = () => stopped || !current();   // switched to another source: say and do nothing more
+  const say = (text) => { if (off()) return; liveText = text; broadcast({ type: 'status', text }); };
   // Each try asks the sign server, so without a key (shared free limit) the
   // bridge waits longer between tries, and longer still when told to slow down.
   const WAIT = key ? 30000 : 60000;
-  conn.on('disconnected', () => { if (stopped) return; liveText = 'TikTok disconnected'; broadcast({ type: 'status', text: liveText }); log(liveText + `, retrying in ${WAIT / 1000}s`); retry = setTimeout(go, WAIT); });
-  conn.on('streamEnd', () => { liveText = 'TikTok LIVE ended'; broadcast({ type: 'status', text: liveText }); log(liveText); });
-  conn.on('error', (e) => log('TikTok error:', e?.info || e?.exception?.message || e));
+  const later = (ms) => { clearTimeout(retry); if (!off()) retry = setTimeout(go, ms); };
+
+  // A fresh connection for every try: one that has dropped doesn't reliably
+  // connect again, which left Direct "failed after a bit" (Oct 2026). Its
+  // events only count while it's the current one.
+  function make() {
+    const c = new TikTokLiveConnection(cfg.username, { enableExtendedGiftInfo: false, ...(key ? { signApiKey: key } : {}) });
+    const mine = () => !off() && conn === c;
+    const on = (ev, fn) => c.on(ev, (d) => { if (mine()) fn(d); });
+    on('gift', (d) => {
+      const type = d.giftDetails?.giftType;
+      if (type === 1 && !d.repeatEnd) return;         // streak still going: wait for the final count
+      const name = d.giftDetails?.giftName || d.extendedGiftInfo?.name || '';
+      onGift(d.user?.uniqueId || d.user?.nickname || 'someone', name, d.giftId, d.repeatCount || 1, d.giftDetails?.diamondCount ?? d.diamondCount, who(d));
+    });
+    on('like', (d) => onLike(d.user?.uniqueId || 'someone', d.likeCount || 1, who(d)));
+    on('follow', (d) => onSocial('follow', d.user?.uniqueId || 'someone', who(d)));
+    on('share', (d) => onSocial('share', d.user?.uniqueId || 'someone', who(d)));
+    on('subscribe', (d) => onSocial('superfan', d.user?.uniqueId || 'someone', who(d)));
+    on('superFan', (d) => onSocial('superfan', d.user?.uniqueId || 'someone', who(d)));
+    on('chat', (d) => onChat(d.user?.uniqueId || 'someone', d.comment || '', who(d)));
+    c.on('disconnected', () => { if (!mine()) return; say('TikTok disconnected'); log(`TikTok disconnected, retrying in ${WAIT / 1000}s`); later(WAIT); });
+    c.on('streamEnd', () => { if (!mine()) return; say('TikTok LIVE ended'); log('TikTok LIVE ended'); later(WAIT); });
+    c.on('error', (e) => { if (mine()) log('TikTok error:', e?.info || e?.exception?.message || e); });
+    return c;
+  }
 
   async function go() {
-    if (stopped) return;
+    if (off()) return;
+    const old = conn; conn = make();
+    if (old) { try { old.removeAllListeners && old.removeAllListeners(); old.disconnect(); } catch {} }
+    const c = conn;
     try {
-      const state = await conn.connect();
-      liveText = `Live as @${cfg.username}`;
+      const state = await c.connect();
+      if (off() || conn !== c) { try { c.disconnect(); } catch {} return; }   // switched away while it was connecting
+      say(`Live as @${cfg.username}`);
       log(`connected to @${cfg.username}'s LIVE (room ${state.roomId})`);
-      broadcast({ type: 'status', text: liveText });
     } catch (e) {
+      if (off() || conn !== c) return;
       const msg = e?.message || String(e);
-      let wait = WAIT;
-      liveText = 'Waiting for TikTok LIVE';
+      let wait = WAIT, text = 'Waiting for TikTok LIVE';
       if (/rate.?limit|too many|\b429\b/i.test(msg)) {
         wait = 180000;
-        liveText = key ? 'Sign server: limit reached, retrying' : 'Sign server busy (free, no key), retrying';
+        text = key ? 'Sign server: limit reached, retrying' : 'Sign server busy (free, no key), retrying';
         log(`the sign server asked to slow down (${msg}). ${key ? "The plan's limit may be reached." : 'Paste a free Euler Stream key on the panel for a limit of your own.'} Retrying in 3 min.`);
       } else if (/plan|api key|apikey|unauthori[sz]ed|forbidden|\b40[123]\b/i.test(msg)) {
-        liveText = 'Sign server refused, retrying';
+        text = 'Sign server refused, retrying';
         log(`the sign server refused the connection (${msg}). ${key ? 'Check "signApiKey" on the panel.' : 'Paste a free Euler Stream key on the panel, or switch to TikFinity meanwhile.'} Retrying in ${wait / 1000}s.`);
       } else {
         log(`couldn't join @${cfg.username}'s LIVE (${msg}). Are you live? Retrying in ${wait / 1000}s.`);
       }
-      broadcast({ type: 'status', text: liveText });
-      retry = setTimeout(go, wait);
+      say(text);
+      later(wait);
     }
   }
   go();
-  return { stop() { stopped = true; clearTimeout(retry); try { conn.disconnect(); } catch {} } };
+  return { stop() { stopped = true; clearTimeout(retry); const c = conn; conn = null; try { c && c.removeAllListeners && c.removeAllListeners(); c && c.disconnect(); } catch {} } };
 }
 
 // ── test mode: fake events from the keyboard ───────────────────────────────

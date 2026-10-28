@@ -5,6 +5,18 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.22 (2026-10-28)
+
+- **Crowd Control+: switching away from Direct really stops it.** Direct starts
+  asynchronously; switching to TikFinity (or the local signer) while it was still
+  connecting left it running in the background, reconnecting and overwriting the
+  connection status, so TikFinity looked like it kept disconnecting (and both could feed
+  gifts at once). A superseded Direct connection now stops, stays quiet and drops its
+  events.
+- **Direct reconnects reliably.** After a drop it used to try again on the same
+  connection, which doesn't always connect a second time ("failed after a bit"); each try
+  is now a fresh connection.
+
 ## Beta v1.14.21 (2026-10-28)
 
 - **Crowd effect: Random follower (chaos).** Zelda, the old man, the frog, Kiki, the
