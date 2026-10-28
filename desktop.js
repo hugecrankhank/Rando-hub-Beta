@@ -7,6 +7,8 @@
  *
  *   Items         the items (item tracker)
  *   Dungeons      prize counts, the twelve dungeons, Aga1 / Go Mode
+ *   Prizes        just the ten crystals and pendants, in a row (a mirror of
+ *                 the dungeons' prizes, js/mobile.js; hidden while docked)
  *   Light World   (map)
  *   Dark World    (map)
  *
@@ -37,10 +39,11 @@
   var PIECES = {
     items:    { tracker: 'items', label: 'Items',       sel: '#mob-top', slot: 'fit', order: 0 },
     dungeons: { tracker: 'items', label: 'Dungeons',    sel: '#mob-bot', slot: 'fit', order: 1 },
+    prizes:   { tracker: 'items', label: 'Prizes',      sel: '#mob-prizes', slot: 'fit', order: 2, hideHome: true },
     light:    { tracker: 'map',   label: 'Light World', sel: '#lw', slot: 'fit', order: 0, chain: ['maps-outer', 'maps'] },
     dark:     { tracker: 'map',   label: 'Dark World',  sel: '#dw', slot: 'fit', order: 1, chain: ['maps-outer', 'maps'] },
   };
-  var ORDER = ['items', 'dungeons', 'light', 'dark'];
+  var ORDER = ['items', 'dungeons', 'prizes', 'light', 'dark'];
   var BARS = {
     items: [{ name: 'items-bar', sel: '.tracker-bottom-bar', slot: 'bot', order: 0 }],
     map: [{ name: 'map-top', sel: '#topbar', slot: 'top', order: 0 },
@@ -49,7 +52,7 @@
   var STATE_KEY = 'unified-kara-windows';  // { place: {piece: id}, wins: {id: tracker} }
   var GEOM_KEY = 'unified-kara-geom-';     // + window id: size and place
   var WIDTH_KEY = 'unified-kara-dock-w';   // width of the tracker column
-  var DEFAULT_SIZE = { items: { w: 640, h: 200 }, dungeons: { w: 760, h: 150 }, light: { w: 480, h: 500 }, dark: { w: 480, h: 500 },
+  var DEFAULT_SIZE = { items: { w: 640, h: 200 }, dungeons: { w: 760, h: 150 }, prizes: { w: 640, h: 110 }, light: { w: 480, h: 500 }, dark: { w: 480, h: 500 },
     'pair-items': { w: 760, h: 340 }, 'pair-maps': { w: 1000, h: 510 }, stream: { w: 1000, h: 860 } };
 
   // Ready-made stream layouts (like the broadcast setups streamers use):
@@ -166,7 +169,7 @@
       ORDER.forEach(function (p) {
         if (PIECES[p].tracker !== kind) return;
         var id = place[p];
-        if (!id) { anyDocked = true; e.detach(e.pieces[p]); return; }
+        if (!id) { if (!PIECES[p].hideHome) anyDocked = true; e.detach(e.pieces[p]); return; }
         if (!first) first = id;
         var pd = portalOf(id);
         if (!pd) return;                               // its window is still loading
@@ -412,7 +415,7 @@
 
   // ── the tracker column ─────────────────────────────────────────────────────
   function docked(kind) {
-    return ORDER.some(function (p) { return PIECES[p].tracker === kind && !place[p]; });
+    return ORDER.some(function (p) { return PIECES[p].tracker === kind && !PIECES[p].hideHome && !place[p]; });
   }
   // The item tracker's frame gets exactly the height of what's left in it.
   function fitDock() {

@@ -5,6 +5,17 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.8 (2026-10-27)
+
+- **Pop out the crystals and pendants on their own** (Desktop layout, Hutch's tracker:
+  ⋯ → Pop out → **Prizes**, for HydeOut). A window with just the ten dungeons' prizes in
+  a row, EP to TR, each labelled: no keys, chests or bosses. It scales to whatever size
+  the window is dragged to (crisp pixels), the obtained ones light up, and it works like
+  the dungeon boxes: click for the next prize, right-click for got it / not yet. The
+  dungeons stay in the main window (or their own) and always agree with it. It can also
+  be added to any Items / Dungeons window from that window's options, and takes the
+  same plain or green-screen backgrounds for capture.
+
 ## Beta v1.14.7 (2026-10-27)
 
 - **Zelda 1, Guardian Legend and the FF NES pages: run-ahead, on by default with a

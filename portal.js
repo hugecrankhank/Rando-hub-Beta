@@ -68,6 +68,7 @@
       '#p-fit #mob-bot .mob-counts,#p-fit #mob-bot .mob-side{position:static!important;transform:none!important;' +
       'order:0!important;margin:0!important;padding:0!important}' +
       '#p-fit #mob-bot .mob-dungeons{order:0!important;flex-basis:auto!important}' +
+      '#p-fit>#mob-prizes{display:flex!important}' +
       '#p-bot .tracker-bottom-bar{position:static!important;width:100%!important;left:auto!important;bottom:auto!important}',
     // Map pieces: the worlds, at the size the window sets in --psize.
     map:

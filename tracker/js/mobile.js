@@ -53,6 +53,13 @@
     '#mob-top .mob-items { flex-wrap:wrap; }',
     '#mob-mid { flex:1 1 auto; }',
     '#mob-bot .dungeon-slot { width:auto !important; margin:0 2px; }',
+    // The prize strip (#mob-prizes): the ten dungeon prizes in a row, for a
+    // window of its own. Hidden here; the desktop pop-out shows it.
+    '#mob-prizes { display:none; flex-direction:row; align-items:flex-end; justify-content:center; gap:6px; padding:4px 6px; }',
+    '#mob-prizes .mob-prize { display:flex; flex-direction:column; align-items:center; gap:2px; cursor:pointer; user-select:none; }',
+    '#mob-prizes .mob-prize-img { width:44px; height:44px; image-rendering:pixelated; image-rendering:crisp-edges; opacity:.55; filter:saturate(.6); transition:opacity .25s, filter .25s, transform .25s; }',
+    '#mob-prizes .mob-prize.got .mob-prize-img { opacity:1; filter:none; transform:scale(1.06); }',
+    '#mob-prizes .mob-prize-label { font-size:11px; font-weight:bold; color:#fff; line-height:12px; }',
     'html.mobile .tracker-container { display:none !important; }',
     // The map-size −/+ in the bottom bar, big enough for a finger.
     'html.mobile .tracker-bottom-bar { height:auto !important; min-height:32px; box-sizing:border-box; }',
@@ -143,6 +150,42 @@
         if (d) dgrp.appendChild(d);
       });
       bot.appendChild(brow);
+
+      // Prizes on their own: a row of the ten dungeons' crystals and pendants,
+      // with no keys, chests or bosses, to pop out as a window for the stream
+      // (HydeOut, Oct 2026). The real prize images stay in their dungeon boxes;
+      // these mirror them and hand clicks on, so both always agree.
+      var pz = document.createElement('div'); pz.id = 'mob-prizes';
+      var realSlot = function (k) { return dgrp.querySelector('.dungeon-slot[data-dungeon-key="' + k + '"]'); };
+      var realPrize = function (k) { var sl = realSlot(k); return sl && sl.querySelector('.prize-img'); };
+      ['ep','dp','toh','pod','sp','sw','tt','ip','mm','tr'].forEach(function (k) {
+        var sl = realSlot(k);
+        if (!sl || !sl.querySelector('.prize-img')) return;
+        var t = document.createElement('div'); t.className = 'mob-prize'; t.dataset.dungeonKey = k;
+        var img = document.createElement('img'); img.className = 'mob-prize-img'; img.alt = '';
+        var lab = document.createElement('div'); lab.className = 'mob-prize-label';
+        var l = sl.querySelector('.dungeon-label'); lab.textContent = l ? l.textContent : k.toUpperCase();
+        t.appendChild(img); t.appendChild(lab); pz.appendChild(t);
+        t.title = 'Click: next prize. Right-click: got it / not yet';
+        t.addEventListener('click', function () { var s2 = realSlot(k); if (s2) s2.click(); });
+        t.addEventListener('contextmenu', function (e) {
+          e.preventDefault();
+          var pi = realPrize(k);
+          if (pi) pi.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }));
+        });
+      });
+      function syncPrizes() {
+        Array.prototype.forEach.call(pz.children, function (t) {
+          var pi = realPrize(t.dataset.dungeonKey), img = t.firstChild;
+          if (!pi) return;
+          var src = pi.getAttribute('src') || '';
+          if (img.getAttribute('src') !== src) img.setAttribute('src', src);
+          t.classList.toggle('got', /1\.png$/.test(src));
+        });
+      }
+      syncPrizes();
+      new MutationObserver(syncPrizes).observe(dgrp, { subtree: true, childList: true, attributes: true, attributeFilter: ['src'] });
+      bot.parentNode.insertBefore(pz, bot.nextSibling);
 
       // Fit the rows to the screen width, then tell mobile.html where the
       // empty middle is so it can put the map there.
