@@ -18,7 +18,7 @@ self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll([
     './', './index.html', './manifest.webmanifest', './js/icons.js', './js/store.js', './js/nes-bridge.js', './js/owmap.js',
     './js/tracker.js', './js/seed.js', './js/diag.js', './js/app.js', './js/crowd.js', './js/training.js', './training/routes.json',
-    './emu/core.js', './emu/video.js', './emu/audio.js', './emu/audio-worklet.js', './emu/input.js', './emu/player.js',
+    './emu/core.js', './emu/palettes.js', './emu/video.js', './emu/audio.js', './emu/audio-worklet.js', './emu/input.js', './emu/player.js',
     './emu/fceumm.wasm', './emu/shaders/stock.glsl', './emu/shaders/6xbrz.glsl',
   ])).catch(() => {}));
   self.skipWaiting();

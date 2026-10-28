@@ -5,6 +5,15 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.11 (2026-10-27)
+
+- **NES colours** (Zelda 1, Guardian Legend, FF1: ⋯ → Graphics → Colors): the core's own
+  FCEUmm palette (as before), **Mesen's** default palette, FBX's Smooth, NES Classic and
+  Composite Direct, and Wavebeam. Side by side with Mesen the hub looked warmer and
+  brighter: that's the palette, not the filter. The picture is recoloured on its way to
+  the screen through a 65,536-entry lookup (0.07 ms a frame), emphasis included, so
+  the core is unchanged.
+
 ## Beta v1.14.10 (2026-10-27)
 
 - **Check for updates on the website** (computers): a button at the top right, like the

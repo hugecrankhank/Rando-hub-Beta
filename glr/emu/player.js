@@ -21,6 +21,7 @@
     filter: 'xbrz6', aspect: '8:7', volume: 0.5, muted: false,
     touch: 'auto', opacity: 0.45, size: 1, haptics: true, slot: 1,
     keymap: null, padmap: null,
+    palette: 'fceumm',     // colours (emu/palettes.js): the core's own, Mesen's, FBX's…
     runAhead: null,        // one frame of run-ahead: null = on with a keyboard / controller, off on touch screens
   };
   var LABELS = { UP: 'Up', DOWN: 'Down', LEFT: 'Left', RIGHT: 'Right', A: 'A', B: 'B', START: 'Start', SELECT: 'Select' };
@@ -265,6 +266,7 @@
   }
 
   var coarse = window.matchMedia ? window.matchMedia('(pointer: coarse)') : { matches: false };
+  function paintFrame(f) { return window.NesPalettes && cfg.palette && cfg.palette !== 'fceumm' ? NesPalettes.apply(f, cfg.palette) : f; }
   function runAheadOn() { return cfg.runAhead == null ? !coarse.matches : !!cfg.runAhead; }
   var padUsed = false;    // a physical controller is in use: hide the on-screen one (auto mode)
   function applyTouch() {
@@ -316,6 +318,7 @@
       '<div class="row"><span>Mute</span><input type="checkbox" data-s="muted"' + (cfg.muted ? ' checked' : '') + '></div>' +
       '<h4>Graphics</h4>' +
       '<div class="row"><span>Filter</span><select data-s="filter">' + opts(Object.keys(P).map(function (k) { return [k, P[k].name]; }), cfg.filter) + '</select></div>' +
+      '<div class="row"><span>Colors</span><select data-s="palette">' + opts(Object.keys(window.NesPalettes ? NesPalettes.PALETTES : { fceumm: { name: 'FCEUmm (default)' } }).map(function (k) { return [k, (window.NesPalettes ? NesPalettes.PALETTES : { fceumm: { name: 'FCEUmm (default)' } })[k].name]; }), cfg.palette) + '</select></div>' +
       '<div class="row"><span>Aspect ratio</span><select data-s="aspect">' + opts([['8:7', 'Pixel-perfect (8:7)'], ['4:3', 'TV (4:3)'], ['fill', 'Fill the box']], cfg.aspect) + '</select></div>' +
       '<p class="hint">6xBRZ runs on the graphics chip. If an older phone stutters, try 4xBRZ or Sharp pixels.</p>' +
       '<div class="row"><span>Run-ahead (less input lag)</span><input type="checkbox" data-s="runAhead"' + (runAheadOn() ? ' checked' : '') + '></div>' +
@@ -353,7 +356,7 @@
       if (s === 'volume' || s === 'muted') { ejs.volume = cfg.volume; ejs.muted = cfg.muted; ejs.setVolume(cfg.volume); }
       else if (s === 'filter') applyFilter();
       else if (s === 'aspect') applyAspect();
-      else if (s === 'runAhead') { /* takes effect next frame */ }
+      else if (s === 'runAhead' || s === 'palette') { /* takes effect next frame */ }
       else applyTouch();
     });
   }
@@ -516,14 +519,14 @@
           core.runFrame(pad, 0);
           var a2 = core.audio();
           try { audio.push(a2); } catch (e) {}
-          video.upload(core.frame());
+          video.upload(paintFrame(core.frame()));
           if (!core.restore()) { cfg.runAhead = false; saveCfg(); toast('Run-ahead stopped: the game state couldn\u2019t be restored.'); }
         } else { cfg.runAhead = false; saveCfg(); toast('Run-ahead isn\u2019t possible with this game.'); }
         stats.aheadMs = stats.aheadMs ? stats.aheadMs * 0.95 + (performance.now() - t0) * 0.05 : performance.now() - t0;
       }
     } catch (e) { stopWithError('Emulator', e); return; }
     try {
-      if (n && !ahead) video.upload(core.frame());
+      if (n && !ahead) video.upload(paintFrame(core.frame()));
       video.draw();
       stats.draws++;
     } catch (e) {
@@ -539,7 +542,7 @@
     canvas.addEventListener('webglcontextlost', function (e) { e.preventDefault(); stats.glLost++; });
     canvas.addEventListener('webglcontextrestored', function () {
       stats.glRestored++;
-      try { video = new Video(canvas); applyAspect(); applyFilter(); if (running) video.upload(core.frame()); }
+      try { video = new Video(canvas); applyAspect(); applyFilter(); if (running) video.upload(paintFrame(core.frame())); }
       catch (e) { stats.gfxErr = String(e && e.message || e); }
     });
   }
