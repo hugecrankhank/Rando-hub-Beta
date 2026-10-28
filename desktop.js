@@ -119,22 +119,27 @@
     if (!e || !active) return;
     if (!e.setup()) { if (tries < 60) setTimeout(function () { resolve(kind, tries + 1); }, 100); return; }
     var d = e.doc, DP = e.win.Document.prototype, found = {}, missing = false;
+    // The column's CSS first of all (before the pieces are found): without it
+    // the tracker's body is as tall as the frame, and fitting the frame to
+    // its content would grow it forever.
+    if (kind === 'items' && !DP.getElementById.call(d, 'unified-kara-css')) {
+      var st = d.createElement('style'); st.id = 'unified-kara-css'; st.textContent = ENGINE_CSS;
+      d.head.appendChild(st);
+    }
     ORDER.forEach(function (p) {
       if (PIECES[p].tracker !== kind) return;
       var el = DP.querySelector.call(d, PIECES[p].sel);
-      if (!el) missing = true;
+      // A piece that's hidden at home (the Prizes strip, an addon) is optional:
+      // if its addon isn't there, the column must still come up.
+      if (!el) { if (PIECES[p].hideHome && tries >= 30) return; missing = true; }
       found[p] = { name: p, el: el, slot: PIECES[p].slot, chain: PIECES[p].chain, order: PIECES[p].order };
     });
     var bars = BARS[kind].map(function (b) {
       return { name: b.name, el: DP.querySelector.call(d, b.sel), slot: b.slot, order: b.order };
     }).filter(function (b) { return b.el; });
     if (missing) { if (tries < 60) setTimeout(function () { resolve(kind, tries + 1); }, 100); return; }
-    if (kind === 'items' && !DP.getElementById.call(d, 'unified-kara-css')) {
-      var st = d.createElement('style'); st.id = 'unified-kara-css'; st.textContent = ENGINE_CSS;
-      d.head.appendChild(st);
-    }
     e.pieces = found; e.bars = bars;
-    e.structural = Object.keys(found).map(function (k) { return found[k].el; })
+    e.structural = Object.keys(found).map(function (k) { return found[k].el; }).filter(Boolean)
       .concat(bars.map(function (b) { return b.el; }));
     sync();
     // the docked column follows the tracker's own size changes
@@ -167,7 +172,7 @@
       if (!e || !e.pieces || !e.ready()) return;
       var anyDocked = false, first = null;
       ORDER.forEach(function (p) {
-        if (PIECES[p].tracker !== kind) return;
+        if (PIECES[p].tracker !== kind || !e.pieces[p]) return;
         var id = place[p];
         if (!id) { if (!PIECES[p].hideHome) anyDocked = true; e.detach(e.pieces[p]); return; }
         if (!first) first = id;
@@ -372,7 +377,11 @@
     return {
       key: pageId,
       tracker: r.tracker,
-      pieces: ORDER.filter(function (p) { return PIECES[p].tracker === r.tracker; }).map(function (p) {
+      pieces: ORDER.filter(function (p) {
+        if (PIECES[p].tracker !== r.tracker) return false;
+        var eng = engines[r.tracker];
+        return !(PIECES[p].hideHome && eng && eng.pieces && !(eng.pieces[p] && eng.pieces[p].el));
+      }).map(function (p) {
         return { name: p, label: PIECES[p].label, here: place[p] === id, elsewhere: !!place[p] && place[p] !== id };
       }),
       bars: (function () {
@@ -422,7 +431,7 @@
     if (!active) return;
     var e = engines.items, wrap = $('items-wrap');
     if (!wrap) return;
-    if (!docked('items') || !e || !e.ready()) { wrap.style.height = ''; return; }
+    if (!docked('items') || !e || !e.ready() || !e.pieces) { wrap.style.height = ''; return; }
     var d = e.doc, h = 0;
     try {
       Array.prototype.forEach.call(d.body.children, function (c) {
@@ -448,6 +457,8 @@
     ORDER.forEach(function (p) {
       var btn = $('pop-' + p);
       if (!btn) return;
+      var eng = engines[PIECES[p].tracker];
+      btn.hidden = !!(PIECES[p].hideHome && eng && eng.pieces && !(eng.pieces[p] && eng.pieces[p].el));
       btn.classList.toggle('on', isOut(p));
       btn.title = isOut(p) ? PIECES[p].label + ' is in its own window. Click to put it back here.'
                            : 'Open ' + PIECES[p].label + ' in its own window';

@@ -39,7 +39,8 @@ SOUND_PACKS = ['../addons/sound-packs.js', '../addons/sound-packs-ui.js']
 ADDONS = {
     'broadcast.html': SOUND_PACKS,        # item sound packs
     'bcast-sounds.html': SOUND_PACKS,     # the pack picker in Item Sounds
-    'itemtracker.html': ['../addons/key-display.js'],   # small keys in hand
+    'itemtracker.html': ['../addons/key-display.js',   # small keys in hand
+                         '../addons/prize-strip.js'],  # the Prizes pop-out's strip (desktop.js)
 }
 # his desktop-app (Electron) files and downloads: not part of the web tracker
 SKIP = {'.git', 'build', 'node_modules', 'main.js', 'preload.js', 'package.json', 'package-lock.json',

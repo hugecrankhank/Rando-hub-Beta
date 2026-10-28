@@ -5,6 +5,17 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.15 (2026-10-27)
+
+- **Fix: the Desktop layout's tracker column sliding down and shrinking away** (Gumby).
+  The Prizes strip (1.14.8) had been added inside Hutch's own `js/mobile.js`, which every
+  deploy replaces with his copy; on the published site the strip was missing, the column
+  never finished setting up, and its frame-fitting grew the frame a little on every
+  pass. The strip is now a Rando Hub addon (`addons/prize-strip.js`, added to his page
+  by `tools/update-hutch.py` like the small-keys one), the column no longer waits on an
+  optional piece (the Prizes button hides if the strip isn't there), and its CSS goes in
+  first, so a missing piece can't start that loop again.
+
 ## Beta v1.14.14 (2026-10-27)
 
 - **Live games take chat guesses without Crowd Control+ too.** The Live games panel
