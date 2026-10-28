@@ -1629,6 +1629,33 @@ function prepareLoadedRom(bytes) {
   return rom;
 }
 
+// What a seed from elsewhere (Load ROM) was rolled with, read from the ROM,
+// for the tracker's logic: the randomizer's own flag bytes (swordless, GT
+// crystals) and, for boss shuffle, the Eastern Palace boss room's sprite list
+// (pointer table 0x4D62E, bank 9; a sort byte, then y / x / kind to 0xFF).
+// Vanilla bosses put the Armos Knights (0x53) there; a shuffled seed puts
+// another boss. Without this the map assumed bosses were shuffled and let EP
+// go green with no bow (HydeOut, Oct 2026). Null if it isn't an alttpr ROM.
+function romFlags(bytes) {
+  const off = bytes.length % 1024 === 512 ? 512 : 0;
+  if (bytes.length < off + 0x200000 || !isRandoTitle(bytes.subarray(off + 0x7FC0, off + 0x7FC2))) return null;
+  const rom = bytes.subarray(off);
+  let bosses = null;
+  try {
+    const ptr = 0x4D62E + 0xC8 * 2, at = rom[ptr] + rom[ptr + 1] * 0x100 + 0x40000;
+    const kinds = [];
+    for (let i = at + 1; i < at + 64 && rom[i] !== 0xFF; i += 3) kinds.push(rom[i + 2]);
+    if (kinds.length) bosses = kinds.includes(0x53) ? 'no' : 'yes';
+  } catch (e) {}
+  const gt = rom[0x18019A];
+  return {
+    swordless: rom[0x18003F] === 1 ? 'yes' : 'no',
+    gtcrystals: gt >= 0 && gt <= 7 ? String(gt) : '7',
+    bossshuffle: bosses || 'no',
+    enemizer: bosses || 'no',
+  };
+}
+
 // ── switching the music during a game ───────────────────────────────────────
 // The pack only plays when the running ROM has its own music off (0x18021A).
 // A seed started before the pack was chosen (Resume, an older seed, Load ROM)
@@ -1957,7 +1984,7 @@ export function init() {
   buildMusicButton();
   refreshSprite();
 
-  window.UnifiedRando = { useIfBaseRom, prepareLoadedRom, noteRom, crowd: crowdApi(),
+  window.UnifiedRando = { useIfBaseRom, prepareLoadedRom, romFlags, noteRom, crowd: crowdApi(),
     // crowd "music roulette" and the run-stats overlay
     music: {
       roulette: () => msu.roulette(),

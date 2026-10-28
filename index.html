@@ -8,7 +8,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <title>Rando Hub Beta</title>
 <meta name="application-name" content="Rando Hub">
-<meta name="version" content="1.14.8">
+<meta name="version" content="1.14.9">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#161b22">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
@@ -587,7 +587,7 @@
 </head>
 <body>
 <header>
-  <h1 title="Rando Hub Beta (v1.14.8)"><svg class="app-die" viewBox="-130 -130 260 260" aria-hidden="true"><g transform="rotate(-12)"><rect x="-108" y="-108" width="216" height="216" rx="32" fill="#fff" stroke="#c8102e" stroke-width="16"/><circle cx="-56" cy="-56" r="23" fill="#c8102e"/><circle cx="56" cy="-56" r="23" fill="#14213d"/><circle r="23" fill="#c8102e"/><circle cx="-56" cy="56" r="23" fill="#14213d"/><circle cx="56" cy="56" r="23" fill="#c8102e"/></g></svg><span class="app-name">RANDO <span>HUB</span></span><small class="app-ver">v1.14.8 beta</small></h1>
+  <h1 title="Rando Hub Beta (v1.14.9)"><svg class="app-die" viewBox="-130 -130 260 260" aria-hidden="true"><g transform="rotate(-12)"><rect x="-108" y="-108" width="216" height="216" rx="32" fill="#fff" stroke="#c8102e" stroke-width="16"/><circle cx="-56" cy="-56" r="23" fill="#c8102e"/><circle cx="56" cy="-56" r="23" fill="#14213d"/><circle r="23" fill="#c8102e"/><circle cx="-56" cy="56" r="23" fill="#14213d"/><circle cx="56" cy="56" r="23" fill="#c8102e"/></g></svg><span class="app-name">RANDO <span>HUB</span></span><small class="app-ver">v1.14.9 beta</small></h1>
 
   <div id="rando-split">
     <button id="r-toggle" aria-expanded="false" aria-controls="rando-bar" title="Show or hide the randomizer settings (they fold away by themselves when you go back to playing)">Randomizer<span id="r-gen-name"> · alttpr.com</span></button>
@@ -1376,9 +1376,11 @@
     if (window.EJS_emulator) {
       if (!confirm('Load a different ROM? The current game will be closed.')) return;
     }
-    // A seed from elsewhere: we don't know its flags, so drop the extras and
-    // go back to the World / Dungeon items selectors.
-    trackerExtra = null;
+    // A seed from elsewhere: what the ROM itself says it was rolled with
+    // (swordless, GT crystals, boss shuffle; randomizer/app.js romFlags), so
+    // the tracker's logic doesn't fall back to guesses. The World / Dungeon
+    // items selectors stay the player's.
+    trackerExtra = window.UnifiedRando && window.UnifiedRando.romFlags ? window.UnifiedRando.romFlags(bytes) : null;
     saveSettings();
     if (window.UnifiedRando) bytes = window.UnifiedRando.prepareLoadedRom(bytes);
     startRom(bytes, file.name, true);

@@ -5,6 +5,16 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.9 (2026-10-27)
+
+- **A seed loaded from a file tells the tracker what it was rolled with.** Load ROM used
+  to drop the seed's flags, and Hutch's map then assumed bosses were shuffled (his
+  default), so Eastern Palace went green with no bow (HydeOut). Now the ROM itself is
+  read: boss shuffle from the Eastern Palace boss room's sprite list (the Armos Knights
+  there means vanilla bosses), swordless and the GT crystal count from the randomizer's
+  flag bytes. With vanilla bosses the map wants the bow for EP (yellow without it), as
+  it already did for seeds rolled here. Not an alttpr ROM: as before.
+
 ## Beta v1.14.8 (2026-10-27)
 
 - **Pop out the crystals and pendants on their own** (Desktop layout, Hutch's tracker:
