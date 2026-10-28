@@ -5,6 +5,13 @@ Crowd Control+ is Rando Hub's crowd control: the gift bridge with a
 control panel and stream overlays. Every gift effect, big-donation seed
 roll and the subathon clock work exactly as before.
 
+NEW IN 1.14.13
+--------------
+- The game's own Live games panel (by the maps / in the window bar) now runs
+  Crowd Control+'s GT big key and Digging Game rounds: start, close and
+  cancel from there, chat guesses (!gt 9, !dig 15) show up in it as they
+  come, and the result goes over the game and on the overlays.
+
 NEW IN 1.14.6
 -------------
 - Direct is now the recommended, default way to connect: Crowd Control+

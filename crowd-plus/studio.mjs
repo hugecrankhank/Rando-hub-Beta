@@ -97,7 +97,15 @@ export function createStudio(ctx) {
   // ── Server-Sent Events to the panel and overlays ─────────────────────────
   const streams = new Set();
   function sse(res, msg) { try { res.write(`data: ${JSON.stringify(msg)}\n\n`); } catch {} }
-  function push(msg) { for (const s of streams) sse(s.res, msg); }
+  function push(msg) {
+    for (const s of streams) sse(s.res, msg);
+    // the game's own Live games panel follows the GT big key and Digging Game rounds
+    if (msg.kind === 'live' && ctx.toGame && ['gtguess', 'gt', 'digguess', 'dig'].includes(msg.what)) {
+      const m = { type: 'livegame', what: msg.what };
+      for (const k of ['gtguess', 'gt', 'digguess', 'dig']) if (k in msg) m[k] = msg[k];
+      ctx.toGame(m);
+    }
+  }
   function topGifters(n) {
     return Object.entries(stats.gifters).map(([user, g]) => ({ user, ...g }))
       .sort((a, b) => b.coins - a.coins || b.gifts - a.gifts).slice(0, n);
@@ -371,5 +379,6 @@ export function createStudio(ctx) {
   }
 
   const pageCount = (path) => [...streams].filter((x) => x.page === path).length;
-  return { record, handle, pushState, pageCount, onGame: (m) => live.onGame(m), mystery: (u, l) => live.mystery(u, l), get settings() { return settings; } };
+  return { record, handle, pushState, pageCount, onGame: (m) => live.onGame(m), mystery: (u, l) => live.mystery(u, l), get settings() { return settings; },
+    liveRun: (a) => live.run(a), liveState: () => { const s = live.snapshot(); return { gtguess: s.gtguess, gt: s.gt, digguess: s.digguess, dig: s.dig }; } };
 }

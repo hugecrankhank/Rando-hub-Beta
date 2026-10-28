@@ -2009,6 +2009,13 @@
 
   // ── connection to the bridge ────────────────────────────────────────────
   var ws = null, status = 'off', retryT = null, retryMs = 2000, bridgeInfo = '';
+  var liveGames = { gtguess: null, gt: null, digguess: null, dig: null, at: 0 };
+  // For the Live games panel: is Crowd Control+ here, what are its rounds, and its controls.
+  window.RandoCrowd = {
+    connected: function () { return status === 'connected'; },
+    live: function () { return liveGames; },
+    liveAction: function (action, args) { if (status !== 'connected') return false; send(Object.assign({ type: 'livegame', action: action }, args || {})); return true; },
+  };
   function send(msg) { if (ws && ws.readyState === 1) { try { ws.send(JSON.stringify(msg)); } catch (e) {} } }
 
   function connect() {
@@ -2033,6 +2040,12 @@
         testBoss(m.boss, m.user);
       } else if (m.type === 'detour-end') {
         cancelDetour();
+      } else if (m.type === 'livegame') {
+        // Crowd Control+'s GT big key / Digging Game rounds (chat guesses): kept
+        // for the Live games panel (addons/live-games.js)
+        ['gtguess', 'gt', 'digguess', 'dig'].forEach(function (k) { if (k in m) liveGames[k] = m[k]; });
+        liveGames.at = Date.now();
+        try { document.dispatchEvent(new CustomEvent('rh-livegame', { detail: liveGames })); } catch (x) {}
       } else if (m.type === 'durations') {
         durations = m.secs && typeof m.secs === 'object' ? m.secs : {};
         render();

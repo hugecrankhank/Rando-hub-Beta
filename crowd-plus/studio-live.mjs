@@ -317,13 +317,15 @@ export function createLive(ctx) {
   // nobody's exact, the closest do. Guesses close when the first GT chest is
   // opened (or by hand).
   let gtg = null;           // { id, open, guesses: Map(user → { n, nick }), opened0, opened, result }
+  // who guessed what (the game's Live games panel lists them): up to 300
+  const guessList = (g) => [...g.guesses.entries()].slice(-300).map(([u, x]) => ({ who: x.nick || u, n: x.n }));
   let gtLive = { opened: 0, total: 22, found: false, at: null };
   function gtView() {
     if (!gtg) return null;
     const counts = {};
     for (const g of gtg.guesses.values()) counts[g.n] = (counts[g.n] || 0) + 1;
     return { id: gtg.id, open: gtg.open, total: gtLive.total || 22, opened: gtLive.opened, guesses: gtg.guesses.size, counts,
-      command: S().gtGuess.command || '!gt', result: gtg.result };
+      list: guessList(gtg), command: S().gtGuess.command || '!gt', result: gtg.result };
   }
   const gtSend = () => send('gtguess', { gtguess: gtView(), gt: gtLive });
   function gtStart() {
@@ -384,7 +386,7 @@ export function createLive(ctx) {
     const counts = {};
     for (const g of dgg.guesses.values()) counts[g.n] = (counts[g.n] || 0) + 1;
     return { id: dgg.id, open: dgg.open, total: DIG_MAX, digs: digLive.digs, guesses: dgg.guesses.size, counts,
-      command: S().digGuess.command || '!dig', result: dgg.result };
+      list: guessList(dgg), command: S().digGuess.command || '!dig', result: dgg.result };
   }
   const digSend = () => send('digguess', { digguess: digView(), dig: digLive });
   function digStart() {

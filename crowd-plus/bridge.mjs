@@ -165,6 +165,7 @@ function onGameMessage(text) {
     for (const e of m.effects || []) if (e.name) effectNames[e.id] = e.name;
     sendDurations();
     broadcast({ type: 'timer', ...timerView() });
+    try { broadcast({ type: 'livegame', what: 'all', ...studio.liveState() }); } catch {}
     studio.pushState();
     const named = [...new Set(Object.values(cfg.gifts).concat(cfg.follow, cfg.share, cfg.superfan, cfg.community, ...cfg.likeTiers.map((t) => t.effect)).filter(Boolean))];
     for (const id of named) {
@@ -189,6 +190,10 @@ function onGameMessage(text) {
     }
   } else if (m.type === 'applied') {
     log(`  ✓ applied ${m.effect}${m.user ? ' for ' + m.user : ''}`);
+  } else if (m.type === 'livegame' && m.action) {
+    // the game's Live games panel: start / close / cancel a GT big key or Digging Game round
+    if (!/^(gt|dig)-(start|lock|cancel|resolve)$/.test(m.action)) return;
+    try { studio.liveRun(m); } catch (e) { log(`! live game (${m.action}): ${e && e.message}`); }
   }
 }
 
@@ -1043,6 +1048,7 @@ function saveCfg(patch) {
 }
 const studio = createStudio({
   HERE, log,
+  toGame: (m) => broadcast(m),
   getCfg: () => cfg,
   saveCfg,
   fire: (effect, user, label) => fire(effect, user, label),

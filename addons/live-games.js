@@ -1,6 +1,13 @@
 /*
- * Live games, without Crowd Control: the GT big key game and the Digging
- * Game, run right here (HydeOut).
+ * Live games: the GT big key game and the Digging Game (HydeOut).
+ *
+ * With Crowd Control+ connected (⋯ → Crowd effects), this panel runs ITS
+ * rounds: viewers guess in TikTok chat (!gt 9, !dig 15), the guesses arrive
+ * here as they come, and Start / Close / New round drive the bridge
+ * (crowd/effects.js RandoCrowd; the bridge sends 'livegame' messages). The
+ * result also goes on Crowd Control+'s alerts and overlays.
+ *
+ * Without it, the same games run right here by hand:
  *
  *   GT big key   which Ganon's Tower chest has the big key? (1-22: the places
  *                it can be, as the counters and Crowd Control+ count them)
@@ -64,10 +71,36 @@
     return { head: head, sub: (r.off === 0 ? 'Called it: ' : 'Closest (' + r.off + ' off): ') + names };
   }
 
+  // ── Crowd Control+: its rounds, from chat ─────────────────────────────────
+  function cc() { var C = window.RandoCrowd; return C && C.connected() ? C : null; }
+  var ccWas = false, ccResultSeen = { gt: null, dig: null };
+  function ccRound(g) { var C = cc(); return C ? C.live()[g === 'gt' ? 'gtguess' : 'digguess'] : null; }
+  function ccLive(g) {
+    var C = cc(); if (!C) return null;
+    var x = C.live()[g];
+    if (!x) return null;
+    return g === 'gt' ? { count: x.opened, found: x.found, at: x.at } : { count: x.digs, found: x.found, at: x.at };
+  }
+  function ccAct(action, args) { var C = cc(); if (C) C.liveAction(action, args); }
+  document.addEventListener('rh-livegame', function () {
+    ['gt', 'dig'].forEach(function (g) {
+      var R = ccRound(g);
+      // a result from the bridge: the banner over the game, once
+      if (R && R.result && R.result.at && ccResultSeen[g] !== R.id + ':' + R.result.at) {
+        ccResultSeen[g] = R.id + ':' + R.result.at;
+        announce(g, { at: R.result.at, winners: R.result.winners || [], off: R.result.off });
+      }
+    });
+    render();
+  });
+
   // ── watching the game ─────────────────────────────────────────────────────
   var lastSeed = null;
   function tick() {
     if (seed() !== lastSeed) { lastSeed = seed(); load(); render(); }
+    var on = !!cc();
+    if (on !== ccWas) { ccWas = on; render(); }
+    if (on) { if (panel && !panel.hidden) renderLive(); return; }
     ['gt', 'dig'].forEach(function (g) {
       var R = S[g], L = live(g);
       if (!R || !L) return;
@@ -153,7 +186,7 @@
       ['gt', 'dig'].forEach(function (g) {
         var b = el('button', 'lg-open', GAMES[g].icon + ' ' + (g === 'gt' ? 'Key game' : 'Dig game'));
         b.type = 'button'; b.id = 'lg-' + g + '-btn';
-        b.title = GAMES[g].name + ' guessing game, without Crowd Control: take the guesses, the game says who called it';
+        b.title = GAMES[g].name + ' guessing game: with Crowd Control+ connected, chat guesses (' + (g === 'gt' ? '!gt' : '!dig') + ' N) come in live; without it, type the guesses in. The game says who called it';
         b.addEventListener('click', function () { toggle(g); });
         var t = $('open-timer');
         if (t && t.parentNode === wb) wb.insertBefore(b, t); else wb.appendChild(b);
@@ -167,7 +200,7 @@
     var inp = panel.querySelector('.lg-add input[type=text]'); if (inp && S[g] && S[g].open) inp.focus();
   }
   function renderLive() {
-    var L = live(tab), c = panel.querySelector('.lg-count'), f = panel.querySelector('.lg-found');
+    var L = cc() ? ccLive(tab) : live(tab), c = panel.querySelector('.lg-count'), f = panel.querySelector('.lg-found');
     if (c) c.textContent = L ? L.count + ' / ' + GAMES[tab].max : '–';
     if (f) f.textContent = L ? (L.found ? (typeof L.at === 'number' ? '#' + L.at : 'yes') : 'not yet') : '–';
   }
@@ -190,6 +223,7 @@
     lv.append(a, b2); body.append(lv);
     if (!seed()) body.append(el('div', 'lg-note', 'Start a game first: the counts come from it.'));
 
+    if (cc()) { renderCC(body, G); panel.append(head, tabs, body); renderLive(); return; }
     if (!R) {
       body.append(el('div', 'lg-state', 'No round yet. Start one before the first ' + G.what + ', take the guesses (1–' + G.max + '), and play: the game says who called it.'));
       var go = el('button', 'lg-b primary', 'Start a round'); go.type = 'button';
@@ -253,6 +287,52 @@
     else body.append(el('div', 'lg-note', 'Digs count from the first shovel in the Digging Game (Dark World, south of the Village of Outcasts).'));
     panel.append(head, tabs, body);
     renderLive();
+  }
+
+  // The round Crowd Control+ is running, from chat.
+  function renderCC(body, G) {
+    var R = ccRound(tab), cmd = (R && R.command) || (tab === 'gt' ? '!gt' : '!dig');
+    body.append(el('div', 'lg-note', '\u25cf Live with Crowd Control+: viewers guess in TikTok chat with ' + cmd + ' and a number (1\u2013' + G.max + '). One guess each; a new one replaces it.'));
+    if (!R) {
+      body.append(el('div', 'lg-state', 'No round open. Start one before the first ' + G.what + '; chat guesses come in here as they\u2019re typed, and the game says who called it.'));
+      var go = el('button', 'lg-b primary', 'Start a round'); go.type = 'button';
+      go.onclick = function () { ccAct(tab + '-start'); }; body.append(go);
+      return;
+    }
+    var state = R.result ? 'done' : R.open ? 'open' : 'closed';
+    var txt = R.result
+      ? (function () { var t = resultText(tab, { at: R.result.at, winners: R.result.winners || [], off: R.result.off }); return t.head + ' \u2014 ' + t.sub; })()
+      : R.open ? 'Guesses open (' + R.guesses + ' so far): they close at the first ' + G.what + '.'
+      : 'Guesses closed (' + R.guesses + '). Waiting for the ' + (tab === 'gt' ? 'big key' : 'prize') + '\u2026';
+    body.append(el('div', 'lg-state ' + state, txt));
+    var list = R.list || [];
+    if (list.length) {
+      var ul = el('ul'), win = (R.result && R.result.winners) || [];
+      list.slice().sort(function (p, q) { return p.n - q.n; }).forEach(function (q) {
+        var li = el('li', win.indexOf(q.who) >= 0 ? 'win' : '');
+        li.append(el('span', 'n', '#' + q.n), el('span', 'w', q.who));
+        ul.append(li);
+      });
+      body.append(el('div', 'lg-note', R.guesses + (R.guesses === 1 ? ' guess' : ' guesses') + ' from chat'), ul);
+    } else if (R.open) body.append(el('div', 'lg-note', 'No guesses yet. Tell chat: ' + cmd + ' 1\u2013' + G.max));
+    var row = el('div', 'lg-row');
+    if (R.open) { var cl = el('button', 'lg-b', 'Close guesses'); cl.type = 'button'; cl.onclick = function () { ccAct(tab + '-lock'); }; row.append(cl); }
+    if (!R.result) {
+      var hand = el('button', 'lg-b', 'Enter the answer\u2026'); hand.type = 'button';
+      hand.title = 'If the game couldn\u2019t count it: type the ' + G.what + ' number';
+      hand.onclick = function () { var v = parseInt(prompt(G.unit + ' number (1-' + G.max + '):', ''), 10); if (v >= 1 && v <= G.max) ccAct(tab + '-resolve', { at: v }); };
+      row.append(hand);
+      var cx = el('button', 'lg-b', 'Cancel round'); cx.type = 'button';
+      cx.onclick = function () { if (!R.guesses || confirm('Cancel this round? The ' + R.guesses + ' guesses go.')) ccAct(tab + '-cancel'); };
+      row.append(cx);
+    } else {
+      var again = el('button', 'lg-b', 'Show it again'); again.type = 'button';
+      again.onclick = function () { announce(tab, { at: R.result.at, winners: R.result.winners || [], off: R.result.off }); }; row.append(again);
+      var nr = el('button', 'lg-b', 'New round'); nr.type = 'button';
+      nr.onclick = function () { ccAct(tab + '-start'); }; row.append(nr);
+    }
+    body.append(row);
+    body.append(el('div', 'lg-note', tab === 'gt' ? 'Chests count 1\u201322: the places in Ganon\u2019s Tower the big key can be, in the order you open them. The same round shows on Crowd Control+\u2019s Live tab and its GT big key overlay.' : 'Digs count from the first shovel in the Digging Game. The same round shows on Crowd Control+\u2019s Live tab and its Digging Game overlay.'));
   }
 
   window.RandoLiveGames = { open: function (g) { toggle(GAMES[g] ? g : 'gt'); }, games: GAMES };

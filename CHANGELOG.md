@@ -5,6 +5,18 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.13 (2026-10-27)
+
+- **Live games run on chat when Crowd Control+ is connected** (HydeOut). The hub's
+  Live games panel (GT big key, Digging Game) used to be the by-hand version only, even
+  with Crowd Control+ on, which has had its own chat-driven rounds (`!gt 9`, `!dig 15`) on
+  its Live tab. Now, with the bridge connected, the panel IS that round: Start a round /
+  Close guesses / Cancel / Enter the answer drive Crowd Control+, every chat guess shows
+  up in the panel as it's typed (one per viewer, a new one replaces it), and the result
+  lands over the game and on Crowd Control+'s alerts and overlays alike. The by-hand
+  version stays for playing without the bridge. Crowd Control+ 1.14.13 is needed for it
+  (older bridges just keep the by-hand panel).
+
 ## Beta v1.14.12 (2026-10-27)
 
 - **xBRZ itself, in every emulator.** The "6xBRZ" filter was the libretro GPU shader, an
