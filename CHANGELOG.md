@@ -8,8 +8,8 @@ played again later.
 ## Beta v1.14.19 (2026-10-28)
 
 - **Go-mode alert.** The moment the tracker says Link can go beat Ganon, "GO MODE!" flashes
-  over the game and a pulsing green frame goes around the whole game box and stays there
-  (inside the box, so a stream capture of the game shows it) until the tracker says
+  over the game and a pulsing green frame goes tight around the picture itself (not the
+  black bars beside it) and stays there, so a stream capture of the game shows it, until the tracker says
   otherwise. Mudora 2.0: Muffins' logic has the Ganon check available. Hutch's tracker: his
   GO tile set to green. ⚙ Settings → "Go-mode alert" turns it off, and its Test button
   shows it for eight seconds.

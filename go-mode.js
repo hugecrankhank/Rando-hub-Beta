@@ -22,7 +22,7 @@
   try { on = localStorage.getItem(KEY) !== '0'; } catch (e) {}
   var CSS =
     '@font-face { font-family: "Rando Pixel"; src: url(fonts/PressStart2P-Regular.ttf) format("truetype"); font-display: swap; }' +
-    '.go-ring { position: absolute; inset: 0; z-index: 24; pointer-events: none; border: 6px solid #2ecc71; border-radius: 4px;' +
+    '.go-ring { position: absolute; left: 0; top: 0; width: 100%; height: 100%; box-sizing: border-box; z-index: 24; pointer-events: none; border: 6px solid #2ecc71; border-radius: 4px;' +
     ' box-shadow: inset 0 0 22px rgba(46,204,113,.75), 0 0 18px rgba(46,204,113,.6); animation: go-ring 1.4s ease-in-out infinite; }' +
     '@keyframes go-ring { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }' +
     '.go-burst { position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%) scale(.6); z-index: 27; pointer-events: none;' +
@@ -34,13 +34,22 @@
 
   function host() { return document.querySelector('.s9x'); }
   function style() { if ($('go-mode-css')) return; var st = document.createElement('style'); st.id = 'go-mode-css'; st.textContent = CSS; document.head.appendChild(st); }
+  // the ring and the words sit on the picture itself, not the black bars beside it
+  function place() {
+    var P = window.Snes9xPlayer, r = P && P.fx && P.fx.pictureRect && P.fx.pictureRect();
+    if (!(r && r.w > 0)) return;
+    if (ring) { ring.style.left = Math.round(r.x) + 'px'; ring.style.top = Math.round(r.y) + 'px'; ring.style.width = Math.round(r.w) + 'px'; ring.style.height = Math.round(r.h) + 'px'; }
+    if (burst) { burst.style.left = Math.round(r.x + r.w / 2) + 'px'; burst.style.top = Math.round(r.y + r.h * 0.42) + 'px'; }
+  }
   function show(now) {
     var h = host(); if (!h) return;
     style();
     if (!ring || !ring.isConnected) { ring = document.createElement('div'); ring.className = 'go-ring'; h.appendChild(ring); }
+    place();
     if (now) {
       if (!burst || !burst.isConnected) { burst = document.createElement('div'); burst.className = 'go-burst'; h.appendChild(burst); }
       burst.innerHTML = 'GO MODE!<small>LINK CAN BEAT GANON</small>';
+      place();
       burst.classList.remove('show'); void burst.offsetWidth; burst.classList.add('show');
       clearTimeout(burstT); burstT = setTimeout(function () { if (burst) burst.classList.remove('show'); }, 4500);
     }
@@ -65,6 +74,7 @@
     var now = test > Date.now() ? true : on && goNow();
     if (now && !was) show(true);
     else if (now && (!ring || !ring.isConnected)) show(false);   // the game box was rebuilt (new ROM)
+    else if (now) place();                                          // the box may have been resized
     else if (!now && was) hide();
     was = now;
   }
