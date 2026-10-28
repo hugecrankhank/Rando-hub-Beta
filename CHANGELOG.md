@@ -5,6 +5,15 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.14 (2026-10-27)
+
+- **Live games take chat guesses without Crowd Control+ too.** The Live games panel
+  listens to TikFinity's Events API itself (the free TikFinity app on the same PC, port
+  21213, on by default; the address can be changed or the box unticked): `!gt 9` / `!dig
+  15` in TikTok chat land in the round as they're typed, one per viewer. Typing guesses in
+  stays for Discord or the couch. The answer was never manual: the game counts the chests
+  and digs and announces who called it.
+
 ## Beta v1.14.13 (2026-10-27)
 
 - **Live games run on chat when Crowd Control+ is connected** (HydeOut). The hub's

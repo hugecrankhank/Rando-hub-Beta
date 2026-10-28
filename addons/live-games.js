@@ -7,7 +7,10 @@
  * (crowd/effects.js RandoCrowd; the bridge sends 'livegame' messages). The
  * result also goes on Crowd Control+'s alerts and overlays.
  *
- * Without it, the same games run right here by hand:
+ * Without it, the same games run right here, and the guesses still come from
+ * chat: the page listens to TikFinity's Events API itself (ws://localhost:21213,
+ * the free TikFinity app on the same PC; chat lines like "!gt 9"). Or type
+ * them in by hand (Discord, the couch).
  *
  *   GT big key   which Ganon's Tower chest has the big key? (1-22: the places
  *                it can be, as the counters and Crowd Control+ count them)
@@ -70,6 +73,55 @@
     var names = r.winners.slice(0, 5).join(', ') + (r.winners.length > 5 ? ' +' + (r.winners.length - 5) : '');
     return { head: head, sub: (r.off === 0 ? 'Called it: ' : 'Closest (' + r.off + ' off): ') + names };
   }
+
+  // ── TikFinity, without Crowd Control+: chat guesses straight from its Events API ──
+  var CHAT_KEY = 'rhb-live-games-chat';
+  var chat = { on: true, url: 'ws://localhost:21213' };
+  try { Object.assign(chat, JSON.parse(localStorage.getItem(CHAT_KEY) || '{}')); } catch (e) {}
+  function chatSave() { try { localStorage.setItem(CHAT_KEY, JSON.stringify(chat)); } catch (e) {} }
+  var tf = { ws: null, state: 'off', retryT: null, got: 0 };
+  function tfWanted() { return chat.on && !cc() && !!(S.gt && S.gt.open || S.dig && S.dig.open || (panel && !panel.hidden)); }
+  function tfConnect() {
+    clearTimeout(tf.retryT);
+    if (!tfWanted()) { tfClose('off'); return; }
+    if (tf.ws) return;
+    var ws;
+    try { ws = new WebSocket(chat.url); } catch (e) { tf.state = 'bad address'; renderChat(); return; }
+    tf.ws = ws; tf.state = 'connecting'; renderChat();
+    ws.onopen = function () { tf.state = 'on'; renderChat(); };
+    ws.onmessage = function (e) {
+      var m; try { m = JSON.parse(e.data); } catch (x) { return; }
+      if (String(m.event || m.type || '').toLowerCase() !== 'chat') return;
+      var d = m.data || {}, text = String(d.comment || d.text || '').trim();
+      var who = d.nickname || (d.user && d.user.nickname) || d.uniqueId || (d.user && d.user.uniqueId) || 'someone';
+      chatGuess(who, text);
+    };
+    ws.onclose = ws.onerror = function () {
+      if (tf.ws !== ws) return;
+      tf.ws = null; tf.state = tfWanted() ? 'waiting' : 'off'; renderChat();
+      clearTimeout(tf.retryT); if (tfWanted()) tf.retryT = setTimeout(tfConnect, 8000);
+    };
+  }
+  function tfClose(state) { clearTimeout(tf.retryT); if (tf.ws) { var w = tf.ws; tf.ws = null; try { w.onclose = w.onerror = null; w.close(); } catch (e) {} } tf.state = state || 'off'; renderChat(); }
+  // "!gt 9" / "!dig 15" in chat: a guess in the open round (one per name; a new one replaces it)
+  function chatGuess(who, text) {
+    var m = /^!(gt|dig)\s*#?(\d{1,2})$/i.exec(text);
+    if (!m) return;
+    var g = m[1].toLowerCase(), n = +m[2], R = S[g];
+    if (!R || !R.open || n < 1 || n > GAMES[g].max) return;
+    R.guesses = R.guesses.filter(function (q) { return q.who.toLowerCase() !== String(who).toLowerCase(); });
+    R.guesses.push({ who: String(who).slice(0, 40), n: n }); tf.got++; save();
+    if (panel && !panel.hidden && tab === g) render();
+  }
+  function chatText() {
+    if (!chat.on) return 'Chat guesses off: type them in below.';
+    if (tf.state === 'on') return '\u25cf Listening to TikTok chat through TikFinity: viewers type !' + tab + ' and a number.' + (tf.got ? ' ' + tf.got + ' taken so far.' : '');
+    if (tf.state === 'connecting') return 'Connecting to TikFinity\u2026';
+    if (tf.state === 'bad address') return 'That address isn\u2019t a WebSocket address (ws://\u2026).';
+    return 'Waiting for TikFinity (open it on this PC, logged in to your TikTok; Events API port 21213). Guesses can be typed in meanwhile.';
+  }
+  function renderChat() { if (!panel || panel.hidden) return; var e = panel.querySelector('.lg-chat'); if (e) e.textContent = chatText(); }
+  setInterval(function () { if (tfWanted()) { if (!tf.ws && !tf.retryT) tfConnect(); } else if (tf.ws) tfClose('off'); }, 2000);
 
   // ── Crowd Control+: its rounds, from chat ─────────────────────────────────
   function cc() { var C = window.RandoCrowd; return C && C.connected() ? C : null; }
@@ -196,7 +248,7 @@
   function toggle(g) {
     build();
     if (!panel.hidden && tab === g) { panel.hidden = true; return; }
-    tab = g; panel.hidden = false; render();
+    tab = g; panel.hidden = false; render(); tfConnect();
     var inp = panel.querySelector('.lg-add input[type=text]'); if (inp && S[g] && S[g].open) inp.focus();
   }
   function renderLive() {
@@ -224,8 +276,18 @@
     if (!seed()) body.append(el('div', 'lg-note', 'Start a game first: the counts come from it.'));
 
     if (cc()) { renderCC(body, G); panel.append(head, tabs, body); renderLive(); return; }
+    // chat guesses through TikFinity (no Crowd Control+ needed)
+    var ch = el('div', 'lg-row'); ch.style.alignItems = 'center';
+    var tog = el('label'); tog.style.cssText = 'display:flex;align-items:center;gap:6px;cursor:pointer';
+    var cb = el('input'); cb.type = 'checkbox'; cb.checked = !!chat.on;
+    cb.onchange = function () { chat.on = cb.checked; chatSave(); if (chat.on) tfConnect(); else tfClose('off'); render(); };
+    tog.append(cb, el('span', null, 'Guesses from TikTok chat (TikFinity)'));
+    var addr = el('input'); addr.type = 'text'; addr.value = chat.url; addr.title = 'TikFinity\u2019s Events API address'; addr.style.width = '150px';
+    addr.onchange = function () { chat.url = addr.value.trim() || 'ws://localhost:21213'; chatSave(); tfClose('off'); tfConnect(); };
+    ch.append(tog, addr); body.append(ch);
+    body.append(el('div', 'lg-note lg-chat', chatText()));
     if (!R) {
-      body.append(el('div', 'lg-state', 'No round yet. Start one before the first ' + G.what + ', take the guesses (1–' + G.max + '), and play: the game says who called it.'));
+      body.append(el('div', 'lg-state', 'No round yet. Start one before the first ' + G.what + ': chat guesses (1–' + G.max + ') come in by themselves, or type them in, and play: the game says who called it.'));
       var go = el('button', 'lg-b primary', 'Start a round'); go.type = 'button';
       go.onclick = function () { newRound(tab); render(); }; body.append(go);
     } else {
