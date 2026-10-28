@@ -683,6 +683,88 @@
     }
   }
 
+  // ── a random follower (chaos: it stays) ─────────────────────────────────
+  // $7EF3CC is who follows Link. The game loads a follower's picture only when
+  // one joins (zelda3 LoadFollowerGraphics): sprite sheet $65 to $7F4000 and
+  // the follower's sheet ($64 Zelda, $66 old man / frog, $59 Kiki, $58 purple
+  // chest / bomb) to $7F4600, then 32 tiles from kFollowerTiles[f] into the
+  // 4bpp buffer at $7EB940, which goes to VRAM with Link's other tiles. Then
+  // Follower_Initialize: start the trail on Link.
+  // Who joins can do whatever a real one does (turn-ins included: chaos).
+  // A real follower always wins: the ones the game hands over anyway replace
+  // ours, and for the ones it holds back while Link has company (Kiki, the
+  // purple chest, the locksmith, the digging game, the old man on the
+  // mountain) ours leaves when Link reaches them, so nobody gets stuck.
+  var FOLLOWERS = [[1, 'Zelda'], [4, 'the old man'], [7, 'the frog'], [10, 'Kiki'], [12, 'the purple chest'], [13, 'the super bomb']];
+  var FOLLOWER_TILES = [0, 0x600, 0x300, 0x300, 0x300, 0, 0, 0x900, 0x600, 0x600, 0x900, 0x900, 0x600, 0x900];
+  var WAITERS = { 0xB6: 'Kiki', 0xB4: 'the purple chest', 0x39: 'the locksmith', 0xD5: 'the digging game' };
+  var crowdFollower = 0, lastFollower = '', oldManRooms = null;
+  function spriteSheet(rom, n) {
+    var pc = (rom[0x5033 + n] & 0x7F) * 0x8000 + ((rom[0x5112 + n] << 8 | rom[0x51F1 + n]) & 0x7FFF);
+    var d = lzDecomp(rom, pc);
+    return d && d.length >= 0x600 ? d.slice(0, 0x600) : null;
+  }
+  function addFollower(r) {
+    var c = core(), rom; try { rom = c && c.rom(); } catch (e) { rom = null; }
+    if (!rom || rom.length < 0x80000) return 'needs the game\u2019s ROM';
+    var cur = r[0xF3CC];
+    var pool = FOLLOWERS.filter(function (f) { return f[0] !== cur; });
+    var pick = pool[Math.floor(Math.random() * pool.length)], f = pick[0];
+    var yv = f === 1 ? 0x64 : f >= 12 ? 0x58 : f >= 9 ? 0x59 : 0x66;
+    var a = spriteSheet(rom, 0x65), b = spriteSheet(rom, yv);
+    if (!a || !b) return 'couldn\u2019t read the follower\u2019s picture from this ROM';
+    var sheets = new Uint8Array(0xC00); sheets.set(a, 0); sheets.set(b, 0x600);
+    r.set(sheets, 0x14000);                                     // $7F4000 / $7F4600, as the game keeps them
+    var src = FOLLOWER_TILES[f], dst = 0xB940;                  // 3bpp → 4bpp (low 8 colours), 32 tiles
+    for (var t = 0; t < 0x20; t++, src += 24, dst += 32) {
+      for (var i = 0; i < 8; i++) {
+        r[dst + i * 2] = sheets[src + i * 2]; r[dst + i * 2 + 1] = sheets[src + i * 2 + 1];
+        r[dst + 0x10 + i * 2] = sheets[src + 16 + i]; r[dst + 0x10 + i * 2 + 1] = 0;
+      }
+    }
+    if (cur === 13) { r[0x4B4] = 0; r[0x4B5] = 0; }              // a carried bomb's fuse goes with it
+    r[0xF3CC] = f; r[0xF3D3] = 0; r[0x2F9] = 0;                  // follower, not dropped
+    r[0x1A00] = r[0x20]; r[0x1A14] = r[0x21]; r[0x1A28] = r[0x22]; r[0x1A3C] = r[0x23];
+    r[0x1A64] = ([0x20, 0x10, 0x30, 0x20][r[0xEE] & 3] >> 2) | (r[0x2F] >> 1);
+    r[0x2D2] = 64; r[0x2CF] = 0; r[0x2D3] = 0; r[0x2D0] = 0; r[0x2D6] = 0; r[0x5E] = 0;
+    crowdFollower = f; lastFollower = pick[1];
+    return true;
+  }
+  // rooms the lost old man waits in (from this ROM's room sprite lists; not his house, $E4)
+  function lostOldManRooms() {
+    if (oldManRooms) return oldManRooms;
+    oldManRooms = {};
+    var c = core(), rom; try { rom = c && c.rom(); } catch (e) { return oldManRooms; }
+    if (!rom || rom.length < 0x80000) return oldManRooms;
+    for (var room = 0; room < 0x128; room++) {
+      if (room === 0xE4) continue;
+      var ptr = 0x4D62E + room * 2, at = rom[ptr] + rom[ptr + 1] * 0x100 + 0x40000;
+      for (var i = at + 1; i < at + 96 && rom[i] !== 0xFF; i += 3) if (rom[i + 2] === 0xAD) { oldManRooms[room] = 1; break; }
+    }
+    return oldManRooms;
+  }
+  function followerFrame(r) {
+    if (!crowdFollower) return;
+    if (r[0xF3CC] !== crowdFollower) { crowdFollower = 0; render(); return; }   // a real one took over, or the game sent ours home
+    var lx = r[0x22] | r[0x23] << 8, ly = r[0x20] | r[0x21] << 8, why = '';
+    for (var k = 0; k < 16 && !why; k++) {
+      var w = r[0xDD0 + k] && WAITERS[r[0xE20 + k]];
+      if (!w) continue;
+      var x = r[0xD10 + k] | r[0xD30 + k] << 8, y = r[0xD00 + k] | r[0xD20 + k] << 8;
+      if (Math.abs(x - lx) < 64 && Math.abs(y - ly) < 64) why = w;
+    }
+    // the lost old man stays away from anyone with company: ours leaves at his door
+    if (!why && r[0x1B] && lostOldManRooms()[r[0xA0] | r[0xA1] << 8] && r[0xF3CC] !== 4) why = 'the old man (step out and back in to find him)';
+    if (why) dropFollower(r, 'made way for ' + why);
+  }
+  function dropFollower(r, how) {
+    if (!crowdFollower || r[0xF3CC] !== crowdFollower) { crowdFollower = 0; return; }
+    if (crowdFollower === 13) { r[0x4B4] = 0; r[0x4B5] = 0; }
+    r[0xF3CC] = 0; r[0xF3D3] = 0;
+    feed('The crowd\u2019s follower ' + how, 'info');
+    crowdFollower = 0; render();
+  }
+
   // ── shield and sword ───────────────────────────────────────────────────
   // $7EF35A shield: 0 none, 1 Fighter's, 2 Fire, 3 Mirror.
   // $7EF359 sword: 0 none, 1 Fighter's, 2 Master, 3 Tempered, 4 Golden
@@ -1038,6 +1120,9 @@
     // HydeOut's idea: a gift shows where one item the run still needs is
     // (addons/reveal.js reads the seed's spoiler). A banner on the game says
     // it, and Mudora 2.0 marks that spot on its map.
+    follower_random: { name: 'Random follower (stays: chaos)', good: false,
+      check: function (r) { return r[0x1B] && (r[0xA0] | r[0xA1] << 8) === 0xE4 ? 'not in the old man\u2019s house' : ''; },
+      apply: function (r) { return addFollower(r); } },
     reveal_item:   { name: 'Reveal a go-mode item', good: true,
       app: function (job) {
         var R = root.UnifiedRando && root.UnifiedRando.crowd, RV = root.RandoReveal, c = core();
@@ -1512,6 +1597,7 @@
     try { if (detour) detourFrame(core, ram); else sendRun(ram); } catch (e) { console.warn('[crowd] detour', e); }
     if (fluteWarp) fluteFrame(ram);
     if (warpWatch) { try { warpFrame(core, ram); } catch (e) { console.warn('[crowd] warp', e); } }
+    if (crowdFollower) { try { followerFrame(ram); } catch (e) { console.warn('[crowd] follower', e); } }
     // say why effects are waiting, once, if they wait more than ~4 s
     if (queue.length && (detour || !inPlay(ram))) {
       if (++waitT === 240) feed(queue.length + ' waiting: ' + (detour ? 'boss detour still running (' + detour.state + ')' :
@@ -1573,9 +1659,10 @@
       if (/^warp_/.test(job.id) && lastWarp) note('warp: ' + lastWarp);
       if (job.id === 'monster_mash' && lastMash) feed('🦇 ' + lastMash, 'bad');
       if (job.id === 'enemy_any' && lastAny) feed('Any enemy: a ' + lastAny + ' is coming', 'bad');
+      if (job.id === 'follower_random' && lastFollower) feed('\ud83d\udeb6 ' + lastFollower + ' tags along', 'bad');
     }
     gap = GAP_FRAMES;
-    if (!f.detour) giftCard(job.user, job.label, f.name + (job.id === 'item_off' && lastItemGone ? ': ' + lastItemGone : '') + (secs ? ' · ' + secs + 's' : '') + (/^warp_/.test(job.id) && lastWarp ? ': ' + lastWarp : ''), f.good);
+    if (!f.detour) giftCard(job.user, job.label, f.name + (job.id === 'item_off' && lastItemGone ? ': ' + lastItemGone : '') + (job.id === 'follower_random' && lastFollower ? ': ' + lastFollower : '') + (secs ? ' · ' + secs + 's' : '') + (/^warp_/.test(job.id) && lastWarp ? ': ' + lastWarp : ''), f.good);
     if (!cfg.alerts) feed((job.user ? job.user + ': ' : '') + (job.label ? job.label + ' → ' : '') + f.name + (secs ? ' (' + secs + 's)' : ''),
       f.good ? 'good' : 'bad');   // the gift card already says it
     send({ type: 'applied', effect: job.id, user: job.user });
@@ -2149,12 +2236,14 @@
         ? '<div class="acts" style="margin-top:6px"><button type="button" data-ext="cc-plus" data-what="gift">Fake gift (alert + effect)</button>' +
           '<button type="button" data-ext="cc-plus" data-what="mystery_box">Mystery box</button></div>'
         : '<p class="hint">Connect to Crowd Control+ for the mystery box and fake-gift tests.</p>') +
-      '<div class="acts" style="margin-top:6px"><button type="button" data-ext="cc-clear">Clear queue and timers</button></div>';
+      '<div class="acts" style="margin-top:6px"><button type="button" data-ext="cc-clear">Clear queue and timers</button>' +
+        (crowdFollower ? '<button type="button" data-ext="cc-follower-off">Send the crowd\u2019s follower away</button>' : '') + '</div>';
   }
   function menuClick(b, rr) {
     rerender = rr;
     var a = b.dataset.ext;
     if (a === 'cc-test') { var wf = EFFECTS[b.dataset.id]; if (wf && wf.warn && !confirm(wf.warn + '\n\nRun it now?')) return; note('test button: ' + b.dataset.id); trigger(b.dataset.id, 'test'); }
+    else if (a === 'cc-follower-off') { var cf = core(); if (cf) dropFollower(cf.wram(), 'was sent away'); }
     else if (a === 'cc-clear') { endAll(); queue.length = 0; paused = {}; cancelReroll(); }
     else if (a === 'cc-cancel-reroll') cancelReroll();
     else if (a === 'cc-end-detour') cancelDetour();

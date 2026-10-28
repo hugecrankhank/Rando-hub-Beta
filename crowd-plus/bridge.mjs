@@ -322,7 +322,7 @@ const effectNames = {
   pink_link: 'Pink Link', music_roulette: 'Music roulette', mystery_box: 'Mystery box (random effect)',
   spooky_night: 'Spooky night', ghost_link: 'Ghost Link', pumpkin_link: 'Pumpkin Link', haunted_lights: 'Haunted lights',
   blood_drip: 'Blood drip', spider_web: 'Spiderwebs', monster_mash: 'Monster mash (enemies → bats / mummies)',
-  reveal_item: 'Reveal a go-mode item', lights_on: 'Lights on!', lights_out: 'Lights out!', spooky_monster: 'Spooky monster', haunting: 'Haunting! (3 spooky monsters)', trick_or_treat: 'Trick or treat!', spooky_sprite: 'Spooky sprite',
+  follower_random: 'Random follower (stays)', reveal_item: 'Reveal a go-mode item', lights_on: 'Lights on!', lights_out: 'Lights out!', spooky_monster: 'Spooky monster', haunting: 'Haunting! (3 spooky monsters)', trick_or_treat: 'Trick or treat!', spooky_sprite: 'Spooky sprite',
   boss_ganon: 'Boss detour: Ganon', boss_aga: 'Boss detour: Agahnim', boss_random: 'Boss detour: random boss', detour_rescue: 'Rescue Link from a boss detour',
 };
 // Effects that can hurt a run for good: the panel asks before one goes on a gift.

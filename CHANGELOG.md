@@ -5,6 +5,17 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.21 (2026-10-28)
+
+- **Crowd effect: Random follower (chaos).** Zelda, the old man, the frog, Kiki, the
+  purple chest or the super bomb starts following Link, and stays. Whatever a real one
+  can do, this one can (turn-ins included). It can be one that's already been delivered.
+  A real follower always wins: the ones the game hands over anyway (Zelda, the frog, the
+  maiden, a bought bomb) replace it, and for the ones the game holds back while Link has
+  company (Kiki, the purple chest, the locksmith, the digging game, the old man on the
+  mountain), the crowd's follower leaves as Link reaches them. ⋯ → Crowd effects also has
+  "Send the crowd's follower away". Effect id `follower_random`.
+
 ## Beta v1.14.20 (2026-10-28)
 
 - The go-mode words now hang from the top edge of the picture, smaller, as a tab, so the
