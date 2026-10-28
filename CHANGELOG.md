@@ -13,7 +13,9 @@ played again later.
   read: boss shuffle from the Eastern Palace boss room's sprite list (the Armos Knights
   there means vanilla bosses), swordless and the GT crystal count from the randomizer's
   flag bytes. With vanilla bosses the map wants the bow for EP (yellow without it), as
-  it already did for seeds rolled here. Not an alttpr ROM: as before.
+  it already did for seeds rolled here. Mudora 2.0 starts a new game set to match the
+  seed too (boss shuffle, swordless, GT crystals, plus the World and Dungeon items
+  selectors), as it does for seeds rolled here. Not an alttpr ROM: as before.
 
 ## Beta v1.14.8 (2026-10-27)
 

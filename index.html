@@ -1382,6 +1382,11 @@
     // items selectors stay the player's.
     trackerExtra = window.UnifiedRando && window.UnifiedRando.romFlags ? window.UnifiedRando.romFlags(bytes) : null;
     saveSettings();
+    // Mudora 2.0 starts a new game set to match it, as for a seed rolled here
+    if (trackerExtra) {
+      try { localStorage.setItem('rhb-seed-tracker', JSON.stringify({ at: Date.now(), name: file.name,
+        flags: Object.assign({ gamemode: $('gamemode').value, dungeonitems: $('dungeonitems').value }, trackerExtra) })); } catch (e) {}
+    }
     if (window.UnifiedRando) bytes = window.UnifiedRando.prepareLoadedRom(bytes);
     startRom(bytes, file.name, true);
   });
