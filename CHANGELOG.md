@@ -5,6 +5,11 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.20 (2026-10-28)
+
+- The go-mode words now hang from the top edge of the picture, smaller, as a tab, so the
+  play area stays clear; the frame is unchanged.
+
 ## Beta v1.14.19 (2026-10-28)
 
 - **Go-mode alert.** The moment the tracker says Link can go beat Ganon, "GO MODE!" flashes

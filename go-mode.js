@@ -25,11 +25,12 @@
     '.go-ring { position: absolute; left: 0; top: 0; width: 100%; height: 100%; box-sizing: border-box; z-index: 24; pointer-events: none; border: 6px solid #2ecc71; border-radius: 4px;' +
     ' box-shadow: inset 0 0 22px rgba(46,204,113,.75), 0 0 18px rgba(46,204,113,.6); animation: go-ring 1.4s ease-in-out infinite; }' +
     '@keyframes go-ring { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }' +
-    '.go-burst { position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%) scale(.6); z-index: 27; pointer-events: none;' +
-    ' font: 700 clamp(22px, 5vw, 48px)/1 "Rando Pixel", "Press Start 2P", system-ui, sans-serif; color: #2ecc71; letter-spacing: .06em;' +
-    ' text-shadow: 0 0 10px rgba(46,204,113,.9), 0 3px 0 #0a3d1f, 0 4px 10px #000; opacity: 0; transition: opacity .25s, transform .35s cubic-bezier(.2,1.4,.4,1); }' +
-    '.go-burst.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }' +
-    '.go-burst small { display: block; margin-top: 10px; font-size: .38em; color: #fff; letter-spacing: .1em; }';
+    '.go-burst { position: absolute; left: 50%; top: 0; transform: translate(-50%, 0) scale(.6); z-index: 27; pointer-events: none; text-align: center;' +
+    ' font: 700 clamp(14px, 2.6vw, 26px)/1 "Rando Pixel", "Press Start 2P", system-ui, sans-serif; color: #2ecc71; letter-spacing: .06em;' +
+    ' padding: 6px 14px 7px; border-radius: 0 0 10px 10px; background: rgba(10,12,16,.82); border: 2px solid #2ecc71; border-top: 0;' +
+    ' text-shadow: 0 0 10px rgba(46,204,113,.9), 0 2px 0 #0a3d1f; opacity: 0; transition: opacity .25s, transform .35s cubic-bezier(.2,1.4,.4,1); }' +
+    '.go-burst.show { opacity: 1; transform: translate(-50%, 0) scale(1); }' +
+    '.go-burst small { display: block; margin-top: 5px; font-size: .42em; color: #fff; letter-spacing: .1em; }';
   var ring = null, burst = null, burstT = null, was = false, test = 0;
 
   function host() { return document.querySelector('.s9x'); }
@@ -39,7 +40,7 @@
     var P = window.Snes9xPlayer, r = P && P.fx && P.fx.pictureRect && P.fx.pictureRect();
     if (!(r && r.w > 0)) return;
     if (ring) { ring.style.left = Math.round(r.x) + 'px'; ring.style.top = Math.round(r.y) + 'px'; ring.style.width = Math.round(r.w) + 'px'; ring.style.height = Math.round(r.h) + 'px'; }
-    if (burst) { burst.style.left = Math.round(r.x + r.w / 2) + 'px'; burst.style.top = Math.round(r.y + r.h * 0.42) + 'px'; }
+    if (burst) { burst.style.left = Math.round(r.x + r.w / 2) + 'px'; burst.style.top = Math.round(r.y) + 'px'; }
   }
   function show(now) {
     var h = host(); if (!h) return;
