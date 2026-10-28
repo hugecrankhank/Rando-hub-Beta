@@ -622,8 +622,19 @@
     ["Thieves' Town", 0x34], ['Ice Palace', 0x2D], ['Misery Mire', 0x27], ['Turtle Rock', 0x35], ["Ganon's Tower", 0x37],
   ];
   var lastWarp = '';
+  // Only with Link standing normally ($5D 0: not on stairs, falling, swimming,
+  // being bumped — $4D recoil, as a bumper gives — dashing...). A warp that starts mid-move can hang the
+  // entrance transition (Gumby, Oct 2026: from a GT bumper room, frozen on
+  // arrival), so the warp waits for a normal step (deferred by the queue).
+  function warpReady(r) { return r[0x5D] === 0 && r[0x4D] === 0; }   // $5D main state (ground), $4D not recoiling / bumped
+  // A save state is taken first, and warpFrame watches the arrival: not in a
+  // room after 10 s → in through the Eastern Palace lobby instead; still
+  // nowhere after 25 s → the save state comes back and Link is where he was.
+  var warpWatch = null;
   function warpDungeon(r) {
     var pick = DUNGEON_ENTRANCES[Math.floor(Math.random() * DUNGEON_ENTRANCES.length)];
+    var c = core(), snap = null;
+    try { snap = c && c.saveState(); } catch (e) { snap = null; }
     if (r[0x1B]) {   // indoors: save this dungeon's keys like leaving it would (SaveDungeonKeys)
       var idx = r[0x40C];
       if (idx !== 0xFF) { if (idx === 2) idx = 0; r[0xF37C + (idx >> 1)] = r[0xF36F]; }
@@ -631,7 +642,25 @@
     r[0x10E] = pick[1]; r[0x10F] = 0;
     r[0x10] = 0x11; r[0x11] = 0; r[0xB0] = 0;
     lastWarp = pick[0];
+    warpWatch = { snap: snap && snap.length ? (snap.slice ? snap.slice() : snap) : null, frames: 0, steady: 0, fellBack: false, name: pick[0] };
     return true;
+  }
+  function warpFrame(core, r) {
+    var w = warpWatch; if (!w) return;
+    var mode = r[0x10], sub = r[0x11];
+    w.frames++;
+    w.steady = ((mode === 0x07 || mode === 0x09) && sub === 0) ? w.steady + 1 : 0;
+    if (w.steady >= 20) { warpWatch = null; return; }                        // arrived
+    if (w.frames > 60 * 10 && !w.fellBack && w.steady === 0) {
+      w.fellBack = true; note('warp: not there after 10 s, trying the Eastern Palace lobby');
+      r[0x10E] = 0x08; r[0x10F] = 0; r[0x10] = 0x11; r[0x11] = 0; r[0xB0] = 0; lastWarp = 'Eastern Palace';
+      return;
+    }
+    if (w.frames > 60 * 25) {
+      warpWatch = null;
+      if (w.snap) { try { core.loadState(w.snap); feed('The warp to ' + w.name + ' got stuck: Link is back where he was', 'info'); return; } catch (e) {} }
+      feed('The warp to ' + w.name + ' got stuck (and the game couldn\u2019t be put back). Try ⋯ → Restart if Link is frozen.', 'info');
+    }
   }
   // Flute: open the game's own flute menu (Module $0E.0A, as the bird does),
   // choose a random spot for the player, and let the bird carry Link there.
@@ -934,11 +963,11 @@
       apply: function (r) { return spawnAnyEnemy(r); } },
     magic_small: { name: 'Small magic refill', good: true,
       apply: function (r) { r[A.MAGIC_FILL] = Math.min(0x80, r[A.MAGIC_FILL] + 0x20); } },
-    warp_dungeon: { name: 'Warp to a random dungeon', good: false,
+    warp_dungeon: { name: 'Warp to a random dungeon', good: false, defer: function (r) { return !warpReady(r); },
       apply: function (r) { return warpDungeon(r); } },
-    warp_flute:  { name: 'Flute warp (random spot)', good: false,
+    warp_flute:  { name: 'Flute warp (random spot)', good: false, defer: function (r) { return !warpReady(r); },
       apply: function (r) { return warpFlute(r); } },
-    warp_random: { name: 'Random warp (flute spot or dungeon)', good: false,
+    warp_random: { name: 'Random warp (flute spot or dungeon)', good: false, defer: function (r) { return !warpReady(r); },
       apply: function (r) { return canFlute(r) && Math.random() < 0.5 ? warpFlute(r) : warpDungeon(r); } },
 
     // These two flip switches the randomizer ROM itself keeps for crowd
@@ -1480,6 +1509,7 @@
     holdSwitches(core, ram);
     try { if (detour) detourFrame(core, ram); else sendRun(ram); } catch (e) { console.warn('[crowd] detour', e); }
     if (fluteWarp) fluteFrame(ram);
+    if (warpWatch) { try { warpFrame(core, ram); } catch (e) { console.warn('[crowd] warp', e); } }
     // say why effects are waiting, once, if they wait more than ~4 s
     if (queue.length && (detour || !inPlay(ram))) {
       if (++waitT === 240) feed(queue.length + ' waiting: ' + (detour ? 'boss detour still running (' + detour.state + ')' :
@@ -1508,8 +1538,12 @@
     if (detour) return;                      // queued effects wait until Link is back
     var job = queue.shift();
     if (!job) return;
-    note('running ' + job.id);
     var f = EFFECTS[job.id];
+    // Some effects want a particular moment (a warp: Link standing still);
+    // they go back to the front of the queue and wait, up to 15 s.
+    if (f.defer && f.defer(ram) && (job.deferred = (job.deferred || 0) + 1) < 60 * 15) { queue.unshift(job); gap = 15; return; }
+    if (warpWatch) { queue.unshift(job); gap = 30; return; }   // a warp is still landing
+    note('running ' + job.id);
     if (f.romCheck && !romHas(core, f.romCheck)) {
       feed(f.name + ' needs a randomizer ROM (not this one)', 'info'); render(); return;
     }

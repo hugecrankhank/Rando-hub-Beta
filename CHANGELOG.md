@@ -5,6 +5,16 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.16 (2026-10-27)
+
+- **Crowd warps that can't strand Link** (Gumby: a random warp from a Ganon's Tower bumper
+  room froze on arrival at Skull Woods). The dungeon and flute warps now wait for Link to
+  be standing normally (not on stairs, falling, swimming, or being bumped; up to 15 s,
+  the effect stays queued), take a save state first, and watch the landing: not in a
+  room after 10 s, they come in through the Eastern Palace lobby instead; still stuck at
+  25 s, the save state comes back and Link is where he was, with a note in the feed.
+  Other effects wait while a warp is landing.
+
 ## Beta v1.14.15 (2026-10-27)
 
 - **Fix: the Desktop layout's tracker column sliding down and shrinking away** (Gumby).
