@@ -5,6 +5,18 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.12 (2026-10-27)
+
+- **xBRZ itself, in every emulator.** The "6xBRZ" filter was the libretro GPU shader, an
+  approximation that rounds corners more than xBRZ does (the blobby look next to Mesen).
+  Zenju's xBRZ, the scaler Mesen runs, is now built to WebAssembly (`z1r/core/xbrz/`,
+  `emu/xbrz.wasm`) and is the filter on computers: **xBRZ 6x (exact, as Mesen)** and
+  **xBRZ 4x** in ⋯ → Graphics → Filter, for Zelda 1, Guardian Legend, FF1 and Zelda 3 /
+  FF4 / FF5 / FF6. It runs on the processor, a few milliseconds a frame (Diagnostics shows
+  how many); a computer that can't keep up drops to the graphics-chip 6xBRZ once and says
+  so. Phones and tablets keep the GPU shaders. Zelda 3's Auto filter starts at xBRZ 6x on
+  computers and steps down as before.
+
 ## Beta v1.14.11 (2026-10-27)
 
 - **NES colours** (Zelda 1, Guardian Legend, FF1: ⋯ → Graphics → Colors): the core's own

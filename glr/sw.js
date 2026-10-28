@@ -13,7 +13,7 @@ self.addEventListener('install', (e) => {
     './', './index.html', './manifest.webmanifest', './js/icons.js', './js/store.js', './js/nes-bridge.js',
     './js/tgl-data.js', './js/cpu6502.js', './js/labmap.js', './js/labmap-worker.js', './js/randomizer.js',
     './js/tracker.js', './js/seed.js', './js/diag.js', './js/app.js',
-    './emu/core.js', './emu/palettes.js', './emu/video.js', './emu/audio.js', './emu/audio-worklet.js', './emu/input.js', './emu/player.js',
+    './emu/core.js', './emu/palettes.js', './emu/xbrz.js', './emu/xbrz.wasm', './emu/video.js', './emu/audio.js', './emu/audio-worklet.js', './emu/input.js', './emu/player.js',
     './emu/fceumm.wasm', './emu/shaders/stock.glsl', './emu/shaders/6xbrz.glsl',
   ])).catch(() => {}));
   self.skipWaiting();

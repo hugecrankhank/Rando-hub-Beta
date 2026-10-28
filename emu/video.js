@@ -14,8 +14,12 @@
     nearest: { name: 'Sharp pixels (nearest)', passes: [{ file: 'stock.glsl', filter: 'nearest' }] },
     smooth:  { name: 'Smooth (bilinear)',      passes: [{ file: 'stock.glsl', filter: 'linear' }] },
     sharpbl: { name: 'Sharp bilinear',         passes: [{ file: 'sharp-bilinear-simple.glsl', filter: 'linear' }] },
-    xbrz6:   { name: '6xBRZ',                  passes: [{ file: '6xbrz.glsl', scale: 6, filter: 'nearest' }, { file: 'stock.glsl', filter: 'linear' }] },
-    xbrz4:   { name: '4xBRZ (lighter)',        passes: [{ file: '4xbrz.glsl', scale: 4, filter: 'nearest' }, { file: 'stock.glsl', filter: 'linear' }] },
+    // xBRZ itself (xbrz.js, Zenju's scaler in WebAssembly, as Mesen's): the
+    // picture arrives already scaled, RGBA; the one pass only fits it.
+    xbrz6x:  { name: 'xBRZ 6x (exact, as Mesen)', cpu: 6, passes: [{ file: 'stock.glsl', filter: 'linear' }] },
+    xbrz4x:  { name: 'xBRZ 4x (exact, lighter)',  cpu: 4, passes: [{ file: 'stock.glsl', filter: 'linear' }] },
+    xbrz6:   { name: '6xBRZ (graphics chip)',  passes: [{ file: '6xbrz.glsl', scale: 6, filter: 'nearest' }, { file: 'stock.glsl', filter: 'linear' }] },
+    xbrz4:   { name: '4xBRZ (graphics chip, lighter)', passes: [{ file: '4xbrz.glsl', scale: 4, filter: 'nearest' }, { file: 'stock.glsl', filter: 'linear' }] },
     crt:     { name: 'CRT (crt-pi)',           passes: [{ file: 'crt-pi.glsl', filter: 'linear' }] },
   };
 
@@ -148,14 +152,18 @@
   };
 
   // frame: { w, h, data: Uint16Array RGB565 }
+  // frame: { w, h, data: Uint16Array RGB565 } or { w, h, rgba: Uint8Array } (already scaled)
   Video.prototype.upload = function (frame) {
-    var gl = this.gl;
+    var gl = this.gl, rgba = !!frame.rgba;
     this.dirty = true;
     gl.bindTexture(gl.TEXTURE_2D, this.srcTex);
-    if (frame.w !== this.srcW || frame.h !== this.srcH) {
-      this.srcW = frame.w; this.srcH = frame.h;
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB565, frame.w, frame.h, 0, gl.RGB, gl.UNSIGNED_SHORT_5_6_5, frame.data);
+    if (frame.w !== this.srcW || frame.h !== this.srcH || rgba !== this.srcRgba) {
+      this.srcW = frame.w; this.srcH = frame.h; this.srcRgba = rgba;
+      if (rgba) gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, frame.w, frame.h, 0, gl.RGBA, gl.UNSIGNED_BYTE, frame.rgba);
+      else gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB565, frame.w, frame.h, 0, gl.RGB, gl.UNSIGNED_SHORT_5_6_5, frame.data);
       this._resizeFbos();
+    } else if (rgba) {
+      gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, frame.w, frame.h, gl.RGBA, gl.UNSIGNED_BYTE, frame.rgba);
     } else {
       gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, frame.w, frame.h, gl.RGB, gl.UNSIGNED_SHORT_5_6_5, frame.data);
     }

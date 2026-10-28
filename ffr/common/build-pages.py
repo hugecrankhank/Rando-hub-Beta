@@ -4,8 +4,8 @@ import json, os, sys
 here = os.path.dirname(os.path.abspath(__file__))
 tpl = open(os.path.join(here, 'page.tpl.html'), encoding='utf-8').read()
 EMU = {
-    'nes': ("../../z1r/emu/", ['core.js', 'palettes.js', 'video.js', 'audio.js', 'input.js', 'player.js']),
-    'snes': ("../../emu/", ['core.js', 'video.js', 'audio.js', 'input.js', 'player.js']),
+    'nes': ("../../z1r/emu/", ['core.js', 'palettes.js', 'xbrz.js', 'video.js', 'audio.js', 'input.js', 'player.js']),
+    'snes': ("../../emu/", ['core.js', 'xbrz.js', 'video.js', 'audio.js', 'input.js', 'player.js']),
 }
 for g in ['ff1', 'ff4', 'ff5']:
     d = os.path.join(here, '..', g)

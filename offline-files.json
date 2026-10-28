@@ -314,6 +314,8 @@
   "pyodide/pyyaml-6.0.2-cp312-cp312-pyodide_2024_0_wasm32.whl",
   "emu/snes9x.wasm",
   "emu/core.js",
+  "emu/xbrz.js",
+  "emu/xbrz.wasm",
   "emu/video.js",
   "emu/audio.js",
   "emu/audio-worklet.js",

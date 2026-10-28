@@ -350,7 +350,7 @@
       '<h4>Graphics</h4>' +
       '<div class="row"><span>Filter</span><select data-s="filter">' + opts([['auto', 'Auto (now: ' + ((P[autoFilter()] || {}).name || autoFilter()) + ')']].concat(Object.keys(P).map(function (k) { return [k, P[k].name]; })), cfg.filter) + '</select></div>' +
       '<div class="row"><span>Aspect ratio</span><select data-s="aspect">' + opts([['8:7', 'Pixel-perfect (8:7)'], ['4:3', 'TV (4:3)'], ['fill', 'Fill the box']], cfg.aspect) + '</select></div>' +
-      '<p class="hint">Auto starts at 6xBRZ and steps down to 4xBRZ or Sharp if this device can\u2019t keep up. 6xBRZ runs on the graphics chip.</p>' +
+      '<p class="hint">Auto starts at xBRZ 6x (Zenju\u2019s xBRZ itself, the filter Mesen uses, on the processor) on computers and at the graphics-chip 6xBRZ on phones and tablets, and steps down to lighter filters if this device can\u2019t keep up.</p>' +
       '<div class="row"><span>Run-ahead (less input lag)</span><input type="checkbox" data-s="runAhead"' + (runAheadOn() ? ' checked' : '') + '></div>' +
       '<p class="hint">Shows each frame one frame early, like RetroArch\u2019s run-ahead: a press shows up about 16 ms sooner. It runs the game twice per frame, so it\u2019s on by default with a keyboard or controller and off on touch screens.</p>' +
       '<h4>On-screen controller</h4>' +
@@ -455,7 +455,10 @@
   // Starts at 6xBRZ (or Sharp on software rendering), and steps down to 4xBRZ,
   // then Sharp, when frames keep running long. The level it settles on is
   // remembered, so the next game starts there instead of stuttering first.
-  var AUTO_KEY = 's9x-auto-filter', AUTO_LEVELS = ['xbrz6', 'xbrz4', 'sharpbl'];
+  // Auto: xBRZ itself (xbrz.js, on the processor) on computers, stepping down to the GPU
+  // shaders and then Sharp if the device can't keep up; phones and tablets start at the GPU 6xBRZ.
+  var AUTO_KEY = 's9x-auto-filter';
+  var AUTO_LEVELS = (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) ? ['xbrz6', 'xbrz4', 'sharpbl'] : ['xbrz6x', 'xbrz6', 'xbrz4', 'sharpbl'];
   var autoLevel = 0, autoWatch = { since: 0, slow: 0, total: 0 };
   try { var al = parseInt(localStorage.getItem(AUTO_KEY), 10); if (al >= 0 && al < AUTO_LEVELS.length) autoLevel = al; } catch (e) {}
   function autoFilter() {
@@ -463,6 +466,15 @@
     return AUTO_LEVELS[autoLevel];
   }
   function filterNow() { return cfg.filter === 'auto' ? autoFilter() : cfg.filter; }
+  // The frame on its way to the screen: through xBRZ itself when that's the filter.
+  function paintFrame(f) {
+    var P = window.Video && Video.PRESETS[filterNow()];
+    if (P && P.cpu && window.Xbrz) {
+      if (Xbrz.ready) { var r = Xbrz.scale(f, P.cpu); if (r) return r; }
+      else Xbrz.load(BASE).catch(function (e) { console.warn('[snes9x] xbrz', e); });
+    }
+    return f;
+  }
   // called every tick: dt is the time since the last screen refresh
   function autoTune(dt, frameMs) {
     if (cfg.filter !== 'auto' || !running || paused || ff || autoLevel >= AUTO_LEVELS.length - 1) return;
@@ -613,13 +625,13 @@
           core.runFrame(pad, 0);
           var a2 = core.audio();
           try { audio.push(a2); } catch (e) {}
-          video.upload(core.frame());
+          video.upload(paintFrame(core.frame()));
           if (!core.restore()) { cfg.runAhead = false; saveCfg(); toast('Run-ahead stopped: the game state couldn\u2019t be restored.'); }
         } else { cfg.runAhead = false; saveCfg(); toast('Run-ahead isn\u2019t possible with this game.'); }
       }
     } catch (e) { stopWithError('Emulator', e); return; }
     try {
-      if (n && !ahead) video.upload(core.frame());
+      if (n && !ahead) video.upload(paintFrame(core.frame()));
       video.draw();
       stats.draws++;
     } catch (e) {
@@ -635,7 +647,7 @@
     canvas.addEventListener('webglcontextlost', function (e) { e.preventDefault(); stats.glLost++; });
     canvas.addEventListener('webglcontextrestored', function () {
       stats.glRestored++;
-      try { video = new Video(canvas); applyAspect(); applyFilter(); if (running) video.upload(core.frame()); }
+      try { video = new Video(canvas); applyAspect(); applyFilter(); if (running) video.upload(paintFrame(core.frame())); }
       catch (e) { stats.gfxErr = String(e && e.message || e); }
     });
   }
@@ -648,7 +660,7 @@
       ['Running', running ? (paused ? 'paused' : 'yes') : 'no'],
       ['Frames run', stats.frames + ' (' + Math.round(stats.frames / Math.max(1, (performance.now() - stats.started) / 1000)) + '/s)'],
       ['Picture', f ? f.w + '×' + f.h + ', ' + lit + '% lit' : '—'],
-      ['Filter', (video && video.presetId) || cfg.filter],
+      ['Filter', ((video && video.presetId) || cfg.filter) + (window.Xbrz && Xbrz.ready && Video.PRESETS[filterNow()] && Video.PRESETS[filterNow()].cpu ? ', xBRZ ' + Xbrz.ms().toFixed(2) + ' ms per frame' : '')],
       ['Graphics', gl ? (gl.isContextLost() ? 'LOST' : 'ok') + ', lost ' + stats.glLost + '×, restored ' + stats.glRestored + '×' : 'none'],
       ['Audio', audio && audio.ctx ? audio.ctx.state + ' @ ' + audio.ctx.sampleRate : 'not started'],
       ['Screen', ema ? (1000 / ema).toFixed(1) + ' Hz, ' + (Math.abs(ema - 1000 / (core && core.loaded ? core.fps : 60.1)) / ema < 0.01 ? 'one game frame per refresh' : 'paced by the clock') : '\u2014'],

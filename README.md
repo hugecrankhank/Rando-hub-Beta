@@ -44,7 +44,8 @@
 Rando Hub puts everything you need for an ALttP Randomizer run in one page:
 
 - **The game**, on **Snes9x compiled to WebAssembly**, built into the page.
-  Graphics filters (6xBRZ by default, 4xBRZ, Sharp pixels, Smooth, Sharp
+  Graphics filters (xBRZ itself, Zenju's scaler in WebAssembly, by default on
+  computers, as Mesen's; the GPU 6xBRZ / 4xBRZ shaders, Sharp pixels, Smooth, Sharp
   bilinear, CRT), 4 save-state slots, full screen, keyboard and gamepad
   remapping, fast-forward.
 - **An on-screen controller over the game** on phones and tablets, so the
@@ -800,7 +801,8 @@ WASI_SDK=/path/to/wasi-sdk-25.0-x86_64-linux SNES9X=/path/to/snes9x ./emu/build/
 ```
 
 Licenses: Snes9x (non-commercial, `emu/build/LICENSES/snes9x-LICENSE`),
-libretro shaders (each file's header; xBRZ is GPL-3.0).
+libretro shaders (each file's header; xBRZ is GPL-3.0), and Zenju's xBRZ itself
+(`z1r/core/xbrz/`, GPL-3.0, built to `emu/xbrz.wasm` by `z1r/core/build-xbrz.sh`).
 
 ## How the tracking works
 
@@ -950,7 +952,8 @@ Gumby" and so on (`randomizer/hub-credits.js`; the captions that hint at items s
   bugs in how it runs or looks inside Rando Hub: Rando Hub.
 - Emulator: [Snes9x](https://github.com/snes9xgit/snes9x) (libretro core), non-commercial
   license (`emu/build/LICENSES/snes9x-LICENSE`); libretro GLSL shaders, each under
-  the license in its header (xBRZ is GPL-3.0).
+  the license in its header (xBRZ is GPL-3.0); [xBRZ](https://sourceforge.net/projects/xbrz/)
+  by Zenju (GPL-3.0, `z1r/core/xbrz/`, the copy Mesen ships), run in WebAssembly.
 - Randomizer: ported from [alttp_vt_randomizer](https://github.com/sporchia/alttp_vt_randomizer)
   by sporchia (MIT); base patch built from [z3randomizer](https://github.com/KatDevsGames/z3randomizer)
   (MIT). See `randomizer/LICENSE-THIRD-PARTY.md`.

@@ -18,7 +18,7 @@
   var BASE = window.EMU_BASE || 'emu/';   // EMU_BASE: a page in another folder (patched/)
   var SETTINGS_KEY = 'z1r-nes-player-settings';
   var DEFAULTS = {
-    filter: 'xbrz6', aspect: '8:7', volume: 0.5, muted: false,
+    filter: 'xbrz6x', aspect: '8:7',   // xBRZ itself on computers; the GPU 6xBRZ on touch screens (below) volume: 0.5, muted: false,
     touch: 'auto', opacity: 0.45, size: 1, haptics: true, slot: 1,
     keymap: null, padmap: null,
     palette: 'fceumm',     // colours (emu/palettes.js): the core's own, Mesen's, FBX's…
@@ -27,8 +27,13 @@
   var LABELS = { UP: 'Up', DOWN: 'Down', LEFT: 'Left', RIGHT: 'Right', A: 'A', B: 'B', START: 'Start', SELECT: 'Select' };
   var ORDER = ['UP', 'DOWN', 'LEFT', 'RIGHT', 'B', 'A', 'START', 'SELECT'];
 
-  var cfg = Object.assign({}, DEFAULTS);
-  try { Object.assign(cfg, JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}')); } catch (e) {}
+  var cfg = Object.assign({}, DEFAULTS), savedCfg = {};
+  try { savedCfg = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}') || {}; Object.assign(cfg, savedCfg); } catch (e) {}
+  // v2 (Oct 2026): xBRZ itself (CPU) is the filter on computers; the GPU 6xBRZ stays on phones and tablets.
+  // A saved 'xbrz6' from when it was the only one isn't a choice against it.
+  var coarseNow = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+  if ((savedCfg.v | 0) < 2) { if (cfg.filter === 'xbrz6' && !coarseNow) cfg.filter = 'xbrz6x'; cfg.v = 2; }
+  if (coarseNow && !savedCfg.filter) cfg.filter = 'xbrz6';   // a phone or tablet starting fresh
   function saveCfg() { try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(cfg)); } catch (e) {} }
 
   // ── storage: in-game saves (SRAM) and save-state slots, per game ────────
@@ -270,7 +275,30 @@
   }
 
   var coarse = window.matchMedia ? window.matchMedia('(pointer: coarse)') : { matches: false };
-  function paintFrame(f) { return window.NesPalettes && cfg.palette && cfg.palette !== 'fceumm' ? NesPalettes.apply(f, cfg.palette) : f; }
+  // xBRZ itself is the default on computers; one that can't keep up (8% of refreshes
+  // late over 5 s) drops to the graphics-chip 6xBRZ, once, unless the player chose xBRZ by hand.
+  var xw = { since: 0, total: 0, slow: 0 };
+  function xbrzWatch(dt, frameMs) {
+    if (cfg.filter !== 'xbrz6x' || cfg.xbrzKeep || !running || paused || ff || document.visibilityState !== 'visible') return;
+    var now = performance.now();
+    if (!xw.since) { xw.since = now + 3000; return; }
+    if (now < xw.since) return;
+    xw.total++; if (dt > frameMs * 1.6) xw.slow++;
+    if (xw.total < 300) return;
+    var share = xw.slow / xw.total; xw.total = 0; xw.slow = 0;
+    if (share < 0.08) return;
+    cfg.filter = 'xbrz6'; saveCfg(); applyFilter();
+    toast('xBRZ was too slow on this computer: using the graphics-chip 6xBRZ instead (\u22ef \u2192 Graphics to change).');
+  }
+  function paintFrame(f) {
+    if (window.NesPalettes && cfg.palette && cfg.palette !== 'fceumm') f = NesPalettes.apply(f, cfg.palette);
+    var P = window.Video && Video.PRESETS[tempFilter || cfg.filter];
+    if (P && P.cpu && window.NesXbrz) {
+      if (NesXbrz.ready) { var r = NesXbrz.scale(f, P.cpu); if (r) return r; }
+      else NesXbrz.load(BASE).catch(function (e) { console.warn('[emu] xbrz', e); });
+    }
+    return f;
+  }
   function runAheadOn() { return cfg.runAhead == null ? !coarse.matches : !!cfg.runAhead; }
   var padUsed = false;    // a physical controller is in use: hide the on-screen one (auto mode)
   function applyTouch() {
@@ -324,7 +352,7 @@
       '<div class="row"><span>Filter</span><select data-s="filter">' + opts(Object.keys(P).map(function (k) { return [k, P[k].name]; }), cfg.filter) + '</select></div>' +
       '<div class="row"><span>Colors</span><select data-s="palette">' + opts(Object.keys(window.NesPalettes ? NesPalettes.PALETTES : { fceumm: { name: 'FCEUmm (default)' } }).map(function (k) { return [k, (window.NesPalettes ? NesPalettes.PALETTES : { fceumm: { name: 'FCEUmm (default)' } })[k].name]; }), cfg.palette) + '</select></div>' +
       '<div class="row"><span>Aspect ratio</span><select data-s="aspect">' + opts([['8:7', 'Pixel-perfect (8:7)'], ['4:3', 'TV (4:3)'], ['fill', 'Fill the box']], cfg.aspect) + '</select></div>' +
-      '<p class="hint">6xBRZ runs on the graphics chip. If an older phone stutters, try 4xBRZ or Sharp pixels.</p>' +
+      '<p class="hint">xBRZ 6x is Zenju\u2019s xBRZ itself, the filter Mesen uses, run on the processor (a few ms a frame). The graphics-chip 6xBRZ is an approximation that rounds corners more; it\u2019s the one for phones and tablets. Stutters? 4x, or Sharp pixels.</p>' +
       '<div class="row"><span>Run-ahead (less input lag)</span><input type="checkbox" data-s="runAhead"' + (runAheadOn() ? ' checked' : '') + '></div>' +
       '<p class="hint">Shows each frame one frame early, like RetroArch\u2019s run-ahead: a press shows up about 16 ms sooner. The game runs twice per frame (cheap for the NES), so it\u2019s on by default with a keyboard or controller and off on touch screens.</p>' +
       '<h4>On-screen controller</h4>' +
@@ -358,7 +386,7 @@
       if (s === 'volume' || s === 'opacity' || s === 'size') v = +v;
       cfg[s] = v; saveCfg();
       if (s === 'volume' || s === 'muted') { ejs.volume = cfg.volume; ejs.muted = cfg.muted; ejs.setVolume(cfg.volume); }
-      else if (s === 'filter') applyFilter();
+      else if (s === 'filter') { if (v === 'xbrz6x') cfg.xbrzKeep = true; saveCfg(); applyFilter(); }
       else if (s === 'aspect') applyAspect();
       else if (s === 'runAhead' || s === 'palette') { /* takes effect next frame */ }
       else applyTouch();
@@ -513,6 +541,7 @@
     if (hooks.input) { try { pad = hooks.input(pad) | 0; } catch (e) { console.warn('[emu] input hook', e); } }
     if (dt > frameMs * 1.5) stats.missed++;
     stats.ticks++;
+    xbrzWatch(dt, frameMs);
     var vsync = !ff && speedMul === 1 && Math.abs(ema - frameMs) / frameMs < 0.01;
     if (vsync) { n = 1; acc = 0; }
     else {
@@ -584,7 +613,7 @@
       ['Running', running ? (paused ? 'paused' : 'yes') : 'no'],
       ['Frames run', stats.frames + ' (' + Math.round(stats.frames / Math.max(1, (performance.now() - stats.started) / 1000)) + '/s)'],
       ['Picture', f ? f.w + '×' + f.h + ', ' + lit + '% lit' : '—'],
-      ['Filter', (video && video.presetId) || cfg.filter],
+      ['Filter', ((video && video.presetId) || cfg.filter) + (window.NesXbrz && NesXbrz.ready && Video.PRESETS[cfg.filter] && Video.PRESETS[cfg.filter].cpu ? ', xBRZ ' + NesXbrz.ms().toFixed(2) + ' ms per frame' : '')],
       ['Graphics', gl ? (gl.isContextLost() ? 'LOST' : 'ok') + ', lost ' + stats.glLost + '×, restored ' + stats.glRestored + '×' : 'none'],
       ['Audio', audio && audio.ctx ? audio.ctx.state + ' @ ' + audio.ctx.sampleRate : 'not started'],
       ['Screen', ema ? (1000 / ema).toFixed(1) + ' Hz, ' + (Math.abs(ema - 1000 / (core && core.loaded ? core.fps : 60.0988)) / (1000 / 60.0988) < 0.01 ? 'one game frame per refresh' : 'paced by the clock') : '\u2014'],
