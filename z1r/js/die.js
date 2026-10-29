@@ -7,16 +7,15 @@
  *
  * While the game is paused (Start: the item screen) the same button is 💾
  * Save & quit: the original's secret, Up + A on controller 2, which brings up
- * Continue / Save / Retry without dying. The page holds those two buttons on
- * controller 2 for half a second (EmuPlayer.pad2).
+ * Continue / Save / Retry without dying.
  *
- * ☠️P2 next to it does the whole thing in one tap: Start on controller 1 to
- * open the item screen, then Up + A on controller 2 (Hank, Oct 2026).
+ * ☠️P2 next to it does it in one tap, item screen open or not (Hank, Oct 2026).
+ * Both put the game straight where Up + A on controller 2 would (quitNow).
  */
 (function () {
   'use strict';
   var $ = function (id) { return document.getElementById(id); };
-  var MENU = 0xE1, UP = 1 << 4, A = 1 << 8, START = 1 << 3;   // MenuState: the item screen (Start) is open or opening
+  var MENU = 0xE1;   // MenuState: the item screen (Start) is open or opening
   var MODE = 0x12, SUBMODE = 0x13, UPDATING = 0x11, HEARTS = 0x66F, PARTIAL = 0x670, STATE = 0xAC, DIR = 0x98;
   function ram() { var p = window.EmuPlayer, c = p && p.core; return c && c.wram ? c.wram() : null; }
   // a file is being played (Zelda 1's "save slot in use" marks), out in the world, a dungeon or a cave
@@ -36,29 +35,23 @@
     r[MODE] = 0x11;
   }
   function paused(r) { return canDie(r) && r[MODE] === 0x05 && r[MENU] !== 0; }
-  function saveQuit() {
-    var p = window.EmuPlayer, r = ram();
-    if (!p || !p.pad2) return;
-    if (!paused(r)) { alert('Open the item screen first (Start), then Save & quit.'); return; }
-    // Up + A on controller 2, held until the game takes it (it checks once the item
-    // screen has finished sliding down: Z_05.asm UpdateMenuActive), at most 3 s
-    p.pad2(UP | A, 180);
-    var t0 = Date.now(), t = setInterval(function () { var w = ram(); if (!w || w[MODE] !== 0x05 || Date.now() - t0 > 3200) { clearInterval(t); p.pad2(0, 0); } }, 50);
+  // Save & quit: what the game itself does on Up + A on controller 2 with the item
+  // screen open (Z_05.asm UpdateMenuActive): end the mode, close the item screen,
+  // game mode 8 (Continue / Save / Retry), music off. Done straight in memory: holding
+  // the buttons for the game worked on a computer but not on Hank's iPhone, and the
+  // game's own code takes it from there either way (it redraws the whole screen).
+  function quitNow() {
+    var r = ram();
+    if (!canDie(r) || r[MODE] !== 0x05) { alert('Save & quit works while Link is out in the world or in a dungeon (not in a cave, a menu or mid-screen-change).'); return false; }
+    r[UPDATING] = 0; r[SUBMODE] = 0;     // EndGameMode
+    r[MENU] = 0;                          // the item screen
+    r[0x619] = 0;                         // SongEnvelopeSelector
+    r[0x604] = 0x80; r[0x603] = 0x80;     // SilenceSound: Tune0Request, EffectRequest
+    r[MODE] = 0x08;
+    return true;
   }
-  // one tap: open the item screen (Start, controller 1) and Up + A on controller 2
-  var auto = null;
-  function p2Quit() {
-    var p = window.EmuPlayer, r = ram();
-    if (!p || !p.pad2 || !p.pad1 || auto) return;
-    if (!canDie(r) || (r[MODE] !== 0x05)) { alert('Save & quit works while Link is out in the world or in a dungeon (not in a cave, a menu or mid-screen-change).'); return; }
-    if (!r[MENU]) p.pad1(START, 4);
-    p.pad2(UP | A, 300);   // the game only looks once the item screen has slid down
-    var t0 = Date.now();
-    auto = setInterval(function () {
-      var w = ram();
-      if (!w || w[MODE] !== 0x05 || Date.now() - t0 > 5200) { clearInterval(auto); auto = null; p.pad2(0, 0); }
-    }, 50);
-  }
+  function saveQuit() { quitNow(); }
+  function p2Quit() { quitNow(); }
   function click() { if (paused(ram())) saveQuit(); else die(); }
   var btn = null, btn2 = null, mode = '';
   function look(m) {

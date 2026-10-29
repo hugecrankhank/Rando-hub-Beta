@@ -5,6 +5,15 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.42 (2026-10-29)
+
+- **Zelda 1: Save & quit works on iPhone.** ☠️P2 (and 💾) held Up + A on controller 2 for the
+  game to notice; on a computer that worked, on Hank's iPhone the item screen opened and
+  stayed. Now they put the game exactly where Up + A would (end the mode, close the item
+  screen, music off, Continue / Save / Retry) straight away, so it no longer depends on the
+  game catching a button press. ☠️P2 works with the item screen open or closed; Continue picks
+  up as usual.
+
 ## Beta v1.14.41 (2026-10-29)
 
 - **Zelda 1: ☠️P2, Save & quit in one tap.** Next to the ☠️: presses Start on controller 1 to
