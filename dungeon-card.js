@@ -13,17 +13,32 @@
  *                 (the same numbers as the hover card on his map)
  *   Mudora 2.0    Mudora.items as mudora2.js fills it (…Chests / MaxChests / SmallKeys / Boss / Prize)
  *
- * ⚙ Settings → "Dungeon card": Off / On entry (8 s) / While inside; Test shows
- * Tower of Hera for eight seconds. Drawn over the game picture, top left, so a
- * stream capture of the game has it.
+ * ⚙ Settings → "Dungeon card": Off / On entry (8 s) / While inside; where:
+ * over the game picture (top left, so a stream capture of the game has it) or
+ * beside the trackers (a strip at the top of the tracker column, under the
+ * items); the boss: shown, hidden until Link has been in its room this seed
+ * (boss shuffle: no spoilers), or never. Test shows Tower of Hera.
  */
 (function () {
   'use strict';
   var $ = function (id) { return document.getElementById(id); };
-  var KEY = 'rhb-dungeon-card';
-  var mode = 'entry';
-  try { mode = localStorage.getItem(KEY) || 'entry'; } catch (e) {}
+  var KEY = 'rhb-dungeon-card', KEY_AT = 'rhb-dungeon-card-at', KEY_BOSS = 'rhb-dungeon-card-boss', KEY_SEEN = 'rhb-dungeon-card-seen';
+  var mode = 'entry', at = 'game', bossMode = 'seen';
+  try { mode = localStorage.getItem(KEY) || 'entry'; at = localStorage.getItem(KEY_AT) || 'game'; bossMode = localStorage.getItem(KEY_BOSS) || 'seen'; } catch (e) {}
   if (['off', 'entry', 'inside'].indexOf(mode) < 0) mode = 'entry';
+  if (['game', 'side'].indexOf(at) < 0) at = 'game';
+  if (['show', 'seen', 'never'].indexOf(bossMode) < 0) bossMode = 'seen';
+  // each dungeon's boss room, for "hide the boss until seen"
+  var BOSS_ROOM = { ep: 0xC8, dp: 0x33, ct: 0x20, sp: 0x06, pod: 0x5A, mm: 0x90, sw: 0x29, ip: 0xDE, toh: 0x07, tt: 0xAC, tr: 0xA4, gt: 0x0D };
+  var seen = {};   // { '<rom name>': { ep: 1, … } }
+  try { seen = JSON.parse(localStorage.getItem(KEY_SEEN) || '{}') || {}; } catch (e) { seen = {}; }
+  function seedKey() { var P = window.Snes9xPlayer; return (P && P.gameName) || 'seed'; }
+  function bossSeen(k) { var s = seen[seedKey()]; return !!(s && s[k]); }
+  function markSeen(k) {
+    var id = seedKey(); if (!seen[id]) { seen = {}; seen[id] = {}; }   // one seed at a time
+    if (seen[id][k]) return; seen[id][k] = 1;
+    try { localStorage.setItem(KEY_SEEN, JSON.stringify(seen)); } catch (e) {}
+  }
   var SHOW_MS = 8000;
   var IMG = 'tracker/items/', BOSS = 'tracker/boss/';
   var ID_KEY = { 0x00: 'hc', 0x02: 'hc', 0x04: 'ep', 0x06: 'dp', 0x08: 'ct', 0x0A: 'sp', 0x0C: 'pod', 0x0E: 'mm', 0x10: 'sw', 0x12: 'ip', 0x14: 'toh', 0x16: 'tt', 0x18: 'tr', 0x1A: 'gt' };
@@ -53,12 +68,25 @@
     '.dg-card .dg-left { margin-left: 4px; color: #e8c25a; white-space: nowrap; }' +
     '.dg-card .dg-left.done { color: #2ecc71; }' +
     '.dg-card .dg-n { margin-right: 6px; white-space: nowrap; }' +
-    '.dg-card .dg-prize { margin-left: 2px; }';
+    '.dg-card .dg-prize { margin-left: 2px; }' +
+    // beside the trackers: a strip at the top of the tracker column
+    '#dg-side { flex: none; display: none; background: #0e1014; border-bottom: 1px solid #2a2d33; }' +
+    '#dg-side.show { display: block; }' +
+    '#dg-side .dg-card { position: static; opacity: 1; transform: none; transition: none; border: 0; border-radius: 0; box-shadow: none; background: transparent; font-size: 13px; padding: 8px 12px; }' +
+    '#dg-side .dg-card .dg-chests { max-width: none; }';
   var card = null, hideT = null, cur = null, testUntil = 0, lastHtml = '';
 
   function host() { return document.querySelector('.s9x'); }
   function style() { if ($('dungeon-card-css')) return; var st = document.createElement('style'); st.id = 'dungeon-card-css'; st.textContent = CSS; document.head.appendChild(st); }
+  function sideBox() {
+    var b = $('dg-side'); if (b) return b;
+    var fr = $('frames'), iw = $('items-wrap'); if (!fr) return null;
+    b = document.createElement('div'); b.id = 'dg-side';
+    if (iw && iw.parentNode === fr) fr.insertBefore(b, iw.nextSibling); else fr.insertBefore(b, fr.firstChild);
+    return b;
+  }
   function place() {
+    if (at === 'side') return;
     var P = window.Snes9xPlayer, r = P && P.fx && P.fx.pictureRect && P.fx.pictureRect();
     if (!(r && r.w > 0) || !card) return;
     card.style.left = Math.round(r.x) + 'px'; card.style.top = Math.round(r.y) + 'px';
@@ -72,7 +100,9 @@
     var m = r[0x10];
     if (m < 0x06) return null;                              // title / file select
     if (m !== 0x07 && m !== 0x09 && m !== 0x0B) return cur; // menus, text, transitions: keep the last answer
-    return ID_KEY[r[0x40C]] || null;
+    var k = ID_KEY[r[0x40C]] || null;
+    if (k && m === 0x07 && BOSS_ROOM[k] != null && (r[0xA0] | r[0xA1] << 8) === BOSS_ROOM[k]) markSeen(k);   // Link's in the boss room: he's seen it
+    return k;
   }
 
   // the card's numbers, from whichever tracker is up
@@ -91,7 +121,7 @@
     } catch (e) {}
     var n = (k === 'ct' || k === 'gt' || k === 'hc') ? 0 : (d.bossState || 0);
     return {
-      name: NAMES[k], chests: crossed ? (k === 'ct' ? (ti.ctItems || 0) : (d.itemCount || 0)) : c.opened,
+      id: k, name: NAMES[k], chests: crossed ? (k === 'ct' ? (ti.ctItems || 0) : (d.itemCount || 0)) : c.opened,
       maxChests: crossed ? (k === 'ct' ? w.ctItemMaxLabel() : (d.totalUnknown ? '?' : d.maxItems)) : c.total,
       keys: ti[k + 'SmallKeys'] || d.smallKeyCount || 0,
       maxKeys: k === 'ct' ? (w.ctKeyMaxLabel ? w.ctKeyMaxLabel() : '?') : (d.keysUnknown ? '?' : (d.maxSmallKeys || 0)),
@@ -107,7 +137,7 @@
     var b = it[k + 'Boss'] || 'unknown', n = BOSS_NUM[b] || 0;
     var hasPrize = k !== 'hc' && k !== 'ct' && k !== 'gt';
     return {
-      name: NAMES[k], chests: it[k + 'Chests'] || 0, maxChests: it[k + 'MaxChests'] || 0,
+      id: k, name: NAMES[k], chests: it[k + 'Chests'] || 0, maxChests: it[k + 'MaxChests'] || 0,
       keys: it[k + 'SmallKeys'] || 0, maxKeys: it[k + 'MaxSmallKeys'] || 0,
       map: k === 'ct' ? null : !!it[k + 'Map'], compass: k === 'ct' ? null : !!it[k + 'Compass'], bigKey: k === 'ct' ? null : !!it[k + 'BigKey'],
       boss: k === 'ct' ? 'Agahnim' : k === 'gt' ? 'Agahnim 2' : BOSS_NAME[n], bossNum: n, bossBeaten: !!it[k + 'BossDefeated'],
@@ -117,12 +147,15 @@
   function stateOf(k) {
     var b = document.body;
     if (b.classList.contains('tracker-off')) return null;
-    return (b.classList.contains('tracker-emo') ? mudora(k) : hutch(k)) || { name: NAMES[k], chests: 0, maxChests: '?', keys: 0, maxKeys: '?', map: null, compass: null, bigKey: null, boss: null, bossNum: 0, bossBeaten: null, prize: null };
+    return (b.classList.contains('tracker-emo') ? mudora(k) : hutch(k)) || { id: k, name: NAMES[k], chests: 0, maxChests: '?', keys: 0, maxKeys: '?', map: null, compass: null, bigKey: null, boss: null, bossNum: 0, bossBeaten: null, prize: null };
   }
 
   function html(s) {
     var h = '';
-    if (s.boss === 'Agahnim' || s.boss === 'Agahnim 2') h += '<div class="dg-boss none' + (s.bossBeaten ? ' beaten' : '') + '" title="' + s.boss + '">⚔</div>';
+    var hideBoss = bossMode === 'seen' && !s.bossBeaten && !bossSeen(s.id) && s.id !== 'ct' && s.id !== 'gt';
+    if (bossMode === 'never') h += '';
+    else if (hideBoss) h += '<div class="dg-boss" title="Boss: not seen yet"><img src="' + BOSS + 'boss0.png" alt=""></div>';
+    else if (s.boss === 'Agahnim' || s.boss === 'Agahnim 2') h += '<div class="dg-boss none' + (s.bossBeaten ? ' beaten' : '') + '" title="' + s.boss + '">⚔</div>';
     else h += '<div class="dg-boss' + (s.bossBeaten ? ' beaten' : '') + '" title="' + (s.boss || 'Boss unknown') + '"><img src="' + BOSS + 'boss' + (s.bossNum || 0) + '.png" alt=""></div>';
     h += '<div class="dg-main"><div class="dg-name">' + s.name + '</div>';
     var tot = typeof s.maxChests === 'number' ? s.maxChests : 0, open = Math.min(s.chests, tot);
@@ -141,18 +174,19 @@
   }
 
   function show(s) {
-    var h = host(); if (!h) return;
     style();
-    if (!card || !card.isConnected) { card = document.createElement('div'); card.className = 'dg-card'; h.appendChild(card); lastHtml = ''; }
+    var h = at === 'side' ? sideBox() : host(); if (!h) return;
+    if (!card || !card.isConnected || card.parentNode !== h) { if (card) card.remove(); card = document.createElement('div'); card.className = 'dg-card'; h.appendChild(card); lastHtml = ''; }
     var x = html(s); if (x !== lastHtml) { card.innerHTML = x; lastHtml = x; }
     place();
     if (!card.classList.contains('show')) { void card.offsetWidth; card.classList.add('show'); }
+    if (at === 'side') h.classList.add('show');
   }
-  function hide() { clearTimeout(hideT); hideT = null; if (card) card.classList.remove('show'); }
+  function hide() { clearTimeout(hideT); hideT = null; if (card) card.classList.remove('show'); var b = $('dg-side'); if (b) b.classList.remove('show'); }
 
   function tick() {
     if (testUntil > Date.now()) {
-      show({ name: 'Tower of Hera', chests: 2, maxChests: 6, keys: 1, maxKeys: 1, map: true, compass: false, bigKey: true, boss: 'Moldorm', bossNum: 3, bossBeaten: false, prize: 'greenpendant', prizeGot: false });
+      show({ id: 'toh', name: 'Tower of Hera', chests: 2, maxChests: 6, keys: 1, maxKeys: 1, map: true, compass: false, bigKey: true, boss: 'Moldorm', bossNum: 3, bossBeaten: false, prize: 'greenpendant', prizeGot: false });
       return;
     }
     if (mode === 'off') { if (card && card.classList.contains('show')) hide(); cur = hereNow(); return; }
@@ -162,7 +196,7 @@
     if (entered) {
       show(stateOf(k));
       clearTimeout(hideT); hideT = null;
-      if (mode === 'entry') hideT = setTimeout(function () { hideT = null; if (card) card.classList.remove('show'); }, SHOW_MS);
+      if (mode === 'entry') hideT = setTimeout(function () { hideT = null; hide(); }, SHOW_MS);
     } else if (mode === 'inside' || hideT) show(stateOf(k));   // live counts while it's up
   }
   setInterval(tick, 500);
@@ -172,10 +206,17 @@
     var panel = $('trk-settings'); if (!panel || $('dg-card-mode')) return;
     var lab = document.createElement('label'); lab.className = 'ctl';
     lab.title = 'When Link walks into a dungeon: a card over the game with its name, boss, prize, chests opened and left, small keys, big key, map and compass. For the stream.';
-    lab.innerHTML = 'Dungeon card (over the game) <span><select id="dg-card-mode"><option value="off">Off</option><option value="entry">On entry (8 s)</option><option value="inside">While inside</option></select> <button type="button" id="dg-card-test" title="Show one for eight seconds">Test</button></span>';
+    lab.innerHTML = 'Dungeon card <span><select id="dg-card-mode" title="When it shows"><option value="off">Off</option><option value="entry">On entry (8 s)</option><option value="inside">While inside</option></select> ' +
+      '<select id="dg-card-at" title="Where it shows"><option value="game">over the game</option><option value="side">beside the trackers</option></select> ' +
+      '<select id="dg-card-boss" title="The boss on it. Hidden until seen: a ? until Link has been in its room this seed (boss shuffle: no spoilers)"><option value="show">boss shown</option><option value="seen">boss hidden until seen</option><option value="never">no boss</option></select> ' +
+      '<button type="button" id="dg-card-test" title="Show one for eight seconds">Test</button></span>';
     panel.appendChild(lab);
     var sel = lab.querySelector('#dg-card-mode'); sel.value = mode;
     sel.addEventListener('change', function () { mode = sel.value; try { localStorage.setItem(KEY, mode); } catch (e) {} hide(); cur = null; });
+    var selAt = lab.querySelector('#dg-card-at'); selAt.value = at;
+    selAt.addEventListener('change', function () { at = selAt.value; try { localStorage.setItem(KEY_AT, at); } catch (e) {} hide(); if (card) { card.remove(); card = null; } cur = null; });
+    var selB = lab.querySelector('#dg-card-boss'); selB.value = bossMode;
+    selB.addEventListener('change', function () { bossMode = selB.value; try { localStorage.setItem(KEY_BOSS, bossMode); } catch (e) {} lastHtml = ''; if (card && card.classList.contains('show') && cur) show(stateOf(cur)); });
     lab.querySelector('#dg-card-test').addEventListener('click', function (e) { e.stopPropagation(); testUntil = Date.now() + SHOW_MS; tick(); setTimeout(function () { if (testUntil <= Date.now()) { hide(); cur = null; } }, SHOW_MS + 100); });
   }
   function init() { settings(); var tries = 0; var t = setInterval(function () { settings(); if ($('dg-card-mode') || ++tries > 50) clearInterval(t); }, 200); }

@@ -1779,6 +1779,26 @@
     ram[0xC1A6] = 0; ram[0xC1A7] = 0; ram[0xC1A8] = 0;
     return true;
   }
+  // the boss the ROM lists for a room (boss shuffle puts whichever it is there)
+  function spawnRoomBoss(core, ram, room) {
+    var rom; try { rom = core.rom(); } catch (e) { return null; }
+    if (!rom || rom.length < 0x80000) return null;
+    var ptr = 0x4D62E + room * 2, at = rom[ptr] + rom[ptr + 1] * 0x100 + 0x40000;
+    for (var i = at + 1; i < at + 96 && rom[i] !== 0xFF; i += 3) {
+      var y = rom[i], x = rom[i + 1], t = rom[i + 2];
+      if (x >= 0xE0 || !BOSS_SPRITES[t]) continue;
+      var k = -1; for (var j = 15; j >= 0; j--) if (!ram[0xDD0 + j]) { k = j; break; }
+      if (k < 0) k = 15;
+      var Y = ((y << 4) & 0x1FF) + ((room >> 3 & 0xFE) << 8), X = ((x << 4) & 0x1FF) + (((room & 0xF) << 1) << 8);
+      ram[0xD00 + k] = Y & 0xFF; ram[0xD20 + k] = Y >> 8; ram[0xD10 + k] = X & 0xFF; ram[0xD30 + k] = X >> 8;
+      ram[0xE20 + k] = t; ram[0xF20 + k] = y >> 7; ram[0xE30 + k] = ((y & 0x60) >> 2) | (x >> 5); ram[0xBC0 + k] = k; ram[0xCBA + k] = 0;
+      ram[0xF70 + k] = 0; ram[0xF00 + k] = 0; ram[0xDF0 + k] = 0;   // height, not paused, no delay
+      if (t === 0xCE) { ram[0x403] |= 0x20; if (ram[0xF3CC] === 6) ram[0xF3CC] = 0; }   // Blind: "maiden revealed" ($0402 bit 0x2000), nobody following
+      ram[0xDD0 + k] = 8;
+      return t.toString(16);
+    }
+    return null;
+  }
   var WIN_MODULES = { 0x13: 1, 0x15: 1, 0x16: 1, 0x18: 1, 0x19: 1, 0x1A: 1 };   // prize, Aga warp, crystal, Ganon emerges, triforce, credits
   var detour = null;          // { id, boss, by, state, snap, frames, total, hpMax, wait }
   var detourEl = null;
@@ -1838,7 +1858,11 @@
           // The save state puts both back afterwards.
           var rb = 0xF000 + d.boss.room * 2 + 1;
           ram[rb] &= ~0x08 & 0xFF;
-          if (d.boss.room === 0xAC) { ram[rb] |= 0x20; if (ram[0xF3CC] === 6) ram[0xF3CC] = 0; }
+          if (d.boss.room === 0xAC) { ram[rb] |= 0x02; if (ram[0xF3CC] === 6) ram[0xF3CC] = 0; }
+          // and the room's "sprites that died here" bits ($7FDF80, a word per room, kept
+          // for the last four rooms): Mothula, Helmasaur, Blind and Ganon aren't exempt
+          // from them (kSpriteInit_DeflBits bit 0 clear), so a set bit means no boss.
+          ram[0x1DF80 + d.boss.room * 2] = 0; ram[0x1DF81 + d.boss.room * 2] = 0;
           ram[0xA2] = ram[0xA0]; ram[0xA3] = ram[0xA1];
           ram[0xA0] = d.boss.room; ram[0xA1] = 0;
           ram[0x11] = 0x15; ram[0xB0] = 0;
@@ -1853,11 +1877,18 @@
         // a screen mask left on from the entrance (spotlight/water windows) would show
         // only a strip of the room: turn window masking off (W12SEL, W34SEL, WOBJSEL, TMW, TSW)
         ram[0x96] = 0; ram[0x97] = 0; ram[0x98] = 0; ram[0x1E] = 0; ram[0x1F] = 0;
-        d.state = 'fight'; d.frames = 0;
+        d.state = 'fight'; d.frames = 0; d.checked = false;
       }
       return;
     }
     if (d.state !== 'fight') return;
+    // Two seconds in and no boss in the room (Gumby's Skull Woods detour had an empty
+    // arena): put it there ourselves from the ROM's own sprite list for the room,
+    // state 8 so the game runs its usual setup for it.
+    if (!d.checked && d.frames === 120 && d.boss.room != null && mode === 0x07) {
+      d.checked = true;
+      if (!bossSpot(ram)) { var sp = spawnRoomBoss(core, ram, d.boss.room); note('detour: no boss in room ' + d.boss.room.toString(16) + (sp ? ', spawned ' + sp : ', none in its list')); }
+    }
     // how did it go?
     if (mode === 0x12 || ram[A.HP] === 0) return endDetour(core, 'ko', 'Link went down!');
     if (WIN_MODULES[mode] || ram[A.HP_MAX] > d.hpMax) return endDetour(core, 'won', 'BOSS DEFEATED!');
