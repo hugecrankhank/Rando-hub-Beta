@@ -18,7 +18,8 @@
   var BASE = window.EMU_BASE || 'emu/';   // EMU_BASE: a page in another folder (patched/)
   var SETTINGS_KEY = 'z1r-nes-player-settings';
   var DEFAULTS = {
-    filter: 'xbrz6x', aspect: '8:7',   // xBRZ itself on computers; the GPU 6xBRZ on touch screens (below) volume: 0.5, muted: false,
+    filter: 'xbrz6x', aspect: '8:7',   // xBRZ itself on computers; the GPU 6xBRZ on touch screens (below)
+    volume: 0.5, muted: false,
     touch: 'auto', opacity: 0.45, size: 1, haptics: true, slot: 1,
     keymap: null, padmap: null,
     palette: 'fceumm',     // colours (emu/palettes.js): the core's own, Mesen's, FBX's…

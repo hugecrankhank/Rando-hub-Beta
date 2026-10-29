@@ -45,7 +45,9 @@
   };
   Audio.prototype.clear = function () { if (this.node) this.node.port.postMessage({ type: 'clear' }); };
   Audio.prototype.applyVolume = function () {
-    if (this.gain) this.gain.gain.value = this.muted ? 0 : this.volume;
+    var v = this.muted ? 0 : +this.volume;
+    if (!isFinite(v)) v = 0.5;   // a bad saved setting must never silence the game
+    if (this.gain) this.gain.gain.value = Math.max(0, Math.min(1, v));
   };
   Audio.prototype.setVolume = function (v) { this.volume = v; this.applyVolume(); };
   Audio.prototype.setMuted = function (m) { this.muted = m; this.applyVolume(); };

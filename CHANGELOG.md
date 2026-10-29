@@ -5,6 +5,13 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.28 (2026-10-28)
+
+- **Zelda 1 / Guardian Legend: sound is back.** 1.14.24's xBRZ default swallowed the
+  players' volume default into a comment, so the volume came up as "not a number", the
+  browser refused it and the game was silent, with the slider unable to help (Kallax,
+  Hank's iPhone). Fixed, and the volume is now clamped to a sane number whatever is saved.
+
 ## Beta v1.14.27 (2026-10-28)
 
 - **Crowd Control+: Super Fan / treasure box alerts with a countdown.** When a viewer sends
