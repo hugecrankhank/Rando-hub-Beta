@@ -5,6 +5,12 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.32 (2026-10-29)
+
+- **Zelda 1 / Guardian Legend: the menu's tick boxes are back.** The page's own text-box style
+  (meant for the New seed dialog) reached the emulator menu and drew every checkbox (Mute,
+  No slowdown, No sprite flicker, Run-ahead, Vibrate) as an empty dark bar you couldn't tick.
+
 ## Beta v1.14.31 (2026-10-29)
 
 - **Zelda 1 / Guardian Legend: no more slowdown on crowded screens.** The slowdown is the

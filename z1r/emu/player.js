@@ -142,6 +142,10 @@
     '.s9x-menu button, .s9x-menu select { background: #0d1117; color: #e6e9ee; border: 1px solid #2a313c; border-radius: 6px; padding: 6px 10px; font: inherit; font-size: 13px; cursor: pointer; }',
     '.s9x-menu button.primary { background: #1f6f3a; border-color: #2a8a4a; }',
     '.s9x-menu select, .s9x-menu input[type=range] { width: 55%; max-width: 240px; }',
+    // the page's own ".row input" styles (the seed dialog) must not reach the menu's tick boxes:
+    // they hid every checkbox as an empty dark bar
+    '.s9x-menu .row input[type=checkbox] { -webkit-appearance: checkbox; appearance: auto; flex: none; width: 22px; height: 22px; padding: 0; margin: 0; border: 0; background: none; accent-color: #4f8cff; cursor: pointer; }',
+    '.s9x-menu .row input[type=range] { -webkit-appearance: auto; appearance: auto; flex: none; padding: 0; border: 0; background: none; }',
     '.s9x-menu .hint { color: #8b95a3; font-size: 12px; margin: 4px 0; }',
     '.s9x-menu table { width: 100%; border-collapse: collapse; font-size: 13px; }',
     '.s9x-menu td { padding: 3px 0; } .s9x-menu td button { width: 100%; padding: 4px 6px; }',
