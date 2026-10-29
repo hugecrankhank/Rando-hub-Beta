@@ -1024,6 +1024,9 @@ async function startTikTok(current = () => true) {
       } else if (/plan|api key|apikey|unauthori[sz]ed|forbidden|\b40[123]\b/i.test(msg)) {
         text = 'Sign server refused, retrying';
         log(`the sign server refused the connection (${msg}). ${key ? 'Check "signApiKey" on the panel.' : 'Paste a free Euler Stream key on the panel, or switch to TikFinity meanwhile.'} Retrying in ${wait / 1000}s.`);
+      } else if (/room ?id/i.test(msg)) {
+        text = 'Direct can\u2019t find the LIVE, retrying';
+        log(`TikTok wouldn't say which room @${cfg.username} is live in (${msg}). Its page has changed, or it turns away lookups from this PC. A free Euler Stream key asks their server for it instead (paste it on the panel); the Local signer and TikFinity don't need it. Retrying in ${wait / 1000}s.`);
       } else {
         log(`couldn't join @${cfg.username}'s LIVE (${msg}). Are you live? Retrying in ${wait / 1000}s.`);
       }

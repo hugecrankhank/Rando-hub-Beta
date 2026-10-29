@@ -230,13 +230,17 @@ export function startLocalSigner(opts) {
   const sockets = new Map();      // requestId -> url, per session ("sid|rid")
   const fetches = new Map();      // "sid|rid" -> url
   let nextId = 1; const pending = new Map();
-  const diag = { pages: 0, ws: new Set(), started: Date.now(), told: false };
+  const diag = { pages: 0, ws: new Set(), started: Date.now(), told: false, frames: 0, events: 0, toldFrames: false };
+  const isFeed = (u) => /\/webcast\/im\/|^wss?:\/\/im-ws[\w.-]*\.tiktok\.com\/|\/ws\/v\d/.test(String(u || ''));
+  const feedHost = (u) => { try { const x = new URL(u); return x.host + x.pathname; } catch { return String(u || '').slice(0, 60); } };
   // Nothing after a minute with the page open: say what we did see, so the log
   // tells whether it's "not live yet" or "TikTok changed its page".
   const diagT = setInterval(() => {
     if (stopped) { clearInterval(diagT); return; }
-    if (lastFrame || diag.told || Date.now() - diag.started < 60000) return;
+    if (diag.told || Date.now() - diag.started < 60000) return;
+    if (lastFrame && !(sockets.size && diag.frames > 20 && !diag.events)) return;
     diag.told = true;
+    if (sockets.size && diag.frames > 20 && !diag.events) { log(`local signer: the feed sends messages (${diag.frames}) but none can be read: TikTok changed their layout. Use Direct or TikFinity until an update.`); return; }
     if (!cdp) log('local signer: no connection to the browser window yet (is it open? did another Chrome with the same profile already run?)');
     else if (!diag.pages) log('local signer: connected to the browser, but no TikTok page is attached. Click "Open my LIVE window".');
     else if (!sockets.size) log(`local signer: the LIVE page is open but no live feed socket yet (${diag.ws.size} other socket(s) seen). Not live yet? Logged in in that window? Still nothing while live: TikTok may have changed its page; switch to Direct or TikFinity.`);
@@ -278,7 +282,9 @@ export function startLocalSigner(opts) {
         break;
       }
       case 'Network.webSocketCreated':
-        if (/\/webcast\/im\//.test(p.url || '')) { sockets.set(sid + '|' + p.requestId, p.url); log('local signer: TikTok live feed opened'); status('Connected to TikTok LIVE (local signer)', true); }
+        // the live feed: wss://…/webcast/im/push/… (until Oct 2026), then
+        // wss://im-ws.tiktok.com/ws/v2?… (same push frames, new address)
+        if (isFeed(p.url)) { sockets.set(sid + '|' + p.requestId, p.url); diag.frames = 0; diag.events = 0; log('local signer: TikTok live feed opened (' + feedHost(p.url) + ')'); status('Connected to TikTok LIVE (local signer)', true); }
         else {
           // Any other WebSocket the page opens, logged once each: if TikTok moves
           // its feed, this is how we find the new address.
@@ -291,7 +297,8 @@ export function startLocalSigner(opts) {
         const r = p.response || {};
         if (r.opcode !== 2) break;
         let buf; try { buf = Buffer.from(r.payloadData || '', 'base64'); } catch { break; }
-        for (const ev of parsePushFrame(buf)) emit(ev);
+        diag.frames++;
+        for (const ev of parsePushFrame(buf)) { diag.events++; emit(ev); }
         lastFrame = Date.now();
         break;
       }

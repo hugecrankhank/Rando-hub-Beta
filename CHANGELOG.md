@@ -5,6 +5,17 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.24 (2026-10-28)
+
+- **Crowd Control+: the local signer finds TikTok's new live feed.** TikTok's LIVE page
+  now opens its feed at `im-ws.tiktok.com/ws/v2` instead of `…/webcast/im/push/…`; the
+  signer only knew the old address, so it sat at "Waiting for the LIVE…" (Gumby's log
+  showed the new one). Both are recognised now, and if the feed's messages ever stop
+  being readable the log says so after a minute instead of waiting silently.
+- Direct's "Failed to retrieve Room ID" is explained in the log (TikTok's page changed
+  or it turns away lookups; a free Euler Stream key asks their server instead; the local
+  signer and TikFinity don't need it).
+
 ## Beta v1.14.23 (2026-10-28)
 
 - **Zelda 1 crowd effects: bosses anywhere.** `boss_random`, or one of
