@@ -34,6 +34,7 @@ export function createStudio(ctx) {
     alerts: {
       enabled: true, minCoins: 1, seconds: 6, sound: true, volume: 0.7, showEffect: true,
       follows: true, shares: false, superfans: true, community: true,
+      boxes: true, boxSeconds: 180,   // treasure / Super Fan boxes: the alert counts down to when it opens (TikTok's time, or this many seconds)
       // bigger donations get bigger alerts: the highest tier reached is used
       tiers: [
         { coins: 1, name: 'small', title: 'THANK YOU!' },
@@ -129,6 +130,7 @@ export function createStudio(ctx) {
       viewers: stats.viewers || 0, peak: stats.peak || 0, since: stats.since,
     };
   }
+  let pendingBox = null;   // the latest box still counting down (overlays/box.html on load)
   let roomT = 0;
   function room(info) {
     if (!info) return;
@@ -159,6 +161,7 @@ export function createStudio(ctx) {
     return {
       kind: 'state',
       settings, stats: { ...stats, gifters: undefined, likers: undefined, top: topGifters(Math.max(10, settings.leaderboard.size)) }, board: board(),
+      box: pendingBox && pendingBox.opensAt > Date.now() - 15000 ? pendingBox : null,
       status: ctx.status(), timer: ctx.timerView(true),
       mapping: {
         gifts: cfg.gifts || {}, coinTiers: cfg.coinTiers || [], likes: cfg.likes || {}, follow: cfg.follow || '', share: cfg.share || '', superfan: cfg.superfan || '', community: cfg.community || '',
@@ -252,6 +255,11 @@ export function createStudio(ctx) {
       else if (e.type === 'share' && A.shares) e.alert = { tier: 'share', title: 'SHARED THE LIVE' };
       else if (e.type === 'superfan' && A.superfans !== false) e.alert = { tier: 'follow', title: 'NEW SUPER FAN' };
       else if (e.type === 'community' && A.community !== false) e.alert = { tier: 'follow', title: 'NEW COMMUNITY MEMBER' };
+      else if (e.type === 'box' && A.boxes !== false) {
+        if (!e.opensAt || e.opensAt < Date.now() || e.opensAt > Date.now() + 3600e3) e.opensAt = Date.now() + Math.max(10, +A.boxSeconds || 180) * 1000;
+        e.alert = { tier: 'box', title: e.superfan ? 'SUPER FAN BOX!' : 'TREASURE BOX!' };
+        pendingBox = e;
+      }
     }
     // text-to-speech (spoken by the panel page, so it uses this PC's voices)
     if (e.type === 'chat' && e.text) {
@@ -310,7 +318,7 @@ export function createStudio(ctx) {
     res.writeHead(200, { 'content-type': TYPES[path.extname(file).toLowerCase()] || 'application/octet-stream', 'cache-control': 'no-cache' });
     fs.createReadStream(file).pipe(res);
   }
-  const OVERLAYS = ['stats', 'alerts', 'goal', 'leaderboard', 'feed', 'commands', 'vote', 'battle', 'mystery', 'combo', 'run', 'predict', 'gtkey', 'dig', 'halloffame', 'welcome'];
+  const OVERLAYS = ['stats', 'box', 'alerts', 'goal', 'leaderboard', 'feed', 'commands', 'vote', 'battle', 'mystery', 'combo', 'run', 'predict', 'gtkey', 'dig', 'halloffame', 'welcome'];
 
   function handle(req, res, url) {
     const p = url.pathname;

@@ -293,6 +293,20 @@ function onSocial(kind, user, extra = {}) {
   const done = effect && (!extra.test || extra.runEffect) ? fire(effect, user, SOCIAL_LABEL[kind] || kind) : effect || null;
   studio.record({ type: kind, user, nickname: extra.nickname, avatar: extra.avatar, effect: done, effectName: done ? (effectNames[done] || done) : '', test: !!extra.test });
 }
+// a treasure box / Super Fan box: coins for the viewers who tap it when its
+// countdown ends. info: { diamonds, people, opensAt (ms), superfan }
+function onBox(user, info = {}, extra = {}) {
+  log(`${info.superfan ? 'Super Fan box' : 'treasure box'}: ${user}${info.diamonds ? ' · ' + info.diamonds + ' coins' : ''}${info.people ? ' for ' + info.people : ''}`);
+  studio.record({ type: 'box', user, nickname: extra.nickname, avatar: extra.avatar, diamonds: +info.diamonds || 0, people: +info.people || 0, opensAt: info.opensAt || 0, superfan: !!info.superfan, test: !!extra.test });
+}
+// the library's / TikFinity's envelope (treasure box) event
+function boxInfo(d) {
+  const e = d.envelopeInfo || d.envelope || d;
+  const at = +(e.unpackAt ?? e.unpack_at ?? e.openAt ?? 0);
+  const type = String(e.businessType ?? e.business_type ?? d.businessType ?? '') + ' ' + String(e.label || e.displayType || d.label || '');
+  return { diamonds: e.diamondCount ?? e.diamond_count ?? d.diamondCount ?? 0, people: e.peopleCount ?? e.people_count ?? d.peopleCount ?? 0,
+    opensAt: at > 1e12 ? at : at > 1e9 ? at * 1000 : 0, superfan: /super|sub|fan/i.test(type) };
+}
 // what TikTok says about the room itself: viewers right now, the LIVE's like
 // total, the account's follower count (the stats board)
 function onRoom(info) { try { studio.room(info); } catch {} }
@@ -844,6 +858,7 @@ function startLocal() {
       } else if (ev.kind === 'like') onLike(ev.user, ev.count, who);
       else if (ev.kind === 'follow' || ev.kind === 'share' || ev.kind === 'superfan' || ev.kind === 'community') onSocial(ev.kind, ev.user, who);
       else if (ev.kind === 'chat') onChat(ev.user, ev.text || '', who);
+      else if (ev.kind === 'box') onBox(ev.user, { diamonds: ev.diamonds, people: ev.people, opensAt: ev.opensAt, superfan: ev.superfan }, who);
       else if (ev.kind === 'other') noteUnknown(ev.method, ev.key);
       else if (ev.kind === 'end') { liveText = 'TikTok LIVE ended'; broadcast({ type: 'status', text: liveText }); log(liveText); }
     },
@@ -922,6 +937,7 @@ function onTikFinity(text) {
     onGift(user, name, d.giftId, d.repeatCount || 1, d.diamondCount ?? d.giftDetails?.diamondCount, who);
   } else if (ev === 'like') { onLike(user, d.likeCount || 1, who); if (d.totalLikeCount) onRoom({ likesRoom: +d.totalLikeCount }); }
   else if (ev === 'roomuser' || ev === 'room_user') { if (d.viewerCount != null) onRoom({ viewers: +d.viewerCount }); }
+  else if (ev === 'envelope' || ev === 'treasurebox' || ev === 'treasure_box') onBox(d.envelopeInfo?.sendUserName || user, boxInfo(d), who);
   else if (ev === 'follow') onSocial('follow', user, who);
   else if (ev === 'share') onSocial('share', user, who);
   else if (/subscri|super_?fan/.test(ev)) onSocial('superfan', user, who);
@@ -997,6 +1013,7 @@ async function startTikTok(current = () => true) {
     });
     on('like', (d) => { onLike(d.user?.uniqueId || 'someone', d.likeCount || 1, who(d)); if (d.totalLikeCount) onRoom({ likesRoom: +d.totalLikeCount }); });
     on('roomUser', (d) => { if (d.viewerCount != null) onRoom({ viewers: +d.viewerCount }); });
+    on('envelope', (d) => onBox(d.envelopeInfo?.sendUserName || d.user?.uniqueId || 'someone', boxInfo(d), who(d)));
     on('follow', (d) => onSocial('follow', d.user?.uniqueId || 'someone', who(d)));
     on('share', (d) => onSocial('share', d.user?.uniqueId || 'someone', who(d)));
     on('subscribe', (d) => onSocial('superfan', d.user?.uniqueId || 'someone', who(d)));
@@ -1053,7 +1070,7 @@ function startTest() {
   log('  <effect_id>            e.g. heal_full, invert, rupees_minus');
   log('  gift <name> [count]    e.g. gift Rose 3   (uses mapping.json)');
   log('  coins <n>              a donation worth n coins (tiers + timer)');
-  log('  like <n> | follow | share | list');
+  log('  like <n> | follow | share | superfan | box [coins] [people] | list');
   log('  chat <message>         a chat message (TTS and !commands)');
   const rl = readline.createInterface({ input: process.stdin });
   rl.on('line', (line) => {
@@ -1064,6 +1081,7 @@ function startTest() {
       onGift('tester', rest.join(' '), 0, count);
     } else if (cmd === 'coins') onGift('tester', '(test donation)', 0, 1, +(rest[0] || 0));
     else if (cmd === 'like') onLike('tester', +(rest[0] || 1));
+    else if (cmd === 'box') onBox('tester', { diamonds: +(rest[0] || 500), people: +(rest[1] || 10), superfan: true });
     else if (cmd === 'follow' || cmd === 'share' || cmd === 'superfan' || cmd === 'community') { cooldown.clear(); onSocial(cmd, 'tester'); }
     else if (cmd === 'chat') onChat('tester', rest.join(' '));
     else if (cmd === 'list') log(knownEffects ? [...knownEffects].join(', ') : 'connect the game first to see its effects');
@@ -1093,6 +1111,7 @@ const studio = createStudio({
     if (kind === 'like') onLike(user, Math.max(1, +a.count || 50), { test: true, runEffect: !!a.runEffect });
     else if (kind === 'follow' || kind === 'share' || kind === 'superfan' || kind === 'community') { cooldown.delete(kind + ':' + user); onSocial(kind, user, { test: true, runEffect: !!a.runEffect }); }
     else if (kind === 'chat') onChat(user, String(a.text || 'hello!'), { test: true, runEffect: !!a.runEffect });
+    else if (kind === 'box') onBox(user, { diamonds: +a.coins || 500, people: +a.people || 10, superfan: a.superfan !== false, opensAt: a.seconds ? Date.now() + a.seconds * 1000 : 0 }, { test: true });
   },
   effectList: () => {
     const virtual = ['mystery_box', 'detour_rescue'];

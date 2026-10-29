@@ -39,6 +39,9 @@
   .alert.follow .title, .alert.share .title { color: #ffd166; }
   .alert.death { border-color: #9aa3b5; } .alert.death .title { color: #c9d1e0; }
   .alert.detour { border-color: #ffd166; } .alert.detour .title { color: #ffd166; }
+  .alert.box { border-color: #ffd166; } .alert.box .title { color: #ffd166; }
+  .alert.box .cd { display: inline-block; min-width: 3.2em; font: 800 calc(30px * var(--scale))/1 var(--sans); color: #ffd166; font-variant-numeric: tabular-nums; }
+  .alert.box.open { animation: glow 1s ease-in-out infinite; } .alert.box.open .cd { color: #7bff8e; }
   .bar { position: absolute; left: calc(14px * var(--scale)); right: calc(14px * var(--scale)); bottom: calc(6px * var(--scale)); height: calc(4px * var(--scale)); border-radius: 9px; background: rgba(255,255,255,.12); overflow: hidden; }
   .bar i { display: block; height: 100%; background: var(--red); transform-origin: left; }
   canvas { position: fixed; inset: 0; pointer-events: none; }
@@ -91,13 +94,17 @@ function burst(n) {
 })();
 
 function show(ev) {
-  const A = CC.state.settings.alerts, secs = Math.max(2, +A.seconds || 6);
+  const A = CC.state.settings.alerts;
+  // a treasure box: the alert shows the countdown for a while (the Treasure box
+  // overlay carries it to the end), then pops up again when the box opens
+  const boxLeft = ev.type === 'box' ? Math.max(0, Math.min(3600, ((ev.opensAt || 0) - Date.now()) / 1000)) : 0;
+  const secs = ev.type === 'box' && !ev.boxOpen ? Math.min(boxLeft + 5, Math.max(8, +A.seconds || 6)) : Math.max(2, +A.seconds || 6);
   const kind = ev.alert.tier;
   const el = document.createElement('div');
   el.className = 'alert box ' + kind;
   const art = ev.type === 'gift'
     ? (ev.icon ? '<img class="gift" src="' + CC.esc(ev.icon) + '" alt="">' : '<span class="emoji">🎁</span>')
-    : '<span class="emoji">' + (ev.type === 'follow' ? '💖' : ev.type === 'superfan' ? '⭐' : ev.type === 'community' ? '🤝' : ev.type === 'death' ? '☠️' : ev.type === 'detour' ? '⚔️' : ev.type === 'boss' ? '🏆' : ev.type === 'gtkey' ? '🔑' : ev.type === 'digprize' ? '⛏️' : ev.type === 'detour-end' ? (ev.result === 'won' ? '🏆' : ev.result === 'survived' ? '🛡️' : '💫') : '📣') + '</span>';
+    : '<span class="emoji">' + (ev.type === 'follow' ? '💖' : ev.type === 'superfan' ? '⭐' : ev.type === 'community' ? '🤝' : ev.type === 'death' ? '☠️' : ev.type === 'detour' ? '⚔️' : ev.type === 'boss' ? '🏆' : ev.type === 'gtkey' ? '🔑' : ev.type === 'digprize' ? '⛏️' : ev.type === 'detour-end' ? (ev.result === 'won' ? '🏆' : ev.result === 'survived' ? '🛡️' : '💫') : ev.type === 'box' ? '🧧' : '📣') + '</span>';
   const avatar = ev.avatar && /^https:\/\//.test(ev.avatar) ? '<img class="avatar" src="' + CC.esc(ev.avatar) + '" alt="" onerror="this.remove()">' : '';
   let what = '';
   if (ev.type === 'gift') what = 'sent <b>' + (ev.count > 1 ? ev.count + 'x ' : '') + CC.esc(ev.gift) + '</b>' + (ev.coins ? ' · ' + CC.num(ev.coins) + ' coins' : '');
@@ -108,15 +115,27 @@ function show(ev) {
   else if (ev.type === 'detour-end') what = CC.esc(ev.text) + (ev.bonus ? ' · bonus: ' + CC.esc(ev.bonus) : ' · back to the run');
   else if (ev.type === 'gtkey' || ev.type === 'digprize') what = CC.esc(ev.text) + (ev.bonus ? ' · ' + CC.esc(ev.bonus) : '');
   else if (ev.type === 'boss') what = 'beat <b>' + CC.esc(ev.text) + '</b>!' + (ev.bonus ? ' · ' + CC.esc(ev.bonus) : '');
+  else if (ev.type === 'box' && ev.boxOpen) what = 'the <b>' + (ev.superfan ? 'Super Fan box' : 'treasure box') + '</b>' + (ev.diamonds ? ' · ' + CC.num(ev.diamonds) + ' coins' : '') + ' is open: <span class="cd">TAP IT!</span>';
+  else if (ev.type === 'box') what = 'sent a <b>' + (ev.superfan ? 'Super Fan box' : 'treasure box') + '</b>' + (ev.diamonds ? ' · ' + CC.num(ev.diamonds) + ' coins' : '') + (ev.people ? ' for ' + ev.people + ' people' : '') + '<br>opens in <span class="cd">' + CC.fmt(boxLeft).replace(/^0:/, '') + '</span>';
   else if (ev.type === 'death') what = 'died! That\'s death #' + (ev.deaths || 1) + (ev.text ? ' · ' + CC.esc(ev.text) : '');
   else what = 'shared the LIVE!';
-  const fx = !/^(death|detour|boss|gtkey|digprize)/.test(ev.type) && A.showEffect && (ev.effectName || ev.tier) ? '<div class="fx pix"><img class="die" src="/studio/die.svg" alt="" style="width:1.6em;height:1.6em">' + CC.esc(ev.effectName || ev.tier) + '</div>' : '';
+  const fx = !/^(death|detour|boss|gtkey|digprize|box)/.test(ev.type) && A.showEffect && (ev.effectName || ev.tier) ? '<div class="fx pix"><img class="die" src="/studio/die.svg" alt="" style="width:1.6em;height:1.6em">' + CC.esc(ev.effectName || ev.tier) + '</div>' : '';
   el.innerHTML = '<div class="art">' + art + avatar + '</div><div class="txt"><div class="title pix">' + CC.esc(ev.alert.title || '') + '</div>' +
     '<div class="who shadow">' + CC.esc(CC.name(ev)) + '</div><div class="what">' + what + '</div>' + fx + '</div>' +
     '<div class="bar"><i style="animation: shrink ' + secs + 's linear forwards"></i></div>';
   stage.innerHTML = ''; stage.appendChild(el);
   requestAnimationFrame(() => el.classList.add('in'));
-  play(kind);
+  play(kind === 'box' ? 'big' : kind);
+  if (ev.type === 'box' && ev.boxOpen) { el.classList.add('open'); burst(120); }
+  else if (ev.type === 'box') {
+    const cd = el.querySelector('.cd'), end = ev.opensAt || Date.now();
+    const t = setInterval(() => {
+      if (!el.isConnected) { clearInterval(t); return; }
+      const left = Math.max(0, (end - Date.now()) / 1000);
+      cd.textContent = left > 0 ? CC.fmt(left).replace(/^0:/, '') : 'NOW!';
+    }, 250);
+    if (boxLeft > secs) setTimeout(() => { queue.unshift({ ...ev, boxOpen: true, alert: { tier: 'box', title: (ev.superfan ? 'SUPER FAN BOX' : 'TREASURE BOX') + ' IS OPEN!' } }); next(); }, boxLeft * 1000);
+  }
   if (kind === 'big') burst(70); if (kind === 'huge') { burst(160); setTimeout(() => burst(120), 700); }
   return new Promise((done) => {
     setTimeout(() => { el.classList.remove('in'); el.classList.add('out'); setTimeout(() => { el.remove(); done(); }, 450); }, secs * 1000);

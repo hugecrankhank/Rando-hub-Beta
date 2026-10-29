@@ -111,6 +111,12 @@ export function parseMessage(method, payload) {
       const a = num(m, 2);
       return a === 3 || a === 4 ? { kind: 'end', id } : null;
     }
+    case 'WebcastEnvelopeMessage': {   // a treasure box: envelopeInfo = 2 (diamonds, people, unpackAt inside; layout varies)
+      const e = sub(m, 2), nums = e ? [3, 4, 5, 6, 7, 8].map((i) => num(e, i)) : [];
+      const at = nums.find((n) => n > 1.5e9 && n < 4e9) || 0;   // a unix time in seconds
+      const small = nums.filter((n) => n > 0 && n < 1e6);
+      return { kind: 'box', id, ...user(findUser(m)), diamonds: small[0] || 0, people: small[1] || 0, opensAt: at ? at * 1000 : 0, superfan: false };
+    }
     case 'WebcastSubNotifyMessage':   // a new subscriber, now called a Super Fan (user = 2)
       return { kind: 'superfan', id, ...user(findUser(m)) };
     default: {

@@ -145,7 +145,7 @@
         <input id="t-coins" type="number" min="0" placeholder="coins" title="Total coins for this donation" style="width:90px">
         <button class="primary" id="t-send">Send gift</button></div>
       <label class="check"><input type="checkbox" id="t-run"> Also run the game effect (and count it in stats, goals and the subathon clock)</label>
-      <div class="row"><button data-sim="follow">Follow</button><button data-sim="share">Share</button><button data-sim="like">50 likes</button><button data-sim="superfan">Super Fan</button><button data-sim="community">Community member</button></div>
+      <div class="row"><button data-sim="follow">Follow</button><button data-sim="share">Share</button><button data-sim="like">50 likes</button><button data-sim="superfan">Super Fan</button><button data-sim="community">Community member</button><button data-sim="box">Super Fan box</button></div>
       <div class="row"><input id="t-chat" placeholder="Chat message, e.g. !rules" style="flex:1"><button id="t-chat-send">Send chat</button></div>
       <h3 style="margin-top:18px">Stream</h3>
       <div class="row"><button id="clear-alerts">Clear alerts on screen</button><button class="danger" id="reset-stats">Reset stream stats</button></div>
@@ -221,6 +221,8 @@
       <label class="row"><span>Alert for shares</span><input type="checkbox" data-s="alerts.shares"></label>
       <label class="row"><span>Alert for new Super Fans</span><input type="checkbox" data-s="alerts.superfans"></label>
       <label class="row"><span>Alert for new community members</span><input type="checkbox" data-s="alerts.community"></label>
+      <label class="row"><span>Alert for treasure / Super Fan boxes</span><input type="checkbox" data-s="alerts.boxes"> <span class="muted">counts down to when it opens</span></label>
+      <label class="row"><span>Box countdown if TikTok doesn't say</span><input type="number" min="10" max="3600" data-s="alerts.boxSeconds"> seconds</label>
       <label class="row"><span>Sound</span><input type="checkbox" data-s="alerts.sound"> <input type="range" min="0" max="1" step=".05" data-s="alerts.volume" style="width:140px"></label>
     </div>
     <div class="card">
@@ -934,6 +936,7 @@ const OVS = [
   ['welcome', 'Welcome back', 'Pops up when a regular shows up.', '520 x 140'],
   ['alerts', 'Gift alerts', 'Pops up with the viewer, the gift and what it did in the game, with a sound. Bigger donations get bigger alerts.', '1920 x 1080 (full screen, it centers itself)'],
   ['goal', 'Goal bar', 'The goals ticked "On stream", filling up live.', '800 x 160 (one goal; add 110 height per extra goal)'],
+  ['box', 'Treasure box countdown', 'A treasure / Super Fan box someone sent, counting down to when it opens, then "OPEN IT NOW!". Blank the rest of the time.', '560 x 150'],
   ['stats', 'Stream stats', 'Likes, followers, Super Fans, shares, gifts, viewers: the tiles ticked below.', '420 wide; height grows with the tiles'],
   ['leaderboard', 'Top gifters', 'This stream\'s biggest gifters.', '420 x 420'],
   ['feed', 'Recent events', 'The latest gifts, follows and shares, newest on top.', '460 x 420'],

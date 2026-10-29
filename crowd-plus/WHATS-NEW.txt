@@ -7,6 +7,13 @@ roll and the subathon clock work exactly as before.
 
 NEW IN 1.14.27
 --------------
+- Treasure box / Super Fan box alerts: when a viewer sends one, the gift
+  alert pops up with who sent it, the coins inside and a countdown to when
+  it opens, and pops up again ("OPEN IT NOW!") when it does. A new
+  "Treasure box countdown" overlay (560 x 150) shows the countdown the
+  whole way, blank the rest of the time. Alerts tab: on/off, and the
+  countdown to use if TikTok doesn't say (3 minutes). Test button on the
+  Dashboard.
 - Stream stats overlay (Overlays tab): likes this stream, TikTok's like
   total, top likers by viewer, new and total followers, new and total
   Super Fans, shares, gifts, coins, viewers now, peak viewers, chat

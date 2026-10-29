@@ -1,0 +1,45 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Treasure box</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="/studio/overlay.css">
+<style>
+  /* 560 x 150. Blank until someone sends a treasure / Super Fan box; then who
+     sent it, what's in it, and a countdown to when it opens; "OPEN IT NOW!"
+     for ten seconds after. */
+  body { padding: calc(10px * var(--scale)); }
+  .card { display: none; align-items: center; gap: calc(16px * var(--scale)); padding: calc(12px * var(--scale)) calc(18px * var(--scale)); width: calc(500px * var(--scale)); border-color: #ffd166; }
+  .card.show { display: flex; animation: pop .5s cubic-bezier(.2, 1.4, .4, 1); }
+  @keyframes pop { from { opacity: 0; transform: scale(.85); } }
+  .emoji { font-size: calc(58px * var(--scale)); animation: bob 1.4s ease-in-out infinite; flex: none; }
+  @keyframes bob { 50% { transform: translateY(calc(-5px * var(--scale))) rotate(-5deg); } }
+  .txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: calc(5px * var(--scale)); }
+  .title { font-size: calc(14px * var(--scale)); color: #ffd166; }
+  .who { font: 800 calc(22px * var(--scale))/1.1 var(--sans); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .what { font: 600 calc(15px * var(--scale)) var(--sans); color: #e9e4f7; }
+  .cd { font: 800 calc(44px * var(--scale))/1 var(--sans); color: #ffd166; font-variant-numeric: tabular-nums; flex: none; text-align: right; min-width: calc(120px * var(--scale)); }
+  .cd small { display: block; font: 700 calc(10px * var(--scale)) var(--pix); color: #c9c0e6; margin-bottom: calc(6px * var(--scale)); }
+  .card.open { animation: glow 1s ease-in-out infinite; } .card.open .cd { color: #7bff8e; font-size: calc(30px * var(--scale)); }
+  @keyframes glow { 50% { box-shadow: 0 0 calc(30px * var(--scale)) rgba(255,209,102,.9); } }
+</style></head>
+<body>
+<div class="card box" id="card"><div class="emoji">🧧</div><div class="txt"><div class="title pix shadow" id="title">SUPER FAN BOX</div><div class="who shadow" id="who"></div><div class="what" id="what"></div></div><div class="cd shadow" id="cd"></div></div>
+<div class="offline-note">Waiting for the Crowd Control+ bridge…</div>
+<script src="/studio/common.js"></script>
+<script>
+const card = document.getElementById('card'); let box = null, timer = null;
+function paint() {
+  if (!box) { card.classList.remove('show', 'open'); return; }
+  const left = ((box.opensAt || 0) - Date.now()) / 1000;
+  if (left < -10) { box = null; paint(); return; }
+  card.classList.add('show');
+  document.getElementById('title').textContent = box.superfan ? 'SUPER FAN BOX' : 'TREASURE BOX';
+  document.getElementById('who').textContent = 'from ' + CC.name(box);
+  document.getElementById('what').textContent = (box.diamonds ? CC.num(box.diamonds) + ' coins' : 'coins inside') + (box.people ? ' for ' + box.people + ' people' : '') + (left > 0 ? ' · tap it when it opens!' : '');
+  if (left > 0) { card.classList.remove('open'); document.getElementById('cd').innerHTML = '<small>OPENS IN</small>' + CC.fmt(left).replace(/^0:/, ''); }
+  else { card.classList.add('open'); document.getElementById('cd').innerHTML = '<small>TAP TAP TAP</small>OPEN IT!'; }
+}
+function take(b) { if (!b) return; box = b; clearInterval(timer); timer = setInterval(paint, 250); paint(); }
+CC.on('state', (d) => { if (d.box) take(d.box); else if (CC.q.get('preview') === '1' && !box) take({ user: 'PreviewViewer', diamonds: 500, people: 10, superfan: true, opensAt: Date.now() + 95000 }); });
+CC.on('event', (d) => { if (d.ev.type === 'box' && d.ev.alert) take(d.ev); });
+</script>
+</body></html>

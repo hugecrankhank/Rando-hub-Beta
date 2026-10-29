@@ -7,6 +7,13 @@ played again later.
 
 ## Beta v1.14.27 (2026-10-28)
 
+- **Crowd Control+: Super Fan / treasure box alerts with a countdown.** When a viewer sends
+  a box, the gift alert shows who, the coins inside and how many people it's for, with a live
+  countdown to when it opens, and pops up again ("…IS OPEN! TAP IT!") when it does. A new
+  Treasure box countdown overlay (560 × 150) carries the countdown the whole way and is blank
+  otherwise. Direct, TikFinity and the local signer all report boxes; TikTok's own opening
+  time is used when it sends one, else the seconds set on the Alerts tab (3 minutes).
+  Test button on the Dashboard.
 - **Crowd Control+: Stream stats overlay.** A board of tiles for the stream: likes this
   stream, TikTok's like total, top likers (by viewer), new followers, total followers, new
   Super Fans, total Super Fans, shares, gifts, coins, viewers now, peak viewers, chat
