@@ -90,34 +90,73 @@
   // its row of link buttons when the header is too narrow for them (the ids
   // given are hidden then).
   // Phones (and short landscape screens): one "Games ▾" menu in place of the
-  // row of game links, so New seed stays on screen. It also holds the page's
-  // own header extras that don't fit there: "Play ROM file" (any page with a
-  // #rom-input) and `extras` ([{id, label}]: a header button clicked from the
-  // menu, hidden from the header on phones).
+  // row of game links, so New seed stays on screen. Games not ticked in the
+  // hub's "Games shown" are listed under "Add a game": picking one adds it to
+  // the shown games and goes there. The page's own header extras that don't fit
+  // ("Play ROM file" on any page with a #rom-input, and `extras` [{id, label}]:
+  // header buttons) move under the New seed button, which opens a small menu.
+  var PHONE_MQ = '(max-width: 760px), (max-height: 560px)';
   function gamesMenu(currentUrl, linkIds, extras) {
     var sel = document.createElement('select');
-    sel.className = 'btn'; sel.id = 'hub-games'; sel.setAttribute('aria-label', 'Other games and more');
+    sel.className = 'btn'; sel.id = 'hub-games'; sel.setAttribute('aria-label', 'Other games');
     sel.style.cssText = '-webkit-appearance: none; appearance: none; padding-right: 10px; display: none; max-width: 104px; text-overflow: ellipsis;';
-    var s = shown();
-    var acts = [];
-    if (document.getElementById('rom-input')) acts.push({ id: 'rom-input', label: 'Play ROM file…', hide: 'header label[for="rom-input"]' });
-    (extras || []).forEach(function (x) { acts.push({ id: x.id, label: x.label, hide: '#' + x.id }); });
-    sel.innerHTML = '<option value="">Games ▾</option>' +
-      (acts.length ? '<optgroup label="This game">' + acts.map(function (a, i) { return '<option value="act:' + i + '">' + a.label + '</option>'; }).join('') + '</optgroup><optgroup label="Other games">' : '') +
-      ALL.filter(function (x) { return x[0] !== currentUrl && s[x[2]]; })
-        .map(function (x) { return '<option value="' + base + x[0] + '">' + x[1] + '</option>'; }).join('') +
-      (acts.length ? '</optgroup>' : '');
+    function fill() {
+      var s = shown();
+      var others = ALL.filter(function (x) { return x[0] !== currentUrl; });
+      var on = others.filter(function (x) { return s[x[2]]; }), off = others.filter(function (x) { return !s[x[2]]; });
+      sel.innerHTML = '<option value="">Games ▾</option>' +
+        (off.length ? '<optgroup label="Games">' : '') +
+        on.map(function (x) { return '<option value="' + base + x[0] + '">' + x[1] + '</option>'; }).join('') +
+        (off.length ? '</optgroup><optgroup label="Add a game">' + off.map(function (x) { return '<option value="add:' + x[2] + '">+ ' + x[1] + '</option>'; }).join('') + '</optgroup>' : '');
+    }
+    fill();
     sel.addEventListener('change', function () {
       var v = sel.value; sel.value = '';
       if (!v) return;
-      if (v.indexOf('act:') === 0) { var a = acts[+v.slice(4)], el = a && document.getElementById(a.id); if (el) el.click(); return; }
+      if (v.indexOf('add:') === 0) {
+        var id = v.slice(4), g = ALL.filter(function (x) { return x[2] === id; })[0], s = shown();
+        s[id] = true; setShown(s);
+        if (g) location.href = base + g[0]; else fill();
+        return;
+      }
       location.href = v;
     });
+    var acts = [];
+    if (document.getElementById('rom-input')) acts.push({ id: 'rom-input', label: '📂 Play ROM file…', hide: 'header label[for="rom-input"]' });
+    (extras || []).forEach(function (x) { acts.push({ id: x.id, label: x.label, hide: '#' + x.id }); });
     var css = document.createElement('style');
     var hide = linkIds.map(function (i) { return '#' + i; }).concat(acts.map(function (a) { return a.hide; }));
-    css.textContent = '@media (max-width: 760px), (max-height: 560px) { ' + hide.join(', ') + ' { display: none !important; } #hub-games { display: inline-flex !important; } .hub-short { display: none; } }';
+    css.textContent = '#new-seed .ns-caret { display: none; font-size: .8em; margin-left: 4px; }' +
+      '@media ' + PHONE_MQ + ' { ' + hide.join(', ') + ' { display: none !important; } #hub-games { display: inline-flex !important; } .hub-short { display: none; } #new-seed .ns-caret { display: inline; } }' +
+      '#ns-menu { position: fixed; z-index: 1000; min-width: 190px; background: #111; border: 2px solid #3a6df0; border-radius: 6px; padding: 4px; box-shadow: 0 8px 24px rgba(0,0,0,.6); display: flex; flex-direction: column; }' +
+      '#ns-menu button { all: unset; display: block; padding: 11px 14px; font: inherit; font-size: 16px; color: #fff; cursor: pointer; border-radius: 4px; white-space: nowrap; }' +
+      '#ns-menu button:active, #ns-menu button:hover { background: #24304f; }';
     document.head.appendChild(css);
+    if (acts.length) setTimeout(function () { underNewSeed(acts); }, 0);
     return sel;
+  }
+  // On phones New seed opens a small menu: New seed, then the moved extras.
+  function underNewSeed(acts) {
+    var ns = document.getElementById('new-seed'); if (!ns || ns.dataset.nsMenu) return;
+    ns.dataset.nsMenu = '1';
+    var caret = document.createElement('span'); caret.className = 'ns-caret'; caret.textContent = '▾'; ns.appendChild(caret);
+    var menu = null, pass = false;
+    function close() { if (menu) { menu.remove(); menu = null; } document.removeEventListener('pointerdown', outside, true); }
+    function outside(e) { if (menu && !menu.contains(e.target) && e.target !== ns && !ns.contains(e.target)) close(); }
+    function item(label, fn) { var b = document.createElement('button'); b.type = 'button'; b.textContent = label; b.addEventListener('click', function () { close(); fn(); }); return b; }
+    ns.addEventListener('click', function (e) {
+      if (pass || !window.matchMedia(PHONE_MQ).matches) return;
+      e.preventDefault(); e.stopImmediatePropagation();
+      if (menu) { close(); return; }
+      menu = document.createElement('div'); menu.id = 'ns-menu'; menu.setAttribute('role', 'menu');
+      menu.appendChild(item('🎲 ' + (ns.firstChild && ns.firstChild.nodeType === 3 ? ns.firstChild.textContent.trim() : 'New seed'), function () { pass = true; try { ns.click(); } finally { pass = false; } }));
+      acts.forEach(function (a) { menu.appendChild(item(a.label, function () { var el = document.getElementById(a.id); if (el) el.click(); })); });
+      document.body.appendChild(menu);
+      var r = ns.getBoundingClientRect();
+      menu.style.top = Math.round(r.bottom + 6) + 'px';
+      menu.style.left = Math.round(Math.max(6, Math.min(r.left, window.innerWidth - menu.offsetWidth - 6))) + 'px';
+      setTimeout(function () { document.addEventListener('pointerdown', outside, true); }, 0);
+    }, true);
   }
 
   // Hide a page's own game links for games that aren't shown: el.dataset.game = id

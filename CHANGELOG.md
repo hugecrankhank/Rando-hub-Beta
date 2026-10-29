@@ -5,6 +5,15 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.36 (2026-10-29)
+
+- **Phones: Play ROM file and Training live under New seed.** On the game pages New seed ▾
+  opens a small menu: 🎲 New seed, 📂 Play ROM file…, and on Zelda 1 🎯 Training. The Games ▾
+  menu is just games again.
+- **Games ▾ can add the other games.** Games not ticked in the hub's "Games shown" (GLR, FF1,
+  FF4, FF5, FF6, Patched) are listed under "Add a game": picking one adds it to the shown
+  games and opens it.
+
 ## Beta v1.14.35 (2026-10-29)
 
 - **Phones: the controller dot is back on the game pages.** Zelda 1, GLR, the FF games and FF6
