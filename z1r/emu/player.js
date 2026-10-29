@@ -23,6 +23,8 @@
     touch: 'auto', opacity: 0.45, size: 1, haptics: true, slot: 1,
     keymap: null, padmap: null,
     palette: 'fceumm',     // colours (emu/palettes.js): the core's own, Mesen's, FBX's…
+    overclock: true,       // twice the NES's CPU time a frame: no slowdown on crowded screens
+    noSpriteLimit: false,  // more than 8 sprites in a row without flicker
     runAhead: null,        // one frame of run-ahead: null = on with a keyboard / controller, off on touch screens
   };
   var LABELS = { UP: 'Up', DOWN: 'Down', LEFT: 'Left', RIGHT: 'Right', A: 'A', B: 'B', START: 'Start', SELECT: 'Select' };
@@ -354,6 +356,11 @@
       '<div class="row"><span>Colors</span><select data-s="palette">' + opts(Object.keys(window.NesPalettes ? NesPalettes.PALETTES : { fceumm: { name: 'FCEUmm (default)' } }).map(function (k) { return [k, (window.NesPalettes ? NesPalettes.PALETTES : { fceumm: { name: 'FCEUmm (default)' } })[k].name]; }), cfg.palette) + '</select></div>' +
       '<div class="row"><span>Aspect ratio</span><select data-s="aspect">' + opts([['8:7', 'Pixel-perfect (8:7)'], ['4:3', 'TV (4:3)'], ['fill', 'Fill the box']], cfg.aspect) + '</select></div>' +
       '<p class="hint">xBRZ 6x is Zenju\u2019s xBRZ itself, the filter Mesen uses, run on the processor (a few ms a frame). The graphics-chip 6xBRZ is an approximation that rounds corners more; it\u2019s the one for phones and tablets. Stutters? 4x, or Sharp pixels.</p>' +
+      '<h4>Performance</h4>' +
+      '<div class="row"><span>No slowdown (overclock)</span><input type="checkbox" data-s="overclock"' + (cfg.overclock ? ' checked' : '') + '></div>' +
+      '<p class="hint">The NES itself slows down when a screen is full of enemies: its processor can\u2019t finish a frame\u2019s work in time. This gives it twice the time each frame (as Mesen and RetroArch can), so the game keeps full speed. Off is the original console.</p>' +
+      '<div class="row"><span>No sprite flicker</span><input type="checkbox" data-s="noSpriteLimit"' + (cfg.noSpriteLimit ? ' checked' : '') + '></div>' +
+      '<p class="hint">The NES shows at most 8 sprites in a row and flickers the rest. On, they all show.</p>' +
       '<div class="row"><span>Run-ahead (less input lag)</span><input type="checkbox" data-s="runAhead"' + (runAheadOn() ? ' checked' : '') + '></div>' +
       '<p class="hint">Shows each frame one frame early, like RetroArch\u2019s run-ahead: a press shows up about 16 ms sooner. The game runs twice per frame (cheap for the NES), so it\u2019s on by default with a keyboard or controller and off on touch screens.</p>' +
       '<h4>On-screen controller</h4>' +
@@ -390,9 +397,11 @@
       else if (s === 'filter') { if (v === 'xbrz6x') cfg.xbrzKeep = true; saveCfg(); applyFilter(); }
       else if (s === 'aspect') applyAspect();
       else if (s === 'runAhead' || s === 'palette') { /* takes effect next frame */ }
+      else if (s === 'overclock' || s === 'noSpriteLimit') applyCoreOptions();
       else applyTouch();
     });
   }
+  function applyCoreOptions() { if (!core) return; core.setOption(0, cfg.overclock); core.setOption(1, cfg.noSpriteLimit); }
   function remap(btn) {
     var kind = btn.dataset.map, target = btn.dataset.b;
     menuEl.querySelectorAll('button.wait').forEach(function (x) { x.classList.remove('wait'); });
@@ -619,6 +628,7 @@
       ['Audio', audio && audio.ctx ? audio.ctx.state + ' @ ' + audio.ctx.sampleRate : 'not started'],
       ['Screen', ema ? (1000 / ema).toFixed(1) + ' Hz, ' + (Math.abs(ema - 1000 / (core && core.loaded ? core.fps : 60.0988)) / (1000 / 60.0988) < 0.01 ? 'one game frame per refresh' : 'paced by the clock') : '\u2014'],
       ['Refreshes missed', stats.missed + ' of ' + stats.ticks + (stats.ticks ? ' (' + (100 * stats.missed / stats.ticks).toFixed(1) + '%)' : '')],
+      ['Overclock / sprite limit', (cfg.overclock ? 'no slowdown' : 'original speed') + ' / ' + (cfg.noSpriteLimit ? 'no flicker' : '8 per line')],
       ['Run-ahead', runAheadOn() ? 'on, ' + stats.aheadMs.toFixed(2) + ' ms per frame' : 'off'],
     ];
     if (stats.error) info.push(['Error', stats.error]);
@@ -698,6 +708,7 @@
     return Promise.all([EmuCore.create(BASE + 'fceumm.wasm'), bytesP]).then(function (r) {
       core = r[0];
       if (!r[1] || r[1].length < 0x4010) throw new Error('the ROM for "' + name + '" was empty (' + (r[1] ? r[1].length : 0) + ' bytes).');
+      applyCoreOptions();   // before load: the core reads its options when the game starts
       if (!core.load(r[1])) throw new Error('The emulator could not load "' + name + '".');
       audio.setRate(core.sampleRate);
       return kvGet(sramKey());

@@ -82,6 +82,8 @@
       return this.loaded;
     },
     reset() { this.x.z_reset(); },
+    // 0 overclock (no slowdown with lots of enemies), 1 no sprite limit (no flicker); older cores: no-op
+    setOption(which, on) { if (this.x.z_set_option) { this.x.z_set_option(which, on ? 1 : 0); return true; } return false; },
     runFrame(p1, p2) { this.x.z_input(0, p1 | 0); this.x.z_input(1, p2 | 0); this.x.z_run(); },
     get fps() { return this.x.z_fps() || 60.0988; },
     get sampleRate() { return this.x.z_sample_rate() || 48000; },

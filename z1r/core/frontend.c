@@ -28,8 +28,21 @@ static int loaded = 0;
 /* This FCEUmm reads ROMs held in memory only through GAME_INFO_EXT. */
 static struct retro_game_info_ext game_ext;
 
+/* Options the page can change while a game runs (z_set_option):
+ *   0 overclock   "2x-VBlank" doubles the CPU time per frame, so a screen full of
+ *                 enemies no longer slows the game down (the NES's own lag)
+ *   1 sprites     no 8-per-line sprite limit, so crowded rows stop flickering */
+static int opt_overclock = 0, opt_sprites = 0, opt_dirty = 0;
+EXPORT(z_set_option) void z_set_option(unsigned which, unsigned on) {
+   if (which == 0) opt_overclock = on ? 1 : 0;
+   else if (which == 1) opt_sprites = on ? 1 : 0;
+   opt_dirty = 1;
+}
+
 /* Core options this frontend answers; everything else uses core defaults. */
 static const char *option(const char *key) {
+   if (!strcmp(key, "fceumm_overclocking")) return opt_overclock ? "2x-VBlank" : "disabled";
+   if (!strcmp(key, "fceumm_nospritelimit")) return opt_sprites ? "enabled" : "disabled";
    if (!strcmp(key, "fceumm_sndrate_hint")) return "48KHz";
    if (!strcmp(key, "fceumm_sndquality")) return "High";
    if (!strcmp(key, "fceumm_region")) return "NTSC";
@@ -58,7 +71,8 @@ static bool env_cb(unsigned cmd, void *data) {
       return v->value != NULL;
    }
    case RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE:
-      *(bool *)data = false;
+      *(bool *)data = opt_dirty != 0;
+      opt_dirty = 0;
       return true;
    case RETRO_ENVIRONMENT_GET_CAN_DUPE:
       *(bool *)data = true;

@@ -5,6 +5,16 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.31 (2026-10-29)
+
+- **Zelda 1 / Guardian Legend: no more slowdown on crowded screens.** The slowdown is the
+  NES's own: with many enemies its processor can't finish a frame's work in time. The
+  emulator now gives it twice the time each frame (FCEUmm's VBlank overclock, the same option
+  Mesen and RetroArch offer), so the game holds full speed. On by default; ⋯ menu →
+  Performance → "No slowdown (overclock)" turns it off for the original console's behaviour.
+  It costs about 0.1 ms a frame. Also there: "No sprite flicker" (off by default) lifts the
+  NES's 8-sprites-per-line limit. The core (fceumm.wasm) was rebuilt with both options.
+
 ## Beta v1.14.30 (2026-10-29)
 
 - **Zelda 1 New seed: the flags follow what's picked.** No more contradictory settings:
