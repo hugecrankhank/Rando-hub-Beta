@@ -1,0 +1,70 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Stream stats</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="/studio/overlay.css">
+<style>
+  /* 420 wide; the height grows with the tiles. ?tiles=likes,followsNew shows just
+     those (any order), whatever the panel has ticked. ?cols=3 for a wider grid. */
+  body { padding: calc(10px * var(--scale)); }
+  .board { padding: calc(14px * var(--scale)) calc(16px * var(--scale)); width: calc(380px * var(--scale)); }
+  .head { display: flex; align-items: center; gap: calc(10px * var(--scale)); font-size: calc(15px * var(--scale)); margin-bottom: calc(10px * var(--scale)); }
+  .tiles { display: grid; grid-template-columns: repeat(var(--cols, 2), 1fr); gap: calc(8px * var(--scale)); }
+  .tile { background: rgba(0,0,0,.35); border: 1px solid var(--line); border-radius: calc(10px * var(--scale)); padding: calc(8px * var(--scale)) calc(10px * var(--scale)); transition: background .6s; }
+  .tile.wide { grid-column: 1 / -1; }
+  .tile .k { font-size: calc(10px * var(--scale)); color: #c9c0e6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tile .v { font: 800 calc(26px * var(--scale)) var(--sans); font-variant-numeric: tabular-nums; line-height: 1.15; }
+  .tile .v small { font-size: .5em; color: #ffd166; font-weight: 700; }
+  .tile.hot { background: rgba(230, 57, 70, .35); }
+  .row { display: grid; grid-template-columns: calc(26px * var(--scale)) calc(28px * var(--scale)) 1fr auto; gap: calc(8px * var(--scale)); align-items: center; padding: calc(5px * var(--scale)) 0; border-top: 1px solid var(--line); }
+  .row:first-child { border-top: 0; }
+  .rank { font-size: calc(11px * var(--scale)); color: #c9c0e6; text-align: center; }
+  .rows .row:nth-child(1) .rank { color: #ffd166; } .rows .row:nth-child(2) .rank { color: #dfe7ef; } .rows .row:nth-child(3) .rank { color: #e0a370; }
+  .av { width: calc(28px * var(--scale)); height: calc(28px * var(--scale)); border-radius: 50%; background: var(--navy); display: grid; place-items: center; font-weight: 800; overflow: hidden; font-size: calc(13px * var(--scale)); }
+  .av img { width: 100%; height: 100%; object-fit: cover; }
+  .name { font: 700 calc(15px * var(--scale)) var(--sans); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .n { font: 800 calc(15px * var(--scale)) var(--sans); font-variant-numeric: tabular-nums; }
+  .n small { color: #ff6b81; }
+  .empty { color: #c9c0e6; font-size: calc(12px * var(--scale)); padding: calc(4px * var(--scale)) 0; }
+</style></head>
+<body>
+<div class="board box"><div class="head pix shadow"><img class="die" src="/studio/die.svg" alt=""><span id="title">STREAM STATS</span></div><div class="tiles" id="tiles"></div></div>
+<div class="offline-note">Waiting for the Crowd Control+ bridge…</div>
+<script src="/studio/common.js"></script>
+<script>
+const ORDER = ['likes', 'likesRoom', 'topLikers', 'followsNew', 'followsTotal', 'superfanNew', 'superfanTotal', 'shares', 'gifts', 'coins', 'viewers', 'peak', 'chats', 'community'];
+const LABEL = { likes: 'LIKES THIS STREAM', likesRoom: 'LIKES (TIKTOK)', topLikers: 'TOP LIKERS', followsNew: 'NEW FOLLOWERS', followsTotal: 'FOLLOWERS', superfanNew: 'NEW SUPER FANS', superfanTotal: 'SUPER FANS', shares: 'SHARES', gifts: 'GIFTS', coins: 'COINS', viewers: 'WATCHING NOW', peak: 'PEAK VIEWERS', chats: 'CHAT MESSAGES', community: 'NEW COMMUNITY MEMBERS' };
+const ICON = { likes: '❤', likesRoom: '❤', followsNew: '➕', followsTotal: '👥', superfanNew: '⭐', superfanTotal: '⭐', shares: '↗', gifts: '🎁', coins: '🪙', viewers: '👁', peak: '👁', chats: '💬', community: '🤝' };
+const pick = (CC.q.get('tiles') || '').split(',').map((x) => x.trim()).filter(Boolean);
+if (CC.q.get('cols')) document.documentElement.style.setProperty('--cols', CC.q.get('cols'));
+const last = {};
+function tiles(settings) {
+  const T = (settings.statsBoard || {}).tiles || {};
+  return pick.length ? pick.filter((k) => ORDER.includes(k)) : ORDER.filter((k) => T[k]);
+}
+function paint(b, settings, hot) {
+  if (!b) return;
+  const B = settings.statsBoard || {};
+  document.getElementById('title').textContent = B.title || 'STREAM STATS';
+  const list = tiles(settings);
+  document.getElementById('tiles').innerHTML = list.map((k) => {
+    if (k === 'topLikers') {
+      const n = +CC.q.get('size') || B.likersSize || 5, rows = (b.topLikers || []).slice(0, n);
+      return '<div class="tile wide"><div class="k pix">' + LABEL[k] + '</div><div class="rows">' + (rows.length ? rows.map((g, i) => {
+        const nm = g.nickname || g.user;
+        const av = g.avatar && /^https:\/\//.test(g.avatar) ? '<img src="' + CC.esc(g.avatar) + '" alt="" onerror="this.parentNode.textContent=\'' + CC.esc(nm[0] || '?').replace(/'/g, '') + '\'">' : CC.esc((nm[0] || '?').toUpperCase());
+        return '<div class="row"><div class="rank pix">' + (i + 1) + '</div><div class="av">' + av + '</div><div class="name shadow">' + CC.esc(nm) + '</div><div class="n shadow">' + CC.num(g.count) + ' <small>❤</small></div></div>';
+      }).join('') : '<div class="empty">Tap the screen to like!</div>') + '</div></div>';
+    }
+    let v = b[k], extra = '';
+    if (k === 'followsTotal' && (b.followersKnown || (settings.statsBoard || {}).base?.followers) && b.followsNew) extra = ' <small>+' + CC.num(b.followsNew) + '</small>';
+    const bump = hot === k || (last[k] != null && last[k] !== v);
+    last[k] = v;
+    return '<div class="tile' + (bump ? ' hot' : '') + '"><div class="k pix">' + LABEL[k] + '</div><div class="v shadow">' + (ICON[k] ? '<small>' + ICON[k] + '</small> ' : '') + CC.num(v) + extra + '</div></div>';
+  }).join('');
+  if (hot || list.some((k) => last[k] != null)) setTimeout(() => document.querySelectorAll('.tile.hot').forEach((t) => t.classList.remove('hot')), 1500);
+}
+CC.on('state', (d) => paint(d.board, d.settings));
+CC.on('event', (d, s) => { if (d.board) { const hot = { like: 'likes', follow: 'followsNew', superfan: 'superfanNew', share: 'shares', gift: 'gifts', community: 'community', chat: 'chats' }[d.ev.type]; paint(d.board, s.settings, hot); } });
+CC.on('board', (d, s) => paint(d.board, s.settings));
+</script>
+</body></html>

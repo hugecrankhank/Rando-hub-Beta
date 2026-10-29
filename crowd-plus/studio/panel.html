@@ -246,6 +246,32 @@
   <h2>OVERLAYS FOR OBS / TIKTOK LIVE STUDIO</h2>
   <p class="hint">Add each one as a <b>Browser</b> source (OBS) or a <b>Link</b> source (TikTok LIVE Studio) with the address and size shown. They update live. Options go on the end of the address: <span class="kbd">?scale=1.3</span> bigger, <span class="kbd">?bg=0</span> no background box, <span class="kbd">?font=plain</span> normal letters instead of pixel letters, <span class="kbd">?screen=green</span> solid green behind it for a Chroma Key filter. The page itself is see-through: if you see a white box, it was added as a window or display capture instead of a Browser / Link source.</p>
   <div id="ov-list" class="grid"></div>
+  <h2>STATS BOARD</h2>
+  <div class="card">
+    <p class="hint">The <b>Stream stats</b> overlay shows the tiles ticked here, so the stream captures just what you want. Several Browser sources can show different tiles: put <span class="kbd">?tiles=likes,followsNew</span> on the end of the address for one with only those (names: likes, likesRoom, topLikers, followsNew, followsTotal, superfanNew, superfanTotal, shares, gifts, coins, viewers, peak, chats, community).</p>
+    <label class="row"><span>Board title</span><input data-s="statsBoard.title"></label>
+    <div class="row"><span style="min-width:170px" class="muted">Tiles</span><div style="display:flex;flex-wrap:wrap;gap:4px 14px">
+      <label><input type="checkbox" data-s="statsBoard.tiles.likes"> likes this stream</label>
+      <label><input type="checkbox" data-s="statsBoard.tiles.likesRoom"> likes (TikTok's total)</label>
+      <label><input type="checkbox" data-s="statsBoard.tiles.topLikers"> top likers</label>
+      <label><input type="checkbox" data-s="statsBoard.tiles.followsNew"> new followers</label>
+      <label><input type="checkbox" data-s="statsBoard.tiles.followsTotal"> total followers</label>
+      <label><input type="checkbox" data-s="statsBoard.tiles.superfanNew"> new Super Fans</label>
+      <label><input type="checkbox" data-s="statsBoard.tiles.superfanTotal"> total Super Fans</label>
+      <label><input type="checkbox" data-s="statsBoard.tiles.shares"> shares</label>
+      <label><input type="checkbox" data-s="statsBoard.tiles.gifts"> gifts</label>
+      <label><input type="checkbox" data-s="statsBoard.tiles.coins"> coins</label>
+      <label><input type="checkbox" data-s="statsBoard.tiles.viewers"> viewers now</label>
+      <label><input type="checkbox" data-s="statsBoard.tiles.peak"> peak viewers</label>
+      <label><input type="checkbox" data-s="statsBoard.tiles.chats"> chat messages</label>
+      <label><input type="checkbox" data-s="statsBoard.tiles.community"> new community members</label>
+    </div></div>
+    <label class="row"><span>Top likers rows</span><input type="number" min="1" max="10" data-s="statsBoard.likersSize"></label>
+    <label class="row"><span>Followers before this stream</span><input type="number" min="0" data-s="statsBoard.base.followers"></label>
+    <label class="row"><span>Super Fans before this stream</span><input type="number" min="0" data-s="statsBoard.base.superfans"></label>
+    <p class="hint">Totals = these + new ones this stream. Direct fills the follower count in from TikTok itself when it connects; TikTok never says how many Super Fans there are, so type that one from your profile. "Reset stream stats" (Dashboard) starts the new-this-stream counts over.</p>
+    <div class="savebar" style="position:static;padding-top:6px"><button class="primary" data-save-settings>Save</button><span class="dirty" data-dirty></span></div>
+  </div>
   <h2>LEADERBOARD AND FEED</h2>
   <div class="card">
     <label class="row"><span>Leaderboard title</span><input data-s="leaderboard.title"></label>
@@ -674,7 +700,7 @@ document.addEventListener('change', (ev) => { if (ev.target.type === 'checkbox' 
 $('tts-banned').oninput = () => { draft.tts.bannedWords = $('tts-banned').value.split('\n').map((x) => x.trim()).filter(Boolean); markS(); };
 function markS() { sDirty = true; document.querySelectorAll('[data-dirty]').forEach((x) => x.textContent = 'Unsaved changes'); }
 document.querySelectorAll('[data-save-settings]').forEach((b) => b.onclick = async () => {
-  const keys = ['alerts', 'leaderboard', 'feed', 'tts', 'commands', 'votes', 'battle', 'mystery', 'combo', 'deathTax', 'runClock', 'predict', 'gtGuess', 'digGuess', 'clips', 'hallOfFame', 'welcome', 'detour'];
+  const keys = ['alerts', 'leaderboard', 'statsBoard', 'feed', 'tts', 'commands', 'votes', 'battle', 'mystery', 'combo', 'deathTax', 'runClock', 'predict', 'gtGuess', 'digGuess', 'clips', 'hallOfFame', 'welcome', 'detour'];
   await call('settings', { settings: Object.fromEntries(keys.map((k) => [k, draft[k]])) }, 'Saved');
   sDirty = false; document.querySelectorAll('[data-dirty]').forEach((x) => x.textContent = '');
 });
@@ -908,6 +934,7 @@ const OVS = [
   ['welcome', 'Welcome back', 'Pops up when a regular shows up.', '520 x 140'],
   ['alerts', 'Gift alerts', 'Pops up with the viewer, the gift and what it did in the game, with a sound. Bigger donations get bigger alerts.', '1920 x 1080 (full screen, it centers itself)'],
   ['goal', 'Goal bar', 'The goals ticked "On stream", filling up live.', '800 x 160 (one goal; add 110 height per extra goal)'],
+  ['stats', 'Stream stats', 'Likes, followers, Super Fans, shares, gifts, viewers: the tiles ticked below.', '420 wide; height grows with the tiles'],
   ['leaderboard', 'Top gifters', 'This stream\'s biggest gifters.', '420 x 420'],
   ['feed', 'Recent events', 'The latest gifts, follows and shares, newest on top.', '460 x 420'],
   ['commands', 'Chat commands', 'Shows the reply when a viewer types a command like !rules.', '900 x 220'],

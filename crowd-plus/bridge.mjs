@@ -293,6 +293,9 @@ function onSocial(kind, user, extra = {}) {
   const done = effect && (!extra.test || extra.runEffect) ? fire(effect, user, SOCIAL_LABEL[kind] || kind) : effect || null;
   studio.record({ type: kind, user, nickname: extra.nickname, avatar: extra.avatar, effect: done, effectName: done ? (effectNames[done] || done) : '', test: !!extra.test });
 }
+// what TikTok says about the room itself: viewers right now, the LIVE's like
+// total, the account's follower count (the stats board)
+function onRoom(info) { try { studio.room(info); } catch {} }
 function onChat(user, text, extra = {}) {
   const e = studio.record({ type: 'chat', user, nickname: extra.nickname, avatar: extra.avatar, text, test: !!extra.test });
   if (e.command) log(`chat command ${e.command.cmd} from ${user}`);
@@ -917,7 +920,8 @@ function onTikFinity(text) {
     const pic = d.giftPictureUrl || d.giftDetails?.giftImage?.giftPictureUrl;
     if (name && pic && /^https:\/\//.test(pic)) extraIcons.set(name.toLowerCase(), pic);
     onGift(user, name, d.giftId, d.repeatCount || 1, d.diamondCount ?? d.giftDetails?.diamondCount, who);
-  } else if (ev === 'like') onLike(user, d.likeCount || 1, who);
+  } else if (ev === 'like') { onLike(user, d.likeCount || 1, who); if (d.totalLikeCount) onRoom({ likesRoom: +d.totalLikeCount }); }
+  else if (ev === 'roomuser' || ev === 'room_user') { if (d.viewerCount != null) onRoom({ viewers: +d.viewerCount }); }
   else if (ev === 'follow') onSocial('follow', user, who);
   else if (ev === 'share') onSocial('share', user, who);
   else if (/subscri|super_?fan/.test(ev)) onSocial('superfan', user, who);
@@ -991,7 +995,8 @@ async function startTikTok(current = () => true) {
       const name = d.giftDetails?.giftName || d.extendedGiftInfo?.name || '';
       onGift(d.user?.uniqueId || d.user?.nickname || 'someone', name, d.giftId, d.repeatCount || 1, d.giftDetails?.diamondCount ?? d.diamondCount, who(d));
     });
-    on('like', (d) => onLike(d.user?.uniqueId || 'someone', d.likeCount || 1, who(d)));
+    on('like', (d) => { onLike(d.user?.uniqueId || 'someone', d.likeCount || 1, who(d)); if (d.totalLikeCount) onRoom({ likesRoom: +d.totalLikeCount }); });
+    on('roomUser', (d) => { if (d.viewerCount != null) onRoom({ viewers: +d.viewerCount }); });
     on('follow', (d) => onSocial('follow', d.user?.uniqueId || 'someone', who(d)));
     on('share', (d) => onSocial('share', d.user?.uniqueId || 'someone', who(d)));
     on('subscribe', (d) => onSocial('superfan', d.user?.uniqueId || 'someone', who(d)));
@@ -1013,6 +1018,10 @@ async function startTikTok(current = () => true) {
       if (off() || conn !== c) { try { c.disconnect(); } catch {} return; }   // switched away while it was connecting
       say(`Live as @${cfg.username}`);
       log(`connected to @${cfg.username}'s LIVE (room ${state.roomId})`);
+      try {
+        const ri = state.roomInfo || {}, fc = ri.owner?.follow_info?.follower_count ?? ri.owner?.followInfo?.followerCount;
+        onRoom({ followers: fc != null ? +fc : undefined, viewers: ri.user_count != null ? +ri.user_count : undefined, likesRoom: ri.like_count != null ? +ri.like_count : undefined });
+      } catch {}
     } catch (e) {
       if (off() || conn !== c) return;
       const msg = e?.message || String(e);

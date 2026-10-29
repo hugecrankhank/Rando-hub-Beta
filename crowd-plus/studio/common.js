@@ -5,7 +5,7 @@
   const CC = window.CC = {
     q,
     state: null,
-    handlers: { state: [], event: [], tick: [], clear: [], live: [] },
+    handlers: { state: [], event: [], tick: [], clear: [], live: [], board: [] },
     on(kind, fn) { this.handlers[kind].push(fn); return this; },
     esc(s) { return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); },
     fmt(s) { s = Math.max(0, Math.round(s)); return Math.floor(s / 3600) + ':' + String(Math.floor(s / 60) % 60).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); },
@@ -65,7 +65,9 @@
         CC.state.recent = (CC.state.recent || []).concat(d.ev).slice(-40);
         if (d.stats) Object.assign(CC.state.stats, d.stats);
         if (d.goals) CC.state.settings.goals = d.goals;
+        if (d.board) CC.state.board = d.board;
       }
+      if (d.kind === 'board' && CC.state) CC.state.board = d.board;
       if (d.kind === 'live' && CC.state && CC.state.live) {
         const L = CC.state.live;
         if ('poll' in d) L.poll = d.poll;

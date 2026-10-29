@@ -5,6 +5,17 @@ Crowd Control+ is Rando Hub's crowd control: the gift bridge with a
 control panel and stream overlays. Every gift effect, big-donation seed
 roll and the subathon clock work exactly as before.
 
+NEW IN 1.14.27
+--------------
+- Stream stats overlay (Overlays tab): likes this stream, TikTok's like
+  total, top likers by viewer, new and total followers, new and total
+  Super Fans, shares, gifts, coins, viewers now, peak viewers, chat
+  messages, new community members. Tick the tiles you want on the panel
+  (Overlays -> Stats board), or add ?tiles=likes,followsNew to the address
+  for a source with just those. Type your follower and Super Fan counts
+  from before the stream so the totals are right (Direct fills in the
+  follower count itself).
+
 NEW IN 1.14.13
 --------------
 - The game's own Live games panel (by the maps / in the window bar) now runs

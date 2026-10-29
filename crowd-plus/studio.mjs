@@ -46,6 +46,13 @@ export function createStudio(ctx) {
       { id: 'g2', type: 'likes', label: 'LIKE GOAL', target: 10000, current: 0, show: false },
     ],
     leaderboard: { title: 'TOP GIFTERS', size: 5 },
+    // the stats board overlay: which tiles show, and the account's counts before
+    // this stream (TikTok only tells Direct the follower count; Super Fans never)
+    statsBoard: {
+      title: 'STREAM STATS', likersSize: 5,
+      tiles: { likes: true, topLikers: true, followsNew: true, followsTotal: true, superfanNew: true, superfanTotal: true, shares: true, gifts: true, coins: true, viewers: true, peak: false, chats: false, community: false },
+      base: { followers: 0, superfans: 0 },
+    },
     feed: { size: 6, gifts: true, follows: true, shares: true, likes: false },
     tts: {
       enabled: false, who: 'gifters', minCoins: 1, maxLength: 120, readNames: true,
@@ -84,7 +91,8 @@ export function createStudio(ctx) {
   function saveSettings() { ownWrite = Date.now(); writeJson(STUDIO_FILE, settings); }
 
   // ── stats (survive a restart; "Reset stream stats" clears them) ──────────
-  let stats = Object.assign({ since: Date.now(), coins: 0, gifts: 0, likes: 0, follows: 0, shares: 0, chats: 0, gifters: {} }, readJson(STATS_FILE, {}));
+  const freshStats = () => ({ since: Date.now(), coins: 0, gifts: 0, likes: 0, follows: 0, shares: 0, chats: 0, superfans: 0, community: 0, gifters: {}, likers: {}, viewers: 0, peak: 0, likesRoom: 0, followersRoom: 0 });
+  let stats = Object.assign(freshStats(), readJson(STATS_FILE, {}));
   let statsT = null;
   const saveStats = () => { clearTimeout(statsT); statsT = setTimeout(() => writeJson(STATS_FILE, stats), 500); };
   const seen = readJson(SEEN_FILE, {});   // gift name → { coins, id, last }
@@ -106,6 +114,33 @@ export function createStudio(ctx) {
       ctx.toGame(m);
     }
   }
+  function topLikers(n) {
+    return Object.entries(stats.likers || {}).map(([user, g]) => ({ user, ...g }))
+      .sort((a, b) => b.count - a.count).slice(0, n);
+  }
+  // the stats board's numbers (overlays/stats.html)
+  function board() {
+    const B = settings.statsBoard || {}, base = B.base || {};
+    return {
+      likes: stats.likes, likesRoom: stats.likesRoom || 0, topLikers: topLikers(Math.max(10, B.likersSize || 5)),
+      followsNew: stats.follows, followsTotal: (stats.followersRoom || +base.followers || 0) + (stats.followersRoom ? 0 : stats.follows), followersKnown: !!stats.followersRoom,
+      superfanNew: stats.superfans || 0, superfanTotal: (+base.superfans || 0) + (stats.superfans || 0),
+      shares: stats.shares, gifts: stats.gifts, coins: stats.coins, chats: stats.chats, community: stats.community || 0,
+      viewers: stats.viewers || 0, peak: stats.peak || 0, since: stats.since,
+    };
+  }
+  let roomT = 0;
+  function room(info) {
+    if (!info) return;
+    let changed = false;
+    if (info.viewers != null && info.viewers >= 0) { stats.viewers = info.viewers; if (info.viewers > (stats.peak || 0)) stats.peak = info.viewers; changed = true; }
+    if (info.likesRoom != null && info.likesRoom > 0) { stats.likesRoom = info.likesRoom; changed = true; }
+    if (info.followers != null && info.followers > 0) { stats.followersRoom = info.followers; changed = true; }
+    if (!changed) return;
+    saveStats();
+    const now = Date.now(); if (now - roomT < 1500) return;   // viewer counts come often
+    roomT = now; push({ kind: 'board', board: board() });
+  }
   function topGifters(n) {
     return Object.entries(stats.gifters).map(([user, g]) => ({ user, ...g }))
       .sort((a, b) => b.coins - a.coins || b.gifts - a.gifts).slice(0, n);
@@ -123,7 +158,7 @@ export function createStudio(ctx) {
     const cfg = ctx.getCfg();
     return {
       kind: 'state',
-      settings, stats: { ...stats, gifters: undefined, top: topGifters(Math.max(10, settings.leaderboard.size)) },
+      settings, stats: { ...stats, gifters: undefined, likers: undefined, top: topGifters(Math.max(10, settings.leaderboard.size)) }, board: board(),
       status: ctx.status(), timer: ctx.timerView(true),
       mapping: {
         gifts: cfg.gifts || {}, coinTiers: cfg.coinTiers || [], likes: cfg.likes || {}, follow: cfg.follow || '', share: cfg.share || '', superfan: cfg.superfan || '', community: cfg.community || '',
@@ -198,9 +233,15 @@ export function createStudio(ctx) {
           seen[e.gift] = { coins: each || seen[e.gift]?.coins || null, id: e.giftId ?? null, last: Date.now() };
           clearTimeout(seenT); seenT = setTimeout(() => writeJson(SEEN_FILE, seen), 1000);
         }
-      } else if (e.type === 'like') { stats.likes += e.count || 1; moveGoals('likes', e.count || 1); }
+      } else if (e.type === 'like') {
+        stats.likes += e.count || 1; moveGoals('likes', e.count || 1);
+        const L = stats.likers || (stats.likers = {}), l = L[e.user] || (L[e.user] = { count: 0, nickname: e.nickname || '', avatar: '' });
+        l.count += e.count || 1; if (e.nickname) l.nickname = e.nickname; if (e.avatar) l.avatar = e.avatar;
+      }
       else if (e.type === 'follow') { stats.follows++; moveGoals('follows', 1); }
       else if (e.type === 'share') { stats.shares++; moveGoals('shares', 1); }
+      else if (e.type === 'superfan') stats.superfans = (stats.superfans || 0) + 1;
+      else if (e.type === 'community') stats.community = (stats.community || 0) + 1;
       else if (e.type === 'chat') stats.chats++;
       saveStats();
     }
@@ -235,7 +276,7 @@ export function createStudio(ctx) {
     }
     try { live.onEvent(e); } catch (err) { log('live: ' + err.message); }
     events.push(e); if (events.length > MAX_LOG) events.shift();
-    push({ kind: 'event', ev: e, stats: { coins: stats.coins, gifts: stats.gifts, likes: stats.likes, follows: stats.follows, shares: stats.shares, chats: stats.chats, top: topGifters(Math.max(10, settings.leaderboard.size)) }, goals: settings.goals });
+    push({ kind: 'event', ev: e, stats: { coins: stats.coins, gifts: stats.gifts, likes: stats.likes, follows: stats.follows, shares: stats.shares, chats: stats.chats, top: topGifters(Math.max(10, settings.leaderboard.size)) }, goals: settings.goals, board: board() });
     return e;
   }
 
@@ -269,7 +310,7 @@ export function createStudio(ctx) {
     res.writeHead(200, { 'content-type': TYPES[path.extname(file).toLowerCase()] || 'application/octet-stream', 'cache-control': 'no-cache' });
     fs.createReadStream(file).pipe(res);
   }
-  const OVERLAYS = ['alerts', 'goal', 'leaderboard', 'feed', 'commands', 'vote', 'battle', 'mystery', 'combo', 'run', 'predict', 'gtkey', 'dig', 'halloffame', 'welcome'];
+  const OVERLAYS = ['stats', 'alerts', 'goal', 'leaderboard', 'feed', 'commands', 'vote', 'battle', 'mystery', 'combo', 'run', 'predict', 'gtkey', 'dig', 'halloffame', 'welcome'];
 
   function handle(req, res, url) {
     const p = url.pathname;
@@ -350,7 +391,7 @@ export function createStudio(ctx) {
         saveSettings(); return;
       }
       case 'reset-stats':
-        stats = { since: Date.now(), coins: 0, gifts: 0, likes: 0, follows: 0, shares: 0, chats: 0, gifters: {} };
+        stats = freshStats();
         events.length = 0; writeJson(STATS_FILE, stats); log('stream stats reset'); return;
       case 'clear-alerts': push({ kind: 'clear' }); return;
       case 'profile-save': {
@@ -379,6 +420,6 @@ export function createStudio(ctx) {
   }
 
   const pageCount = (path) => [...streams].filter((x) => x.page === path).length;
-  return { record, handle, pushState, pageCount, onGame: (m) => live.onGame(m), mystery: (u, l) => live.mystery(u, l), get settings() { return settings; },
+  return { record, room, handle, pushState, pageCount, onGame: (m) => live.onGame(m), mystery: (u, l) => live.mystery(u, l), get settings() { return settings; },
     liveRun: (a) => live.run(a), liveState: () => { const s = live.snapshot(); return { gtguess: s.gtguess, gt: s.gt, digguess: s.digguess, dig: s.dig }; } };
 }

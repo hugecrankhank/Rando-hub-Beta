@@ -5,6 +5,18 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.27 (2026-10-28)
+
+- **Crowd Control+: Stream stats overlay.** A board of tiles for the stream: likes this
+  stream, TikTok's like total, top likers (by viewer), new followers, total followers, new
+  Super Fans, total Super Fans, shares, gifts, coins, viewers now, peak viewers, chat
+  messages, new community members. Each tile is a tick box on the panel (Overlays → Stats
+  board), and `?tiles=likes,followsNew` on the address makes a source showing just those,
+  so a streamer can capture exactly what they want. Totals are "before this stream" counts
+  typed on the panel plus the new ones; Direct fills the follower count in from TikTok when
+  it connects. Likes are now counted per viewer and viewer counts are tracked (Direct and
+  TikFinity).
+
 ## Beta v1.14.26 (2026-10-28)
 
 - **Dungeon card: where, and the boss.** ⚙ Settings → Dungeon card now has three choices:
