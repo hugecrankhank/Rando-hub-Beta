@@ -5,6 +5,16 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.38 (2026-10-29)
+
+- **Boss detour: the boss is found, or brought, wherever it is.** Skull Woods still came up empty
+  for Gumby. Mothula's room is a big one and its arena is one corner of it: a boss in another
+  part of the room than Link is offscreen, so the game puts it to sleep and the arena looks
+  empty. One and three seconds into the fight the detour now looks for the boss: in another part
+  of the room, Link is moved to it; nowhere at all, it's put there (from the room's own list,
+  or the boss's usual sprite next to Link if that list can't be read). Each fix is written to
+  the Crowd Control+ log ("⚔ boss detour: …"), so a detour that still goes wrong says why.
+
 ## Beta v1.14.37 (2026-10-29)
 
 - **Crowd Control+ local signer: no more false "Connected".** TikTok's new message socket

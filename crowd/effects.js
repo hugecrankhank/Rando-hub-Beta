@@ -1779,6 +1779,42 @@
     ram[0xC1A6] = 0; ram[0xC1A7] = 0; ram[0xC1A8] = 0;
     return true;
   }
+  // each detour boss's usual sprite, for a room whose list can't be read
+  var BOSS_KIND = { ganon: 0xD6, aga1: 0x7A, aga2: 0x7A, armos: 0x53, lanmolas: 0x54, moldorm: 0x09, helmasaur: 0x92, arrghus: 0x8C,
+    mothula: 0x88, blind: 0xCE, kholdstare: 0xA2, vitreous: 0xBD, trinexx: 0xCB };
+  function quarterOf(x, y) { return ((x >> 8) & 1) + ((y >> 8) & 1) * 2; }
+  function detourSay(text) { note('detour: ' + text); try { send({ type: 'detour', phase: 'note', text: text }); } catch (e) {} }
+  function bossCheck(core, ram, d) {
+    var spot = bossSpot(ram), what = '';
+    if (!spot) {
+      var sp = spawnRoomBoss(core, ram, d.boss.room);
+      if (!sp) sp = spawnBossKind(ram, d.boss.room, BOSS_KIND[d.key]);
+      what = 'no boss in the arena (room ' + d.boss.room.toString(16) + '), ' + (sp ? 'put one there (sprite ' + sp + ')' : 'and none could be put there');
+      spot = bossSpot(ram);
+    }
+    if (spot) {
+      var lx = ram[0x22] | ram[0x23] << 8, ly = ram[0x20] | ram[0x21] << 8;
+      if (quarterOf(spot[0], spot[1]) !== quarterOf(lx, ly)) {
+        var ok = false; try { ok = placeLink(ram, null); } catch (e) {}
+        what = (what ? what + '; ' : '') + 'the boss was in another part of the room' + (ok ? ', moved Link there' : '');
+      }
+    }
+    if (what) detourSay(what);
+  }
+  // a boss of a given kind in Link's part of the room, top middle
+  function spawnBossKind(ram, room, t) {
+    if (!t) return null;
+    var k = -1; for (var j = 15; j >= 0; j--) if (!ram[0xDD0 + j]) { k = j; break; }
+    if (k < 0) k = 15;
+    var lx = ram[0x22] | ram[0x23] << 8, ly = ram[0x20] | ram[0x21] << 8;
+    var X = (lx & 0xFF00) + 0x78, Y = (ly & 0xFF00) + 0x50;
+    ram[0xD00 + k] = Y & 0xFF; ram[0xD20 + k] = Y >> 8; ram[0xD10 + k] = X & 0xFF; ram[0xD30 + k] = X >> 8;
+    ram[0xE20 + k] = t; ram[0xF20 + k] = ram[0xEE] & 1; ram[0xE30 + k] = 0; ram[0xBC0 + k] = k; ram[0xCBA + k] = 0;
+    ram[0xF70 + k] = 0; ram[0xF00 + k] = 0; ram[0xDF0 + k] = 0;
+    if (t === 0xCE) { ram[0x403] |= 0x20; if (ram[0xF3CC] === 6) ram[0xF3CC] = 0; }
+    ram[0xDD0 + k] = 8;
+    return t.toString(16);
+  }
   // the boss the ROM lists for a room (boss shuffle puts whichever it is there)
   function spawnRoomBoss(core, ram, room) {
     var rom; try { rom = core.rom(); } catch (e) { return null; }
@@ -1885,10 +1921,9 @@
     // Two seconds in and no boss in the room (Gumby's Skull Woods detour had an empty
     // arena): put it there ourselves from the ROM's own sprite list for the room,
     // state 8 so the game runs its usual setup for it.
-    if (!d.checked && d.frames === 120 && d.boss.room != null && mode === 0x07) {
-      d.checked = true;
-      if (!bossSpot(ram)) { var sp = spawnRoomBoss(core, ram, d.boss.room); note('detour: no boss in room ' + d.boss.room.toString(16) + (sp ? ', spawned ' + sp : ', none in its list')); }
-    }
+    // Checked again a second later, and Link is moved to the boss if it's in another
+    // part of the room (offscreen, so it sleeps: the arena looks empty).
+    if ((d.frames === 60 || d.frames === 180) && d.boss.room != null && mode === 0x07 && ram[0x11] === 0) bossCheck(core, ram, d);
     // how did it go?
     if (mode === 0x12 || ram[A.HP] === 0) return endDetour(core, 'ko', 'Link went down!');
     if (WIN_MODULES[mode] || ram[A.HP_MAX] > d.hpMax) return endDetour(core, 'won', 'BOSS DEFEATED!');

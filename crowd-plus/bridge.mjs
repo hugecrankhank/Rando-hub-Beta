@@ -177,7 +177,7 @@ function onGameMessage(text) {
   } else if (m.type === 'run' || m.type === 'death' || m.type === 'music' || m.type === 'detour' || m.type === 'seed' || m.type === 'reveal') {
     if (m.type === 'reveal') log(`🔮 revealed: ${m.item} at ${m.loc}${m.user ? ' (' + m.user + ')' : ''}`);
     if (m.type === 'seed' && m.seed) log(`🎲 seed: ${m.seed.what || m.seed.name}${m.seed.how ? ' (' + m.seed.how + (m.seed.by ? ', ' + m.seed.by : '') + ')' : ''}`);
-    if (m.type === 'detour') log(m.phase === 'start' ? `⚔ boss detour: ${m.boss}${m.user ? ' (sent by ' + m.user + ')' : ''}` : `⚔ boss detour over: ${m.result}`);
+    if (m.type === 'detour') log(m.phase === 'start' ? `⚔ boss detour: ${m.boss}${m.user ? ' (sent by ' + m.user + ')' : ''}` : m.phase === 'note' ? `⚔ boss detour: ${m.text}` : `⚔ boss detour over: ${m.result}`);
     if (m.type === 'death') log(`☠ Link died (death #${m.deaths})`);
     if (m.type === 'music') log(`♪ music: ${m.pack || "the game's own"}`);
     try { studio.onGame(m); } catch (e) { log(`! control panel error (${m.type}): ${e && e.message}`); }

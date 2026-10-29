@@ -115,7 +115,7 @@ export function createLive(ctx) {
           alert: D.alert ? { tier: 'detour', title: 'BOSS DETOUR!' } : undefined });
         addClip(`Boss detour: ${clean(m.boss, 40)}${m.user ? ' (sent by ' + clean(m.user, 40) + ')' : ''}`, 'detour', m.user);
         send('detour', { detour: { boss: clean(m.boss, 40), user: clean(m.user, 40), secs: +m.secs || 60, at: Date.now() } });
-      } else {
+      } else if (m.phase !== 'note') {
         const r = String(m.result || '');
         let bonus = '';
         if (r === 'won' || r === 'survived') {
