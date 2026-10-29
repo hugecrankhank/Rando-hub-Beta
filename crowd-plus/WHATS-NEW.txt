@@ -5,6 +5,14 @@ Crowd Control+ is Rando Hub's crowd control: the gift bridge with a
 control panel and stream overlays. Every gift effect, big-donation seed
 roll and the subathon clock work exactly as before.
 
+NEW IN 1.14.37
+--------------
+- Local signer: "Connected" now means LIVE messages are really arriving. If
+  the TikTok window says "No LIVE", the panel says so and the window
+  reloads itself every minute until your LIVE shows. Still "No LIVE" while
+  you're live? Log out of TikTok in that window (or log in with a second
+  account): TikTok can hide your own LIVE from the streaming account.
+
 NEW IN 1.14.27
 --------------
 - Treasure box / Super Fan box alerts: when a viewer sends one, the gift

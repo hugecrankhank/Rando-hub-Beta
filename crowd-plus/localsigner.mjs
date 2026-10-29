@@ -237,6 +237,7 @@ export function startLocalSigner(opts) {
   const fetches = new Map();      // "sid|rid" -> url
   let nextId = 1; const pending = new Map();
   const diag = { pages: 0, ws: new Set(), started: Date.now(), told: false, frames: 0, events: 0, toldFrames: false };
+  let pageSid = null, live = false, lastReload = 0, noLiveSaid = false;
   const isFeed = (u) => /\/webcast\/im\/|^wss?:\/\/im-ws[\w.-]*\.tiktok\.com\/|\/ws\/v\d/.test(String(u || ''));
   const feedHost = (u) => { try { const x = new URL(u); return x.host + x.pathname; } catch { return String(u || '').slice(0, 60); } };
   // Nothing after a minute with the page open: say what we did see, so the log
@@ -253,9 +254,33 @@ export function startLocalSigner(opts) {
     else log('local signer: the feed socket is open but nothing has arrived yet.');
   }, 10000);
 
+  // Nothing read for a while: look at what the page itself says. TikTok's page
+  // doesn't notice a LIVE that started after it was opened, and shows "No LIVE"
+  // (or "LIVE has ended") until it's reloaded: so reload it once a minute.
+  const pageT = setInterval(async () => {
+    if (stopped || !cdp || !pageSid) return;
+    if (live && Date.now() - lastFrame < 120000) return;
+    const r = await call('Runtime.evaluate', { expression: '(document.body && document.body.innerText || "").slice(0, 4000)', returnByValue: true }, pageSid);
+    const text = String(r && r.result && r.result.value || '');
+    const none = /\bNo LIVE\b|LIVE has ended|isn't LIVE|is not LIVE|not live right now/i.test(text);
+    if (none) {
+      if (live) { live = false; }
+      if (!noLiveSaid) {
+        noLiveSaid = true;
+        log(`local signer: TikTok's page says "No LIVE" for @${name || '?'}. If you are live: the page will reload every minute to pick it up. Still "No LIVE" while you're live? That window may be logged in as the streaming account itself (TikTok can hide your own LIVE from you there): log out in that window, or log in with another account. Or use TikFinity.`);
+      }
+      status('TikTok\u2019s page says No LIVE for @' + (name || '?') + ' (reloading every minute)', false);
+      if (Date.now() - lastReload > 60000) { lastReload = Date.now(); await call('Page.reload', {}, pageSid); }
+    } else if (noLiveSaid && !live) {
+      noLiveSaid = false; log('local signer: the page shows the LIVE now; waiting for its first message');
+      status('TikTok window open. Waiting for the LIVE…', false);
+    }
+  }, 20000);
+
   function emit(ev) {
     if (ev.id) { if (seen.has(ev.id)) return; seen.add(ev.id); seenQ.push(ev.id); if (seenQ.length > 4000) seen.delete(seenQ.shift()); }
     lastFrame = Date.now();
+    if (!live && ev.kind !== 'other') { live = true; noLiveSaid = false; log('local signer: reading the LIVE (first ' + ev.kind + ')'); status('Connected to TikTok LIVE (local signer)', true); }
     opts.onEvent && opts.onEvent(ev);
   }
   function call(method, params = {}, sessionId) {
@@ -284,13 +309,20 @@ export function startLocalSigner(opts) {
       case 'Target.attachedToTarget': {
         watch(p.sessionId);   // the page and its workers
         const ti = p.targetInfo || {};
-        if (ti.type === 'page') { diag.pages++; log(`local signer: watching the page (${(ti.url || '').slice(0, 60)})`); }
+        if (ti.type === 'page') { diag.pages++; pageSid = p.sessionId; log(`local signer: watching the page (${(ti.url || '').slice(0, 60)})`); }
         break;
       }
       case 'Network.webSocketCreated':
         // the live feed: wss://…/webcast/im/push/… (until Oct 2026), then
         // wss://im-ws.tiktok.com/ws/v2?… (same push frames, new address)
-        if (isFeed(p.url)) { sockets.set(sid + '|' + p.requestId, p.url); diag.frames = 0; diag.events = 0; log('local signer: TikTok live feed opened (' + feedHost(p.url) + ')'); status('Connected to TikTok LIVE (local signer)', true); }
+        if (isFeed(p.url)) {
+          sockets.set(sid + '|' + p.requestId, p.url); diag.frames = 0; diag.events = 0;
+          // The old address was only ever the LIVE's feed. The new one (im-ws) is TikTok's
+          // general message socket: the page opens it even when it says "No LIVE" (Gumby,
+          // Oct 2026), so "connected" waits for the first gift / like / chat read from it.
+          if (/\/webcast\/im\//.test(p.url)) { live = true; log('local signer: TikTok live feed opened (' + feedHost(p.url) + ')'); status('Connected to TikTok LIVE (local signer)', true); }
+          else { log('local signer: TikTok message socket opened (' + feedHost(p.url) + '), waiting for the first LIVE message'); if (!live) status('TikTok window open. Waiting for the LIVE…', false); }
+        }
         else {
           // Any other WebSocket the page opens, logged once each: if TikTok moves
           // its feed, this is how we find the new address.
@@ -309,7 +341,7 @@ export function startLocalSigner(opts) {
         break;
       }
       case 'Network.webSocketClosed':
-        if (sockets.delete(sid + '|' + p.requestId)) status('TikTok page reconnecting…', false);
+        if (sockets.delete(sid + '|' + p.requestId)) { live = false; status('TikTok page reconnecting…', false); }
         break;
       case 'Network.responseReceived':
         if (/\/webcast\/im\/fetch/.test((p.response || {}).url || '')) fetches.set(sid + '|' + p.requestId, p.response.url);
@@ -342,7 +374,8 @@ export function startLocalSigner(opts) {
       const a = await call('Target.attachToTarget', { targetId: page.targetId, flatten: true });
       // A LIVE page that was already open has its feed connected from before we were
       // watching, and Chrome only reports feeds opened after that. Reload it once.
-      if (a && a.sessionId && !page.fresh) { await watch(a.sessionId); await call('Page.reload', {}, a.sessionId); }
+      if (a && a.sessionId) pageSid = a.sessionId;
+      if (a && a.sessionId && !page.fresh) { await watch(a.sessionId); await call('Page.reload', {}, a.sessionId); lastReload = Date.now(); }
     }
     status('TikTok window open. Waiting for the LIVE…', false);
     return true;
@@ -375,7 +408,7 @@ export function startLocalSigner(opts) {
   if (!name && !opts.liveUrl) status('Type your TikTok name and click Connect', false);
   else go();
   return {
-    stop() { stopped = true; clearTimeout(retryT); clearInterval(diagT); if (cdp) cdp.close(); },
+    stop() { stopped = true; clearTimeout(retryT); clearInterval(diagT); clearInterval(pageT); if (cdp) cdp.close(); },
     open() { if (!cdp) go(); else call('Target.createTarget', { url: liveUrl }); },
     get url() { return liveUrl; },
     get lastFrame() { return lastFrame; },

@@ -5,6 +5,16 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.37 (2026-10-29)
+
+- **Crowd Control+ local signer: no more false "Connected".** TikTok's new message socket
+  (im-ws) opens even on a page that says "No LIVE", and 1.14.24 took it for the live feed, so
+  the panel said connected while nothing could arrive (Gumby). Now "Connected" waits for the
+  first gift / like / chat actually read. The signer also reads the page itself: when it says
+  "No LIVE" (or "LIVE has ended") the status says so and the page reloads once a minute, since
+  TikTok's page doesn't notice a LIVE that started after it was opened. The log adds the likely
+  cause when it stays "No LIVE" while live: that window logged in as the streaming account.
+
 ## Beta v1.14.36 (2026-10-29)
 
 - **Phones: Play ROM file and Training live under New seed.** On the game pages New seed ▾
