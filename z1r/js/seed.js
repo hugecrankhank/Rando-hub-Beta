@@ -120,6 +120,29 @@
       .replace(/^not produced: /, 'Not available yet: ');
   };
 
+  // Things ZORA lets through that surprised players (Kallax, Oct 2026): a start
+  // item ticked while "Limit on starting items" is "At most 0" (the item is
+  // silently dropped), and "Shuffle the overworld monsters" off while the enemy
+  // group shuffles are on (the screens' monsters still change).
+  const START_ITEMS = [].concat(Array.from({ length: 22 }, (_, i) => 'B' + (57 + i)), ['B85']);
+  const label = (id) => { const f = metadata && metadata.fields.find((x) => x.id === id); return f ? f.label : id; };
+  function startItemsOn(fields) { return START_ITEMS.filter((id) => fields[id] && +fields[id].value > 0); }
+  function limitCuts(fields, n) { const lim = fields.C17 ? +fields.C17.value : 0; return n > 0 && ((lim >= 1 && lim <= 21 && lim - 1 < n) || lim === 22); }
+  function gotchas(st) {
+    const out = [], F = st.fields || {};
+    const on = startItemsOn(F);
+    if (limitCuts(F, on.length)) {
+      const lim = +F.C17.value;
+      out.push(lim === 22 ? 'Limit on starting items is random (0 to 20): some of the ' + on.length + ' start items ticked may be left out.'
+        : 'Limit on starting items is "At most ' + (lim - 1) + '": only ' + (lim - 1) + ' of the ' + on.length + ' start items ticked (' + on.map((id) => label(id).replace(/^Start (with )?(the )?/i, '')).join(', ') + ') will be in the seed. Set it to "All chosen start items" (Starting Items tab).');
+    }
+    if (F.B31 && +F.B31.value === 0) {
+      const also = ['B42', 'B43'].filter((id) => F[id] && +F[id].value > 0);
+      if (also.length) out.push('Overworld monsters will still change: "' + also.map(label).join('" and "') + '" ' + (also.length > 1 ? 'are' : 'is') + ' on. Turn ' + (also.length > 1 ? 'those' : 'it') + ' off too for each screen\u2019s usual monsters.');
+    }
+    return out;
+  }
+
   async function loadFlags(flags, zoraFlags) {
     const { state } = await ask('state', { flags, zoraFlags });
     showState(state);
@@ -136,7 +159,10 @@
     const notes = [].concat(state.refusals || [], state.adjustments || []).map(plain);
     if (zoraState && !zoraState.ok) notes.push(plain(zoraState.error));
     if (zoraState && zoraState.conflicts && zoraState.conflicts.length) notes.push(...zoraState.conflicts.map(plain));
-    setFlagMsg(notes.join(' '), notes.length ? 'warn' : '');
+    if (state.blockedChange) notes.unshift('That change was not allowed and was undone: ' + plain(state.blockedChange));
+    if (state.autoNote) notes.unshift(state.autoNote);
+    notes.push(...gotchas(state));
+    setFlagMsg(notes.join(' '), state.blockedChange ? 'bad' : notes.length ? 'warn' : '');
     if ($('flag-editor').open) renderEditor();
     writeSaved();
     updateButton();
@@ -194,7 +220,12 @@
     const values = {};
     Object.entries(form.fields).forEach(([id, st]) => { values[id] = String(st.value); });
     $('flag-fields').querySelectorAll('select').forEach((s) => { values[s.dataset.id] = s.value; });
+    // a start item just ticked on under a limit that would drop it: lift the limit
+    let autoNote = '';
+    const wasOn = startItemsOn(form.fields).length, nowOn = START_ITEMS.filter((id) => +values[id] > 0).length;
+    if (nowOn > wasOn && values.C17 !== '0' && limitCuts({ C17: { value: values.C17 } }, nowOn)) { values.C17 = '0'; autoNote = 'Limit on starting items set to "All chosen start items" so the start item you ticked is in the seed.'; }
     const { state } = await ask('change', { previous: form.flags, values, zoraFlags: zoraState && zoraState.ok ? zoraState.flags : '' });
+    if (autoNote && state.ok && !state.blockedChange) state.autoNote = autoNote;
     showState(state);
   }
   async function onZoraChange() {

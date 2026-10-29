@@ -5,6 +5,17 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.29 (2026-10-28)
+
+- **Zelda 1 seeds: settings that didn't seem to apply (Kallax).** Two ZORA traps the New seed
+  dialog now catches. "Limit on starting items" defaults to "At most 0", so a start item ticked
+  on (Start Blue Candle, say) was silently left out of the seed: ticking a start item now lifts
+  the limit to "All chosen start items" and says so, and a pasted flag string with the trap
+  gets a warning naming the items that would be dropped. "Shuffle the overworld monsters" off
+  with "Shuffle Enemy Groups" / "Shuffle Overworld Group" still on still changes the screens'
+  monsters: the dialog says so and which to turn off. A change ZORA refuses (it was undone
+  without a word before) is now reported with ZORA's reason.
+
 ## Beta v1.14.28 (2026-10-28)
 
 - **Zelda 1 / Guardian Legend: sound is back.** 1.14.24's xBRZ default swallowed the
