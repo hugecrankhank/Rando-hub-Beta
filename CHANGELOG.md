@@ -5,6 +5,13 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.47 (2026-10-29)
+
+- **🎃 Halloween: bleeding hearts (HydeOut).** With Halloween decorations on, every few
+  seconds one of Link's hearts that isn't empty grows a drop of blood at its tip, which then
+  runs all the way to the bottom of the screen leaving a thin fading trail. Only full and half
+  hearts drip, so it follows Link's health.
+
 ## Beta v1.14.46 (2026-10-29)
 
 - **🎃 Halloween decorations for Zelda 3 (HydeOut's idea).** ⚙ Settings → "Halloween

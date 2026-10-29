@@ -170,7 +170,7 @@
     // a new room or area: build its decorations once its tiles are in (steady a few frames)
     if (key !== cacheKey) { cacheKey = key; deco = null; waitFrames = 12; }
     if (!deco) {
-      if (sub !== 0 || --waitFrames > 0) { g.clearRect(0, 0, W, H); return; }
+      if (sub !== 0 || --waitFrames > 0) { g.clearRect(0, 0, W, H); drips(g, r); return; }
       try {
         if (indoors) deco = dungeonDeco(r, r[0xA0] | r[0xA1] << 8);
         else { var rom = c.rom && c.rom(); deco = rom && rom.length > 0xE0000 ? overworldDeco(r, rom, r[0x8A]) : { webs: [], pumpkins: [], spiders: [], ghosts: [] }; }
@@ -199,6 +199,43 @@
       for (var i = 0; i < 3; i++) {
         var p = (frame * (0.35 + i * 0.12) + i * 97) % (W + 60) - 30, yb = 28 + i * 22 + Math.round(Math.sin((frame + i * 50) / 18) * 6);
         g.drawImage(((frame >> 3) + i) % 2 ? bat1 : bat2, Math.round(p), yb);
+      }
+    }
+    drips(g, r);
+  }
+
+  // Bleeding hearts (HydeOut): now and then a heart that isn't empty grows a drop
+  // of blood at its tip, which runs down to the bottom of the screen leaving a
+  // fading trail. The hearts sit at a fixed place in the HUD: ten to a row, 8 px
+  // apart, the first one's tip at (164, 30), a second row 8 px lower; how many
+  // aren't empty comes from Link's health ($7EF36D, 8 per heart).
+  var drops = [], nextDrip = 120;
+  function drips(g, r) {
+    var hp = r[0xF36D], filled = Math.min(20, Math.ceil(hp / 8));
+    if (--nextDrip <= 0) {
+      nextDrip = 150 + Math.floor(Math.random() * 300);   // every 2.5 to 7.5 s
+      if (filled > 0 && drops.length < 4) {
+        var i = Math.floor(Math.random() * filled);
+        drops.push({ x: 164 + (i % 10) * 8, y0: 30 + Math.floor(i / 10) * 8, t: 0, y: 0, v: 0 });
+      }
+    }
+    for (var k = drops.length - 1; k >= 0; k--) {
+      var d = drops[k];
+      d.t++;
+      if (d.t < 40) d.y = d.y0 + d.t / 20;                 // the drop swells at the tip
+      else { d.v = Math.min(3.2, d.v + 0.06); d.y += d.v; } // then runs down
+      var fade = d.y > H ? Math.max(0, 1 - (d.y - H) / 90) : 1;
+      if (fade <= 0) { drops.splice(k, 1); continue; }
+      // the trail: thin, darker, fading toward the top
+      var top = d.y0 + 1, bottom = Math.min(H, d.y - 1);
+      for (var y = top; y < bottom; y += 2) {
+        g.fillStyle = 'rgba(130,0,10,' + (0.7 * fade * Math.min(1, (y - top + 8) / (bottom - top + 8))).toFixed(3) + ')';
+        g.fillRect(d.x, y, 1, 2);
+      }
+      if (d.y < H + 2) {
+        var yy = Math.round(d.y);
+        g.fillStyle = '#b0000c'; g.fillRect(d.x - 1, yy - 1, 3, 3); g.fillRect(d.x, yy + 2, 1, 1);
+        g.fillStyle = '#ff5a5a'; g.fillRect(d.x - 1, yy - 1, 1, 1);
       }
     }
   }
