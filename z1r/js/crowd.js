@@ -124,6 +124,72 @@
     r[A.OBJ_Y + slot] = r[A.OBJ_Y]; r[A.OBJ_X + slot] = 0; r[A.OBJ_TYPE + slot] = 0x2E;
   }
 
+  // ── a boss, right here (any screen, the overworld included) ───────────────
+  // The game draws a boss from a 64-tile "boss" pattern block it loads into
+  // the PPU at $0C00 only on entering its level (bank 3, TransferLevelPatternBlocks:
+  // block 1257 for Aquamentus / Dodongo / Digdogger / Moldorm, 3468 for
+  // Manhandla / Gleeok / Gohma, 9 for Patra). The emulator core exposes that
+  // tile memory (core.chr), so the block is copied in from the ROM, the
+  // screen's monsters are cleared (bosses with several parts use the next
+  // slots, as in their rooms), and the boss is placed in slot 1 the way the
+  // game places a room's monsters: type, "not initialized yet", spawn cloud.
+  // The game's own init routine does the rest (HP, roar, heads, ring).
+  // When the boss is gone the tiles go back, so the screen's own monsters
+  // draw right again. Object types: aldonunez's disassembly, InitObject_JumpTable.
+  var BOSS_BLOCKS = { b1257: 57307, b3468: 58331, b9: 59355 };   // bank 3 pattern blocks (headerless ROM offsets; bins.xml)
+  var BOSSES = {
+    boss_aquamentus: { name: 'Boss: Aquamentus', type: 0x3D, block: 'b1257' },
+    boss_dodongo:    { name: 'Boss: Dodongo',    type: 0x31, block: 'b1257' },
+    boss_manhandla:  { name: 'Boss: Manhandla',  type: 0x3C, block: 'b3468' },
+    boss_gleeok:     { name: 'Boss: Gleeok',     type: [0x43, 0x44, 0x45], block: 'b3468' },   // 2, 3 or 4 heads
+    boss_digdogger:  { name: 'Boss: Digdogger',  type: [0x38, 0x39], block: 'b1257' },         // splits in 1 or 3
+    boss_gohma:      { name: 'Boss: Gohma',      type: [0x33, 0x34], block: 'b3468' },         // blue or red
+    boss_patra:      { name: 'Boss: Patra',      type: [0x47, 0x48], block: 'b9' },
+    boss_moldorm:    { name: 'Boss: Moldorm',    type: 0x41, block: 'b1257' },
+  };
+  var O = { TYPE: 0x34F, UNINIT: 0x492, META: 0x405, STATE: 0xAC, DIR: 0x98, STUN: 0x3D, SHOVE_DIR: 0xC0, SHOVE_DIST: 0xD3,
+    ANIM: 0x3D0, QSPEED: 0x3BC, TIMER: 0x28, INVINC: 0x4F0, HP: 0x485 };
+  var crowdBoss = null;   // { type, name, saved: Uint8Array(1024) of the tiles replaced, block }
+  function bossTiles(c) {
+    var rom; try { rom = c.rom(); } catch (e) { return null; }
+    if (!rom || rom.length < 0x20000) return null;
+    var hdr = rom.length % 1024 === 16 ? 16 : 0;
+    return function (block) { var o = hdr + BOSS_BLOCKS[block]; return rom.subarray(o, o + 1024); };
+  }
+  function spawnBoss(r, id) {
+    var B = BOSSES[id], c = core();
+    if (!c || !c.chr) return 'this emulator can\u2019t reach the tile memory';
+    if (r[A.MODE] !== PLAY) return 'Link isn\u2019t out in the open';
+    if (crowdBoss && r[O.TYPE + 1] === crowdBoss.type) return 'one boss at a time: ' + crowdBoss.name + ' is still here';
+    var tiles = bossTiles(c), page = c.chr(0xC00);
+    if (!tiles || !page) return 'couldn\u2019t read the boss\u2019s picture from this ROM';
+    var type = Array.isArray(B.type) ? B.type[Math.floor(Math.random() * B.type.length)] : B.type;
+    var saved = page.slice(0);
+    page.set(tiles(B.block));
+    for (var i = 1; i < 12; i++) {   // every monster slot, cleared as the game does when it places a room's monsters
+      r[O.TYPE + i] = 0; r[O.META + i] = 0; r[O.UNINIT + i] = 0; r[O.STATE + i] = 0; r[O.DIR + i] = 0; r[O.STUN + i] = 0;
+      r[O.SHOVE_DIR + i] = 0; r[O.SHOVE_DIST + i] = 0; r[O.ANIM + i] = 1; r[O.QSPEED + i] = 0x20; r[O.TIMER + i] = 0; r[O.INVINC + i] = 0;
+    }
+    r[O.TYPE + 1] = type; r[O.UNINIT + 1] = 0xFF; r[O.META + 1] = 1;   // slot 1, in a spawn cloud; the game inits it next frame
+    r[A.OBJ_X + 1] = 0x78; r[A.OBJ_Y + 1] = 0x80;                        // the middle of the screen
+    crowdBoss = { type: type, name: B.name.replace(/^Boss: /, ''), saved: saved, block: B.block, started: Date.now(), tiles: tiles(B.block) };
+    return true;
+  }
+  // The boss is gone (killed, or Link left the screen and the game cleared
+  // the slot): the screen's tiles come back, if the game hasn't already
+  // loaded others (a level entered meanwhile).
+  function bossFrame(r) {
+    var cb = crowdBoss; if (!cb) return;
+    if (r[O.TYPE + 1] === cb.type && r[A.MODE] !== 0) return;
+    var c = core(), page = c && c.chr && c.chr(0xC00);
+    if (page) {
+      var same = true;
+      for (var i = 0; i < 1024; i += 37) if (page[i] !== cb.tiles[i]) { same = false; break; }
+      if (same) page.set(cb.saved);
+    }
+    crowdBoss = null;
+  }
+
   // ── the effects ─────────────────────────────────────────────────────────
   // Instant effects run once (apply; a string back means "couldn't", shown
   // in the feed). Timed ones last `secs` seconds of play and can only filter
@@ -219,7 +285,14 @@
       app: function (job) { return startReroll(job, 'preset'); } },
     seed_chaos:  { name: 'CHAOS seed', good: false,
       app: function (job) { return startReroll(job, 'chaos'); } },
+
+    // ── bosses, anywhere ──
+    boss_random: { name: 'Boss: random', good: false,
+      apply: function (r) { var ids = Object.keys(BOSSES); return spawnBoss(r, ids[Math.floor(Math.random() * ids.length)]); } },
   };
+  Object.keys(BOSSES).forEach(function (id) {
+    EFFECTS[id] = { name: BOSSES[id].name, good: false, apply: function (r) { return spawnBoss(r, id); } };
+  });
 
   // ── new seed (off unless allowed; 10 s countdown, cancel in the menu) ────
   // same: the flags last used; preset: a random Zelda 1 preset; chaos: a
@@ -297,6 +370,7 @@
   function onFrameInner(c) {
     var ram = c.wram();
     sendRun(ram);
+    if (crowdBoss) { try { bossFrame(ram); } catch (e) { console.warn('[crowd] boss', e); } }
     var playing = inPlay(ram);
     if (queue.length && !playing) {
       if (++waitT === 240) feed(queue.length + ' waiting: Link isn\'t in normal play', 'info');
@@ -329,7 +403,7 @@
     }
     gap = GAP_FRAMES;
     var who = job.user && job.user !== 'test' ? job.user : '';
-    feed((who ? who + ': ' : '') + fe.name + (secs ? ' (' + secs + 's)' : ''), fe.good ? 'good' : 'bad');
+    feed((who ? who + ': ' : '') + fe.name + (secs ? ' (' + secs + 's)' : '') + (/^boss_/.test(job.id) && crowdBoss ? ': ' + crowdBoss.name : ''), fe.good ? 'good' : 'bad');
     if (who) giftCard(who, job.label, fe.name, fe.good);
     send({ type: 'applied', effect: job.id, user: job.user });
     render();

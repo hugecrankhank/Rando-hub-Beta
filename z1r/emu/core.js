@@ -99,6 +99,8 @@
       return p && n ? new Uint8Array(this.x.memory.buffer, p, n) : new Uint8Array(0);
     },
     wram() { return this.mem(2); },          // RETRO_MEMORY_SYSTEM_RAM: $0000-$07FF
+    // the PPU's pattern memory (CHR-RAM in Zelda 1), the 1 KB page holding PPU address a; writing changes the tiles drawn
+    chr(a) { const p = this.x.z_chr ? this.x.z_chr(a) : 0; return p ? new Uint8Array(this.x.memory.buffer, p, 0x400) : null; },
     sram() { return this.mem(0); },          // RETRO_MEMORY_SAVE_RAM: battery-backed $6000-$7FFF
     rom() { return this._rom ? new Uint8Array(this.x.memory.buffer, this._rom.p, this._rom.n) : new Uint8Array(0); },
     saveState() {

@@ -165,6 +165,17 @@ Effect ids match the ALTTP ones where the effect means the same thing:
 | `seed_roll` | New seed with the flags last used (off until **Allow seed reroll** is ticked; 10 s countdown) |
 | `seed_preset` | New seed with a random preset (same switch and countdown) |
 | `seed_chaos` | CHAOS seed: a random preset too, since Zelda 1 has no chaos generator (in Rando Hub it can land on Zelda 3's CHAOS seed) |
+| `boss_random` | **A boss appears on the screen Link is on, overworld included** (in Zelda 3 this id is the random boss detour, so one mapping serves both) |
+| `boss_aquamentus`, `boss_dodongo`, `boss_manhandla`, `boss_gleeok`, `boss_digdogger`, `boss_gohma`, `boss_patra`, `boss_moldorm` | That boss, here and now. Gleeok with 2–4 heads, Digdogger splitting into 1 or 3, Gohma blue or red, Patra either kind, at random |
+
+**Bosses anywhere**: the game only loads a boss's picture (a 64-tile pattern block in
+bank 3) on entering its level, so the effect copies that block into the PPU's tile
+memory itself (the emulator core exposes it: `core.chr`), clears the screen's monsters
+(bosses with several parts use the next slots, as in their rooms) and places the boss
+in slot 1 the way the game places a room's monsters, in a spawn cloud; the game's own
+init routine does the rest (HP, the roar, heads, Patra's ring). The screen's own tiles
+go back when the boss is gone. One crowd boss at a time; the feed says so otherwise.
+Killing it counts for nothing (no item, no door), it's just a fight. Not in caves.
 
 ALTTP-only effects (magic, arrows, bottles, Pink Link, extra enemies, warps,
 boss detours, ice / cucco storm, sprites, MSU) have no Zelda 1 version; a gift

@@ -324,6 +324,8 @@ const effectNames = {
   blood_drip: 'Blood drip', spider_web: 'Spiderwebs', monster_mash: 'Monster mash (enemies → bats / mummies)',
   follower_random: 'Random follower (stays)', reveal_item: 'Reveal a go-mode item', lights_on: 'Lights on!', lights_out: 'Lights out!', spooky_monster: 'Spooky monster', haunting: 'Haunting! (3 spooky monsters)', trick_or_treat: 'Trick or treat!', spooky_sprite: 'Spooky sprite',
   boss_ganon: 'Boss detour: Ganon', boss_aga: 'Boss detour: Agahnim', boss_random: 'Boss detour: random boss', detour_rescue: 'Rescue Link from a boss detour',
+  // Zelda 1 (z1r/js/crowd.js): a boss appears on the current screen, overworld included; boss_random there too
+  boss_aquamentus: 'Boss: Aquamentus', boss_dodongo: 'Boss: Dodongo', boss_manhandla: 'Boss: Manhandla', boss_gleeok: 'Boss: Gleeok', boss_digdogger: 'Boss: Digdogger', boss_gohma: 'Boss: Gohma', boss_patra: 'Boss: Patra', boss_moldorm: 'Boss: Moldorm',
 };
 // Effects that can hurt a run for good: the panel asks before one goes on a gift.
 const effectWarnings = {

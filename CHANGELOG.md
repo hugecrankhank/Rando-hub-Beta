@@ -5,6 +5,20 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.23 (2026-10-28)
+
+- **Zelda 1 crowd effects: bosses anywhere.** `boss_random`, or one of
+  `boss_aquamentus`, `boss_dodongo`, `boss_manhandla`, `boss_gleeok` (2–4 heads),
+  `boss_digdogger`, `boss_gohma`, `boss_patra`, `boss_moldorm`: the boss appears in a
+  spawn cloud on the screen Link is on, the overworld included, and fights as it does in
+  its room until killed or Link leaves the screen. The boss's tiles are copied into the
+  emulator's tile memory (the NES core now exposes it) and the screen's own tiles come
+  back afterwards. One crowd boss at a time. Every one has a test button in ⋯ → Crowd
+  effects. `boss_random` is the random boss detour in Zelda 3, so one gift mapping covers
+  both games.
+- The Zelda 1 / FF1 NES core was rebuilt (same FCEUmm commit) with that tile-memory
+  access; Guardian Legend keeps its own copy.
+
 ## Beta v1.14.22 (2026-10-28)
 
 - **Crowd Control+: switching away from Direct really stops it.** Direct starts

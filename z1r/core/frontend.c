@@ -151,6 +151,15 @@ EXPORT(z_fps) double z_fps(void) { return av.timing.fps; }
 
 /* RETRO_MEMORY_SAVE_RAM = 0 (battery save), RETRO_MEMORY_SYSTEM_RAM = 2. */
 EXPORT(z_mem) void *z_mem(unsigned id) { return loaded ? retro_get_memory_data(id) : NULL; }
+/* The pattern (CHR) memory the PPU reads tiles from, 1 KB page by page: for
+   a CHR-RAM game (Zelda 1) this is the live tile memory, so writing to it
+   changes what's drawn. Returns the page holding PPU address a (0..0x1FFF),
+   or NULL. (cart.c VPage[]: pointer offset so that VPage[i] + a is the byte.) */
+extern uint8_t *VPage[8];
+EXPORT(z_chr) void *z_chr(unsigned a) {
+   if (!loaded || a >= 0x2000) return NULL;
+   return VPage[a >> 10] + (a & ~0x3FFu);
+}
 EXPORT(z_mem_size) size_t z_mem_size(unsigned id) { return loaded ? retro_get_memory_size(id) : 0; }
 
 EXPORT(z_state_size) size_t z_state_size(void) { return loaded ? retro_serialize_size() : 0; }

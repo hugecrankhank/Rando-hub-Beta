@@ -128,6 +128,11 @@ wins), so the run carries on exactly where it was. Length = `durations.boss_deto
 | `boss_aga` | Agahnim's first fight (Castle Tower top) |
 | `boss_random` | A random boss not beaten yet in this run: Ganon, either Agahnim, or any dungeon boss |
 
+**Zelda 1**: `boss_random` and `boss_aquamentus` / `boss_dodongo` / `boss_manhandla` /
+`boss_gleeok` / `boss_digdogger` / `boss_gohma` / `boss_patra` / `boss_moldorm` put that
+boss on the screen Link is on, overworld included, for keeps (until it's killed or
+Link leaves the screen). One at a time. See z1r/README.md.
+
 **App rolls** (use the app's own buttons):
 
 | id | effect |
