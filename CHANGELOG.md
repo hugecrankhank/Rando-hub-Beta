@@ -5,6 +5,13 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.43 (2026-10-29)
+
+- **The mouse pointer hides itself over the game.** Two seconds without moving while it's over
+  the emulator and it disappears, so it doesn't sit on the stream; any movement brings it back.
+  Not while the emulator menu is open or over its buttons. Hub (Zelda 3) and every game page,
+  web and Windows app.
+
 ## Beta v1.14.42 (2026-10-29)
 
 - **Zelda 1: Save & quit works on iPhone.** ☠️P2 (and 💾) held Up + A on controller 2 for the

@@ -24,6 +24,7 @@
   "offline.js",
   "web-update.js",
   "game-header.js",
+  "cursor-hide.js",
   "go-mode.js",
   "dungeon-card.js",
   "phone.js",
