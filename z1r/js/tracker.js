@@ -503,6 +503,32 @@
         itemsUnderMap = false; dirty = true; setTimeout(render, 0);
       }
     }
+    // Side panel (tablets, computers): sized from the width, it could end up a bit
+    // taller than the screen (an iPad in landscape, whose header takes two rows)
+    // and need scrolling. Shrink the boxes, then the map, until it all fits.
+    if (!compact) {
+      for (let i = 0; i < 4; i++) {
+        let over = el.root.scrollHeight - el.root.clientHeight;
+        if (over <= 0) break;
+        if (!el.itemsPanel.hidden) {
+          const cur = parseFloat(el.itemsPanel.style.getPropertyValue('--cell')) || 46;
+          const next = Math.max(30, cur - Math.ceil(over / 5.7));
+          if (next < cur) {
+            el.itemsPanel.style.setProperty('--cell', next + 'px'); el.itemsPanel.style.setProperty('--item', next + 'px');
+            continue;
+          }
+        }
+        if (!el.ow.hidden) {
+          const h = el.map.clientHeight - over;
+          const w = Math.floor(h * 256 / (11 * 8) / 16) * 16;
+          if (w >= 256 && w < el.map.clientWidth) {
+            el.map.style.width = w + 'px'; el.map.style.height = Math.round(w * 11 * 8 / 256) + 'px'; mv.sized = true;
+            continue;
+          }
+        }
+        break;
+      }
+    }
   }
 
   // ── the map view ─────────────────────────────────────────────────────────

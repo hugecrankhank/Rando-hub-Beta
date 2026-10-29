@@ -5,6 +5,13 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.44 (2026-10-29)
+
+- **Zelda 1: the tracker fits an iPad in landscape without scrolling.** Its boxes and map were
+  sized from the panel's width only; on an iPad (1024 or 1080 wide) the header takes two rows
+  and the panel came out a little taller than the screen. The boxes, then the map, now shrink
+  until everything fits the panel's height. Bigger screens are unchanged.
+
 ## Beta v1.14.43 (2026-10-29)
 
 - **The mouse pointer hides itself over the game.** Two seconds without moving while it's over
