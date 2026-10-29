@@ -5,6 +5,12 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.35 (2026-10-29)
+
+- **Phones: the controller dot is back on the game pages.** Zelda 1, GLR, the FF games and FF6
+  hid it on phones; now both dots show, as on the hub: controller (gray until one is
+  connected) and tracker / game (green when linked).
+
 ## Beta v1.14.34 (2026-10-29)
 
 - **Phones: the game pages' header fits upright.** "Play ROM file" (and Zelda 1's 🎯 Training)

@@ -180,7 +180,7 @@
     .brand-text { display: none; }
     .btn { padding: 4px 8px; font-size: 14px; min-height: 30px; }
     .pill span { display: none; }
-    #pad-status { display: none; }
+    #pad-status { gap: 0; } /* the dot only: controller connected or not */
     #placeholder h2 { font-size: 22px; }
     #placeholder p { font-size: 13.5px; }
     .mark { width: 40px; height: 40px; }

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="version" content="1.14.34">
+<meta name="version" content="1.14.35">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <title>Zelda 1 Randomizer</title>
 <meta name="description" content="Roll Zelda 1 randomizer seeds, play them, and track your progress in one page.">
@@ -352,7 +352,7 @@ html { touch-action: manipulation; -webkit-text-size-adjust: 100%; }
     .brand-text { display: none; }
     .btn { padding: 5px 9px; font-size: 14px; min-height: 32px; white-space: nowrap; }
     .pill span { display: none; }
-    #pad-status { display: none; }
+    #pad-status { gap: 0; } /* the dot only: controller connected or not */
   }
   @media (prefers-reduced-motion: reduce) {
     .room.here::after, .msg.busy::before, .ow-link { animation: none; }
