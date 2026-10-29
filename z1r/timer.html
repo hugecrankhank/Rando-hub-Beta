@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Z1R Timer</title>
+<style>
+  /* The Zelda 1 run timer on its own, for OBS / TikTok LIVE Studio to capture
+     (window capture, or a Browser source with this address). It follows the
+     timer in the Zelda 1 page (js/timer.js, localStorage z1r-timer).
+     ?bg=0 transparent background, ?color=ffd166 another colour. */
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+  body { display: flex; align-items: center; justify-content: center; }
+  #t { font: 700 min(26vw, 80vh)/1 ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; color: #fff;
+    font-variant-numeric: tabular-nums; letter-spacing: .02em; white-space: nowrap; text-shadow: 0 2px 4px rgba(0,0,0,.6); }
+  #t small { font-size: .55em; color: inherit; opacity: .8; }
+  #t.run { color: #7bff8e; } #t.done { color: #ffd166; }
+</style>
+</head>
+<body>
+<div id="t">0:00:00<small>.0</small></div>
+<script>
+(function () {
+  var q = new URLSearchParams(location.search);
+  if (q.get('bg') === '0') { document.documentElement.style.background = 'transparent'; document.body.style.background = 'transparent'; }
+  var el = document.getElementById('t');
+  if (q.get('color')) el.style.color = '#' + q.get('color').replace(/[^0-9a-f]/gi, '');
+  function state() { try { return JSON.parse(localStorage.getItem('z1r-timer') || 'null') || {}; } catch (e) { return {}; } }
+  function tick() {
+    var s = state(), t = Math.max(0, (+s.acc || 0) + (s.start ? Date.now() - s.start : 0));
+    var h = Math.floor(t / 3600000), m = Math.floor(t / 60000) % 60, sec = Math.floor(t / 1000) % 60;
+    el.innerHTML = h + ':' + (m < 10 ? '0' : '') + m + ':' + (sec < 10 ? '0' : '') + sec + '<small>.' + Math.floor(t / 100) % 10 + '</small>';
+    if (!q.get('color')) { el.classList.toggle('run', !!s.start); el.classList.toggle('done', !!s.done); }
+  }
+  setInterval(tick, 50); tick();
+})();
+</script>
+</body>
+</html>

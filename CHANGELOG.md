@@ -5,6 +5,17 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.45 (2026-10-29)
+
+- **Zelda 1: run timer (HydeOut).** ⏱ in the header: starts on its own when a file is started
+  and stops when Zelda is saved (Auto, on by default; it only starts from 0:00, so continues and
+  save states never restart it). Tap it for Start / Pause, Reset and ⧉ Pop out for stream: a
+  window with just the timer (`z1r/timer.html`, `?bg=0` for a see-through background) for OBS
+  or TikTok LIVE Studio to capture. Keeps counting through a reload. On phones it's in the
+  New seed ▾ menu.
+- **Zelda 1: ☠️P2 Save & quit works in caves** (the wooden sword cave included) and
+  underground passages, not just out in the world and in dungeons.
+
 ## Beta v1.14.44 (2026-10-29)
 
 - **Zelda 1: the tracker fits an iPad in landscape without scrolling.** Its boxes and map were

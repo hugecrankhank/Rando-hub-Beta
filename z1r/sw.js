@@ -17,7 +17,7 @@ const EXTERNAL = [
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll([
     './', './index.html', './manifest.webmanifest', './js/icons.js', './js/store.js', './js/nes-bridge.js', './js/owmap.js',
-    './js/tracker.js', './js/seed.js', './js/diag.js', './js/app.js', './js/crowd.js', './js/training.js', './js/die.js', './training/routes.json',
+    './js/tracker.js', './js/seed.js', './js/diag.js', './js/app.js', './js/crowd.js', './js/training.js', './js/die.js', './js/timer.js', './timer.html', './training/routes.json',
     './emu/core.js', './emu/palettes.js', './emu/xbrz.js', './emu/xbrz.wasm', './emu/video.js', './emu/audio.js', './emu/audio-worklet.js', './emu/input.js', './emu/player.js',
     './emu/fceumm.wasm', './emu/shaders/stock.glsl', './emu/shaders/6xbrz.glsl',
   ])).catch(() => {}));

@@ -42,7 +42,9 @@
   // game's own code takes it from there either way (it redraws the whole screen).
   function quitNow() {
     var r = ram();
-    if (!canDie(r) || r[MODE] !== 0x05) { alert('Save & quit works while Link is out in the world or in a dungeon (not in a cave, a menu or mid-screen-change).'); return false; }
+    // out in the world or a dungeon (5), an underground passage (9) or a cave (B: the
+    // wooden sword cave too, HydeOut). Not mid screen-change, stairs or a menu.
+    if (!canDie(r) || [0x05, 0x09, 0x0B].indexOf(r[MODE]) < 0) { alert('Save & quit works while Link is in the world, a dungeon or a cave (not mid screen-change or on the stairs).'); return false; }
     r[UPDATING] = 0; r[SUBMODE] = 0;     // EndGameMode
     r[MENU] = 0;                          // the item screen
     r[0x619] = 0;                         // SongEnvelopeSelector
@@ -75,7 +77,7 @@
     btn2 = document.createElement('button');
     btn2.type = 'button'; btn2.id = 'z1-p2'; btn2.className = 'btn';
     btn2.innerHTML = '☠️<small style="font-size:11px;margin-left:2px">P2</small>';
-    btn2.title = 'Save & quit in one tap: opens the item screen and presses Up + A on controller 2 (Continue / Save / Retry, no death)';
+    btn2.title = 'Save & quit in one tap (the original\u2019s Up + A on controller 2): Continue / Save / Retry, no death. In the world, dungeons and caves.';
     btn2.setAttribute('aria-label', 'Save and quit (controller 2)');
     btn2.style.cssText = 'font-size: 18px; padding-left: 7px; padding-right: 7px; white-space: nowrap;';
     btn2.hidden = true;
