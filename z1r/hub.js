@@ -111,10 +111,10 @@
       newSeed.parentNode.insertBefore(pt, newSeed);
       if (R) R.applyShown(newSeed.parentNode);
       // phones: one "Games ▾" menu instead of the row of links, so New seed stays on screen
-      if (R) newSeed.parentNode.insertBefore(R.gamesMenu('z1r/', ['hub-back', 'hub-glr', 'hub-ff', 'hub-patched']), newSeed);
+      if (R) newSeed.parentNode.insertBefore(R.gamesMenu('z1r/', ['hub-back', 'hub-glr', 'hub-ff', 'hub-patched'], [{ id: 'z1t-btn', label: '🎯 Training' }]), newSeed);
       var rr = document.createElement('button');
       rr.className = 'btn'; rr.id = 'hub-reroll'; rr.type = 'button';
-      rr.textContent = '🎲 Reroll';
+      rr.innerHTML = '🎲<span class="hub-short"> Reroll</span>';
       rr.title = 'A new seed with the flags you used last' + (either() ? ' (or a ' + R.others('z1').join(' / ') + ' seed: ticked in the hub’s Game row)' : '');
       rr.addEventListener('click', function () {
         var playing = document.body.classList.contains('playing');

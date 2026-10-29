@@ -50,7 +50,7 @@
       // 🎲 Reroll: a new seed with the flags you used last, or another game if the
       // hub's "Rerolls can land on" says so
       var rr = document.createElement('button');
-      rr.className = 'btn'; rr.id = 'hub-reroll'; rr.type = 'button'; rr.textContent = '🎲 Reroll';
+      rr.className = 'btn'; rr.id = 'hub-reroll'; rr.type = 'button'; rr.innerHTML = '🎲<span class="hub-short"> Reroll</span>';
       rr.title = 'A new seed with the flags you used last' + (R && R.others('glr').length ? ' (or a ' + R.others('glr').join(' / ') + ' seed: ticked in the hub’s Game row)' : '');
       rr.style.whiteSpace = 'nowrap';
       rr.addEventListener('click', function () {

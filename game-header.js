@@ -26,7 +26,10 @@
     btn.addEventListener('click', function () { var p = player(); if (p) p.openMenu(); });
     var st = document.createElement('style');
     st.textContent = '#game-settings { white-space: nowrap; }' +
-      '@media (max-width: 900px) and (orientation: portrait), (orientation: landscape) and (max-height: 560px) { #game-settings .gs-text { display: none; } }';
+      '@media (max-width: 900px) and (orientation: portrait), (orientation: landscape) and (max-height: 560px) { #game-settings .gs-text { display: none; } }' +
+      // narrow phones upright: tighter buttons so the whole row fits (Hank's iPhone, Oct 2026)
+      '@media (max-width: 440px) { header { gap: 5px !important; padding-left: max(6px, env(safe-area-inset-left)) !important; padding-right: max(6px, env(safe-area-inset-right)) !important; }' +
+      ' header .btn { padding-left: 7px !important; padding-right: 7px !important; } #hub-games { max-width: 92px !important; } }';
     document.head.appendChild(st);
     var anchor = $('pad-status') || $('link-status');
     if (anchor && anchor.parentNode === header) header.insertBefore(btn, anchor); else header.appendChild(btn);

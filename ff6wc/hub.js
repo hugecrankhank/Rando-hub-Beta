@@ -49,7 +49,7 @@
       if (R) R.applyShown(newSeed.parentNode);
       if (R) newSeed.parentNode.insertBefore(R.gamesMenu('ff6wc/', ['hub-back', 'hub-z1', 'hub-glr', 'hub-ff', 'hub-patched']), newSeed);
       var rr = document.createElement('button');
-      rr.className = 'btn'; rr.id = 'hub-reroll'; rr.type = 'button'; rr.textContent = '🎲 Reroll';
+      rr.className = 'btn'; rr.id = 'hub-reroll'; rr.type = 'button'; rr.innerHTML = '🎲<span class="hub-short"> Reroll</span>';
       rr.title = 'A new seed with the flags you used last' + (R && R.others('ff6').length ? ' (or a ' + R.others('ff6').join(' / ') + ' seed: ticked in the hub’s Game row)' : '');
       rr.addEventListener('click', function () {
         if (document.body.classList.contains('playing') && !confirm('Reroll: start a new seed?\n\nThe current game will be closed (its saves stay).')) return;

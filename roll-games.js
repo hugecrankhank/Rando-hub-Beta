@@ -89,16 +89,33 @@
   // Returns a <select> that goes to any other game; the page shows it instead of
   // its row of link buttons when the header is too narrow for them (the ids
   // given are hidden then).
-  function gamesMenu(currentUrl, linkIds) {
+  // Phones (and short landscape screens): one "Games ▾" menu in place of the
+  // row of game links, so New seed stays on screen. It also holds the page's
+  // own header extras that don't fit there: "Play ROM file" (any page with a
+  // #rom-input) and `extras` ([{id, label}]: a header button clicked from the
+  // menu, hidden from the header on phones).
+  function gamesMenu(currentUrl, linkIds, extras) {
     var sel = document.createElement('select');
-    sel.className = 'btn'; sel.id = 'hub-games'; sel.setAttribute('aria-label', 'Other games');
+    sel.className = 'btn'; sel.id = 'hub-games'; sel.setAttribute('aria-label', 'Other games and more');
     sel.style.cssText = '-webkit-appearance: none; appearance: none; padding-right: 10px; display: none; max-width: 104px; text-overflow: ellipsis;';
     var s = shown();
-    sel.innerHTML = '<option value="">Games ▾</option>' + ALL.filter(function (x) { return x[0] !== currentUrl && s[x[2]]; })
-      .map(function (x) { return '<option value="' + base + x[0] + '">' + x[1] + '</option>'; }).join('');
-    sel.addEventListener('change', function () { if (sel.value) location.href = sel.value; });
+    var acts = [];
+    if (document.getElementById('rom-input')) acts.push({ id: 'rom-input', label: 'Play ROM file…', hide: 'header label[for="rom-input"]' });
+    (extras || []).forEach(function (x) { acts.push({ id: x.id, label: x.label, hide: '#' + x.id }); });
+    sel.innerHTML = '<option value="">Games ▾</option>' +
+      (acts.length ? '<optgroup label="This game">' + acts.map(function (a, i) { return '<option value="act:' + i + '">' + a.label + '</option>'; }).join('') + '</optgroup><optgroup label="Other games">' : '') +
+      ALL.filter(function (x) { return x[0] !== currentUrl && s[x[2]]; })
+        .map(function (x) { return '<option value="' + base + x[0] + '">' + x[1] + '</option>'; }).join('') +
+      (acts.length ? '</optgroup>' : '');
+    sel.addEventListener('change', function () {
+      var v = sel.value; sel.value = '';
+      if (!v) return;
+      if (v.indexOf('act:') === 0) { var a = acts[+v.slice(4)], el = a && document.getElementById(a.id); if (el) el.click(); return; }
+      location.href = v;
+    });
     var css = document.createElement('style');
-    css.textContent = '@media (max-width: 760px), (max-height: 560px) { ' + linkIds.map(function (i) { return '#' + i; }).join(', ') + ' { display: none !important; } #hub-games { display: inline-flex !important; } }';
+    var hide = linkIds.map(function (i) { return '#' + i; }).concat(acts.map(function (a) { return a.hide; }));
+    css.textContent = '@media (max-width: 760px), (max-height: 560px) { ' + hide.join(', ') + ' { display: none !important; } #hub-games { display: inline-flex !important; } .hub-short { display: none; } }';
     document.head.appendChild(css);
     return sel;
   }

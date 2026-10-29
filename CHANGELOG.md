@@ -5,6 +5,13 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.34 (2026-10-29)
+
+- **Phones: the game pages' header fits upright.** "Play ROM file" (and Zelda 1's 🎯 Training)
+  moved into the Games ▾ menu on phones, under "This game"; 🎲 Reroll shows just the dice; and
+  narrow screens get slightly tighter buttons. On an upright iPhone the ☠️, ⚙ and status were
+  pushed off the edge before.
+
 ## Beta v1.14.33 (2026-10-29)
 
 - **Check for updates on every game page.** Zelda 1, The Guardian Legend, FF1 / FF4 / FF5,
