@@ -5,6 +5,16 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.46 (2026-10-29)
+
+- **🎃 Halloween decorations for Zelda 3 (HydeOut's idea).** ⚙ Settings → "Halloween
+  decorations": jack-o'-lanterns on open ground and along dungeon walls, cobwebs in the corners
+  of dungeon rooms, spiders bobbing on threads, now and then a ghost drifting around a big
+  room, and bats flitting overhead outside. They're drawn over the game, SNES pixel for pixel,
+  and move with the camera, so they sit in the world as Link walks and the screen scrolls. The
+  spots come from the game's own tile types (floor, walls, grass) for each room and area, the
+  same every visit. Nothing in the game itself changes. Off by default.
+
 ## Beta v1.14.45 (2026-10-29)
 
 - **Zelda 1: run timer (HydeOut).** ⏱ in the header: starts on its own when a file is started
