@@ -162,6 +162,10 @@
   //   menu {html(rerender), click(button, rerender), input(el)}  a section in the menu
   var hooks = { input: null, frame: null, menu: null };
   var speedMul = 1, audioAcc = 0;   // crowd speed effects: 1.5 = faster, 0.5 = slow motion
+  // controller 2, pressed by the page for a moment (Zelda 1's Save & quit is Up+A on
+  // controller 2 while paused): pad2(mask, frames)
+  var pad2Mask = 0, pad2Left = 0;
+  function pad2Now() { if (pad2Left <= 0) return 0; pad2Left--; return pad2Mask; }
   var screenFx = {}, tempFilter = null;
 
   function el(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
@@ -567,7 +571,7 @@
     var ahead = runAheadOn() && !ff && speedMul === 1 && n > 0;
     try {
       for (var i = 0; i < n; i++) {
-        core.runFrame(pad, 0);
+        core.runFrame(pad, pad2Now());
         stats.frames++;
         if (hooks.frame) { try { hooks.frame(core); } catch (e) { console.warn('[emu] frame hook', e); } }
         var a = core.audio();
@@ -588,7 +592,7 @@
       if (ahead) {
         var t0 = performance.now();
         if (core.snapshot()) {
-          core.runFrame(pad, 0);
+          core.runFrame(pad, pad2Now());
           var a2 = core.audio();
           try { audio.push(a2); } catch (e) {}
           video.upload(paintFrame(core.frame()));
@@ -756,6 +760,7 @@
       },
     },
     openMenu: function () { if (running) openMenu(); },
+    pad2: function (mask, frames) { pad2Mask = mask | 0; pad2Left = Math.max(0, frames | 0); },
     get ready() { return running; },
     get gameName() { return gameName; },
   };

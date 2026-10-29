@@ -5,6 +5,14 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.40 (2026-10-29)
+
+- **Zelda 1: 💾 Save & quit.** The original's secret, Up + A on controller 2 with the item
+  screen open, which brings up Continue / Save / Retry without dying. Open the item screen
+  (Start) and the ☠️ in the header turns into 💾: tap it and the page presses Up + A on
+  controller 2 for you. (The NES players can now press controller-2 buttons for a moment:
+  `EmuPlayer.pad2(mask, frames)`.)
+
 ## Beta v1.14.39 (2026-10-29)
 
 - **Boss detour: Skull Woods fixed for real (tested on the game).** Mothula was there all along,
