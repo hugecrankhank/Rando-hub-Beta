@@ -5,6 +5,16 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.25 (2026-10-28)
+
+- **Dungeon card on entry (HydeOut).** When Link walks into a dungeon, a card slides down
+  over the top-left of the game for eight seconds: the dungeon's name, its boss (ticked
+  once beaten), a chest for every check (open ones found) with how many are left, small
+  keys in hand / total, big key, map, compass and the prize. It uses whichever tracker is
+  up (Hutch's counts, or Muffins' logic under Mudora 2.0) and sits on the game picture so a
+  stream capture of the game has it. ⚙ Settings → "Dungeon card": Off / On entry (8 s) /
+  While inside (stays up, counts live), with a Test button.
+
 ## Beta v1.14.24 (2026-10-28)
 
 - **Crowd Control+: the local signer finds TikTok's new live feed.** TikTok's LIVE page
