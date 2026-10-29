@@ -9,11 +9,14 @@
  * Save & quit: the original's secret, Up + A on controller 2, which brings up
  * Continue / Save / Retry without dying. The page holds those two buttons on
  * controller 2 for half a second (EmuPlayer.pad2).
+ *
+ * ☠️P2 next to it does the whole thing in one tap: Start on controller 1 to
+ * open the item screen, then Up + A on controller 2 (Hank, Oct 2026).
  */
 (function () {
   'use strict';
   var $ = function (id) { return document.getElementById(id); };
-  var MENU = 0xE1, UP = 1 << 4, A = 1 << 8;   // MenuState: the item screen (Start) is open or opening
+  var MENU = 0xE1, UP = 1 << 4, A = 1 << 8, START = 1 << 3;   // MenuState: the item screen (Start) is open or opening
   var MODE = 0x12, SUBMODE = 0x13, UPDATING = 0x11, HEARTS = 0x66F, PARTIAL = 0x670, STATE = 0xAC, DIR = 0x98;
   function ram() { var p = window.EmuPlayer, c = p && p.core; return c && c.wram ? c.wram() : null; }
   // a file is being played (Zelda 1's "save slot in use" marks), out in the world, a dungeon or a cave
@@ -42,8 +45,22 @@
     p.pad2(UP | A, 180);
     var t0 = Date.now(), t = setInterval(function () { var w = ram(); if (!w || w[MODE] !== 0x05 || Date.now() - t0 > 3200) { clearInterval(t); p.pad2(0, 0); } }, 50);
   }
+  // one tap: open the item screen (Start, controller 1) and Up + A on controller 2
+  var auto = null;
+  function p2Quit() {
+    var p = window.EmuPlayer, r = ram();
+    if (!p || !p.pad2 || !p.pad1 || auto) return;
+    if (!canDie(r) || (r[MODE] !== 0x05)) { alert('Save & quit works while Link is out in the world or in a dungeon (not in a cave, a menu or mid-screen-change).'); return; }
+    if (!r[MENU]) p.pad1(START, 4);
+    p.pad2(UP | A, 300);   // the game only looks once the item screen has slid down
+    var t0 = Date.now();
+    auto = setInterval(function () {
+      var w = ram();
+      if (!w || w[MODE] !== 0x05 || Date.now() - t0 > 5200) { clearInterval(auto); auto = null; p.pad2(0, 0); }
+    }, 50);
+  }
   function click() { if (paused(ram())) saveQuit(); else die(); }
-  var btn = null, mode = '';
+  var btn = null, btn2 = null, mode = '';
   function look(m) {
     if (!btn || mode === m) return;
     mode = m;
@@ -62,10 +79,22 @@
     btn.addEventListener('click', click);
     var anchor = $('game-settings') || $('pad-status') || $('link-status');
     if (anchor && anchor.parentNode === header) header.insertBefore(btn, anchor); else header.appendChild(btn);
+    btn2 = document.createElement('button');
+    btn2.type = 'button'; btn2.id = 'z1-p2'; btn2.className = 'btn';
+    btn2.innerHTML = '☠️<small style="font-size:11px;margin-left:2px">P2</small>';
+    btn2.title = 'Save & quit in one tap: opens the item screen and presses Up + A on controller 2 (Continue / Save / Retry, no death)';
+    btn2.setAttribute('aria-label', 'Save and quit (controller 2)');
+    btn2.style.cssText = 'font-size: 18px; padding-left: 7px; padding-right: 7px; white-space: nowrap;';
+    btn2.hidden = true;
+    btn2.addEventListener('click', p2Quit);
+    header.insertBefore(btn2, btn.nextSibling);
+    var st = document.createElement('style');
+    st.textContent = '@media (max-width: 440px) { #z1-die, #z1-p2 { font-size: 15px !important; padding-left: 5px !important; padding-right: 5px !important; } }';
+    document.head.appendChild(st);
   }
   setInterval(function () {
     if (!btn) build();
-    if (btn) { var r = ram(), on = canDie(r); if (btn.hidden === on) btn.hidden = !on; if (on) look(paused(r) ? 'save' : 'die'); }
+    if (btn) { var r = ram(), on = canDie(r); if (btn.hidden === on) btn.hidden = !on; if (on) look(paused(r) ? 'save' : 'die'); if (btn2 && btn2.hidden === on) btn2.hidden = !on; }
   }, 500);
-  window.Z1Die = { die: die, saveQuit: saveQuit, can: function () { return canDie(ram()); }, paused: function () { return paused(ram()); } };
+  window.Z1Die = { die: die, saveQuit: saveQuit, p2Quit: p2Quit, can: function () { return canDie(ram()); }, paused: function () { return paused(ram()); } };
 })();

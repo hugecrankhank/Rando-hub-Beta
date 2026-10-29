@@ -166,6 +166,9 @@
   // controller 2 while paused): pad2(mask, frames)
   var pad2Mask = 0, pad2Left = 0;
   function pad2Now() { if (pad2Left <= 0) return 0; pad2Left--; return pad2Mask; }
+  // and controller 1 buttons pressed by the page on top of the player's (pad1)
+  var pad1Mask = 0, pad1Left = 0;
+  function pad1Now() { if (pad1Left <= 0) return 0; pad1Left--; return pad1Mask; }
   var screenFx = {}, tempFilter = null;
 
   function el(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
@@ -571,7 +574,7 @@
     var ahead = runAheadOn() && !ff && speedMul === 1 && n > 0;
     try {
       for (var i = 0; i < n; i++) {
-        core.runFrame(pad, pad2Now());
+        core.runFrame(pad | pad1Now(), pad2Now());
         stats.frames++;
         if (hooks.frame) { try { hooks.frame(core); } catch (e) { console.warn('[emu] frame hook', e); } }
         var a = core.audio();
@@ -592,7 +595,7 @@
       if (ahead) {
         var t0 = performance.now();
         if (core.snapshot()) {
-          core.runFrame(pad, pad2Now());
+          core.runFrame(pad | pad1Now(), pad2Now());
           var a2 = core.audio();
           try { audio.push(a2); } catch (e) {}
           video.upload(paintFrame(core.frame()));
@@ -761,6 +764,7 @@
     },
     openMenu: function () { if (running) openMenu(); },
     pad2: function (mask, frames) { pad2Mask = mask | 0; pad2Left = Math.max(0, frames | 0); },
+    pad1: function (mask, frames) { pad1Mask = mask | 0; pad1Left = Math.max(0, frames | 0); },
     get ready() { return running; },
     get gameName() { return gameName; },
   };

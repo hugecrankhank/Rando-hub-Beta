@@ -149,7 +149,7 @@
       e.preventDefault(); e.stopImmediatePropagation();
       if (menu) { close(); return; }
       menu = document.createElement('div'); menu.id = 'ns-menu'; menu.setAttribute('role', 'menu');
-      menu.appendChild(item('🎲 ' + (ns.firstChild && ns.firstChild.nodeType === 3 ? ns.firstChild.textContent.trim() : 'New seed'), function () { pass = true; try { ns.click(); } finally { pass = false; } }));
+      menu.appendChild(item('✨ ' + (ns.firstChild && ns.firstChild.nodeType === 3 ? ns.firstChild.textContent.trim() : 'New seed'), function () { pass = true; try { ns.click(); } finally { pass = false; } }));
       acts.forEach(function (a) { menu.appendChild(item(a.label, function () { var el = document.getElementById(a.id); if (el) el.click(); })); });
       document.body.appendChild(menu);
       var r = ns.getBoundingClientRect();

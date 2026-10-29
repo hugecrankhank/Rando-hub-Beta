@@ -5,6 +5,14 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.41 (2026-10-29)
+
+- **Zelda 1: ☠️P2, Save & quit in one tap.** Next to the ☠️: presses Start on controller 1 to
+  open the item screen, then Up + A on controller 2 once it has slid down, and the game goes to
+  Continue / Save / Retry without a death. Works out in the world and in dungeons.
+- Phones (Zelda 1): 🎲 Reroll moved into the New seed ▾ menu to make room; New seed's own entry
+  there is ✨ New seed.
+
 ## Beta v1.14.40 (2026-10-29)
 
 - **Zelda 1: 💾 Save & quit.** The original's secret, Up + A on controller 2 with the item
