@@ -128,24 +128,57 @@
   const label = (id) => { const f = metadata && metadata.fields.find((x) => x.id === id); return f ? f.label : id; };
   function startItemsOn(fields) { return START_ITEMS.filter((id) => fields[id] && +fields[id].value > 0); }
   function limitCuts(fields, n) { const lim = fields.C17 ? +fields.C17.value : 0; return n > 0 && ((lim >= 1 && lim <= 21 && lim - 1 < n) || lim === 22); }
-  function gotchas(st) {
-    const out = [], F = st.fields || {};
-    const on = startItemsOn(F);
-    if (limitCuts(F, on.length)) {
-      const lim = +F.C17.value;
-      out.push(lim === 22 ? 'Limit on starting items is random (0 to 20): some of the ' + on.length + ' start items ticked may be left out.'
-        : 'Limit on starting items is "At most ' + (lim - 1) + '": only ' + (lim - 1) + ' of the ' + on.length + ' start items ticked (' + on.map((id) => label(id).replace(/^Start (with )?(the )?/i, '')).join(', ') + ') will be in the seed. Set it to "All chosen start items" (Starting Items tab).');
+  // The flags are made to agree with what was picked, with a note saying so
+  // (contradictory settings were confusing people, Oct 2026):
+  //   start items ticked / unticked -> "Limit on starting items" = that many
+  //     (a limit lowered by hand on purpose, for a random few, is left alone)
+  //   overworld monster shuffle off  -> enemy / overworld group shuffles off too
+  //   either group shuffle turned on -> overworld monster shuffle on too
+  let limitByHand = false;   // the limit was set lower on purpose: keep it until the start items change
+  function harmonize(st, changed) {
+    const F = st.fields || {}, values = {}, notes = [], ch = changed || null;
+    const on = startItemsOn(F), n = on.length, lim = F.C17 ? +F.C17.value : 0;
+    const want = n === 0 ? lim : Math.min(n, 20) + 1;   // value i = "At most i-1"; 0 = all chosen
+    const itemsChanged = ch ? ch.some((id) => START_ITEMS.includes(id)) : false;
+    if (ch && ch.includes('C17')) limitByHand = true;
+    if (itemsChanged) limitByHand = false;
+    if (n > 0 && limitByHand && limitCuts(F, n)) {
+      notes.push(lim === 22 ? 'A random number (0 to 20) of the ' + n + ' start items ticked will be in each seed.' : (lim - 1) + ' of the ' + n + ' start items ticked will be picked at random for the seed.');
+    } else if (n > 0 && want !== lim && (itemsChanged || limitCuts(F, n))) {
+      values.C17 = String(want);
+      notes.push('Limit on starting items set to ' + n + ' to match the ' + (n > 1 ? n + ' start items' : 'start item') + ' ticked.');
+    } else if (n === 0 && itemsChanged && lim !== 1 && lim !== 22) {
+      values.C17 = '1'; notes.push('Limit on starting items set back to 0 (no start items ticked).');
     }
-    if (F.B31 && +F.B31.value === 0) {
-      const also = ['B42', 'B43'].filter((id) => F[id] && +F[id].value > 0);
-      if (also.length) out.push('Overworld monsters will still change: "' + also.map(label).join('" and "') + '" ' + (also.length > 1 ? 'are' : 'is') + ' on. Turn ' + (also.length > 1 ? 'those' : 'it') + ' off too for each screen\u2019s usual monsters.');
+    const groups = ['B42', 'B43'].filter((id) => F[id] && +F[id].value > 0);
+    const owOff = F.B31 && +F.B31.value === 0;
+    if (owOff && groups.length) {
+      const turnedOn = ch ? groups.filter((id) => ch.includes(id)) : [];
+      if (turnedOn.length && !ch.includes('B31')) {
+        values.B31 = '1';
+        notes.push('"' + label('B31') + '" turned on too: "' + turnedOn.map(label).join('" and "') + '" ' + (turnedOn.length > 1 ? 'change' : 'changes') + ' the overworld monsters.');
+      } else {
+        groups.forEach((id) => { values[id] = '0'; });
+        notes.push('"' + groups.map(label).join('" and "') + '" turned off too, so the overworld screens keep their usual monsters.');
+      }
     }
-    return out;
+    return Object.keys(values).length || notes.length ? { values, note: notes.join(' ') } : null;
+  }
+  async function applyHarmonize(state, changed) {
+    const h = harmonize(state, changed); if (!h) return state;
+    if (!Object.keys(h.values).length) { state.autoNote = h.note; return state; }
+    const values = {};
+    Object.entries(state.fields).forEach(([id, st]) => { values[id] = String(st.value); });
+    Object.assign(values, h.values);
+    const r = await ask('change', { previous: state.flags, values, zoraFlags: zoraState && zoraState.ok ? zoraState.flags : (state.zora && state.zora.ok ? state.zora.flags : '') });
+    if (!r.state.ok || r.state.blockedChange) return state;
+    r.state.autoNote = h.note;
+    return r.state;
   }
 
   async function loadFlags(flags, zoraFlags) {
     const { state } = await ask('state', { flags, zoraFlags });
-    showState(state);
+    showState(state.ok ? await applyHarmonize(state) : state);
   }
   function showState(state) {
     if (!state.ok) { setFlagMsg(plain(state.error || 'Those flags could not be read.'), 'bad'); updateButton(); return; }
@@ -161,7 +194,6 @@
     if (zoraState && zoraState.conflicts && zoraState.conflicts.length) notes.push(...zoraState.conflicts.map(plain));
     if (state.blockedChange) notes.unshift('That change was not allowed and was undone: ' + plain(state.blockedChange));
     if (state.autoNote) notes.unshift(state.autoNote);
-    notes.push(...gotchas(state));
     setFlagMsg(notes.join(' '), state.blockedChange ? 'bad' : notes.length ? 'warn' : '');
     if ($('flag-editor').open) renderEditor();
     writeSaved();
@@ -220,13 +252,9 @@
     const values = {};
     Object.entries(form.fields).forEach(([id, st]) => { values[id] = String(st.value); });
     $('flag-fields').querySelectorAll('select').forEach((s) => { values[s.dataset.id] = s.value; });
-    // a start item just ticked on under a limit that would drop it: lift the limit
-    let autoNote = '';
-    const wasOn = startItemsOn(form.fields).length, nowOn = START_ITEMS.filter((id) => +values[id] > 0).length;
-    if (nowOn > wasOn && values.C17 !== '0' && limitCuts({ C17: { value: values.C17 } }, nowOn)) { values.C17 = '0'; autoNote = 'Limit on starting items set to "All chosen start items" so the start item you ticked is in the seed.'; }
+    const changed = Object.keys(values).filter((id) => form.fields[id] && String(form.fields[id].value) !== String(values[id]));
     const { state } = await ask('change', { previous: form.flags, values, zoraFlags: zoraState && zoraState.ok ? zoraState.flags : '' });
-    if (autoNote && state.ok && !state.blockedChange) state.autoNote = autoNote;
-    showState(state);
+    showState(state.ok && !state.blockedChange ? await applyHarmonize(state, changed) : state);
   }
   async function onZoraChange() {
     const zv = Object.assign({}, zoraState && zoraState.ok ? zoraState.values : {});

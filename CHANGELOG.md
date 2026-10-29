@@ -5,6 +5,17 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.30 (2026-10-29)
+
+- **Zelda 1 New seed: the flags follow what's picked.** No more contradictory settings:
+  - Ticking or unticking start items sets "Limit on starting items" to that many (bombs and
+    the blue candle → 2). A limit lowered by hand on purpose (a random few of them) is kept
+    until the start items change, with a note saying how many will be picked.
+  - "Shuffle the overworld monsters" off turns "Shuffle Enemy Groups" and "Shuffle Overworld
+    Group" off too; turning either of those on turns overworld monster shuffle back on.
+  - Presets and pasted flag strings are straightened out the same way when loaded.
+  Each change is explained under the flags.
+
 ## Beta v1.14.29 (2026-10-28)
 
 - **Zelda 1 seeds: settings that didn't seem to apply (Kallax).** Two ZORA traps the New seed
