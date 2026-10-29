@@ -1704,7 +1704,9 @@
   // at: [x, y] in the room = where the boss door lets him in (lttphack presets);
   // otherwise the quarter with the most floor (and real walls) is the arena.
   var LQF = [0xF, 0xF, 0xF, 0xF, 0xB, 0xB, 7, 7, 0xF, 0xB, 0xF, 7, 0xB, 0xF, 7, 0xF, 0xE, 0xD, 0xE, 0xD, 0xF, 0xF, 0xE, 0xD, 0xE, 0xD, 0xF, 0xF, 0xA, 9, 6, 5];
-  var FLOOR = { 0x00: 1, 0x09: 1, 0x0E: 1, 0x0F: 1 };   // floor, shallow water, ice
+  // floor, shallow water, ice, and Mothula's moving floor (0x1C: his whole arena is made
+  // of it, so without it Link was put in an empty corner of the room, Oct 2026)
+  var FLOOR = { 0x00: 1, 0x09: 1, 0x0E: 1, 0x0F: 1, 0x1C: 1 };
   // boss sprites (zelda3 sprite ids): Moldorm, Armos, Lanmolas, Agahnim, Mothula, Arrghus,
   // Helmasaur, Kholdstare, Vitreous, Trinexx, Blind, Ganon. The quarter the boss is
   // in is the arena, whatever boss shuffle put there.
@@ -1715,7 +1717,7 @@
     }
     return null;
   }
-  function placeLink(ram, at) {
+  function placeLink(ram, at, force) {
     var R = ram[0xA0] | ram[0xA1] << 8; if (R > 0x127) return false;
     var Bx = (R & 0xF) << 9, By = (R >> 4) << 9;
     var attr = function (tx, ty) { return tx < 0 || ty < 0 || tx > 63 || ty > 63 ? 1 : ram[0x12000 + ty * 64 + tx]; };
@@ -1742,7 +1744,7 @@
       if (!spot) spot = nearest(bqx * 32 + 15, bqy * 32 + ((by & 0xFF) < 0x80 ? 24 : 8), bqx, bqy, 24);
     }
     if (!spot && at) spot = nearest(at[0] >> 3, at[1] >> 3, at[0] >> 8, at[1] >> 8, 10);
-    if (!spot) {
+    if (!spot && !force) {
       var best = -1, bq = null;
       for (var q = 0; q < 4; q++) {
         var qx = q & 1, qy = q >> 1, fl = 0, wl = 0;
@@ -1751,6 +1753,7 @@
       }
       if (bq) spot = nearest(bq[0] * 32 + 15, bq[1] * 32 + 24, bq[0], bq[1], 24);   // start low and central, away from the boss
     }
+    if (!spot && force && at) spot = [at[0] >> 3, at[1] >> 3];
     if (!spot) return false;
     var w16 = function (a, v) { ram[a] = v & 0xFF; ram[a + 1] = (v >> 8) & 0xFF; };
     var X = Bx + spot[0] * 8, Y = By + spot[1] * 8;
@@ -1795,8 +1798,17 @@
     if (spot) {
       var lx = ram[0x22] | ram[0x23] << 8, ly = ram[0x20] | ram[0x21] << 8;
       if (quarterOf(spot[0], spot[1]) !== quarterOf(lx, ly)) {
-        var ok = false; try { ok = placeLink(ram, null); } catch (e) {}
-        what = (what ? what + '; ' : '') + 'the boss was in another part of the room' + (ok ? ', moved Link there' : '');
+        try { placeLink(ram, null); } catch (e) {}
+        lx = ram[0x22] | ram[0x23] << 8; ly = ram[0x20] | ram[0x21] << 8;
+        if (quarterOf(spot[0], spot[1]) !== quarterOf(lx, ly)) {
+          // no floor found there that we know: just below the boss, in its part of the room
+          var R = ram[0xA0] | ram[0xA1] << 8, Bx = (R & 0xF) << 9, By = (R >> 4) << 9;
+          var qx = (spot[0] - Bx) & 0x100, qy = (spot[1] - By) & 0x100;
+          try { placeLink(ram, [qx + 0x78, qy + 0xC0], true); } catch (e) {}
+          lx = ram[0x22] | ram[0x23] << 8; ly = ram[0x20] | ram[0x21] << 8;
+        }
+        var there = quarterOf(spot[0], spot[1]) === quarterOf(lx, ly);
+        what = (what ? what + '; ' : '') + 'the boss was in another part of the room, ' + (there ? 'moved Link to it' : 'couldn\u2019t move Link to it');
       }
     }
     if (what) detourSay(what);

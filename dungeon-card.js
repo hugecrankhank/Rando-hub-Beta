@@ -174,6 +174,7 @@
   }
 
   function show(s) {
+    if (!s) return;   // no tracker (Off): nothing to show
     style();
     var h = at === 'side' ? sideBox() : host(); if (!h) return;
     if (!card || !card.isConnected || card.parentNode !== h) { if (card) card.remove(); card = document.createElement('div'); card.className = 'dg-card'; h.appendChild(card); lastHtml = ''; }

@@ -5,6 +5,17 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.39 (2026-10-29)
+
+- **Boss detour: Skull Woods fixed for real (tested on the game).** Mothula was there all along,
+  in the bottom-right corner of his room, but his floor is a special "moving floor" tile the
+  detour didn't count as floor, so it put Link in an empty top-left corner where Mothula was
+  offscreen and asleep. That floor counts now, and if Link ever ends up in another part of the
+  room than the boss he's moved below it. Every boss detour checked on the real game: Armos,
+  Lanmolas, Moldorm, Helmasaur, Arrghus, Mothula, Blind, Kholdstare, Vitreous, Trinexx,
+  Agahnim, Agahnim 2 and Ganon all appear with Link in their arena.
+- Dungeon card: no error with the tracker Off.
+
 ## Beta v1.14.38 (2026-10-29)
 
 - **Boss detour: the boss is found, or brought, wherever it is.** Skull Woods still came up empty
