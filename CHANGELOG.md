@@ -5,6 +5,19 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.33 (2026-10-29)
+
+- **Check for updates on every game page.** Zelda 1, The Guardian Legend, FF1 / FF4 / FF5,
+  FF6 Worlds Collide and Patched games now have the hub's "Check for updates" button in their
+  header (computers), comparing against the hub's newest version. `tools/set-version.py`
+  stamps the version into each game page.
+- **⚙ Settings in the header of the game pages.** Opens the emulator's settings (sound,
+  picture, performance, on-screen controller, keys) without hunting for the ⋯ on the game.
+  Shown while a game is running.
+- **Zelda 1: ☠️ knock-out button.** For a room a randomizer bug has locked Link in: after a
+  confirm, Link dies exactly as if he'd lost his last heart (the game's own death, then
+  Continue / Save / Retry), so the death counts like any other. Shown while playing.
+
 ## Beta v1.14.32 (2026-10-29)
 
 - **Zelda 1 / Guardian Legend: the menu's tick boxes are back.** The page's own text-box style

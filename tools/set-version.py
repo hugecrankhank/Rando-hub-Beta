@@ -24,6 +24,18 @@ if not (n1 and n2 and n3):
     sys.exit('Could not find every version spot in index.html')
 open(p, 'w', encoding='utf-8').write(s)
 
+# the game pages: their "Check for updates" (web-update.js) compares this with the hub's
+GAME_PAGES = ['z1r/index.html', 'glr/index.html', 'ff6wc/index.html', 'patched/index.html',
+              'ffr/ff1/index.html', 'ffr/ff4/index.html', 'ffr/ff5/index.html', 'ffr/common/page.tpl.html']
+for rel in GAME_PAGES:
+    p = os.path.join(ROOT, rel)
+    if not os.path.exists(p): continue
+    s = open(p, encoding='utf-8').read()
+    tag = f'<meta name="version" content="{v}">'
+    s, n = re.subn(r'<meta name="version" content="[^"]*">', tag, s)
+    if not n: s = s.replace('<meta charset="UTF-8">', '<meta charset="UTF-8">\n' + tag, 1) if '<meta charset="UTF-8">' in s else s.replace('<meta charset="utf-8">', '<meta charset="utf-8">\n' + tag, 1)
+    open(p, 'w', encoding='utf-8').write(s)
+
 p = os.path.join(ROOT, 'crowd-plus', 'package.json')
 s = open(p, encoding='utf-8').read()
 s = re.sub(r'"version": "[^"]*"', f'"version": "{v}"', s, count=1)

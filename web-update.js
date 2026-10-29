@@ -8,6 +8,10 @@
  * every new file). Checked once a few seconds after loading and every hour,
  * and whenever the button is clicked.
  *
+ * The game pages (Zelda 1, GLR, the FF games, FF6, Patched) load it too, with
+ * data-hub="../" (or "../../"): they ask for the hub's index.html, and their
+ * own <meta name="version"> (tools/set-version.py stamps it) is what's running.
+ *
  * Phones and tablets don't get the button: the home-screen app there picks
  * up a new version when it's closed fully and opened again (the start
  * screen says so, below Resume).
@@ -17,6 +21,7 @@
   var $ = function (id) { return document.getElementById(id); };
   function coarse() { try { return window.matchMedia('(any-pointer: coarse)').matches; } catch (e) { return false; } }
   function inApp() { return /Electron/i.test(navigator.userAgent) || !!$('rh-update'); }
+  var HUB = (document.currentScript && document.currentScript.dataset.hub) || '';
   var current = (document.querySelector('meta[name="version"]') || {}).content || '';
   var btn = null, latest = '', timer = null;
 
@@ -27,7 +32,7 @@
   }
   function show(cls, text, title) {
     if (!btn) return;
-    btn.className = cls || '';
+    btn.className = (HUB ? 'btn ' : '') + (cls || '');   // game pages: their own button look
     btn.lastChild.textContent = text;
     btn.title = title || '';
   }
@@ -38,7 +43,7 @@
   function check(byClick) {
     if (byClick && latest && newer(latest, current)) { reload(); return; }
     show('checking', 'Checking…', 'Asking the server for the newest version');
-    fetch('index.html', { cache: 'no-cache', credentials: 'same-origin' }).then(function (r) { return r.ok ? r.text() : Promise.reject(new Error(r.status)); })
+    fetch(HUB + 'index.html', { cache: 'no-cache', credentials: 'same-origin' }).then(function (r) { return r.ok ? r.text() : Promise.reject(new Error(r.status)); })
       .then(function (html) {
         var m = /<meta name="version" content="([^"]+)"/.exec(html);
         latest = m ? m[1] : '';
@@ -67,6 +72,7 @@
 
   function build() {
     if (btn || coarse() || inApp()) return;
+    if (!current) return;   // a page set-version.py hasn't stamped: nothing to compare with
     var header = document.querySelector('header'), anchor = $('link-status');
     if (!header) return;
     var style = document.createElement('style');

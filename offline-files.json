@@ -23,6 +23,7 @@
   "manifest.webmanifest",
   "offline.js",
   "web-update.js",
+  "game-header.js",
   "go-mode.js",
   "dungeon-card.js",
   "phone.js",
