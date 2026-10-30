@@ -162,7 +162,7 @@
   //   input(pad) -> pad   change the buttons the game sees this frame
   //   frame(core)         runs after every emulated frame
   //   menu {html(rerender), click(button, rerender), input(el)}  a section in the menu
-  var hooks = { input: null, frame: null, menu: null };
+  var hooks = { input: null, frame: null, menu: null, practice: null };   // practice: { html() } shown under the save states
   var speedMul = 1, audioAcc = 0;   // crowd speed effects: 1.5 = faster, 0.5 = slow motion
   // controller 2, pressed by the page for a moment (Zelda 1's Save & quit is Up+A on
   // controller 2 while paused): pad2(mask, frames)
@@ -363,7 +363,7 @@
         '<button type="button" data-a="restart">Restart</button>' +
         (root.requestFullscreen ? '<button type="button" data-a="fs">Full screen</button>' : '') +
       '</div><p class="hint">Save and load states from the bar on the game screen (💾 / 📂, S1–S9 picks the slot, or use the list below). In-game saves are kept automatically for each seed. Keys: F5 save state, F8 load state, hold ` to fast-forward.</p>' +
-      slotsHtml() +
+      slotsHtml() + (hooks.practice ? hooks.practice.html() : '') +
       '<h4>Sound</h4><div class="row"><span>Volume</span><input type="range" min="0" max="1" step="0.05" data-s="volume" value="' + cfg.volume + '"></div>' +
       '<div class="row"><span>Mute</span><input type="checkbox" data-s="muted"' + (cfg.muted ? ' checked' : '') + '></div>' +
       '<h4>Graphics</h4>' +

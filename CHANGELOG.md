@@ -5,6 +5,11 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.53 (2026-10-29)
+
+- Zelda 1: **warp to any level, Level 9 included.** ⚙ Settings → *Practice: warp to a level* has two rows of buttons, 1–9: **Entrance** puts Link on open ground in front of that level's door (from the seed's map, so shuffled entrances work), **Inside** starts him in its first room, and walking out brings him back to the real entrance. Works from the overworld, a dungeon or a cave.
+- Zelda 1 crowd effects: **Warp: Level 9 entrance** and **Warp: inside Level 9** (the recorder's whirlwind only knows Levels 1–8).
+
 ## Beta v1.14.52 (2026-10-29)
 
 - Zelda 1: **nine save-state slots, one per level**, for practising each dungeon. ⋯ / ⚙ Settings → *Practice: save states* lists them with Save / Load and when each was saved; S1–S9 on the game bar too.

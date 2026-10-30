@@ -124,6 +124,69 @@
     r[A.OBJ_Y + slot] = r[A.OBJ_Y]; r[A.OBJ_X + slot] = 0; r[A.OBJ_TYPE + slot] = 0x2E;
   }
 
+  // A level the whirlwind can't reach (Level 9: the recorder only knows 1-8),
+  // or straight into any level. Both use the game's own level loading (game
+  // mode 2, as Continue does), so the screen is drawn and set up by the game:
+  //  - inside: CurLevel = n, and $526 (the overworld screen Link goes back to
+  //    when he walks out) = the level's real entrance, so leaving works.
+  //  - entrance: the overworld is loaded with its start screen swapped for the
+  //    level's entrance screen (LevelInfo $2F, in cartridge RAM once mode 2 has
+  //    copied it), and Link is put on open ground just below the door.
+  // The entrance comes from the seed's map (Z1Tracker), so shuffles work.
+  var OW_ROOM_BACK = 0x526, START_ROOM = 0x0B7E + 0x2F;
+  var warpJob = null;
+  function warpTo(r, level, inside) {
+    if (warpJob) return 'Already warping';
+    if (!fileLoaded(r) || [PLAY, 0x09, CAVE].indexOf(r[A.MODE]) < 0) return 'Link isn\u2019t out in the world, a dungeon or a cave';
+    var e = root.Z1Tracker && root.Z1Tracker.levelEntrance ? root.Z1Tracker.levelEntrance(level) : null;
+    if (!inside && !e) return 'Level ' + level + '\u2019s entrance isn\u2019t known (open a ROM file or seed first)';
+    r[0x11] = 0; r[0x13] = 0; r[0xE1] = 0;          // end the mode, close the item screen
+    if (inside) { if (e) r[OW_ROOM_BACK] = e.s; r[A.LEVEL] = level; }
+    else { r[A.LEVEL] = 0; r[OW_ROOM_BACK] = e.s; warpJob = { e: e, st: 0, t: 0 }; }   // from a level the game goes back to $526
+    r[A.MODE] = 0x02;
+  }
+  function warpFrame(c, r) {
+    if (!warpJob) return;
+    if (++warpJob.t > 900) { warpJob = null; return; }    // never stuck waiting
+    if (warpJob.st === 0 && r[A.MODE] === 0x03) { var sr = c.sram && c.sram(); if (sr) sr[START_ROOM] = warpJob.e.s; warpJob.st = 1; }
+    else if (warpJob.st === 1 && r[A.MODE] === PLAY) {
+      var sq = openSquare(c.sram && c.sram(), warpJob.e.col, warpJob.e.row);
+      r[0x70] = sq.col * 16; r[0x84] = sq.row * 16 + 0x3D;
+      r[OW_ROOM_BACK] = warpJob.e.s;
+      warpJob = null;
+    }
+  }
+  // Where to put Link near a level's door: the nearest square of open ground
+  // ($26, from the screen's tiles in cartridge RAM $6530: 32 columns of 22
+  // tiles, 2 x 2 per square), looking below the door first. The door square
+  // itself can still be rock, trees or water (bombed, burned or drained open)
+  // until the entrance has been used: Level 7's lake, Level 8's trees, Level 9.
+  function openSquare(sr, col, row) {
+    var open = function (c, rw) {
+      if (!sr || c < 1 || c > 14 || rw < 1 || rw > 9) return false;
+      for (var dx = 0; dx < 2; dx++) for (var dy = 0; dy < 2; dy++) if (sr[0x530 + (c * 2 + dx) * 22 + rw * 2 + dy] !== 0x26) return false;
+      return true;
+    };
+    var best = null, bd = 1e9;
+    for (var c = 1; c <= 14; c++) for (var rw = 1; rw <= 9; rw++) {
+      if (!open(c, rw)) continue;
+      var d = Math.abs(c - col) * 2 + Math.abs(rw - row - 1) * 2 + (rw <= row ? 3 : 0);   // below the door is best
+      if (d < bd) { bd = d; best = { col: c, row: rw }; }
+    }
+    return best || { col: col, row: Math.min(9, row + 1) };
+  }
+  function practiceHtml() {
+    var b = function (inside) {
+      var s = '';
+      for (var n = 1; n <= 9; n++) s += '<button type="button" data-ext="warp" data-n="' + n + '"' + (inside ? ' data-in="1"' : '') + ' style="min-width:34px">' + n + '</button>';
+      return s;
+    };
+    return '<h4>Practice: warp to a level</h4>' +
+      '<div class="row"><span>Entrance</span><span class="acts" style="margin:0;flex-wrap:wrap;justify-content:flex-end">' + b(false) + '</span></div>' +
+      '<div class="row"><span>Inside</span><span class="acts" style="margin:0;flex-wrap:wrap;justify-content:flex-end">' + b(true) + '</span></div>' +
+      '<p class="hint">Entrance puts Link outside the level\u2019s door (on the seed\u2019s map); Inside starts him in its first room. Items, hearts and keys stay as they are, so pair it with a save state to practise with the right gear.</p>';
+  }
+
   // ── a boss, right here (any screen, the overworld included) ───────────────
   // The game draws a boss from a 64-tile "boss" pattern block it loads into
   // the PPU at $0C00 only on entering its level (bank 3, TransferLevelPatternBlocks:
@@ -247,6 +310,8 @@
     warp_6:      { name: 'Whirlwind: Level 6', good: false, apply: function (r) { return whirlwind(r, 5); } },
     warp_7:      { name: 'Whirlwind: Level 7', good: false, apply: function (r) { return whirlwind(r, 6); } },
     warp_8:      { name: 'Whirlwind: Level 8', good: false, apply: function (r) { return whirlwind(r, 7); } },
+    warp_9:      { name: 'Warp: Level 9 entrance', good: false, apply: function (r) { return warpTo(r, 9, false); } },
+    warp_9_in:   { name: 'Warp: inside Level 9', good: false, apply: function (r) { return warpTo(r, 9, true); } },
 
     // ── gear: swords ($657: 1 wood, 2 white, 3 magical) and rings ($662: 1 blue, 2 red) ──
     sword_off:   { name: 'Sword gone', good: false, secs: 30,
@@ -375,6 +440,7 @@
   }
   function onFrameInner(c) {
     var ram = c.wram();
+    warpFrame(c, ram);
     sendRun(ram);
     if (crowdBoss) { try { bossFrame(ram); } catch (e) { console.warn('[crowd] boss', e); } }
     var playing = inPlay(ram);
@@ -620,6 +686,13 @@
   function menuClick(b, rr) {
     rerender = rr;
     var a = b.dataset.ext;
+    if (a === 'warp') {
+      var r = (core() && core().wram) ? core().wram() : null;
+      var why = r ? warpTo(r, +b.dataset.n, !!b.dataset.in) : 'The game isn\u2019t running';
+      if (why) { alert(why); return; }
+      var cl = document.querySelector('.s9x-menu [data-a=close]'); if (cl) cl.click();
+      return;
+    }
     if (a === 'cc-test') { note('test button: ' + b.dataset.id); trigger(b.dataset.id, 'test'); }
     else if (a === 'cc-clear') { endAll(); queue.length = 0; cancelReroll(); }
     else if (a === 'cc-cancel-reroll') cancelReroll();
@@ -656,6 +729,7 @@
     p.hooks.frame = onFrame;
     p.hooks.input = onInput;
     p.hooks.menu = { html: menuHtml, click: menuClick, input: menuInput };
+    p.hooks.practice = { html: practiceHtml };
     connect();
     return true;
   }
@@ -665,7 +739,7 @@
     get queue() { return queue.slice(); }, get active() { return Object.assign({}, active); },
     get status() { return status; },
     get recent() { return hist.slice(); },
-    _onFrame: onFrame, _onInput: onInput,
+    _onFrame: onFrame, _onInput: onInput, warpTo: function (level, inside) { var c = core(); return c ? warpTo(c.wram(), level, !!inside) : 'no game'; },
   };
   if (!install()) {
     var tries = 0, t = setInterval(function () { if (install() || ++tries > 50) clearInterval(t); }, 200);

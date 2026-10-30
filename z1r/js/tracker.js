@@ -1130,6 +1130,18 @@
   // ── public API ───────────────────────────────────────────────────────────
   let timer = null;
   window.Z1Tracker = {
+    // Where a level's entrance is on the overworld, for this file's quest:
+    // { s: screen, col, row: the square Link comes out on } or null.
+    levelEntrance(n) {
+      if (!ow) return null;
+      for (let sc = 0; sc < 128; sc++) {
+        const x = ow.screen(sc);
+        if (!x || destOf(sc) !== n) continue;
+        if ((x.quest === 1 && quest === 1) || (x.quest === 2 && quest === 0) || x.quest === 3) continue;
+        return { s: sc, col: x.exitCol, row: x.exitRow };
+      }
+      return null;
+    },
     init(root) { build(root); if (!timer) timer = setInterval(tick, 250); },
     setSession(k, lbl) {
       key = 'z1ru:track:' + k; label = lbl || k; S = load(key);
