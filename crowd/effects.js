@@ -1937,9 +1937,9 @@
     // part of the room (offscreen, so it sleeps: the arena looks empty).
     if ((d.frames === 60 || d.frames === 180) && d.boss.room != null && mode === 0x07 && ram[0x11] === 0) bossCheck(core, ram, d);
     // how did it go?
-    if (mode === 0x12 || ram[A.HP] === 0) return endDetour(core, 'ko', 'Link went down!');
+    if (mode === 0x12 || ram[A.HP] === 0) return endDetour(core, 'ko', hero() + ' went down!');
     if (WIN_MODULES[mode] || ram[A.HP_MAX] > d.hpMax) return endDetour(core, 'won', 'BOSS DEFEATED!');
-    if (mode === 0x09 || mode === 0x0B) return endDetour(core, 'escaped', 'LINK ESCAPED!');
+    if (mode === 0x09 || mode === 0x0B) return endDetour(core, 'escaped', hero().toUpperCase() + ' ESCAPED!');
     if (mode === 0x07 || mode === 0x09 || mode === 0x0B) d.frames++;   // menus don't count
     if (d.wait > d.total + 60 * 45) return endDetour(core, 'survived', 'SURVIVED!');   // never stuck on a detour
     var left = Math.max(0, d.total - d.frames);
@@ -2230,7 +2230,14 @@
     // the on-game banner and gift card, for trying layouts (test pages)
     show: { banner: function (k, t, sub, ms) { banner(k, t, sub, ms); }, gift: function (u, l, w, good) { giftCard(u, l, w, good); } },
   };
-  function send(msg) { if (ws && ws.readyState === 1) { try { ws.send(JSON.stringify(msg)); } catch (e) {} } }
+  function send(msg) { if (ws && ws.readyState === 1) { try { if (msg && !msg.hero) msg.hero = hero(); ws.send(JSON.stringify(msg)); } catch (e) {} } }
+  // Who's playing, for alerts: the sprite picked in the hub's Randomizer bar (its
+  // name, e.g. "Pikachu"), or Link with the game's own sprite (Hank, Oct 2026).
+  function hero() {
+    var n = ''; try { n = localStorage.getItem('rhb-sprite-label') || ''; } catch (e) {}
+    n = String(n).replace(/\.(zspr|spr)$/i, '').replace(/\s*\(.*\)\s*$/, '').trim().slice(0, 24);
+    return n || 'Link';
+  }
 
   function connect() {
     clearTimeout(retryT);

@@ -1111,6 +1111,7 @@ const LINK_PREVIEW = 'https://alttpr-assets.s3.us-east-2.amazonaws.com/001.link.
 async function refreshSprite() {
   const sp = await kvGet('sprite').catch(() => null);
   $('r-sprite-name').textContent = sp ? sp.label : 'Default Link';
+  try { localStorage.setItem('rhb-sprite-label', sp && sp.label ? sp.label : ''); } catch (e) {}   // alerts say who's playing (crowd/effects.js hero)
   $('r-sprite-name').title = sp ? sp.label : '';
   $('r-sprite-clear').hidden = !sp;
   // the preview: alttpr.com's own picture for library sprites, otherwise the

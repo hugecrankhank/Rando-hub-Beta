@@ -5,6 +5,15 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.48 (2026-10-29)
+
+- **Alerts use the sprite's name instead of "Link".** With a sprite picked in the Randomizer
+  bar, boss detour endings say e.g. "Pikachu went down!" / "PIKACHU ESCAPED!" over the game,
+  and Crowd Control+'s alerts (detour result, death tax, boss beaten, GT big key, Digging Game)
+  name the sprite too. With the game's own sprite it's still Link. (The name typed on the file
+  select screen isn't used: the randomizer's Japanese-based name screen stores it in a form
+  that can't be read back reliably.)
+
 ## Beta v1.14.47 (2026-10-29)
 
 - **🎃 Halloween: bleeding hearts (HydeOut).** With Halloween decorations on, every few

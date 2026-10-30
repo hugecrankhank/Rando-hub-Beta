@@ -92,7 +92,9 @@ export function createLive(ctx) {
 
   // ── run stats from the game ────────────────────────────────────────────
   let runStats = { deaths: 0, checks: 0, bonks: 0, place: '', seed: '', music: '', hearts: 0, bosses: [], at: 0 };
+  let heroName = 'Link';   // who's playing, for alerts: the hub's sprite name, or Link
   function onGame(m) {
+    if (m && m.hero) heroName = clean(m.hero, 30) || 'Link';   // the sprite's name (crowd/effects.js hero)
     if (m.type === 'run') {
       runStats = { deaths: +m.deaths || 0, checks: +m.checks || 0, bonks: +m.bonks || 0, place: clean(m.place, 40), seed: clean(m.seed, 80),
         music: clean(m.music, 80), hearts: +m.hearts || 0, bosses: Array.isArray(m.bosses) ? m.bosses.map((b) => clean(b, 20)).slice(0, 20) : [], at: Date.now() };
@@ -125,7 +127,7 @@ export function createLive(ctx) {
           if (secs && tv.active && !tv.ended) { ctx.timerApi('add', secs, 'boss detour bonus'); bonus += (bonus ? ' + ' : '') + `${fmtShort(secs)} on the clock`; }
         }
         const title = { won: 'BOSS DEFEATED!', survived: 'SURVIVED THE DETOUR!', ko: 'KNOCKED OUT!', escaped: 'ESCAPED!', lost: 'DETOUR OVER' }[r] || 'DETOUR OVER';
-        ctx.record({ type: 'detour-end', user: 'Link', text: clean(m.boss, 40), result: r, bonus,
+        ctx.record({ type: 'detour-end', user: heroName, text: clean(m.boss, 40), result: r, bonus,
           alert: D.alert ? { tier: r === 'won' || r === 'survived' ? 'big' : 'death', title } : undefined });
         if (r === 'won') addClip(`Beat ${clean(m.boss, 40)} on a boss detour!`, 'detour');
         send('detour', { detour: null, result: r });
@@ -148,7 +150,7 @@ export function createLive(ctx) {
       const g = (S().goals || []).find((x) => x.id === T.goalId);
       if (g && +T.goalAmount) { g.current = Math.max(0, (+g.current || 0) + +T.goalAmount); ctx.saveSettings(); taxed += (taxed ? ', ' : '') + `${g.label} +${T.goalAmount}`; }
     }
-    ctx.record({ type: 'death', user: 'Link', deaths: runStats.deaths, text: taxed, alert: T.enabled && T.alert ? { tier: 'death', title: 'DEATH TAX' } : undefined });
+    ctx.record({ type: 'death', user: heroName, deaths: runStats.deaths, text: taxed, alert: T.enabled && T.alert ? { tier: 'death', title: 'DEATH TAX' } : undefined });
     if (S().clips.deaths) addClip(`Death #${runStats.deaths}`, 'death');
     send('run', { run: runStats });
   }
@@ -183,7 +185,7 @@ export function createLive(ctx) {
     for (const b of newBosses) {
       const secs = Math.round(+C.bossSeconds || 0), nm = BOSS_NAMES[b] || b;
       if (secs > 0) ctx.timerApi('add', sign * secs, `beat ${nm}`);
-      ctx.record({ type: 'boss', user: 'Link', text: nm, bonus: secs > 0 ? `${sign < 0 ? '−' : '+'}${fmtShort(secs)} on the clock` : '',
+      ctx.record({ type: 'boss', user: heroName, text: nm, bonus: secs > 0 ? `${sign < 0 ? '−' : '+'}${fmtShort(secs)} on the clock` : '',
         alert: C.alert ? { tier: 'big', title: 'BOSS DEFEATED!' } : undefined });
       if (S().clips.deaths) addClip(`Beat ${nm}`, 'boss');
     }
@@ -346,7 +348,7 @@ export function createLive(ctx) {
     const W = S().gtGuess;
     const txt = winners.length ? (best === 0 ? 'called it: ' : `closest (${best} off): `) + winners.slice(0, 5).join(', ') + (winners.length > 5 ? ` +${winners.length - 5}` : '') : 'nobody guessed';
     log(`GT big key was chest #${at}: ${txt}`);
-    ctx.record({ type: 'gtkey', user: 'Link', text: `GT big key: chest #${at}`, bonus: txt,
+    ctx.record({ type: 'gtkey', user: heroName, text: `GT big key: chest #${at}`, bonus: txt,
       alert: W.alert ? { tier: 'big', title: 'BIG KEY FOUND!' } : undefined });
     addClip(`GT big key in chest #${at} (${txt})`, 'gtkey');
     gtSend();
@@ -406,7 +408,7 @@ export function createLive(ctx) {
     dgg.result = { at, exact: best === 0, off: best, winners, how: how || 'game' };
     const txt = winners.length ? (best === 0 ? 'called it: ' : `closest (${best} off): `) + winners.slice(0, 5).join(', ') + (winners.length > 5 ? ` +${winners.length - 5}` : '') : 'nobody guessed';
     log(`Digging Game prize came on dig #${at}: ${txt}`);
-    ctx.record({ type: 'digprize', user: 'Link', text: `Digging Game: dig #${at}`, bonus: txt,
+    ctx.record({ type: 'digprize', user: heroName, text: `Digging Game: dig #${at}`, bonus: txt,
       alert: S().digGuess.alert ? { tier: 'big', title: 'DIG PRIZE FOUND!' } : undefined });
     addClip(`Digging Game prize on dig #${at} (${txt})`, 'dig');
     digSend();
