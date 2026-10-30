@@ -10,7 +10,8 @@
  *     decorations
  *   the crowd effect "fog" (crowd/effects.js): RandoFog.crowd(true / false)
  * Only while Link is playing (dungeon or overworld), not in menus or maps,
- * and not in the Lost Woods or Skull Woods, which have their own.
+ * and not in the Lost Woods or Skull Woods, which have their own. With
+ * "Fog & rain: outdoors only" (rain.js, on by default) not indoors either.
  */
 (function () {
   'use strict';
@@ -18,6 +19,8 @@
   var setting = false, crowdOn = false;
   try { setting = localStorage.getItem(KEY) === '1'; } catch (e) {}
   var W = 256, H = 224, T = 256;
+  // shared with rain.js: "Fog & rain: outdoors only" (⚙ Settings, on by default)
+  var WX = window.RandoWeather = window.RandoWeather || { outdoorsOnly: (function () { try { return localStorage.getItem('rhb-weather-outdoors') !== '0'; } catch (e) { return true; } })() };
 
   // A tileable 256 x 256 mist texture: periodic value noise, a few octaves,
   // shaped into wisps and stepped into a few alpha levels for the SNES look.
@@ -74,7 +77,7 @@
     var indoors = mod === 0x07, playing = indoors || mod === 0x09 || mod === 0x0B;
     var ownFog = !indoors && (r[0x8A] & 0x3F) === 0x00;          // Lost Woods ($00) / Skull Woods ($40)
     var g = ensureCanvas(); if (!g) return;
-    fade = Math.max(0, Math.min(1, fade + (want && playing && !ownFog ? 0.02 : -0.04)));
+    fade = Math.max(0, Math.min(1, fade + (want && playing && !ownFog && !(indoors && WX.outdoorsOnly) ? 0.02 : -0.04)));
     g.clearRect(0, 0, W, H);
     if (!fade) return;
     if (!veilA) { veilA = mist(7); veilB = mist(23); }

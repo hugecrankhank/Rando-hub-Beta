@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.57 (2026-10-30)
+
+- Zelda 3: **Fog & rain: outdoors only** in ⚙ Settings (on by default): no fog or rain inside houses, caves or dungeons. The crowd effects follow it too. Turn it off to have them everywhere.
+
 ## Beta v1.14.56 (2026-10-30)
 
 - Zelda 3: **🌧️ Rain**, the storm from the night of the escape: slanting rain moving with the camera, a darker world and a soft flash of lightning now and then outdoors (the hearts and items stay clear). A switch in ⚙ Settings next to 🌫️ Fog, and a crowd effect, **Rain** (45 s; also one of Trick or treat's tricks). Not where the game already rains (the escape night, Misery Mire).

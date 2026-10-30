@@ -10,6 +10,8 @@
  *   the crowd effect "rain" (crowd/effects.js): RandoRain.crowd(true / false)
  * Only while Link is playing (dungeon or overworld), not in menus or maps, and
  * not where the game already rains (the escape night, Misery Mire's swamp).
+ * "Fog & rain: outdoors only" (on by default) keeps both out of houses, caves
+ * and dungeons; the crowd effects follow it too (they show once Link is out).
  */
 (function () {
   'use strict';
@@ -17,6 +19,8 @@
   var setting = false, crowdOn = false;
   try { setting = localStorage.getItem(KEY) === '1'; } catch (e) {}
   var W = 256, H = 224, T = 128;
+  // shared with rain.js: "Fog & rain: outdoors only" (⚙ Settings, on by default)
+  var WX = window.RandoWeather = window.RandoWeather || { outdoorsOnly: (function () { try { return localStorage.getItem('rhb-weather-outdoors') !== '0'; } catch (e) { return true; } })() };
 
   // A tileable 128 x 128 sheet of rain: short slanted streaks, a lighter head
   // and a fainter tail, two weights.
@@ -71,7 +75,7 @@
     // rescued, $7EF3C5 < 2) and Misery Mire's swamp (area $70)
     var ownRain = !indoors && (r[0xF3C5] < 2 && r[0x8A] < 0x40 || r[0x8A] === 0x70);
     var g = ensureCanvas(); if (!g) return;
-    fade = Math.max(0, Math.min(1, fade + (want && playing && !ownRain ? 0.03 : -0.05)));
+    fade = Math.max(0, Math.min(1, fade + (want && playing && !ownRain && !(indoors && WX.outdoorsOnly) ? 0.03 : -0.05)));
     g.clearRect(0, 0, W, H);
     if (!fade) return;
     if (!near) { near = sheet(11, 70, 7); far = sheet(29, 110, 4); }
@@ -110,9 +114,16 @@
     if (after && after.parentNode === panel) panel.insertBefore(lab, after.nextSibling); else panel.appendChild(lab);
     var cb = lab.querySelector('input'); cb.checked = setting;
     cb.addEventListener('change', function () { set(cb.checked); });
+    // and one switch for both: no fog or rain indoors (houses, caves, dungeons)
+    var lab2 = document.createElement('label'); lab2.className = 'ctl';
+    lab2.title = 'Fog and rain only out in the world, not in houses, caves or dungeons. Applies to the crowd effects too.';
+    lab2.innerHTML = 'Fog & rain: outdoors only <span><input type="checkbox" id="weather-outdoors"></span>';
+    panel.insertBefore(lab2, lab.nextSibling);
+    var cb2 = lab2.querySelector('input'); cb2.checked = WX.outdoorsOnly;
+    cb2.addEventListener('change', function () { WX.outdoorsOnly = cb2.checked; try { localStorage.setItem('rhb-weather-outdoors', cb2.checked ? '1' : '0'); } catch (e) {} });
   }
   function set(v) { setting = !!v; try { localStorage.setItem(KEY, setting ? '1' : '0'); } catch (e) {} var cb = document.getElementById('rain-deco'); if (cb) cb.checked = setting; }
   function init() { settings(); var n = 0, iv = setInterval(function () { settings(); if (document.getElementById('rain-deco') || ++n > 50) clearInterval(iv); }, 200); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
-  window.RandoRain = { set: set, crowd: function (v) { crowdOn = !!v; }, get on() { return setting || crowdOn; } };
+  window.RandoRain = { outdoorsOnly: function (v) { WX.outdoorsOnly = !!v; var cb = document.getElementById('weather-outdoors'); if (cb) cb.checked = WX.outdoorsOnly; try { localStorage.setItem('rhb-weather-outdoors', WX.outdoorsOnly ? '1' : '0'); } catch (e) {} }, set: set, crowd: function (v) { crowdOn = !!v; }, get on() { return setting || crowdOn; } };
 })();
