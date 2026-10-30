@@ -1098,6 +1098,9 @@
     fog:           { name: 'Fog', good: false, secs: 45,   // fog.js: Lost Woods mist over the whole game
       start: function () { if (typeof window !== 'undefined' && window.RandoFog) window.RandoFog.crowd(true); },
       end: function () { if (typeof window !== 'undefined' && window.RandoFog) window.RandoFog.crowd(false); } },
+    rain:          { name: 'Rain', good: false, secs: 45,  // rain.js: the escape night's storm
+      start: function () { if (typeof window !== 'undefined' && window.RandoRain) window.RandoRain.crowd(true); },
+      end: function () { if (typeof window !== 'undefined' && window.RandoRain) window.RandoRain.crowd(false); } },
     ghost_link:    Object.assign({ name: 'Ghost Link', good: true, secs: 60 }, linkTint('ghost_link')),
     pumpkin_link:  Object.assign({ name: 'Pumpkin Link', good: true, secs: 60 }, linkTint('pumpkin_link')),
     haunted_lights: { name: 'Haunted lights', good: false, secs: 20, frame: hauntFrame, end: hauntEnd },
@@ -1114,7 +1117,7 @@
       app: function (job) {
         var treat = Math.random() < 0.5;
         var list = treat ? ['heal_full', 'rupees_plus', 'bombs_plus', 'arrows_plus', 'magic_full', 'fairy', 'pumpkin_link']
-          : ['hurt_2', 'rupees_minus', 'magic_drain', 'spooky_monster', 'haunted_lights', 'spooky_night', 'ghost_link', 'blood_drip', 'spider_web', 'monster_mash', 'fog'];
+          : ['hurt_2', 'rupees_minus', 'magic_drain', 'spooky_monster', 'haunted_lights', 'spooky_night', 'ghost_link', 'blood_drip', 'spider_web', 'monster_mash', 'fog', 'rain'];
         var pick = list[Math.floor(Math.random() * list.length)];
         feed((job.user ? job.user + ': ' : '') + (treat ? '🍬 TREAT! ' : '🎃 TRICK! ') + EFFECTS[pick].name, treat ? 'good' : 'bad');
         trigger(pick, job.user, treat ? 'Treat!' : 'Trick!');

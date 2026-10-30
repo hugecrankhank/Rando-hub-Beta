@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.56 (2026-10-30)
+
+- Zelda 3: **🌧️ Rain**, the storm from the night of the escape: slanting rain moving with the camera, a darker world and a soft flash of lightning now and then outdoors (the hearts and items stay clear). A switch in ⚙ Settings next to 🌫️ Fog, and a crowd effect, **Rain** (45 s; also one of Trick or treat's tricks). Not where the game already rains (the escape night, Misery Mire).
+
 ## Beta v1.14.55 (2026-10-30)
 
 - Zelda 3: **🌫️ Fog**, mist like the Lost Woods' drifting over the whole game and moving with the camera (the hearts and items stay clear). A switch in ⚙ Settings next to 🎃 Halloween decorations, and a crowd effect, **Fog** (45 s; also one of Trick or treat's tricks). Not in the Lost Woods or Skull Woods, which have their own.
