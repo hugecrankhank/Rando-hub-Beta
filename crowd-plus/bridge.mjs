@@ -332,7 +332,7 @@ const effectNames = {
   insta_kill: 'Instant death', ice: 'Ice physics', cucco_storm: 'Cucco attack', invert: 'Inverted D-pad',
   no_sword: 'No sword', no_item: 'No Y item', swap_by: 'B and Y swapped', one_hit: 'One-hit KO',
   no_magic: 'Magic locked', shield_off: 'Shield gone', shield_steal: 'Shield stolen', shield_down: 'Shield downgrade', shield_up: 'Shield upgrade',
-  sword_off: 'Sword gone', sword_down: 'Sword downgrade', master_sword: 'Master Sword', sword_up: 'Sword upgrade', sword_steal: 'Sword stolen', item_off: 'Item gone (random item)', tunic_up: 'Tunic upgrade', tunic_down: 'Tunic downgrade', heart_add: '+1 heart container', heart_remove: '-1 heart container',
+  sword_off: 'Sword gone', sword_down: 'Sword downgrade', master_sword: 'Master Sword', master_lock: 'Master Sword lock', master_unlock: 'Master Sword unlock', sword_up: 'Sword upgrade', sword_steal: 'Sword stolen', item_off: 'Item gone (random item)', tunic_up: 'Tunic upgrade', tunic_down: 'Tunic downgrade', heart_add: '+1 heart container', heart_remove: '-1 heart container',
   sprite_roll: 'Random sprite', sprite_fav: 'Random favourite sprite',
   msu_roll: 'Random MSU pack', seed_roll: 'New seed (same settings)', seed_preset: 'Random preset seed', seed_chaos: 'CHAOS seed',
   mirror: 'Mirror mode', upside_down: 'Upside down', wobble: 'Drunk wobble', tiny: 'Tiny screen', crt: 'Retro CRT',
@@ -350,6 +350,7 @@ const effectNames = {
 };
 // Effects that can hurt a run for good: the panel asks before one goes on a gift.
 const effectWarnings = {
+  master_lock: 'Master Sword lock holds the sword at the Master Sword for good: swords Link finds in the game are lost (only a Sword upgrade effect moves it up). A sword is never taken away, so the seed stays beatable.',
   sword_steal: 'Sword stolen can make the seed unbeatable. If every sword has already been found, there is none left to get it back, and Agahnim\'s barrier and Ganon both need a sword. The next sword found also only gives the Fighter\'s Sword.',
 };
 const defaultSecs = { ice: 20, cucco_storm: 30, invert: 20, no_sword: 20, no_item: 20, swap_by: 20, one_hit: 30, no_magic: 30, shield_off: 30, sword_off: 30, sword_down: 30, master_sword: 30, item_off: 30,

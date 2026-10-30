@@ -71,6 +71,7 @@ even unmapped ones, with a one-click "add".
 | `tunic_up` / `tunic_down` | Tunic one step better / worse (green, blue, red mail), colors and all |
 | `sword_up` | Sword one step better (Fighter's, Master, Tempered, Golden) | | `sword_down` | Sword downgrade, 30 s: one step worse, then back |
 | | | | `master_sword` | Master Sword, 30 s: exactly the Master Sword whatever Link has (a gift with less, a curse with more), then his own sword back |
+| `master_lock` / `master_unlock` | ⚠ Master Sword lock: the Master Sword for good. Swords found in the game are swallowed; only `sword_up` moves it (the lock moves with it); `sword_steal` takes the lock with the sword. Unlock lets go | | | |
 | | | | `item_off` | Item gone, 30 s: a random item Link has (any item-menu item, all bottles as one, gloves, boots, flippers or Moon Pearl) is gone, then back. Y does nothing while it's the equipped one |
 | `sword_steal` | ⚠ Sword stolen: gone until Link finds another. **Can make a seed unbeatable** (no sword left to find); Crowd Control+ asks before it's put on a gift | | | |
 | `seed_preset` / `seed_chaos` | Random preset / CHAOS seed (see below) | | | |

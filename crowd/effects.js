@@ -877,6 +877,23 @@
   function loanSave(kind) { var v = loans[kind]; try { if (v) localStorage.setItem(LOAN_KEYS[kind], JSON.stringify(v)); else localStorage.removeItem(LOAN_KEYS[kind]); } catch (e) {} }
   var loans = { shield: loanRead('shield'), sword: loanRead('sword') };
   function lent(kind) { var l = loans[kind]; return l && l.rom === romId() ? l : null; }
+  // "Master Sword lock": the sword is held at a level for good (the Master
+  // Sword to begin with). A sword found in the game is swallowed (the game
+  // adds its level, the lock takes it back the same frame); only a crowd
+  // "Sword upgrade" moves it, and the lock moves with it. The timed sword
+  // effects still lend it out on top and give the locked level back. Kept
+  // in this browser with the ROM, like the loans.
+  var LOCK_KEY = 'rhb-sword-lock', swordLock = null;
+  try { swordLock = JSON.parse(localStorage.getItem(LOCK_KEY) || 'null'); } catch (e) {}
+  function lockSave() { try { if (swordLock) localStorage.setItem(LOCK_KEY, JSON.stringify(swordLock)); else localStorage.removeItem(LOCK_KEY); } catch (e) {} }
+  function locked() { return swordLock && swordLock.rom === romId() ? swordLock : null; }
+  function setLock(r, lvl) {
+    swordLock = lvl ? { rom: romId(), lvl: lvl } : null; lockSave();
+    if (!lvl) return;
+    var l = lent('sword');
+    if (l) { l.lvl = lvl; loanSave('sword'); gearFrame('sword', r); }
+    else setGear('sword', r, lvl);
+  }
   function heldNow(kind, l) {
     if (kind === 'shield') return active.shield_off ? 0 : -1;
     if (active.sword_off) return 0;
@@ -885,10 +902,13 @@
     return -1;   // nothing holding it: give it back
   }
   function gearFrame(kind, r) {
-    var l = loans[kind]; if (!l) return;
-    if (l.rom !== romId()) return;   // another game: kept for when that seed's back
-    var G = GEAR[kind], v = r[G.addr];
-    if (v > l.held && v <= G.max) { l.lvl = Math.min(G.max, Math.max(l.held <= l.lvl ? v : 0, l.lvl + v - l.held)); }   // found one meanwhile
+    var lock = kind === 'sword' ? locked() : null, G = GEAR[kind], v = r[G.addr];
+    var l = loans[kind];
+    if (!l || l.rom !== romId()) {   // (a loan from another game is kept for when that seed's back)
+      if (lock && v !== lock.lvl && v <= G.max) setGear(kind, r, lock.lvl);   // a found sword, swallowed
+      return;
+    }
+    if (v > l.held && v <= G.max && !lock) { l.lvl = Math.min(G.max, Math.max(l.held <= l.lvl ? v : 0, l.lvl + v - l.held)); }   // found one meanwhile
     var want = heldNow(kind, l);
     if (want < 0) { loans[kind] = null; loanSave(kind); setGear(kind, r, l.lvl); return; }   // (one found meanwhile is already in lvl)
     if (v !== want) setGear(kind, r, want);
@@ -902,10 +922,11 @@
   function giveBack(kind) { var c = core(), r = c && c.wram(); if (r && r.length >= 0x20000) gearFrame(kind, r); }
   // permanent changes while some is lent change what comes back
   function gearStep(kind, r, d, min) {
-    var G = GEAR[kind], l = lent(kind), cur = l ? l.lvl : r[G.addr];
+    var G = GEAR[kind], l = lent(kind), lock = kind === 'sword' ? locked() : null, cur = l ? l.lvl : r[G.addr];
     if (cur > G.max) return 'swordless seed';
     if (d < 0 && cur <= min) return cur ? 'Link only has ' + G.names[cur] : 'Link has no ' + kind;
     if (d > 0 && cur >= G.max) return 'Link already has ' + G.names[G.max];
+    if (lock) { swordLock.lvl = cur + d; lockSave(); }   // the lock moves with it
     if (l) { l.lvl = cur + d; loanSave(kind); gearFrame(kind, r); return; }
     setGear(kind, r, cur + d);
   }
@@ -913,6 +934,7 @@
     var l = lent(kind);
     if (!l && !gearHas(kind, r)) return r[GEAR[kind].addr] > GEAR[kind].max ? 'swordless seed' : 'Link has no ' + kind;
     if (l) { loans[kind] = null; loanSave(kind); ['shield_off', 'sword_off', 'sword_down', 'master_sword'].forEach(function (id) { if (id.indexOf(kind) >= 0) delete active[id]; }); }
+    if (kind === 'sword' && locked()) { swordLock = null; lockSave(); }   // stolen is stolen
     r[GEAR[kind].addr] = 0;
   }
   function gearCheck(kind) { return function (r) { return gearHas(kind, r) || lent(kind) ? '' : r[GEAR[kind].addr] > GEAR[kind].max ? 'swordless seed' : 'Link has no ' + kind; }; }
@@ -1219,6 +1241,14 @@
       check: function (r) { var l = lent('sword'), v = l ? l.lvl : r[SWORD]; return v > 4 ? 'swordless seed' : v >= 2 ? '' : v ? 'Link only has the Fighter\'s Sword' : 'Link has no sword'; },
       start: function () { lend('sword'); }, end: function () { giveBack('sword'); } },
     sword_up:    { name: 'Sword upgrade', good: true, apply: function (r) { return gearStep('sword', r, 1); } },
+    // The lock: the Master Sword for good. Swords found in the game are
+    // swallowed; only Sword upgrade moves it (and the lock with it). Sword
+    // stolen takes the lock away with the sword. Master Sword unlock lets go.
+    master_lock: { name: 'Master Sword lock', good: false,
+      apply: function (r) { var l = lent('sword'), v = l ? l.lvl : r[SWORD]; if (v > 4) return 'swordless seed'; if (locked()) return 'already locked (at ' + GEAR.sword.names[locked().lvl] + ')'; setLock(r, 2); },
+      warn: 'Master Sword lock holds the sword at the Master Sword for good: swords Link finds in the game are lost (only a Sword upgrade effect moves it up). A sword is never taken away, so the seed stays beatable.' },
+    master_unlock: { name: 'Master Sword unlock', good: true,
+      apply: function (r) { if (!locked()) return 'the sword isn\'t locked'; setLock(r, 0); } },
     // Exactly the Master Sword for a while, whatever Link has: early in a
     // seed it's a gift, late it's a curse. His own sword comes back at the
     // end (one found meanwhile counts), so a seed is never left unbeatable.

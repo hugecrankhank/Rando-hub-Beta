@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.63 (2026-10-30)
+
+- **Zelda 3 crowd effects: Master Sword lock / unlock** (`master_lock`, `master_unlock`, permanent). The lock puts the Master Sword in Link's hands and keeps it there: swords he finds in the game are swallowed (the pickup is spent, the sword stays the Master Sword), and only a crowd **Sword upgrade** moves it up, the lock moving with it. The timed sword effects (Sword gone, Sword downgrade, Master Sword) still lend it out on top and give the locked level back. Sword stolen takes the lock with the sword; unlock lets go. Kept in this browser with the ROM, like the sword loans, so a reload keeps it. Crowd Control+ shows a warning before it goes on a gift.
+
 ## Beta v1.14.62 (2026-10-30)
 
 - **Zelda 3 crowd effect: Master Sword** (`master_sword`, 30 s). Link holds exactly the Master Sword for the time, whatever he has: with no sword or the Fighter's it's a gift, with the Tempered or Golden it's a curse. His own sword comes back at the end (one found meanwhile counts, as with the other sword loans), so a seed is never left unbeatable. Does nothing when he already has the Master Sword; the gift card shows it green or red by which it was.
