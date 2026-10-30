@@ -1132,6 +1132,8 @@
   window.Z1Tracker = {
     // Where a level's entrance is on the overworld, for this file's quest:
     // { s: screen, col, row: the square Link comes out on } or null.
+    // The overworld screen a file starts on (the seed's LevelInfo $2F).
+    startRoom() { return ow ? ow.startRoom : null; },
     levelEntrance(n) {
       if (!ow) return null;
       for (let sc = 0; sc < 128; sc++) {

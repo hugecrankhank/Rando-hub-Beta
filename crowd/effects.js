@@ -631,8 +631,8 @@
   // room after 10 s → in through the Eastern Palace lobby instead; still
   // nowhere after 25 s → the save state comes back and Link is where he was.
   var warpWatch = null;
-  function warpDungeon(r) {
-    var pick = DUNGEON_ENTRANCES[Math.floor(Math.random() * DUNGEON_ENTRANCES.length)];
+  function warpDungeon(r, to) {
+    var pick = to || DUNGEON_ENTRANCES[Math.floor(Math.random() * DUNGEON_ENTRANCES.length)];
     var c = core(), snap = null;
     try { snap = c && c.saveState(); } catch (e) { snap = null; }
     if (r[0x1B]) {   // indoors: save this dungeon's keys like leaving it would (SaveDungeonKeys)
@@ -662,15 +662,35 @@
       feed('The warp to ' + w.name + ' got stuck (and the game couldn\u2019t be put back). Try ⋯ → Restart if Link is frozen.', 'info');
     }
   }
+  // Home: the flute bird drops Link at his front door (flute spot 4, index 3:
+  // area $2C). The bird only flies outdoors in the Light World, so anywhere
+  // else Home waits, and the bird comes the moment Link is back out there.
+  // (Dropping him inside the house through its entrance doesn't work: the
+  // house only loads properly through its own door.)
+  var HOME_SPOT = 3, homePending = false;
+  function warpHome(r) {
+    if (canFlute(r)) { homePending = false; warpFlute(r, HOME_SPOT); lastWarp = 'Link\u2019s house'; return true; }
+    homePending = true;
+    feed('Home: the bird will take Link home as soon as he\u2019s outside in the Light World', 'info');
+    return true;
+  }
+  function homeFrame(r) {
+    if (!homePending || fluteWarp || warpWatch || detour) return;
+    if (canFlute(r) && r[0x11] === 0 && warpReady(r)) { homePending = false; warpFlute(r, HOME_SPOT); feed('Home: here comes the bird', 'info'); }
+  }
+  // Jail: Link is locked in a cell (jail.js draws the bars) and can't walk or
+  // dash; sword, items and the shield still work. Starts once he's standing.
+  function jailShow(v) { if (typeof window !== 'undefined' && window.RandoJail) window.RandoJail.show(v, 3); }
+
   // Flute: open the game's own flute menu (Module $0E.0A, as the bird does),
   // choose a random spot for the player, and let the bird carry Link there.
   // Only outdoors in the Light World, where the flute works.
   var fluteWarp = null;
   function canFlute(r) { return r[A.MODE] === 0x09 && r[0x8A] < 0x40; }
-  function warpFlute(r) {
+  function warpFlute(r, spot) {
     if (!canFlute(r)) return warpDungeon(r) && 'flute only works outside in the Light World, so: ' + lastWarp;
     r[0x10C] = 0x09; r[0x10] = 0x0E; r[0x11] = 0x0A; r[0x200] = 0; r[0xC8] = 0; r[0xB0] = 0;
-    fluteWarp = { spot: Math.floor(Math.random() * 8), frames: 0 };
+    fluteWarp = { spot: spot == null ? Math.floor(Math.random() * 8) : spot, frames: 0 };
     lastWarp = 'flute spot ' + (fluteWarp.spot + 1);
     return true;
   }
@@ -1049,6 +1069,11 @@
       apply: function (r) { return warpDungeon(r); } },
     warp_flute:  { name: 'Flute warp (random spot)', good: false, defer: function (r) { return !warpReady(r); },
       apply: function (r) { return warpFlute(r); } },
+    home:        { name: 'Home', good: false, defer: function (r) { return !warpReady(r); },
+      apply: function (r) { return warpHome(r); } },
+    jail:        { name: 'Jail', good: false, secs: 20, defer: function (r) { return !warpReady(r); },
+      input: function (p) { return p & ~(B.UP | B.DOWN | B.LEFT | B.RIGHT | (1 << 8)); },   // no walking, no dash (A)
+      frame: function () { jailShow(true); }, end: function () { jailShow(false); } },
     warp_random: { name: 'Random warp (flute spot or dungeon)', good: false, defer: function (r) { return !warpReady(r); },
       apply: function (r) { return canFlute(r) && Math.random() < 0.5 ? warpFlute(r) : warpDungeon(r); } },
 
@@ -1602,6 +1627,7 @@
     holdSwitches(core, ram);
     try { if (detour) detourFrame(core, ram); else sendRun(ram); } catch (e) { console.warn('[crowd] detour', e); }
     if (fluteWarp) fluteFrame(ram);
+    if (homePending) homeFrame(ram);
     if (warpWatch) { try { warpFrame(core, ram); } catch (e) { console.warn('[crowd] warp', e); } }
     if (crowdFollower) { try { followerFrame(ram); } catch (e) { console.warn('[crowd] follower', e); } }
     // say why effects are waiting, once, if they wait more than ~4 s

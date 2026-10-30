@@ -135,15 +135,28 @@
   // The entrance comes from the seed's map (Z1Tracker), so shuffles work.
   var OW_ROOM_BACK = 0x526, START_ROOM = 0x0B7E + 0x2F;
   var warpJob = null;
+  // Frames Link has been in normal play in a row. Effects and warps wait for
+  // half a second of it after any screen change: a warp on the first frame in
+  // a new level, while the game is still sending its graphics, left the next
+  // screen drawn with the level's tiles (Oct 2026).
+  var steady = 0, STEADY = 30;
   function warpTo(r, level, inside) {
     if (warpJob) return 'Already warping';
     if (!fileLoaded(r) || [PLAY, 0x09, CAVE].indexOf(r[A.MODE]) < 0) return 'Link isn\u2019t out in the world, a dungeon or a cave';
-    var e = root.Z1Tracker && root.Z1Tracker.levelEntrance ? root.Z1Tracker.levelEntrance(level) : null;
-    if (!inside && !e) return 'Level ' + level + '\u2019s entrance isn\u2019t known (open a ROM file or seed first)';
+    if (steady < STEADY) return 'Just a moment: the screen is still loading';
+    var e = level === 0 ? homeSpot()
+      : root.Z1Tracker && root.Z1Tracker.levelEntrance ? root.Z1Tracker.levelEntrance(level) : null;
+    if (!inside && !e) return level === 0 ? 'The start screen isn\u2019t known (open a ROM file or seed first)' : 'Level ' + level + '\u2019s entrance isn\u2019t known (open a ROM file or seed first)';
     r[0x11] = 0; r[0x13] = 0; r[0xE1] = 0;          // end the mode, close the item screen
     if (inside) { if (e) r[OW_ROOM_BACK] = e.s; r[A.LEVEL] = level; }
     else { r[A.LEVEL] = 0; r[OW_ROOM_BACK] = e.s; warpJob = { e: e, st: 0, t: 0 }; }   // from a level the game goes back to $526
     r[A.MODE] = 0x02;
+  }
+  // Home: the screen the file starts on, where Link stands at the start
+  // (x 120, y 141: square 7, row 5). Its open ground is used, as for a door.
+  function homeSpot() {
+    var s = root.Z1Tracker && root.Z1Tracker.startRoom ? root.Z1Tracker.startRoom() : null;
+    return s == null ? null : { s: s, col: 7, row: 4 };
   }
   function warpFrame(c, r) {
     if (!warpJob) return;
@@ -152,6 +165,7 @@
     else if (warpJob.st === 1 && r[A.MODE] === PLAY) {
       var sq = openSquare(c.sram && c.sram(), warpJob.e.col, warpJob.e.row);
       r[0x70] = sq.col * 16; r[0x84] = sq.row * 16 + 0x3D;
+      r[O.SHOVE_DIR] = 0; r[O.SHOVE_DIST] = 0; r[O.STATE] = 0;   // nothing left pushing him (he'd walk into the door)
       r[OW_ROOM_BACK] = warpJob.e.s;
       warpJob = null;
     }
@@ -310,6 +324,12 @@
     warp_6:      { name: 'Whirlwind: Level 6', good: false, apply: function (r) { return whirlwind(r, 5); } },
     warp_7:      { name: 'Whirlwind: Level 7', good: false, apply: function (r) { return whirlwind(r, 6); } },
     warp_8:      { name: 'Whirlwind: Level 8', good: false, apply: function (r) { return whirlwind(r, 7); } },
+    home:        { name: 'Home', good: false, apply: function (r) { return warpTo(r, 0, false); } },
+    // Jail (jail.js draws the bars): no walking; the sword and the item still work
+    jail:        { name: 'Jail', good: false, secs: 20,
+      input: function (p) { return p & ~(B.UP | B.DOWN | B.LEFT | B.RIGHT); },
+      frame: function () { if (root.RandoJail) root.RandoJail.show(true, 3); },
+      end: function () { if (root.RandoJail) root.RandoJail.show(false); } },
     warp_9:      { name: 'Warp: Level 9 entrance', good: false, apply: function (r) { return warpTo(r, 9, false); } },
     warp_9_in:   { name: 'Warp: inside Level 9', good: false, apply: function (r) { return warpTo(r, 9, true); } },
 
@@ -441,6 +461,7 @@
   function onFrameInner(c) {
     var ram = c.wram();
     warpFrame(c, ram);
+    steady = fileLoaded(ram) && [PLAY, 0x09, CAVE].indexOf(ram[A.MODE]) >= 0 ? steady + 1 : 0;
     sendRun(ram);
     if (crowdBoss) { try { bossFrame(ram); } catch (e) { console.warn('[crowd] boss', e); } }
     var playing = inPlay(ram);
@@ -454,6 +475,7 @@
       if (--active[id] <= 0) { delete active[id]; if (f.end) { try { f.end(); } catch (e) {} } feed(f.name + ' ended', 'end'); render(); }
     }
     if (gap > 0) { gap--; return; }
+    if (steady < STEADY) return;
     var job = queue.shift();
     if (!job) return;
     note('running ' + job.id);
@@ -739,6 +761,7 @@
     get queue() { return queue.slice(); }, get active() { return Object.assign({}, active); },
     get status() { return status; },
     get recent() { return hist.slice(); },
+    get steady() { return steady; },
     _onFrame: onFrame, _onInput: onInput, warpTo: function (level, inside) { var c = core(); return c ? warpTo(c.wram(), level, !!inside) : 'no game'; },
   };
   if (!install()) {

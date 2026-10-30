@@ -5,6 +5,13 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.58 (2026-10-30)
+
+- Crowd effects **Home** and **Jail** (from Kuba's Ocarina of Time stream), Zelda 3 and Zelda 1:
+  - **Home**: Zelda 3, the flute bird drops Link at his front door. It only flies outside in the Light World, so anywhere else it comes for him the moment he's back out there. Zelda 1: back to the start screen, from anywhere.
+  - **Jail** (20 s): iron bars slam down around Link where he stands; he can't walk (or dash), but the sword, items and shield still work.
+- Zelda 1: effects and warps wait half a second after a screen change, so a warp sent as Link walks into a level no longer leaves the next screen drawn with the level's tiles.
+
 ## Beta v1.14.57 (2026-10-30)
 
 - Zelda 3: **Fog & rain: outdoors only** in ⚙ Settings (on by default): no fog or rain inside houses, caves or dungeons. The crowd effects follow it too. Turn it off to have them everywhere.

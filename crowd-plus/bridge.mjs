@@ -327,6 +327,7 @@ const effectNames = {
   magic_full: 'Refill magic', magic_drain: 'Drain magic', rupees_plus: '+50 rupees', rupees_minus: '-50 rupees',
   bombs_plus: '+10 bombs', bombs_none: 'Lose all bombs', arrows_plus: '+10 arrows', arrows_none: 'Lose all arrows',
   enemy_spawn: 'Extra enemy', enemy_random: 'Random enemy', enemy_any: 'Any enemy (loads its graphics)', magic_small: 'Small magic refill',
+  home: 'Home', jail: 'Jail',
   warp_dungeon: 'Warp to a random dungeon', warp_flute: 'Flute warp (random spot)', warp_random: 'Random warp (flute spot or dungeon)',
   insta_kill: 'Instant death', ice: 'Ice physics', cucco_storm: 'Cucco attack', invert: 'Inverted D-pad',
   no_sword: 'No sword', no_item: 'No Y item', swap_by: 'B and Y swapped', one_hit: 'One-hit KO',
@@ -353,7 +354,7 @@ const effectWarnings = {
 };
 const defaultSecs = { ice: 20, cucco_storm: 30, invert: 20, no_sword: 20, no_item: 20, swap_by: 20, one_hit: 30, no_magic: 30, shield_off: 30, sword_off: 30, sword_down: 30, item_off: 30,
   mirror: 20, upside_down: 15, wobble: 20, tiny: 20, crt: 30, speed_up: 20, slow_mo: 15, freeze: 3, pink_link: 60,
-  boss_ganon: 60, boss_aga: 60, boss_random: 60, spooky_night: 45, fog: 45, rain: 45, ghost_link: 60, pumpkin_link: 60, haunted_lights: 20, lights_on: 60, lights_out: 30, blood_drip: 20, spider_web: 30 };
+  boss_ganon: 60, boss_aga: 60, boss_random: 60, spooky_night: 45, jail: 20, fog: 45, rain: 45, ghost_link: 60, pumpkin_link: 60, haunted_lights: 20, lights_on: 60, lights_out: 30, blood_drip: 20, spider_web: 30 };
 
 function tickerData() {
   const t = cfg.ticker || {};
