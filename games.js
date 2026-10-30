@@ -23,6 +23,7 @@
   var Z1_URL = 'z1r/';
   var GLR_URL = 'glr/';   // The Guardian Legend: picked by hand only, never by a reroll or Crowd Control
   var FF6_URL = 'ff6wc/'; // FF6 Worlds Collide: the same
+  var SMRPG_URL = 'smrpg/'; // Super Mario RPG: the same
   var FFR_URLS = { ff1: 'ffr/ff1/', ff4: 'ffr/ff4/', ff5: 'ffr/ff5/' };   // FF1R, Free Enterprise, Career Day: played here, rolled on their own sites
 
   // Which games a reroll may land on: roll-games.js (RandoRoll), ticked in the Game row.
@@ -35,7 +36,7 @@
   function pickZ1() { return pickOther() === 'z1'; }
   function goZ1(by, mode) { goTo('z1', by, mode); }
 
-  window.RandoGames = { either: either, pickOther: pickOther, goTo: goTo, pickZ1: pickZ1, goZ1: goZ1, Z1_URL: Z1_URL, GLR_URL: GLR_URL, FF6_URL: FF6_URL, FFR_URLS: FFR_URLS };
+  window.RandoGames = { either: either, pickOther: pickOther, goTo: goTo, pickZ1: pickZ1, goZ1: goZ1, Z1_URL: Z1_URL, GLR_URL: GLR_URL, FF6_URL: FF6_URL, SMRPG_URL: SMRPG_URL, FFR_URLS: FFR_URLS };
 
   // ── the 🎲 Reroll button: maybe Zelda 1 instead ───────────────────────────
   // Runs before reroll.js's own click handler (capture phase on the document).
@@ -72,6 +73,7 @@
       '<a data-game="z1" href="' + Z1_URL + '" title="Zelda 1 randomizer (Z1R): roll, play and track Zelda 1 seeds">Zelda 1 ▸</a>' +
       '<a data-game="glr" href="' + GLR_URL + '" title="The Guardian Legend randomizer (GLR): roll, play and track its seeds">Guardian Legend ▸</a>' +
       '<a data-game="ff6" href="' + FF6_URL + '" title="Final Fantasy VI: Worlds Collide: roll, play and track its seeds (characters, espers, checks)">FF6 ▸</a>' +
+      '<a data-game="smrpg" href="' + SMRPG_URL + '" title="Super Mario RPG: Open World Randomizer: roll, play and track its seeds (Star Pieces, key items, bosses)">SMRPG ▸</a>' +
       '<a data-game="ff1" href="' + FFR_URLS.ff1 + '" title="Final Fantasy Randomizer (FF1): roll on its site, play and track here">FF1 ▸</a>' +
       '<a data-game="ff4" href="' + FFR_URLS.ff4 + '" title="FF4 Free Enterprise: roll on its site, play and track here (key items, characters, bosses, objectives)">FF4 ▸</a>' +
       '<a data-game="ff5" href="' + FFR_URLS.ff5 + '" title="FF5 Career Day: roll on its site, play and track here (key items, jobs, checks)">FF5 ▸</a>' +

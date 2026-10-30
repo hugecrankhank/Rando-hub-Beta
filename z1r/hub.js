@@ -104,6 +104,11 @@
       if (fsel.options.length < 2) fsel.hidden = true;
       fsel.addEventListener('change', function () { if (fsel.value) location.href = fsel.value; });
       newSeed.parentNode.insertBefore(fsel, newSeed);
+      var sm = document.createElement('a');
+      sm.className = 'btn'; sm.id = 'hub-smrpg'; sm.href = HUB + 'smrpg/'; sm.dataset.game = 'smrpg';
+      sm.textContent = 'SMRPG'; sm.title = 'Super Mario RPG: Open World Randomizer';
+      sm.style.textDecoration = 'none';
+      newSeed.parentNode.insertBefore(sm, newSeed);
       var pt = document.createElement('a');
       pt.className = 'btn'; pt.id = 'hub-patched'; pt.href = HUB + 'patched/';
       pt.textContent = 'Patched'; pt.title = 'Patched games: NES and SNES ROM hacks on these emulators';
@@ -111,7 +116,7 @@
       newSeed.parentNode.insertBefore(pt, newSeed);
       if (R) R.applyShown(newSeed.parentNode);
       // phones: one "Games ▾" menu instead of the row of links, so New seed stays on screen
-      if (R) newSeed.parentNode.insertBefore(R.gamesMenu('z1r/', ['hub-back', 'hub-glr', 'hub-ff', 'hub-patched'], [{ id: 'hub-reroll', label: '🎲 Reroll' }, { id: 'z1-timer', label: '⏱ Timer' }, { id: 'z1t-btn', label: '🎯 Training' }]), newSeed);
+      if (R) newSeed.parentNode.insertBefore(R.gamesMenu('z1r/', ['hub-back', 'hub-glr', 'hub-ff', 'hub-smrpg', 'hub-patched'], [{ id: 'hub-reroll', label: '🎲 Reroll' }, { id: 'z1-timer', label: '⏱ Timer' }, { id: 'z1t-btn', label: '🎯 Training' }]), newSeed);
       var rr = document.createElement('button');
       rr.className = 'btn'; rr.id = 'hub-reroll'; rr.type = 'button';
       rr.innerHTML = '🎲<span class="hub-short"> Reroll</span>';

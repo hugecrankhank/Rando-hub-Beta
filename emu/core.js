@@ -8,6 +8,7 @@
  *   core.frame()  -> { w, h, data: Uint16Array (RGB565) }
  *   core.audio()  -> Int16Array interleaved stereo (view, copy if kept)
  *   core.wram()   -> Uint8Array view of live 128 KB WRAM
+ *   core.sram() / core.rom() / core.iram() (SA-1 games) the same
  */
 (function (root) {
   'use strict';
@@ -100,6 +101,7 @@
     wram() { return this.region(0); },
     sram() { return this.region(1); },
     rom() { return this.region(2); },
+    iram() { return this.region(3); },   // the SA-1's I-RAM (2 KB), empty for other games
     saveState() {
       if (!this.x.s9x_state_save()) return null;
       const n = this.x.s9x_state_size();

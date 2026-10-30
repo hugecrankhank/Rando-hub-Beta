@@ -1,6 +1,6 @@
 /*
  * roll-games.js — which games a reroll may land on. Shared by the hub
- * (Zelda 3), Zelda 1, GLR and FF6 Worlds Collide: the games with a seed
+ * (Zelda 3), Zelda 1, GLR, FF6 Worlds Collide and Super Mario RPG: the games with a seed
  * generator in the page. (FF1, FF4 and FF5 are rolled on their own sites, so
  * a reroll can't go there.)
  *
@@ -26,6 +26,7 @@
     { id: 'z1', name: 'Zelda 1', url: 'z1r/' },
     { id: 'glr', name: 'Guardian Legend', url: 'glr/' },
     { id: 'ff6', name: 'FF6 Worlds Collide', url: 'ff6wc/' },
+    { id: 'smrpg', name: 'Super Mario RPG', url: 'smrpg/' },
   ];
   // where the hub is from this page (set by the page: '' on the hub, '../' in a game's folder)
   var base = (document.currentScript && document.currentScript.dataset.hub) || '';
@@ -33,7 +34,7 @@
   // "Games shown": which games appear in the Game row, the headers and the
   // reroll list at all (Zelda 3 always). Hidden games still work by address.
   var SHOWN_KEY = 'rando-hub-games-shown';
-  var SHOWABLE = [['z1', 'Zelda 1'], ['glr', 'Guardian Legend'], ['ff1', 'FF1 Randomizer'], ['ff4', 'FF4 Free Enterprise'], ['ff5', 'FF5 Career Day'], ['ff6', 'FF6 Worlds Collide'], ['patched', 'Patched games']];
+  var SHOWABLE = [['z1', 'Zelda 1'], ['glr', 'Guardian Legend'], ['ff1', 'FF1 Randomizer'], ['ff4', 'FF4 Free Enterprise'], ['ff5', 'FF5 Career Day'], ['ff6', 'FF6 Worlds Collide'], ['smrpg', 'Super Mario RPG'], ['patched', 'Patched games']];
   // Default: Zelda 3 and Zelda 1 only; the rest are ticked on by the player.
   function shown() {
     var s = null;
@@ -52,7 +53,7 @@
     if (!a || typeof a !== 'object') {
       var either = false;
       try { either = localStorage.getItem(LEGACY) === '1'; } catch (e) {}
-      a = { z3: true, z1: either, glr: false, ff6: false };
+      a = { z3: true, z1: either, glr: false, ff6: false, smrpg: false };
     }
     return a;
   }
@@ -85,7 +86,7 @@
 
   // All the hub's games, for the header's compact "Games ▾" menu on narrow screens
   var ALL = [['', 'Zelda 3', 'z3'], ['z1r/', 'Zelda 1', 'z1'], ['glr/', 'Guardian Legend', 'glr'], ['ffr/ff1/', 'FF1 Randomizer', 'ff1'], ['ffr/ff4/', 'FF4 Free Enterprise', 'ff4'],
-    ['ffr/ff5/', 'FF5 Career Day', 'ff5'], ['ff6wc/', 'FF6 Worlds Collide', 'ff6'], ['patched/', 'Patched games', 'patched']];
+    ['ffr/ff5/', 'FF5 Career Day', 'ff5'], ['ff6wc/', 'FF6 Worlds Collide', 'ff6'], ['smrpg/', 'Super Mario RPG', 'smrpg'], ['patched/', 'Patched games', 'patched']];
   // Returns a <select> that goes to any other game; the page shows it instead of
   // its row of link buttons when the header is too narrow for them (the ids
   // given are hidden then).

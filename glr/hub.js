@@ -29,7 +29,7 @@
 
   function init() {
     var css = document.createElement('style');
-    css.textContent = '#hub-back, #hub-z1, #hub-ff6, #hub-ff1, #hub-ff4, #hub-ff5, #hub-patched { text-decoration: none; white-space: nowrap; }';
+    css.textContent = '#hub-back, #hub-z1, #hub-ff6, #hub-ff1, #hub-ff4, #hub-ff5, #hub-smrpg, #hub-patched { text-decoration: none; white-space: nowrap; }';
     document.head.appendChild(css);
     var newSeed = document.getElementById('new-seed');
     if (newSeed) {
@@ -43,10 +43,11 @@
       if (fsel.options.length < 2) fsel.hidden = true;
       fsel.addEventListener('change', function () { if (fsel.value) location.href = fsel.value; });
       newSeed.parentNode.insertBefore(fsel, newSeed);
+      newSeed.parentNode.insertBefore(link('hub-smrpg', HUB + 'smrpg/', 'SMRPG', 'Super Mario RPG: Open World Randomizer'), newSeed).dataset.game = 'smrpg';
       newSeed.parentNode.insertBefore(link('hub-patched', HUB + 'patched/', 'Patched', 'Patched games: NES and SNES ROM hacks on these emulators'), newSeed).dataset.game = 'patched';
       var R = window.RandoRoll;
       if (R) R.applyShown(newSeed.parentNode);
-      if (R) newSeed.parentNode.insertBefore(R.gamesMenu('glr/', ['hub-back', 'hub-z1', 'hub-ff', 'hub-patched']), newSeed);
+      if (R) newSeed.parentNode.insertBefore(R.gamesMenu('glr/', ['hub-back', 'hub-z1', 'hub-ff', 'hub-smrpg', 'hub-patched']), newSeed);
       // 🎲 Reroll: a new seed with the flags you used last, or another game if the
       // hub's "Rerolls can land on" says so
       var rr = document.createElement('button');

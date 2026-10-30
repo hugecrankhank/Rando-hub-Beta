@@ -493,7 +493,7 @@ seed generator, tracker and saves, and buttons back to the others.
   seeds made by [ZORA](https://github.com/tetraly/zora) from your own Legend of Zelda
   (USA) ROM. Crowd control works there too: effects both games have keep their names,
   ALTTP-only ones are skipped. **Rerolls can land on** (tick Zelda 3, Zelda 1, Guardian
-  Legend, FF6 in the Game row) lets 🎲 Reroll and Crowd Control's random preset / CHAOS
+  Legend, FF6, SMRPG in the Game row) lets 🎲 Reroll and Crowd Control's random preset / CHAOS
   seeds pick one of the ticked games at random, so you can keep it to the Zelda series,
   or mix in Final Fantasy, as you like (*New seed (same settings)* always stays in the
   game being played). FF1, FF4 and FF5 are rolled on their own sites, so rerolls can't
@@ -508,6 +508,15 @@ seed generator, tracker and saves, and buttons back to the others.
   memory: characters, espers, the 62 checks by area, dragons, bosses, Kefka's Tower,
   plus the seed's objectives and hash. Presets: the Ultros League flags (character
   gating or open world) or any flag string from ff6worldscollide.com.
+- **Super Mario RPG: Open World Randomizer** (`smrpg/`):
+  seeds made by the [Open World Randomizer](https://github.com/Super-Mario-RPG-Randomizer/smrpg_web_randomizer)
+  itself (randomizer.smrpgspeedruns.com's generator, run in your browser with Pyodide)
+  from your own Super Mario RPG (USA) ROM, played on the hub's Snes9x (which runs the
+  game's SA-1 chip). The site's presets (Casual to Expert, Quick, the tournament and
+  bingo sets) and its whole flag list, tick by tick, or any flag string from the site.
+  The tracker reads the game: Star Pieces, key items, the party and its levels, coins;
+  bosses are ticked by hand, and the seed's spoiler (where the stars, bosses and key
+  items are) stays behind a Reveal switch.
 - **Final Fantasy Randomizer (FF1), FF4 Free Enterprise, FF5 Career Day** (`ffr/`):
   seeds are rolled on each randomizer's own site (FF1R and FE generate in your
   browser there), then played here on the hub's NES or SNES with a tracker that reads

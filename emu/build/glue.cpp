@@ -145,12 +145,15 @@ EXPORT(s9x_audio_take) unsigned s9x_audio_take(void) { unsigned n = audio_len; a
 EXPORT(s9x_sample_rate) double s9x_sample_rate(void) { return av.timing.sample_rate; }
 EXPORT(s9x_fps) double s9x_fps(void) { return av.timing.fps; }
 
-// Memory regions: 0 = WRAM (128 KB), 1 = SRAM, 2 = ROM
+// Memory regions: 0 = WRAM (128 KB), 1 = SRAM (for an SA-1 game, its BW-RAM),
+// 2 = ROM, 3 = the SA-1's I-RAM (2 KB, $00:3000-$37FF: Super Mario RPG keeps
+// the party and the current area there)
 EXPORT(s9x_mem_ptr) void *s9x_mem_ptr(int which) {
   if (!loaded) return NULL;
   if (which == 0) return retro_get_memory_data(RETRO_MEMORY_SYSTEM_RAM);
   if (which == 1) return retro_get_memory_data(RETRO_MEMORY_SAVE_RAM);
   if (which == 2) return Memory.ROM;
+  if (which == 3) return Settings.SA1 ? Memory.FillRAM + 0x3000 : NULL;
   return NULL;
 }
 EXPORT(s9x_mem_size) uint32_t s9x_mem_size(int which) {
@@ -158,6 +161,7 @@ EXPORT(s9x_mem_size) uint32_t s9x_mem_size(int which) {
   if (which == 0) return retro_get_memory_size(RETRO_MEMORY_SYSTEM_RAM);
   if (which == 1) return retro_get_memory_size(RETRO_MEMORY_SAVE_RAM);
   if (which == 2) return Memory.CalculatedSize;
+  if (which == 3) return Settings.SA1 ? 0x800 : 0;
   return 0;
 }
 
