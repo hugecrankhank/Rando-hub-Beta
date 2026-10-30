@@ -1,5 +1,5 @@
 /*
- * Jail (crowd effect, from Kuba's OoT stream; Oct 2026): Link is locked in a
+ * Jail (crowd effect, Oct 2026): Link is locked in a
  * cell of iron bars where he stands. The bars are drawn here, over the game
  * picture (256 x 224 canvas, pixel for pixel with the console), around Link
  * and moving with him; the crowd effect itself (crowd/effects.js for Zelda 3,

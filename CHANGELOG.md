@@ -18,7 +18,7 @@ played again later.
 
 ## Beta v1.14.58 (2026-10-30)
 
-- Crowd effects **Home** and **Jail** (from Kuba's Ocarina of Time stream), Zelda 3 and Zelda 1:
+- Crowd effects **Home** and **Jail**, Zelda 3 and Zelda 1:
   - **Home**: Zelda 3, the flute bird drops Link at his front door. It only flies outside in the Light World, so anywhere else it comes for him the moment he's back out there. Zelda 1: back to the start screen, from anywhere.
   - **Jail** (20 s): iron bars slam down around Link where he stands; he can't walk (or dash), but the sword, items and shield still work.
 - Zelda 1: effects and warps wait half a second after a screen change, so a warp sent as Link walks into a level no longer leaves the next screen drawn with the level's tiles.
