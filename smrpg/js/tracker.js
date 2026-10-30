@@ -11,9 +11,11 @@
  *   SMRPGTracker.onLink(fn)                        'manual' | 'waiting' | 'live'
  *
  * Live state comes from the game: the Star Piece count, the key items in the
- * special items list, who is in the party, levels and coins. Bosses are
- * ticked by hand (tap one when it's down; the star count still comes from
- * the game). The seed's spoiler (which boss sits where, which have stars,
+ * special items list, who is in the party, levels and coins. Bosses: every
+ * boss fight is its own formation pack, so when a battle with a boss pack ends
+ * with the party standing, that boss is beaten; the seed's spoiler says which
+ * spot it was in (the shuffle moves bosses around), so that spot is ticked.
+ * Without a spoiler the boss is listed as beaten and the spot is yours to tap. The seed's spoiler (which boss sits where, which have stars,
  * where the key items are) is behind a "Reveal" switch, off by default, so
  * a stream doesn't give it away.
  */
@@ -24,6 +26,8 @@
   let root = null, sessionId = 'manual', meta = {}, spoiler = {}, manual = {}, link = 'manual';
   const linkFns = [];
   let live = null, view = 'party', compact = false, reveal = false;
+  let beaten = { spots: {}, bosses: [] };   // from battles seen: spot index → 1, and the bosses' names
+  let inBattle = false;
 
   // ── state from RAM ───────────────────────────────────────────────────────
   function readRam() {
@@ -44,6 +48,7 @@
       chars,
       coins: r[M.COINS] | r[M.COINS + 1] << 8, frog: r[M.FROG] | r[M.FROG + 1] << 8,
       fp: r[M.FP], maxFp: r[M.FP + 1], area: ir[M.IRAM_AREA],
+      battle: ir[M.IRAM_BATTLE] === 1, pack: r[M.PACK],
       started: false,
     };
     // Before a file is started the save block is unset (levels 0 / $FF, no one
@@ -51,7 +56,7 @@
     s.started = n >= 1 && party.every((x) => x <= 4) && chars[0].level >= 1 && chars[0].level <= 30 && s.stars <= 7 && s.maxFp > 0 && s.maxFp <= 99;
     return s;
   }
-  function isLive(k, i) { return !!(live && live.started && (k === 'keys' ? live.keys[i] : k === 'chars' ? live.chars[i].in : false)); }
+  function isLive(k, i) { return !!(live && live.started && (k === 'keys' ? live.keys[i] : k === 'chars' ? live.chars[i].in : k === 'bosses' ? !!(beaten.spots[i]) : false)); }
   function state() {
     const m = manual;
     const has = (k, i) => isLive(k, i) || !!(m[k] && m[k][i]);
@@ -65,6 +70,21 @@
 
   // ── manual ticks ─────────────────────────────────────────────────────────
   function key() { return 'smrpg:manual:' + sessionId; }
+  function bkey() { return 'smrpg:beaten:' + sessionId; }
+  function loadBeaten() { try { beaten = JSON.parse(localStorage.getItem(bkey()) || 'null') || { spots: {}, bosses: [] }; } catch (e) { beaten = { spots: {}, bosses: [] }; } }
+  function saveBeaten() { try { localStorage.setItem(bkey(), JSON.stringify(beaten)); } catch (e) {} }
+  // a battle just ended: was it a boss, and is everyone still standing?
+  function battleOver(s, pack) {
+    const name = D.PACK_BOSS[pack];
+    if (!name || !s.chars.some((c) => c.in && c.hp > 0)) return;
+    const sp = (spoiler && spoiler['Boss Locations']) || {};
+    const spots = Object.keys(sp).filter((loc) => sp[loc] && sp[loc].Boss === name);
+    if (!spots.length && !Object.keys(sp).length) spots.push(name);   // no spoiler: the boss's own spot, as a guess
+    let changed = false;
+    spots.forEach((loc) => { const i = D.BOSS_LOCATIONS.findIndex((b) => b[0] === loc); if (i >= 0 && !beaten.spots[i]) { beaten.spots[i] = 1; changed = true; } });
+    if (!beaten.bosses.includes(name)) { beaten.bosses.push(name); changed = true; }
+    if (changed) { saveBeaten(); render(); }
+  }
   function loadManual() { try { manual = JSON.parse(localStorage.getItem(key()) || '{}') || {}; } catch (e) { manual = {}; } }
   function saveManual() { try { localStorage.setItem(key(), JSON.stringify(manual)); } catch (e) {} }
   function toggle(k, i) {
@@ -88,12 +108,12 @@
       '<div class="t-view party"><div class="t-sec"><h4>Star Pieces <span id="n-stars"></span></h4><div class="stars" id="g-stars"></div></div>' +
         '<div class="t-sec"><h4>Party <span id="n-chars"></span></h4><div class="grid chars" id="g-chars"></div></div>' +
         '<div class="t-sec"><h4>Key items <span id="n-keys"></span></h4><div class="grid keys" id="g-keys"></div></div></div>' +
-      '<div class="t-view bosses"><div class="t-sec"><h4>Bosses <span id="n-bosses"></span></h4><p class="fine">Tap a boss when it’s down. With Reveal on, each spot shows who’s really there and ★ where a Star Piece is.</p><div id="g-bosses"></div></div></div>' +
+      '<div class="t-view bosses"><div class="t-sec"><h4>Bosses <span id="n-bosses"></span></h4><p class="fine">Won boss fights are ticked on their own (the game says which boss, the seed says where it sat); tap a spot to tick it by hand. With Reveal on, each spot shows who’s really there and ★ where a Star Piece is.</p><p class="fine" id="g-beaten"></p><div id="g-bosses"></div></div></div>' +
       '<div class="t-view seed"><div class="t-sec" id="g-seed"></div>' +
         '<div class="t-sec"><h4>Spoiler <label class="reveal"><input type="checkbox" id="t-reveal"> Reveal</label></h4><div id="g-spoiler"></div></div></div>' +
       '<div class="t-foot"><span id="t-link"></span><button type="button" class="linkish" id="t-clear">Clear manual ticks</button></div>';
     root.querySelectorAll('.t-tabs button').forEach((b) => b.addEventListener('click', () => setView(b.dataset.view)));
-    $('t-clear').addEventListener('click', () => { manual = {}; saveManual(); render(); });
+    $('t-clear').addEventListener('click', () => { manual = {}; saveManual(); beaten = { spots: {}, bosses: [] }; saveBeaten(); render(); });
     $('t-reveal').addEventListener('change', () => { reveal = $('t-reveal').checked; render(); });
     $('g-stars').innerHTML = [1, 2, 3, 4, 5, 6, 7].map((n) => '<button type="button" class="star" data-star="' + n + '" title="Star Piece ' + n + '">★</button>').join('');
     $('g-chars').innerHTML = D.CHARACTERS.map((n, i) => '<button type="button" class="cell char" data-k="chars" data-i="' + i + '" style="--c:' + D.CHAR_COLORS[i] + '" title="' + esc(n) + '"><i></i><b>' + esc(n) + '</b><small class="lv"></small></button>').join('');
@@ -144,13 +164,14 @@
     root.querySelectorAll('[data-k="bosses"]').forEach((b) => {
       const i = +b.dataset.i, loc = D.BOSS_LOCATIONS[i][0], x = bossSp[loc];
       b.classList.toggle('have', s.bosses[i]);
-      b.classList.toggle('manual', !!(manual.bosses && manual.bosses[i]));
+      b.classList.toggle('manual', !!(manual.bosses && manual.bosses[i]) && !beaten.spots[i]);
       b.querySelector('.who').textContent = reveal && x ? ((x['Star Piece'] === 'Yes' ? '★ ' : '') + (x.Boss && x.Boss !== loc ? x.Boss : x.Boss ? '' : '')) : '';
       b.classList.toggle('star', reveal && !!(x && x['Star Piece'] === 'Yes'));
     });
     $('n-chars').textContent = count('chars') + '/5';
     $('n-keys').textContent = count('keys') + '/' + D.KEY_ITEMS.length;
     $('n-bosses').textContent = count('bosses') + '/' + D.BOSS_LOCATIONS.length;
+    const bl = $('g-beaten'); if (bl) bl.textContent = beaten.bosses.length ? 'Beaten (from the game): ' + beaten.bosses.join(', ') : '';
     const l = live && live.started ? live : null;
     const stat = (ico, n, of, title) => '<span class="stat" title="' + esc(title) + '"><span class="ico">' + ico + '</span>' + n + (of ? '<small>/' + of + '</small>' : '') + '</span>';
     $('t-stats').innerHTML =
@@ -190,6 +211,10 @@
     if (!s) { live = null; setLink(window.Snes9xPlayer && Snes9xPlayer.ready ? 'waiting' : 'manual'); if (last !== 'none') { last = 'none'; render(); } return; }
     live = s;
     setLink(s.started ? 'live' : 'waiting');
+    if (s.started) {
+      if (!s.battle && inBattle) battleOver(s, s.pack);         // the pack stays put through the fight and after it
+      inBattle = s.battle;
+    } else inBattle = false;
     const sig = JSON.stringify([s.stars, s.keys, s.chars, s.coins, s.frog, s.started]);
     if (sig !== last) { last = sig; render(); }
   }
@@ -199,13 +224,13 @@
     init(el) {
       root = el;
       try { view = localStorage.getItem('smrpg:view') || 'party'; } catch (e) {}
-      build(); loadManual(); render();
+      build(); loadManual(); loadBeaten(); render();
       setInterval(poll, 500);
     },
     setSession(id, label, m, sp) {
       sessionId = id || 'manual'; meta = m || {}; spoiler = sp || {};
       reveal = false; const cb = $('t-reveal'); if (cb) cb.checked = false;
-      loadManual(); render();
+      loadManual(); loadBeaten(); render();
     },
     setCompact(on) { compact = !!on; root.classList.toggle('compact', compact); },
     onLink(fn) { linkFns.push(fn); fn(link); },

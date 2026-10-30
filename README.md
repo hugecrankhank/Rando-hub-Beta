@@ -514,8 +514,8 @@ seed generator, tracker and saves, and buttons back to the others.
   from your own Super Mario RPG (USA) ROM, played on the hub's Snes9x (which runs the
   game's SA-1 chip). The site's presets (Casual to Expert, Quick, the tournament and
   bingo sets) and its whole flag list, tick by tick, or any flag string from the site.
-  The tracker reads the game: Star Pieces, key items, the party and its levels, coins;
-  bosses are ticked by hand, and the seed's spoiler (where the stars, bosses and key
+  The tracker reads the game: Star Pieces, key items, the party and its levels, coins,
+  and won boss fights (each boss is its own battle pack); the seed's spoiler (where the stars, bosses and key
   items are) stays behind a Reveal switch.
 - **Final Fantasy Randomizer (FF1), FF4 Free Enterprise, FF5 Career Day** (`ffr/`):
   seeds are rolled on each randomizer's own site (FF1R and FE generate in your

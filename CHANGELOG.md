@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.60 (2026-10-30)
+
+- Super Mario RPG: **bosses are tracked on their own.** Every boss fight is its own battle pack, so when a fight with one ends with the party standing, that boss is beaten, and the seed's spoiler says which spot it sat in, so that spot is ticked (a tap still works for anything the game can't tell). A seed with no spoiler lists the beaten bosses by name instead.
+
 ## Beta v1.14.59 (2026-10-30)
 
 - **Super Mario RPG** (`smrpg/`, in the Game row and every games menu): roll [Open World Randomizer](https://randomizer.smrpgspeedruns.com/) seeds from your own Super Mario RPG (USA) ROM, play them here, and track them, all in one page.

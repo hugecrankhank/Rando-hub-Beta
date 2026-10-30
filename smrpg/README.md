@@ -38,9 +38,13 @@ Read from the running game every half second (no setup):
   randomizer can shuffle: Rare Frog Coin, Cricket Pie, Bambino Bomb, the Castle Keys,
   the Cards, the Flags, the Shed, Elder, Temple and Room Keys, Cricket Jam, Seed,
   Fertilizer, Bright Card), **the party** with levels and HP, **coins** and **Frog Coins**.
-- **Bosses** are ticked by hand: tap a spot when it's down. With **Reveal** on, each
-  spot shows who's really there and ★ where a Star Piece is, and the key items show
-  where they are. Reveal is off by default, so a stream doesn't give the seed away.
+- **Bosses**: every boss fight is its own formation pack (`$7E:0048`), so when a battle
+  with a boss pack ends with the party standing (`$316D` drops), that boss is beaten;
+  the seed's spoiler says which spot it sat in (the shuffle moves bosses around), so
+  that spot is ticked. Without a spoiler the boss is listed as beaten and the spot is
+  yours to tap. With **Reveal** on, each spot shows who's really there and ★ where a
+  Star Piece is, and the key items show where they are. Reveal is off by default, so a
+  stream doesn't give the seed away.
 - Anything the game can't tell us you can tick by hand; manual ticks are kept per seed.
 
 Memory map (found with the emulator; the event memory layout as Lazy Shell documents it):
@@ -49,7 +53,8 @@ character (level, HP, max HP, stats, exp, equips), the 15 special items at `$7F:
 coins `$7F:F8AF`, FP `$7F:F8B1`, Frog Coins `$7F:F8B3`. The event script engine's memory
 (`$7000-$70FF`) is on the SA-1, in its BW-RAM at `$3000`: `$70D5` counts Star Pieces (the
 open-mode star routine: *if $70D5 == 6…, $70D5 += 1, star sequence #n*). The SA-1's I-RAM
-has the current area (`$3030`), the party size (`$3032`) and who is in it (`$3033…`).
+has the current area (`$3030`), the party size (`$3032`), who is in it (`$3033…`) and
+the battle flag (`$316D`).
 
 ## Files
 
