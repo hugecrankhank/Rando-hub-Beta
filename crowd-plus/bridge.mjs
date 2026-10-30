@@ -343,6 +343,9 @@ const effectNames = {
   boss_ganon: 'Boss detour: Ganon', boss_aga: 'Boss detour: Agahnim', boss_random: 'Boss detour: random boss', detour_rescue: 'Rescue Link from a boss detour',
   // Zelda 1 (z1r/js/crowd.js): a boss appears on the current screen, overworld included; boss_random there too
   boss_aquamentus: 'Boss: Aquamentus', boss_dodongo: 'Boss: Dodongo', boss_manhandla: 'Boss: Manhandla', boss_gleeok: 'Boss: Gleeok', boss_digdogger: 'Boss: Digdogger', boss_gohma: 'Boss: Gohma', boss_patra: 'Boss: Patra', boss_moldorm: 'Boss: Moldorm',
+  // Zelda 1 warps: the recorder's whirlwind (Levels 1-8), and Level 9 straight to its door or inside
+  warp_1: 'Whirlwind: Level 1', warp_2: 'Whirlwind: Level 2', warp_3: 'Whirlwind: Level 3', warp_4: 'Whirlwind: Level 4', warp_5: 'Whirlwind: Level 5', warp_6: 'Whirlwind: Level 6', warp_7: 'Whirlwind: Level 7', warp_8: 'Whirlwind: Level 8',
+  warp_9: 'Warp: Level 9 entrance', warp_9_in: 'Warp: inside Level 9',
 };
 // Effects that can hurt a run for good: the panel asks before one goes on a gift.
 const effectWarnings = {

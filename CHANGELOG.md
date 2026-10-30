@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.54 (2026-10-30)
+
+- Crowd Control+: the Zelda 1 warps (Whirlwind: Level 1–8, Warp: Level 9 entrance / inside Level 9) are in its effect list even before the game connects.
+
 ## Beta v1.14.53 (2026-10-29)
 
 - Zelda 1: **warp to any level, Level 9 included.** ⚙ Settings → *Practice: warp to a level* has two rows of buttons, 1–9: **Entrance** puts Link on open ground in front of that level's door (from the seed's map, so shuffled entrances work), **Inside** starts him in its first room, and walking out brings him back to the real entrance. Works from the overworld, a dungeon or a cave.
