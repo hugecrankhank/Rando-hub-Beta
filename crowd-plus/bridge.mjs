@@ -337,7 +337,7 @@ const effectNames = {
   mirror: 'Mirror mode', upside_down: 'Upside down', wobble: 'Drunk wobble', tiny: 'Tiny screen', crt: 'Retro CRT',
   speed_up: 'Speed up (1.5x)', slow_mo: 'Slow motion', freeze: 'Freeze!', fairy: 'Fairy in a bottle', bee_bottle: 'Bee in a bottle',
   pink_link: 'Pink Link', music_roulette: 'Music roulette', mystery_box: 'Mystery box (random effect)',
-  spooky_night: 'Spooky night', ghost_link: 'Ghost Link', pumpkin_link: 'Pumpkin Link', haunted_lights: 'Haunted lights',
+  spooky_night: 'Spooky night', fog: 'Fog', ghost_link: 'Ghost Link', pumpkin_link: 'Pumpkin Link', haunted_lights: 'Haunted lights',
   blood_drip: 'Blood drip', spider_web: 'Spiderwebs', monster_mash: 'Monster mash (enemies → bats / mummies)',
   follower_random: 'Random follower (stays)', reveal_item: 'Reveal a go-mode item', lights_on: 'Lights on!', lights_out: 'Lights out!', spooky_monster: 'Spooky monster', haunting: 'Haunting! (3 spooky monsters)', trick_or_treat: 'Trick or treat!', spooky_sprite: 'Spooky sprite',
   boss_ganon: 'Boss detour: Ganon', boss_aga: 'Boss detour: Agahnim', boss_random: 'Boss detour: random boss', detour_rescue: 'Rescue Link from a boss detour',
@@ -353,7 +353,7 @@ const effectWarnings = {
 };
 const defaultSecs = { ice: 20, cucco_storm: 30, invert: 20, no_sword: 20, no_item: 20, swap_by: 20, one_hit: 30, no_magic: 30, shield_off: 30, sword_off: 30, sword_down: 30, item_off: 30,
   mirror: 20, upside_down: 15, wobble: 20, tiny: 20, crt: 30, speed_up: 20, slow_mo: 15, freeze: 3, pink_link: 60,
-  boss_ganon: 60, boss_aga: 60, boss_random: 60, spooky_night: 45, ghost_link: 60, pumpkin_link: 60, haunted_lights: 20, lights_on: 60, lights_out: 30, blood_drip: 20, spider_web: 30 };
+  boss_ganon: 60, boss_aga: 60, boss_random: 60, spooky_night: 45, fog: 45, ghost_link: 60, pumpkin_link: 60, haunted_lights: 20, lights_on: 60, lights_out: 30, blood_drip: 20, spider_web: 30 };
 
 function tickerData() {
   const t = cfg.ticker || {};

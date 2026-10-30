@@ -25,7 +25,7 @@
   "web-update.js",
   "game-header.js",
   "cursor-hide.js",
-  "halloween.js",
+  "halloween.js", "fog.js",
   "player-name.js",
   "go-mode.js",
   "dungeon-card.js",

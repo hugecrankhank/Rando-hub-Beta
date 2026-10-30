@@ -107,6 +107,7 @@ speed ones, so they work on any seed):
 | id | effect |
 |---|---|
 | `spooky_night` | Every colour on screen but Link's turned purple and orange, 45 s |
+| `fog` | Mist like the Lost Woods' drifts over the whole game, 45 s |
 | `ghost_link` / `pumpkin_link` | Pale ghostly Link / orange Link, 60 s |
 | `haunted_lights` | Screen dims and flickers, a lightning flash now and then (at most one every ~2 s), 20 s |
 | `spooky_monster` | A Poe, Keese, Gibdo, Stalfos, Stalfos Knight, Raven or Vulture near Link (flying ones outdoors only; a random enemy if none fits) |
