@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.51 (2026-10-29)
+
+- Credits: Rando Hub is by **Hank @huge_crank_hank**.
+
 ## Beta v1.14.50 (2026-10-29)
 
 - **🎃 Halloween: mimic chests (HydeOut).** Every chest that's still closed is drawn as a mimic:
