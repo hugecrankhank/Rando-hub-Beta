@@ -25,7 +25,7 @@ if not (n1 and n2 and n3):
 open(p, 'w', encoding='utf-8').write(s)
 
 # the game pages: their "Check for updates" (web-update.js) compares this with the hub's
-GAME_PAGES = ['z1r/index.html', 'glr/index.html', 'ff6wc/index.html', 'smrpg/index.html', 'patched/index.html',
+GAME_PAGES = ['z1r/index.html', 'glr/index.html', 'ff6wc/index.html', 'smrpg/index.html', 'sm/index.html', 'patched/index.html',
               'ffr/ff1/index.html', 'ffr/ff4/index.html', 'ffr/ff5/index.html', 'ffr/common/page.tpl.html']
 for rel in GAME_PAGES:
     p = os.path.join(ROOT, rel)

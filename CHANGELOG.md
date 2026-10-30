@@ -5,6 +5,12 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.61 (2026-10-30)
+
+- **Super Metroid** (`sm/`, in the Game row and every games menu): roll [DASH](https://www.dashrando.net/) seeds from your own Super Metroid (JU) ROM, play them here, and track them, all in one page.
+  - The generator is DASH itself (its core, MIT, bundled unchanged), run in your browser as dashrando.net does; a seed takes a fraction of a second and nothing is uploaded. DASH's modes (Classic M/M, Throwback 2017, Chozo Bozo, Surprise Surprise, SG Live 2023–2026, Spring Invitational 2024, the Chozo / Full / area / boss shuffle sets) or its settings one by one as on the site; seeds 1–999999 as on the site. Download the ROM or the spoiler, or play straight away.
+  - The tracker reads the game: gear and beams, energy, reserve and ammo, the bosses and mini-bosses, and every item spot by area, ticked by the game as you take its item. The spoiler (bosses, area doors, every item) sits behind a Reveal switch, off by default. DASH's own Double Jump, Heat Shield and Pressure Valve are tapped by hand.
+
 ## Beta v1.14.60 (2026-10-30)
 
 - Super Mario RPG: **bosses are tracked on their own.** Every boss fight is its own battle pack, so when a fight with one ends with the party standing, that boss is beaten, and the seed's spoiler says which spot it sat in, so that spot is ticked (a tap still works for anything the game can't tell). A seed with no spoiler lists the beaten bosses by name instead.

@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="version" content="1.14.61">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Super Metroid DASH - Rando Hub</title>
+<meta name="description" content="Roll Super Metroid DASH randomizer seeds, play them, and track Samus’s gear, bosses and every item spot in one page.">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0c1018">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SM DASH">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Pixelify+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* Zebes at night: near-black blue, a teal rim like the ship's lights, Samus's orange */
+    --bg: #0c1018; --win: #1a2436; --win2: #121a28; --line: #38a8b8; --text: #eef2f6; --dim: #94a2b4;
+    --gold: #f0a030; --green: #58d890; --red: #ff6a5a; --cell: #182236; --cell-line: #2c3c58;
+    --px: "Pixelify Sans", ui-monospace, monospace;
+    --body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
+    font: 15px/1.45 var(--body); -webkit-text-size-adjust: 100%; overflow: hidden; }
+  body { display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
+  button, select, input, textarea { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+  [hidden] { display: none !important; }
+
+  /* ── header ─────────────────────────────────────────── */
+  header { flex: none; display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center;
+    padding: 7px 14px; background: linear-gradient(#1c2a40, #0e1422); border-bottom: 2px solid var(--line);
+    padding-top: max(7px, env(safe-area-inset-top));
+    padding-left: max(14px, env(safe-area-inset-left)); padding-right: max(14px, env(safe-area-inset-right)); }
+  .brand { font: 600 20px/1 var(--px); margin: 0 4px 0 0; display: flex; align-items: center; gap: 8px; color: var(--gold); }
+  .btn { background: var(--win2); border: 2px solid var(--line); color: var(--text); padding: 5px 11px; border-radius: 4px;
+    font: 400 15px/1.1 var(--px); cursor: pointer; display: inline-flex; align-items: center; gap: 6px; min-height: 34px; text-decoration: none; white-space: nowrap; }
+  .btn:hover { background: var(--win); }
+  .btn.primary { background: #c86a18; border-color: #f0a030; color: #fff; }
+  .btn.primary:hover { background: #e07a20; }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .spacer { flex: 1; }
+  button.pill { background: none; border: 0; padding: 6px 2px; min-height: 32px; cursor: pointer; }
+  .pill { font-size: 13px; color: var(--dim); display: flex; align-items: center; gap: 6px; }
+  .pill i { width: 8px; height: 8px; border-radius: 50%; background: #556; display: inline-block; }
+  .pill.on i { background: var(--green); }
+  .pill.wait i { background: var(--gold); }
+
+  /* ── main layout (app.js sets --aside-w sideways, --game-h upright) ─ */
+  main { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) var(--aside-w, clamp(300px, 34vw, 620px)); }
+  body.upright main { display: flex; flex-direction: column; }
+  #game-wrap { position: relative; min-height: 0; background: #000; }
+  body.upright #game-wrap { flex: 0 0 var(--game-h, 60vh); height: var(--game-h, 60vh); }
+  body.upright:not(.playing) #game-wrap { flex: none; height: auto; }
+  #game { position: absolute; inset: 0; }
+  body:not(.playing) #game { display: none; }
+  #placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; gap: 14px; overflow: auto;
+    align-items: center; justify-content: center; text-align: center; padding: 24px; }
+  body.upright:not(.playing) #placeholder { position: static; padding: 18px 16px 20px; gap: 10px; }
+  #placeholder h2 { font: 600 28px/1.1 var(--px); margin: 0; color: var(--gold); }
+  #placeholder p { max-width: 50ch; margin: 0; color: var(--dim); }
+  #placeholder .actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+  .fine { font-size: 12.5px; color: var(--dim); }
+  .fine a, .msg a { color: var(--gold); }
+  .mark { width: 56px; height: 56px; }
+
+  aside { background: var(--win2); border-left: 2px solid var(--line); overflow-y: auto; min-height: 0;
+    padding: 8px 12px calc(12px + env(safe-area-inset-bottom)); -webkit-overflow-scrolling: touch; }
+  body.upright aside { flex: 1 1 0; border-left: 0; border-top: 2px solid var(--line); }
+
+  /* ── tracker ────────────────────────────────────────── */
+  .t-stats { display: flex; flex-wrap: wrap; gap: 2px 14px; padding: 2px 2px 6px; font: 400 18px/1.2 var(--px); color: var(--text); }
+  .stat { display: inline-flex; align-items: baseline; gap: 4px; }
+  .stat .ico { font-size: 15px; color: var(--gold); }
+  .stat small { font-size: 13px; color: var(--dim); }
+  .stat.kt { color: var(--red); font-size: 14px; align-self: center; } .stat.kt.on { color: var(--green); }
+  .t-tabs { display: flex; gap: 2px; margin: 0 0 8px; border-bottom: 2px solid var(--cell-line); }
+  .t-tabs button { flex: 1; background: none; border: 0; padding: 7px 6px 6px; font: 400 16px/1 var(--px);
+    color: var(--dim); cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; }
+  .t-tabs button[aria-selected="true"] { color: var(--gold); border-bottom-color: var(--gold); }
+  .t-view { display: none; }
+  #tracker[data-view="items"] .t-view.items, #tracker[data-view="locs"] .t-view.locs, #tracker[data-view="seed"] .t-view.seed { display: block; }
+  /* roomy: Party and Checks side by side, Objectives under */
+  #tracker:not(.compact) .t-tabs { display: none; }
+  #tracker:not(.compact) .t-view { display: block; }
+  .t-sec { margin: 0 0 10px; }
+  .t-sec h4, .t-sec summary { margin: 6px 0 5px; font: 400 15px/1 var(--px); color: var(--gold); display: flex; justify-content: space-between; cursor: default; }
+  .t-sec summary { cursor: pointer; }
+  .t-sec h4 span, .t-sec summary span { color: var(--dim); }
+  .grid { display: grid; gap: 4px; }
+  .grid.chars { grid-template-columns: repeat(auto-fill, minmax(62px, 1fr)); }
+  .grid.bosses { grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); }
+  .cell { position: relative; background: var(--cell); border: 2px solid var(--cell-line); border-radius: 4px; padding: 5px 3px 4px;
+    cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 40px; opacity: .45; }
+  .cell b { font: 400 13px/1 var(--px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  .cell small { font-size: 10px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  .cell.char { min-height: 50px; }
+  .cell.char i { width: 20px; height: 20px; border-radius: 50%; background: var(--c, #888); border: 2px solid rgba(0,0,0,.4); }
+  .cell.have { opacity: 1; border-color: var(--green); background: #244066; }
+  .cell.key b, .cell.char b { font-size: 12px; white-space: normal; text-align: center; line-height: 1.1; }
+  .cell.key .where { font-size: 9.5px; color: var(--gold); white-space: normal; text-align: center; line-height: 1.15; }
+  .grid.gear { grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); } .cell.gear b { font-size: 12px; white-space: normal; text-align: center; line-height: 1.1; }
+  .cell.boss b { white-space: normal; text-align: center; line-height: 1.1; }
+  .cell.boss .who { font-size: 10px; color: var(--gold); white-space: normal; text-align: center; } .cell.boss .who:empty { display: none; }
+  .chk .what { color: var(--gold); }
+  .chk.boss { display: block; padding-left: 24px; }
+  .chk.boss .bn { color: var(--text); } .chk.boss.have .bn { text-decoration: line-through; text-decoration-color: rgba(255,255,255,.35); }
+  .chk.boss small { color: var(--dim); font-size: 11.5px; margin-left: 6px; } .chk.boss .who { display: block; color: var(--gold); font-size: 12px; }
+  .chk.boss .who:empty { display: none; }
+  #g-bosses { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 1px 10px; }
+  .reveal { font: 13px/1 var(--body); color: var(--dim); display: inline-flex; gap: 5px; align-items: center; cursor: pointer; }
+  #g-spoiler h5 { margin: 8px 0 2px; font: 400 13px/1 var(--px); color: var(--gold); } #g-spoiler ul { margin: 0; padding-left: 18px; font-size: 13px; color: var(--dim); } #g-spoiler li b { color: var(--text); font-weight: 400; }
+  .cell.manual::after, .chk.manual::after { content: ""; position: absolute; left: 3px; top: 3px; width: 5px; height: 5px; background: var(--gold); }
+  .cell:hover { filter: brightness(1.15); }
+  .area { margin: 0 0 6px; }
+  .area h5 { margin: 4px 0 2px; font: 400 13px/1 var(--px); color: var(--dim); display: flex; justify-content: space-between; }
+  .area.done h5 { color: var(--green); }
+  .area .list { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 1px 10px; }
+  .chk { position: relative; background: none; border: 0; text-align: left; padding: 4px 2px 4px 22px; cursor: pointer; font-size: 13.5px; color: var(--dim); line-height: 1.25;
+    border-radius: 3px; }
+  .chk i { position: absolute; left: 3px; top: 6px; width: 12px; height: 12px; border: 2px solid var(--cell-line); border-radius: 2px; }
+  .chk.have { color: var(--text); }
+  .chk.have i { background: var(--green); border-color: var(--green); }
+  .chk:hover { background: rgba(255,255,255,.05); }
+  .seedline { font-size: 13px; color: var(--dim); } .seedline b { color: var(--gold); font-weight: 400; font-family: var(--px); margin-right: 6px; }
+  .goal { display: grid; grid-template-columns: 1fr; gap: 1px; padding: 5px 0; border-bottom: 1px solid var(--cell-line); font-size: 13.5px; }
+  .goal-r { color: var(--text); } .goal-r .letter { font: 400 14px/1 var(--px); color: var(--gold); margin-right: 4px; }
+  .goal-c { color: var(--dim); padding-left: 18px; }
+  .empty { color: var(--dim); margin: 6px 2px; font-size: 13.5px; }
+  .t-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 10px;
+    padding-top: 8px; border-top: 1px solid var(--cell-line); font-size: 12.5px; color: var(--dim); }
+  .linkish { background: none; border: 0; color: var(--dim); text-decoration: underline; cursor: pointer; padding: 4px 0; font-size: 12.5px; }
+  .linkish:hover { color: var(--text); }
+  /* roomy and wide: two columns */
+  @media (min-width: 1500px) {
+    #tracker:not(.compact) { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto 1fr auto; gap: 0 16px; align-content: start; }
+    #tracker:not(.compact) .t-stats, #tracker:not(.compact) .t-foot, #tracker:not(.compact) .t-view.seed { grid-column: 1 / -1; }
+  }
+  /* compact (phones): one tab at a time, the list scrolls inside */
+  #tracker.compact { display: flex; flex-direction: column; overflow: hidden; padding: 4px 8px calc(4px + env(safe-area-inset-bottom)); }
+  #tracker.compact .t-stats { font-size: 15px; gap: 2px 10px; padding-bottom: 4px; justify-content: center; }
+  #tracker.compact .t-tabs { flex: none; margin: 0 0 5px; }
+  #tracker.compact .t-view { flex: 1 1 0; min-height: 0; overflow-y: auto; }
+  #tracker.compact .t-foot { display: none; }
+  #tracker.compact .grid.gear { grid-template-columns: repeat(4, 1fr); }
+  #tracker.compact .cell.char { min-height: 44px; } #tracker.compact .cell.char b { font-size: 11px; }
+  #tracker.compact .area .list { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+
+  /* App chrome isn't text */
+  header, aside, #placeholder, .btn, button { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+  .selectable { -webkit-user-select: text; user-select: text; }
+
+  /* ── seed dialog ────────────────────────────────────── */
+  dialog { overflow: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+    background: var(--win2); color: var(--text); border: 2px solid var(--line); border-radius: 6px; padding: 0;
+    position: fixed; margin: auto;
+    inset: calc(env(safe-area-inset-top) + 10px) 0 calc(env(safe-area-inset-bottom) + 10px) 0;
+    width: min(640px, calc(100vw - 20px)); height: fit-content;
+    max-height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 20px);
+    max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 20px); }
+  dialog::backdrop { background: rgba(0, 0, 10, .75); }
+  .dlg { display: flex; flex-direction: column; }
+  .dlg-head { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px;
+    border-bottom: 2px solid var(--line); position: sticky; top: 0; background: var(--win2); z-index: 1; }
+  .dlg-head h2 { margin: 0; font: 600 22px/1 var(--px); color: var(--gold); display: inline; }
+  .dlg-head small { color: var(--dim); font-size: 13px; margin-left: 10px; }
+  .x { background: none; border: 0; font-size: 28px; line-height: 1; cursor: pointer; padding: 0; width: 44px; height: 44px; margin: -8px -10px -8px 0; flex: none; }
+  .step { padding: 12px 16px; border-bottom: 1px solid var(--cell-line); }
+  .step h3 { margin: 0 0 6px; font: 400 17px/1 var(--px); color: var(--gold); }
+  .field { display: grid; gap: 4px; margin: 8px 0 0; font-size: 13px; color: var(--dim); }
+  .field input, .field select, .field textarea, .row input { background: #000020; border: 2px solid var(--cell-line); border-radius: 4px;
+    color: var(--text); padding: 7px 8px; font-size: 15px; width: 100%; min-height: 38px; }
+  .field textarea { font: 13px/1.4 ui-monospace, monospace; min-height: 72px; resize: vertical; }
+  .field textarea[readonly] { color: var(--dim); }
+  .field select { -webkit-appearance: none; appearance: none; padding-right: 30px;
+    background: #000020 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M0 0h10L5 6z' fill='%23a8b0d8'/%3E%3C/svg%3E") no-repeat right 10px center / 10px 6px; }
+  .row { display: flex; gap: 8px; }
+  .row input { flex: 1; font: 400 17px/1 var(--px); -webkit-appearance: none; appearance: none; }
+  .msg { font-size: 13px; color: var(--dim); margin: 6px 0 0; }
+  .msg:empty { display: none; }
+  .msg.ok { color: var(--green); } .msg.warn { color: var(--gold); } .msg.bad { color: var(--red); }
+  .msg.busy::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--gold); margin-right: 8px; animation: blink .8s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .flag-cat { border: 1px solid var(--cell-line); border-radius: 4px; margin: 6px 0; }
+  .flag-cat summary { cursor: pointer; padding: 7px 10px; font: 400 15px/1 var(--px); color: var(--gold); }
+  .flag { padding: 4px 0 4px 10px; }
+  .flag-row { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; }
+  .flag-row input { width: 16px; height: 16px; margin: 0; flex: none; }
+  .flag-row code { font: 600 13px/1 ui-monospace, monospace; background: #000020; border: 1px solid var(--cell-line); border-radius: 3px; padding: 3px 5px; min-width: 30px; text-align: center; }
+  .flag.hard > .flag-row code { border-color: var(--red); color: var(--red); }
+  .flag-desc { font-size: 12px; color: var(--dim); margin: 2px 0 0 54px; line-height: 1.35; }
+  .flag-sub { margin-left: 22px; border-left: 2px solid var(--cell-line); padding-left: 4px; }
+  .flag-row:has(input:not(:checked)) ~ .flag-sub { display: none; }
+  .dlg-foot { padding: 12px 16px; display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+  .dlg-foot .msg { margin: 0; flex: 1 1 200px; }
+  #result { padding: 14px 16px; border-top: 2px solid var(--gold); }
+  #result h3 { margin: 0 0 4px; font: 600 20px/1.1 var(--px); color: var(--gold); }
+  #result p { margin: 0 0 12px; color: var(--dim); font-size: 14px; }
+  #result .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  .beta-note, #placeholder p.beta-note { color: var(--gold); }
+  .dlg .beta-note { margin: 0; padding: 10px 16px 0; font-size: 12px; line-height: 1.4; }
+  .toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom)); transform: translateX(-50%);
+    z-index: 60; background: var(--win2); border: 2px solid var(--gold); border-radius: 4px; padding: 10px 14px; font: 400 15px/1.2 var(--px); }
+
+  /* phones: a one-line header */
+  .brand-text { display: inline; }
+  @media (max-width: 1100px), (max-height: 560px) {
+    header { flex-wrap: nowrap; gap: 6px; padding-top: max(5px, env(safe-area-inset-top)); padding-bottom: 5px;
+      padding-left: max(8px, env(safe-area-inset-left)); padding-right: max(8px, env(safe-area-inset-right)); overflow-x: auto; }
+    .brand { font-size: 17px; margin: 0; }
+    .brand-text { display: none; }
+    .btn { padding: 4px 8px; font-size: 14px; min-height: 30px; }
+    .pill span { display: none; }
+    #pad-status { gap: 0; } /* the dot only: controller connected or not */
+    #placeholder h2 { font-size: 22px; }
+    #placeholder p { font-size: 13.5px; }
+    .mark { width: 40px; height: 40px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .msg.busy::before { animation: none; } }
+  /* the player's ALTTP test row doesn't apply here */
+  .s9x-menu .row:has([data-a="dgwarp"]) { display: none; }
+</style>
+</head>
+<body>
+<header>
+  <h1 class="brand" aria-label="Super Metroid DASH"><span class="brand-text">SM DASH</span></h1>
+  <button class="btn primary" id="new-seed" type="button">New seed</button>
+  <label class="btn" for="rom-input">Play ROM file</label>
+  <input type="file" id="rom-input" hidden>
+  <div class="spacer"></div>
+  <button class="btn" id="install-btn" type="button" hidden>Install app</button>
+  <div id="pad-status" class="pill"><i></i><span>No controller</span></div>
+  <div id="link-status" class="pill"><i></i><span>No game running</span></div>
+</header>
+
+<main>
+  <div id="game-wrap">
+    <div id="game"></div>
+    <div id="placeholder">
+      <svg class="mark" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="#121a28" stroke="#38a8b8" stroke-width="3"/><path d="M32 12c-9 0-16 7-16 16v4c0 3 2 5 5 5h3v-8a8 8 0 0 1 16 0v8h3c3 0 5-2 5-5v-4c0-9-7-16-16-16z" fill="#58d890"/><circle cx="25" cy="30" r="3" fill="#f0a030"/><circle cx="39" cy="30" r="3" fill="#f0a030"/><path d="M26 38v9M32 40v10M38 38v9" stroke="#f0a030" stroke-width="3" stroke-linecap="round"/></svg>
+      <h2>Super Metroid: DASH</h2>
+      <p>Roll a DASH seed from your own Super Metroid ROM, play it right here, and the tracker follows along: Samus’s gear and beams, the bosses, and every item spot by area.</p>
+      <div class="actions">
+        <button class="btn primary" id="ph-new" type="button">Roll a new seed</button>
+        <button class="btn" id="ph-continue" type="button" hidden>Continue</button>
+        <label class="btn" for="rom-input">Play ROM file</label>
+      </div>
+      <p class="fine">Your ROM never leaves this device. The generator is <a href="https://github.com/dashrando/dash-randomizer" target="_blank" rel="noopener">DASH</a> itself (<a href="https://www.dashrando.net/" target="_blank" rel="noopener">dashrando.net</a>), run in your browser. Saves are kept in this browser; F5 / F8 save and load a state.</p>
+      <p class="fine beta-note">Beta: new here. If a seed won’t generate or the tracker misses something, please say so.</p>
+    </div>
+  </div>
+  <aside id="tracker" aria-label="Tracker"></aside>
+</main>
+
+<dialog id="seed-dlg" aria-labelledby="seed-title">
+  <form method="dialog" class="dlg">
+    <div class="dlg-head">
+      <div><h2 id="seed-title">New seed</h2><small>DASH</small></div>
+      <button class="x" value="close" aria-label="Close">×</button>
+    </div>
+
+    <section class="step">
+      <h3>Your Super Metroid ROM</h3>
+      <p id="base-status" class="msg"></p>
+      <div style="margin-top:10px"><label class="btn" for="base-input">Choose ROM file</label>
+        <input type="file" id="base-input" hidden></div>
+    </section>
+
+    <section class="step">
+      <h3>Settings</h3>
+      <label class="field">Mode
+        <select id="preset"></select></label>
+      <p id="preset-about" class="msg"></p>
+      <p id="flag-msg" class="msg"></p>
+      <div style="margin-top:8px"><button class="btn" type="button" id="fields-toggle">Customize settings</button></div>
+      <div id="fields" hidden style="display:grid;gap:4px"></div>
+    </section>
+
+    <section class="step">
+      <h3>Seed</h3>
+      <div class="row">
+        <input id="seed" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="random" aria-label="Seed">
+        <button class="btn" type="button" id="dice">Random</button>
+      </div>
+      <p class="msg">A number from 1 to 999999, as on dashrando.net. The same seed and settings make the same game, so share both for a race.</p>
+    </section>
+
+    <div class="dlg-foot">
+      <p id="gen-status" class="msg"></p>
+      <button class="btn primary" type="button" id="generate" disabled>Generate</button>
+    </div>
+
+    <section id="result" hidden>
+      <h3>Seed ready</h3>
+      <p><span id="result-seed"></span><br><span id="result-hash"></span></p>
+      <div class="actions">
+        <button class="btn primary" type="button" id="play">Play now</button>
+        <button class="btn" type="button" id="dl-rom">Download ROM</button>
+        <button class="btn" type="button" id="dl-log">Spoiler</button>
+      </div>
+    </section>
+  </form>
+</dialog>
+
+<script src="../roll-games.js" data-hub="../"></script><script src="hub.js"></script> <!-- rando-hub -->
+<script>window.EMU_BASE = '../emu/';</script> <!-- the hub's Snes9x, from here -->
+<script src="../emu/core.js"></script>
+<script src="../emu/xbrz.js"></script>
+<script src="../emu/video.js"></script>
+<script src="../emu/audio.js"></script>
+<script src="../emu/input.js"></script>
+<script src="../emu/player.js"></script>
+<script src="js/data.js"></script>
+<script src="js/store.js"></script>
+<script src="js/tracker.js"></script>
+<script src="js/seed.js"></script>
+<script src="js/app.js"></script>
+<script src="../game-header.js" data-hub="../"></script><script src="../cursor-hide.js"></script><script src="../web-update.js" data-hub="../"></script> <!-- rando-hub -->
+</body>
+</html>

@@ -493,7 +493,7 @@ seed generator, tracker and saves, and buttons back to the others.
   seeds made by [ZORA](https://github.com/tetraly/zora) from your own Legend of Zelda
   (USA) ROM. Crowd control works there too: effects both games have keep their names,
   ALTTP-only ones are skipped. **Rerolls can land on** (tick Zelda 3, Zelda 1, Guardian
-  Legend, FF6, SMRPG in the Game row) lets 🎲 Reroll and Crowd Control's random preset / CHAOS
+  Legend, FF6, SMRPG, Super Metroid in the Game row) lets 🎲 Reroll and Crowd Control's random preset / CHAOS
   seeds pick one of the ticked games at random, so you can keep it to the Zelda series,
   or mix in Final Fantasy, as you like (*New seed (same settings)* always stays in the
   game being played). FF1, FF4 and FF5 are rolled on their own sites, so rerolls can't
@@ -517,6 +517,13 @@ seed generator, tracker and saves, and buttons back to the others.
   The tracker reads the game: Star Pieces, key items, the party and its levels, coins,
   and won boss fights (each boss is its own battle pack); the seed's spoiler (where the stars, bosses and key
   items are) stays behind a Reveal switch.
+- **Super Metroid: DASH** (`sm/`):
+  seeds made by [DASH](https://github.com/dashrando/dash-randomizer) itself (dashrando.net's
+  generator, bundled and run in your browser) from your own Super Metroid (JU) ROM, played
+  on the hub's Snes9x. DASH's modes (Classic M/M, Chozo Bozo, Surprise Surprise, the SG Live
+  sets, area and boss shuffles...) and its settings one by one. The tracker reads the game:
+  gear and beams, tanks and ammo, the bosses and mini-bosses, and every item spot by area
+  (the game marks each one as you take it); the spoiler sits behind a Reveal switch.
 - **Final Fantasy Randomizer (FF1), FF4 Free Enterprise, FF5 Career Day** (`ffr/`):
   seeds are rolled on each randomizer's own site (FF1R and FE generate in your
   browser there), then played here on the hub's NES or SNES with a tracker that reads

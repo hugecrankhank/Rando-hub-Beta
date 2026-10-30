@@ -22,7 +22,7 @@
     const bar = $('hub-links');
     const all = [['Zelda 3', HUB, 'Back to Rando Hub (A Link to the Past)', 'z3'], ['Zelda 1', HUB + 'z1r/', 'The Zelda 1 randomizer', 'z1'], ['GLR', HUB + 'glr/', 'The Guardian Legend randomizer', 'glr'],
       ['FF1', HUB + 'ffr/ff1/', 'Final Fantasy Randomizer (FF1)', 'ff1'], ['FF4', HUB + 'ffr/ff4/', 'Final Fantasy IV: Free Enterprise', 'ff4'], ['FF5', HUB + 'ffr/ff5/', 'Final Fantasy V: Career Day', 'ff5'],
-      ['FF6', HUB + 'ff6wc/', 'Final Fantasy VI: Worlds Collide', 'ff6'], ['SMRPG', HUB + 'smrpg/', 'Super Mario RPG: Open World Randomizer', 'smrpg'], ['Patched', HUB + 'patched/', 'Patched games: NES and SNES ROM hacks', 'patched']];
+      ['FF6', HUB + 'ff6wc/', 'Final Fantasy VI: Worlds Collide', 'ff6'], ['SMRPG', HUB + 'smrpg/', 'Super Mario RPG: Open World Randomizer', 'smrpg'], ['SM', HUB + 'sm/', 'Super Metroid: DASH', 'sm'], ['Patched', HUB + 'patched/', 'Patched games: NES and SNES ROM hacks', 'patched']];
     const R = window.RandoRoll;
     const others = all.filter((l) => l[0] !== G.short && (!R || R.isShown(l[3])));
     // wide: a row of links; narrow: one "Games" dropdown (the header must stay one line)
