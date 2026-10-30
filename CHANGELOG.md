@@ -5,6 +5,11 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.62 (2026-10-30)
+
+- **Zelda 3 crowd effect: Master Sword** (`master_sword`, 30 s). Link holds exactly the Master Sword for the time, whatever he has: with no sword or the Fighter's it's a gift, with the Tempered or Golden it's a curse. His own sword comes back at the end (one found meanwhile counts, as with the other sword loans), so a seed is never left unbeatable. Does nothing when he already has the Master Sword; the gift card shows it green or red by which it was.
+- **Fixed:** a sword or shield loan that ended after the gear had been set higher than what was lent gave the higher level back.
+
 ## Beta v1.14.61 (2026-10-30)
 
 - **Super Metroid** (`sm/`, in the Game row and every games menu): roll [DASH](https://www.dashrando.net/) seeds from your own Super Metroid (JU) ROM, play them here, and track them, all in one page.

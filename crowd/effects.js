@@ -861,11 +861,13 @@
   function gearHas(kind, r) { var v = r[GEAR[kind].addr]; return v > 0 && v <= GEAR[kind].max; }
 
   // The timed ones lend the gear out: "Shield gone", "Sword gone", "Sword
-  // downgrade". Link holds less (none, or one sword level lower) while one
-  // runs, and gets back what he had when they've all ended. One found
-  // meanwhile counts too: pickups are progressive (each adds a level), so a
-  // sword found while holding the Fighter's in place of the Tempered gives
-  // the Golden back. The loan is kept in this browser with the ROM it
+  // downgrade", "Master Sword". Link holds something else (none, one sword
+  // level lower, or exactly the Master Sword) while one runs, and gets back
+  // what he had when they've all ended. One found meanwhile counts too:
+  // pickups are progressive (each adds a level), so a sword found while
+  // holding the Fighter's in place of the Tempered gives the Golden back,
+  // and one found while the Master Sword stands in for the Fighter's gives
+  // the Master Sword back. The loan is kept in this browser with the ROM it
   // belongs to, so a reload or a cleared effect list still gives it back,
   // and another seed never gets it.
   function romId() { var c = core(), rom; try { rom = c && c.rom(); } catch (e) { return ''; } if (!rom || !rom.length) return '';
@@ -878,6 +880,7 @@
   function heldNow(kind, l) {
     if (kind === 'shield') return active.shield_off ? 0 : -1;
     if (active.sword_off) return 0;
+    if (active.master_sword) return 2;
     if (active.sword_down) return Math.max(1, l.lvl - 1);
     return -1;   // nothing holding it: give it back
   }
@@ -885,9 +888,9 @@
     var l = loans[kind]; if (!l) return;
     if (l.rom !== romId()) return;   // another game: kept for when that seed's back
     var G = GEAR[kind], v = r[G.addr];
-    if (v > l.held && v <= G.max) { l.lvl = Math.min(G.max, Math.max(v, l.lvl + v - l.held)); }   // found one meanwhile
+    if (v > l.held && v <= G.max) { l.lvl = Math.min(G.max, Math.max(l.held <= l.lvl ? v : 0, l.lvl + v - l.held)); }   // found one meanwhile
     var want = heldNow(kind, l);
-    if (want < 0) { loans[kind] = null; loanSave(kind); setGear(kind, r, Math.max(l.lvl, v <= G.max ? v : 0)); return; }
+    if (want < 0) { loans[kind] = null; loanSave(kind); setGear(kind, r, l.lvl); return; }   // (one found meanwhile is already in lvl)
     if (v !== want) setGear(kind, r, want);
     if (l.held !== want || v !== want) { l.held = want; loanSave(kind); }
   }
@@ -909,7 +912,7 @@
   function gearSteal(kind, r) {
     var l = lent(kind);
     if (!l && !gearHas(kind, r)) return r[GEAR[kind].addr] > GEAR[kind].max ? 'swordless seed' : 'Link has no ' + kind;
-    if (l) { loans[kind] = null; loanSave(kind); ['shield_off', 'sword_off', 'sword_down'].forEach(function (id) { if (id.indexOf(kind) === 0) delete active[id]; }); }
+    if (l) { loans[kind] = null; loanSave(kind); ['shield_off', 'sword_off', 'sword_down', 'master_sword'].forEach(function (id) { if (id.indexOf(kind) >= 0) delete active[id]; }); }
     r[GEAR[kind].addr] = 0;
   }
   function gearCheck(kind) { return function (r) { return gearHas(kind, r) || lent(kind) ? '' : r[GEAR[kind].addr] > GEAR[kind].max ? 'swordless seed' : 'Link has no ' + kind; }; }
@@ -1216,6 +1219,12 @@
       check: function (r) { var l = lent('sword'), v = l ? l.lvl : r[SWORD]; return v > 4 ? 'swordless seed' : v >= 2 ? '' : v ? 'Link only has the Fighter\'s Sword' : 'Link has no sword'; },
       start: function () { lend('sword'); }, end: function () { giveBack('sword'); } },
     sword_up:    { name: 'Sword upgrade', good: true, apply: function (r) { return gearStep('sword', r, 1); } },
+    // Exactly the Master Sword for a while, whatever Link has: early in a
+    // seed it's a gift, late it's a curse. His own sword comes back at the
+    // end (one found meanwhile counts), so a seed is never left unbeatable.
+    master_sword: { name: 'Master Sword', good: false, secs: 30,
+      check: function (r) { var l = lent('sword'), v = l ? l.lvl : r[SWORD]; return v > 4 ? 'swordless seed' : v === 2 ? 'Link already has the Master Sword' : ''; },
+      start: function () { lend('sword'); }, end: function () { giveBack('sword'); } },
     sword_steal: { name: 'Sword stolen', good: false, apply: function (r) { return gearSteal('sword', r); },
       warn: 'Sword stolen can make the seed unbeatable: if every sword has been found, there is none left to get back (Agahnim\'s barrier and Ganon need one), and the next sword found only gives the Fighter\'s Sword.' },
 
@@ -1672,6 +1681,8 @@
       if (why) { feed(f.name + ': ' + why, 'info'); render(); return; }
     }
     var secs = secsOf(job.id);
+    var good = f.good;
+    if (job.id === 'master_sword') { var ms = lent('sword'); good = (ms ? ms.lvl : ram[SWORD]) < 2; }   // a gift early, a curse late
     if (secs) {
       // counted as running before start(), so start() sees it running (the
       // shield / sword / item loans hold their gear only while it runs)
@@ -1694,9 +1705,9 @@
       if (job.id === 'follower_random' && lastFollower) feed('\ud83d\udeb6 ' + lastFollower + ' tags along', 'bad');
     }
     gap = GAP_FRAMES;
-    if (!f.detour) giftCard(job.user, job.label, f.name + (job.id === 'item_off' && lastItemGone ? ': ' + lastItemGone : '') + (job.id === 'follower_random' && lastFollower ? ': ' + lastFollower : '') + (secs ? ' · ' + secs + 's' : '') + (/^warp_/.test(job.id) && lastWarp ? ': ' + lastWarp : ''), f.good);
+    if (!f.detour) giftCard(job.user, job.label, f.name + (job.id === 'item_off' && lastItemGone ? ': ' + lastItemGone : '') + (job.id === 'follower_random' && lastFollower ? ': ' + lastFollower : '') + (secs ? ' · ' + secs + 's' : '') + (/^warp_/.test(job.id) && lastWarp ? ': ' + lastWarp : ''), good);
     if (!cfg.alerts) feed((job.user ? job.user + ': ' : '') + (job.label ? job.label + ' → ' : '') + f.name + (secs ? ' (' + secs + 's)' : ''),
-      f.good ? 'good' : 'bad');   // the gift card already says it
+      good ? 'good' : 'bad');   // the gift card already says it
     send({ type: 'applied', effect: job.id, user: job.user });
     render();
   }
