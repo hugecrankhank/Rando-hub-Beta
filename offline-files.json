@@ -26,6 +26,7 @@
   "game-header.js",
   "cursor-hide.js",
   "halloween.js",
+  "player-name.js",
   "go-mode.js",
   "dungeon-card.js",
   "phone.js",

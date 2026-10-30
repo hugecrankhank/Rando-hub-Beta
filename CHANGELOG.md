@@ -5,6 +5,11 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.49 (2026-10-29)
+
+- **⚙ Settings → "Player name in alerts".** Type the name the alerts should use ("HydeOut went
+  down!"). Left blank, they use the sprite's name from the Randomizer bar, else Link.
+
 ## Beta v1.14.48 (2026-10-29)
 
 - **Alerts use the sprite's name instead of "Link".** With a sprite picked in the Randomizer

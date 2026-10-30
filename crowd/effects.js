@@ -2231,10 +2231,10 @@
     show: { banner: function (k, t, sub, ms) { banner(k, t, sub, ms); }, gift: function (u, l, w, good) { giftCard(u, l, w, good); } },
   };
   function send(msg) { if (ws && ws.readyState === 1) { try { if (msg && !msg.hero) msg.hero = hero(); ws.send(JSON.stringify(msg)); } catch (e) {} } }
-  // Who's playing, for alerts: the sprite picked in the hub's Randomizer bar (its
-  // name, e.g. "Pikachu"), or Link with the game's own sprite (Hank, Oct 2026).
+  // Who's playing, for alerts: the name typed in ⚙ Settings → Player name, else the
+  // sprite picked in the hub's Randomizer bar (e.g. "Pikachu"), else Link (Hank, Oct 2026).
   function hero() {
-    var n = ''; try { n = localStorage.getItem('rhb-sprite-label') || ''; } catch (e) {}
+    var n = ''; try { n = localStorage.getItem('rhb-player-name') || localStorage.getItem('rhb-sprite-label') || ''; } catch (e) {}   // ⚙ Settings → Player name first
     n = String(n).replace(/\.(zspr|spr)$/i, '').replace(/\s*\(.*\)\s*$/, '').trim().slice(0, 24);
     return n || 'Link';
   }
