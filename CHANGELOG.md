@@ -5,6 +5,11 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.52 (2026-10-29)
+
+- Zelda 1: **nine save-state slots, one per level**, for practising each dungeon. ⋯ / ⚙ Settings → *Practice: save states* lists them with Save / Load and when each was saved; S1–S9 on the game bar too.
+- Zelda 1 crowd effects: **Whirlwind: Level 2–7** join Level 1, Level 8 and random, so chat (or the test buttons) can send Link to any level's entrance.
+
 ## Beta v1.14.51 (2026-10-29)
 
 - Credits: Rando Hub is by **Hank @huge_crank_hank**.

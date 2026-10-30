@@ -41,7 +41,8 @@
 
   // ── storage: in-game saves (SRAM) and save-state slots, per game ────────
   var dbp = null;
-  cfg.slot = Math.min(4, Math.max(1, cfg.slot | 0 || 1));
+  var SLOTS = 9;   // one per level, to practise each dungeon (HydeOut, Oct 2026)
+  cfg.slot = Math.min(SLOTS, Math.max(1, cfg.slot | 0 || 1));
   function db() {
     if (dbp) return dbp;
     dbp = new Promise(function (res, rej) {
@@ -136,6 +137,7 @@
     '.s9x-menu .hd { position: sticky; top: 0; display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: #161b22; border-bottom: 1px solid #2a313c; }',
     '.s9x-menu .hd b { flex: 1; font-size: 15px; } .s9x-menu .hd b span { color: #5fbf6f; }',
     '.s9x-menu .bd { padding: 4px 12px 14px; max-width: 520px; margin: 0 auto; }',
+    '.s9x-menu button:disabled { opacity: .35; cursor: default; }',
     '.s9x-menu h4 { margin: 12px 0 4px; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: #8b95a3; }',
     '.s9x-menu .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 5px 0; }',
     '.s9x-menu .acts { display: flex; flex-wrap: wrap; gap: 6px; }',
@@ -214,7 +216,7 @@
       else if (a === 'save') saveState();
       else if (a === 'load') loadState();
       else if (a === 'menu') openMenu();
-      else if (a === 'slot') { cfg.slot = cfg.slot % 4 + 1; saveCfg(); syncSlot(); toast('Slot ' + cfg.slot); }
+      else if (a === 'slot') { cfg.slot = cfg.slot % SLOTS + 1; saveCfg(); syncSlot(); toast('Slot ' + cfg.slot); }
     });
     // The pill stays out of the way: it shows when the picture is tapped (or the
     // mouse moves over it) and fades out again after a few seconds. Presses on
@@ -339,6 +341,7 @@
     menuEl._resume = !wasPaused;
     renderMenu();
     menuEl.hidden = false;
+    refreshSlots();
   }
   function closeMenu() {
     input.capture = null;
@@ -359,7 +362,8 @@
       '<h4>Game</h4><div class="acts">' +
         '<button type="button" data-a="restart">Restart</button>' +
         (root.requestFullscreen ? '<button type="button" data-a="fs">Full screen</button>' : '') +
-      '</div><p class="hint">Save and load states from the bar on the game screen (💾 / 📂, S1–S4 picks the slot). In-game saves are kept automatically for each seed. Keys: F5 save state, F8 load state, hold ` to fast-forward.</p>' +
+      '</div><p class="hint">Save and load states from the bar on the game screen (💾 / 📂, S1–S9 picks the slot, or use the list below). In-game saves are kept automatically for each seed. Keys: F5 save state, F8 load state, hold ` to fast-forward.</p>' +
+      slotsHtml() +
       '<h4>Sound</h4><div class="row"><span>Volume</span><input type="range" min="0" max="1" step="0.05" data-s="volume" value="' + cfg.volume + '"></div>' +
       '<div class="row"><span>Mute</span><input type="checkbox" data-s="muted"' + (cfg.muted ? ' checked' : '') + '></div>' +
       '<h4>Graphics</h4>' +
@@ -387,6 +391,35 @@
       '<h4>Diagnostics</h4>' + diagnostics() +
       '</div>';
   }
+  // Save states, one slot per level: save at a dungeon's entrance once, then
+  // come back to it as often as you like to practise that dungeon.
+  var slotInfo = {};   // n -> saved time (ms) or 0, filled when the menu opens
+  function refreshSlots() {
+    var n = 0;
+    for (var i = 1; i <= SLOTS; i++) (function (i) {
+      kvGet('state:' + gameName + ':' + i).then(function (r) {
+        slotInfo[i] = r && r.at || 0;
+        if (++n === SLOTS && !menuEl.hidden && menuEl.querySelector('.ss-list')) renderMenu();
+      });
+    })(i);
+  }
+  function ago(t) {
+    var d = new Date(t), now = new Date();
+    var hm = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    return d.toDateString() === now.toDateString() ? hm : d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' + hm;
+  }
+  function slotsHtml() {
+    var rows = '';
+    for (var i = 1; i <= SLOTS; i++) {
+      var t = slotInfo[i];
+      rows += '<div class="row"><span>' + (i === cfg.slot ? '<b>' : '') + 'Slot ' + i + ' \u00b7 Level ' + i + (i === cfg.slot ? '</b>' : '') +
+        ' <small style="color:#8b95a3">' + (t ? ago(t) : (t === 0 ? 'empty' : '\u2026')) + '</small></span>' +
+        '<span style="display:flex;gap:6px"><button type="button" data-a="ss-save" data-n="' + i + '">Save</button>' +
+        '<button type="button" data-a="ss-load" data-n="' + i + '"' + (t ? '' : ' disabled') + '>Load</button></span></div>';
+    }
+    return '<h4>Practice: save states</h4><div class="ss-list">' + rows + '</div>' +
+      '<p class="hint">Nine slots, one for each level: save at a dungeon\u2019s entrance, then load it to try that dungeon again. Load closes this menu and plays.</p>';
+  }
   function bindMenu() {
     menuEl.addEventListener('click', function (e) {
       var b = e.target.closest('button'); if (!b) return;
@@ -394,6 +427,11 @@
       if (a === 'close') closeMenu();
       else if (a === 'restart') { if (confirm('Restart the game?')) { core.reset(); audio.clear(); menuEl._resume = true; closeMenu(); } }
       else if (a === 'fs') { closeMenu(); fullscreen(); }
+      else if (a === 'ss-save' || a === 'ss-load') {
+        var n = +b.dataset.n; cfg.slot = n; saveCfg(); syncSlot();
+        if (a === 'ss-load') { menuEl._resume = true; closeMenu(); loadState(); }
+        else if (!slotInfo[n] || confirm('Replace what\u2019s in slot ' + n + '?')) { saveState(function () { slotInfo[n] = Date.now(); renderMenu(); }); }
+      }
       else if (a === 'resetmap') { input.keymap = Object.assign({}, EmuInput.DEFAULT_KEYS); input.padmap = Object.assign({}, EmuInput.DEFAULT_PAD); cfg.keymap = cfg.padmap = null; saveCfg(); renderMenu(); }
       else if (b.dataset.map) remap(b);
       else if (b.dataset.ext && hooks.menu) hooks.menu.click(b, renderMenu);
@@ -491,12 +529,12 @@
     lastSram = s.slice();
     return kvPut(sramKey(), lastSram).catch(function (e) { console.warn('[emu] sram', e); });
   }
-  function saveState() {
+  function saveState(done) {
     if (!running) return;
     var st = core.saveState();
     if (!st) { toast('Couldn’t save state'); return; }
     kvPut('state:' + gameName + ':' + cfg.slot, { at: Date.now(), data: st })
-      .then(function () { toast('Saved to slot ' + cfg.slot); }, function () { toast('Couldn’t save state'); });
+      .then(function () { toast('Saved to slot ' + cfg.slot); if (typeof done === 'function') done(); }, function () { toast('Couldn’t save state'); });
   }
   function loadState(done) {
     if (!running) return;

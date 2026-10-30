@@ -240,6 +240,12 @@
     warp_random: { name: 'Whirlwind: random level', good: false,
       apply: function (r) { return whirlwind(r, Math.floor(Math.random() * 8)); } },
     warp_1:      { name: 'Whirlwind: Level 1', good: false, apply: function (r) { return whirlwind(r, 0); } },
+    warp_2:      { name: 'Whirlwind: Level 2', good: false, apply: function (r) { return whirlwind(r, 1); } },
+    warp_3:      { name: 'Whirlwind: Level 3', good: false, apply: function (r) { return whirlwind(r, 2); } },
+    warp_4:      { name: 'Whirlwind: Level 4', good: false, apply: function (r) { return whirlwind(r, 3); } },
+    warp_5:      { name: 'Whirlwind: Level 5', good: false, apply: function (r) { return whirlwind(r, 4); } },
+    warp_6:      { name: 'Whirlwind: Level 6', good: false, apply: function (r) { return whirlwind(r, 5); } },
+    warp_7:      { name: 'Whirlwind: Level 7', good: false, apply: function (r) { return whirlwind(r, 6); } },
     warp_8:      { name: 'Whirlwind: Level 8', good: false, apply: function (r) { return whirlwind(r, 7); } },
 
     // ── gear: swords ($657: 1 wood, 2 white, 3 magical) and rings ($662: 1 blue, 2 red) ──
