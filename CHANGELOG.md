@@ -5,6 +5,15 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.50 (2026-10-29)
+
+- **🎃 Halloween: mimic chests (HydeOut).** Every chest that's still closed is drawn as a mimic:
+  gold frame, dark wood, two bloodshot eyes and a mouth full of teeth that blinks and chomps now
+  and then. Big chests get a big one. Open the chest and the mimic is gone (the game's own
+  opened chest shows). Dungeons, caves and houses.
+- Halloween: cobwebs only in real corners of a room, and pumpkins and spiders only along walls
+  (not by a table or a stool).
+
 ## Beta v1.14.49 (2026-10-29)
 
 - **⚙ Settings → "Player name in alerts".** Type the name the alerts should use ("HydeOut went

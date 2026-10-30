@@ -89,6 +89,32 @@
     });
     return c;
   }
+  // Mimic chests (HydeOut's picture): gold frame, dark red-brown wood, two
+  // bloodshot eyes, a mouth full of teeth, tentacles and claws. Two frames: the
+  // mouth opens and the eyes narrow now and then.
+  var MIMIC_PAL = { K: '#1a0806', Y: '#e8b832', y: '#9c7414', R: '#7a2a24', r: '#4a1612', W: '#f4f0ea', E: '#d81c1c', T: '#f2e8c4', M: '#120202', P: '#6a2a3c', C: '#d8c890' };
+  var MIMIC_A = [
+    '.KKKKKKKKKKKKKK.',
+    'KYYrRWRYYRWRrYYK',
+    'KYrRRWRYyRWRRrYK',
+    'CKYYYYYYYYYYYYKC',
+    'CKWWEWKRRKWEWWKC',
+    '.KWEEWKRRKWEEWK.',
+    'KYKWWKRMMRKWWKYK',
+    'KYRRrMTMTMrRRRYK',
+    'KYRRMTMTMTMRRRYK',
+    'KYRrMMMMMMMrRRYK',
+    'KYRRrTMTMTrRRRYK',
+    'KYYYYrMMMrYYYYYK',
+    'KYRRrYPRPYrRRRYK',
+    'KYYYYYPYPYYYYYYK',
+    '.KKKPKKKKKKPKKK.',
+    '....P......P....',
+  ];
+  var MIMIC_B = MIMIC_A.slice();
+  MIMIC_B[4] = 'CKKKEKKRRKKEKKKC'; MIMIC_B[5] = '.KWWWWKRRKWWWWK.';
+  MIMIC_B[8] = 'KYRRMMMMMMMRRRYK'; MIMIC_B[9] = 'KYRrMTMTMTMrRRYK';
+  var mimicA = sprite(MIMIC_A, MIMIC_PAL), mimicB = sprite(MIMIC_B, MIMIC_PAL);
   var web = makeWeb(18), webR = (function () { var c = document.createElement('canvas'); c.width = web.width; c.height = web.height; var x = c.getContext('2d'); x.translate(web.width, 0); x.scale(-1, 1); x.drawImage(web, 0, 0); return c; })();
 
   // ── the game ───────────────────────────────────────────────────────────
@@ -106,9 +132,12 @@
     for (var ty = 1; ty < 63; ty++) for (var tx = 1; tx < 63; tx++) {
       if (!floor(at(tx, ty))) continue;
       var up = solid(at(tx, ty - 1)), left = solid(at(tx - 1, ty)), right = solid(at(tx + 1, ty));
-      if (up && left && solid(at(tx - 1, ty - 1)) && hash(room, tx, ty) % 10 < 8) out.webs.push({ x: Bx + tx * 8, y: By + ty * 8, r: false });
-      if (up && right && solid(at(tx + 1, ty - 1)) && hash(room, tx, ty + 99) % 10 < 8) out.webs.push({ x: Bx + tx * 8 + 8 - web.width, y: By + ty * 8, r: true });
-      if (up && !left && !right && floor(at(tx, ty + 1)) && floor(at(tx + 1, ty)) && floor(at(tx + 1, ty + 1))) {
+      // a real corner of the room: wall along the top and down the side for a few tiles
+      // (not the corner a table or a stool makes with the floor)
+      var wallRun = function (dx, dy, n, sx, sy) { for (var k = 0; k < n; k++) if (!solid(at(tx + dx + sx * k, ty + dy + sy * k))) return false; return true; };
+      if (up && left && solid(at(tx - 1, ty - 1)) && wallRun(0, -1, 4, 1, 0) && wallRun(-1, 0, 4, 0, 1) && hash(room, tx, ty) % 10 < 8) out.webs.push({ x: Bx + tx * 8, y: By + ty * 8, r: false });
+      if (up && right && solid(at(tx + 1, ty - 1)) && wallRun(0, -1, 4, -1, 0) && wallRun(1, 0, 4, 0, 1) && hash(room, tx, ty + 99) % 10 < 8) out.webs.push({ x: Bx + tx * 8 + 8 - web.width, y: By + ty * 8, r: true });
+      if (up && !left && !right && solid(at(tx - 1, ty - 1)) && solid(at(tx + 1, ty - 1)) && solid(at(tx + 2, ty - 1)) && floor(at(tx, ty + 1)) && floor(at(tx + 1, ty)) && floor(at(tx + 1, ty + 1))) {   // along a wall, not under a stool
         var hx = Bx + tx * 8, hy = By + ty * 8, k = hash(room, tx, ty + 7) % 100;
         if (k < 7 && far(hx, hy, 40)) { out.pumpkins.push({ x: hx, y: hy + 1, f: k }); taken.push([hx, hy]); }
         else if (k > 95 && far(hx, hy, 40)) { out.spiders.push({ x: hx + 4, y: hy, len: 18 + k % 3 * 8, f: k }); taken.push([hx, hy]); }
@@ -180,6 +209,7 @@
     g.clearRect(0, 0, W, H);
     var vis = function (x, y, w, h) { return x + w > 0 && y + h > 0 && x < W && y < H; };
     deco.webs.forEach(function (d) { var x = d.x - camX, y = d.y - camY; if (vis(x, y, 18, 18)) g.drawImage(d.r ? webR : web, x, y); });
+    if (indoors) mimics(g, r, camX, camY, vis);
     deco.spiders.forEach(function (d) {
       var len = d.len + Math.round(Math.sin((frame + d.f * 7) / 40) * 6), x = d.x - camX, y = d.y - camY;
       if (!vis(x - 4, y, 8, len + 8)) return;
@@ -202,6 +232,24 @@
       }
     }
     drips(g, r);
+  }
+
+  // Every chest in the room that's still closed becomes a mimic. The room's chests
+  // are in $06E0 (dung_chest_locations: a tile offset each, up to six); a closed
+  // one still has its chest tile type there ($58 + its number) in the room's tile
+  // types ($7F2000), and an opened one doesn't, so the mimic goes when it's opened.
+  // A big chest (the same type two tiles to the right too) gets a mimic twice the size.
+  function mimics(g, r, camX, camY, vis) {
+    var room = r[0xA0] | r[0xA1] << 8, Bx = (room & 0xF) << 9, By = (room >> 4) << 9;
+    for (var i = 0; i < 6; i++) {
+      var loc = (r[0x6E0 + i * 2] | r[0x6E1 + i * 2] << 8) & 0x7FFF, pos = loc >> 1;
+      if (!loc || pos >= 0x2000 || r[0x12000 + pos] !== 0x58 + i) continue;
+      var big = r[0x12000 + pos + 2] === 0x58 + i;
+      var x = Bx + (pos & 63) * 8 - camX, y = By + ((pos >> 6) & 63) * 8 - camY;
+      var img = ((frame + i * 37) % 150) < 18 ? mimicB : mimicA;
+      if (big) { if (vis(x, y - 4, 32, 32)) g.drawImage(img, x, y - 6, 32, 32); }
+      else if (vis(x, y, 16, 16)) g.drawImage(img, x, y);
+    }
   }
 
   // Bleeding hearts (HydeOut): now and then a heart that isn't empty grows a drop
