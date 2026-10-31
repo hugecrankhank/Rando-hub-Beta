@@ -128,13 +128,24 @@ in the library there; nothing is uploaded and no games or patches come with the 
   library, and beside the game where the trackers usually are). **📸 Use this screen as
   cover** or **🖼 Choose a picture…** to change it.
 - In-game saves, save states (F5 / F8), controllers, filters: as in the rest of the app.
-- **Zelda 3 hacks get a map.** When the game running is a Link to the Past hack (Allhallows
+- **Zelda 3 hacks get a map** (on the Zelda 3 page too, see below). When the game running is a Link to the Past hack (Allhallows
   Eve, Parallel Worlds, anything made with ZScream), a map appears beside it: the hack's
   own world map (the one its pause screen shows), Light and Dark World, drawn from the ROM
   as it runs, with Link on it as a green dot. **Follow** keeps him in view; **📍 Pin** drops
   a pin where you tap (or **⌖ Pin at Link**) with a note, kept for that game; tap a pin to
   read or remove it. Pinch, scroll or double-tap to zoom. Nothing about the hack is known in
   advance, so there are no item spots: it's a map to find your way and mark things on.
+
+## Playing a Zelda 3 hack on the hub
+
+**Load ROM…** takes a Link to the Past hack too (Allhallows Eve, Parallel Worlds, anything
+made with ZScream). Mudora's map is the wrong one for a new world, so a **🗺 Hack map**
+button appears instead (bottom right; the top right on phones): the hack's own world map,
+Light and Dark World, drawn from its ROM, with Link as a green dot (**Follow** keeps him in
+view), and **📍 Pin** to mark spots with a note, kept per hack. **⧉ Pop out** puts the map in
+a window of its own for a stream capture (`hackmap.html`). Crowd Control works on a hack as
+far as the hack keeps the game's memory layout, which ZScream hacks do; the item tracker and
+the dungeon map are vanilla's and won't match.
 
 ## Quick start
 

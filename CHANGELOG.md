@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.68 (2026-10-31)
+
+- **Zelda 3 page: the hack map.** Load a Link to the Past hack with **Load ROM…** (Allhallows Eve, say) and a **🗺 Hack map** button appears (bottom right; top right on phones): the same map Patched games got in 1.14.67, the hack's own world map from its ROM with Link on it and your pins, in a panel over the game. **⧉ Pop out** puts it in a window of its own for a stream capture. Vanilla and randomizer seeds keep Mudora's map and show nothing new; a hack is told by its world map not being the original's.
+
 ## Beta v1.14.67 (2026-10-31)
 
 - **Patched games: a map for Zelda 3 hacks.** When the game running is a Link to the Past hack (Allhallows Eve, Parallel Worlds, anything built with ZScream), a map appears beside it: the hack's own world map, the one its pause screen shows, Light and Dark World, drawn from the ROM as it runs (nothing of it ships with the hub), with Link on it. **Follow** keeps him in view; **📍 Pin** drops a pin where you tap (or **⌖ Pin at Link**) with a note, kept for that game; tap a pin to read or remove it. Pinch, scroll or double-tap to zoom.

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hack map</title>
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<!--
+  A pop-out window for the hub's hack map (hackmap.js): the world map of the
+  Link to the Past hack running in the window that opened this one, drawn from
+  its ROM (z3map.js), with Link on it. Made for a stream capture: just the map.
+-->
+<style>
+  :root { --line: #2a313c; --dim: #8b95a3; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0b0f16; color: #e6e9ee; font: 13px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  #host { position: absolute; inset: 0; display: flex; flex-direction: column; }
+  #host > div { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; }
+  .z3m { flex: 1 1 0 !important; height: auto !important; border: 0 !important; border-radius: 0 !important; }
+  .z3m-about { display: none; }
+  #msg { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; padding: 24px; color: var(--dim); }
+</style>
+</head>
+<body>
+<div id="msg">Waiting for the game in the Rando Hub window. This map shows once a Zelda 3 hack is running there.</div>
+<div id="host" hidden></div>
+<script src="z3map.js"></script>
+<script>
+  (function () {
+    var host = document.getElementById('host'), msg = document.getElementById('msg');
+    function player() { try { return window.opener && !window.opener.closed ? window.opener.Snes9xPlayer : null; } catch (e) { return null; } }
+    if (!window.opener) { msg.textContent = 'Open this from the hub: load a Zelda 3 hack there, press 🗺 Hack map, then ⧉ Pop out.'; return; }
+    Z3Map.attach({ player: player, host: host, hackOnly: true, onShow: function (on) { msg.hidden = on; } });
+    setInterval(function () { if (!player()) { msg.hidden = false; msg.textContent = 'The Rando Hub window is gone.'; } }, 2000);
+  })();
+</script>
+</body>
+</html>

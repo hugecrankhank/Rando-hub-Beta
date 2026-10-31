@@ -5,8 +5,11 @@
  * its author put in the ROM is what's shown (Allhallows Eve, Parallel Worlds,
  * any hack made with ZScream).
  *
- *   Z3Map.attach({ player, host, gameId })   watches the player; shows the map
- *                                             once a Zelda 3 ROM is running
+ *   Z3Map.attach({ player, host, gameId, hackOnly, onShow })
+ *       watches the player; shows the map once a Zelda 3 ROM is running
+ *       (hackOnly: only when its map isn't the vanilla one, for the hub, where
+ *       vanilla and randomizer ROMs have Mudora's map already)
+ *   Z3Map.isHack(rom)   true for a Zelda 3 ROM whose world map isn't vanilla's
  *
  * The picture is the game's own pause-screen map (press X): a Mode 7 picture of
  * 8x8 tiles, one byte a pixel, 256 tiles at ROM $18:C000 (PC 0x0C4000, 16 KB);
@@ -24,7 +27,7 @@
   var host, stage, cv, ctx, tabs, label, followBtn, pinBtn, atBtn;
   var player = null, gameId = '', rom = null, pics = {};
   var world = 0, follow = true, zoom = 1, tx = 0, ty = 0, moved = false, dirty = false, placing = false;
-  var link = null, lastOut = null, pins = [], sel = -1, shown = false;
+  var link = null, lastOut = null, pins = [], sel = -1, shown = false, hackOnly = false, onShow = null;
 
   function isZ3(r) {
     if (!r || r.length < 0x100000) return false;
@@ -33,6 +36,11 @@
     for (var j = 0; j < 256; j++) if ((r[PAL + j * 2] | r[PAL + j * 2 + 1] << 8) > 0x7FFF) return false;   // not the US layout
     return true;
   }
+  // the vanilla map data (FNV-1a of PC 0x54727-0x55B27: both tilemaps), as the
+  // Japanese 1.0 ROM has it; randomizer seeds keep it
+  var VANILLA = ['ebec8708'];
+  function mapHash(r) { var h = 0x811c9dc5; for (var i = 0x54727; i < 0x55B27; i++) { h ^= r[i]; h = Math.imul(h, 0x01000193); } return (h >>> 0).toString(16).padStart(8, '0'); }
+  function isHack(r) { return isZ3(r) && VANILLA.indexOf(mapHash(r)) < 0; }
   function picture(w) {
     if (pics[w]) return pics[w];
     var size = w ? 256 : 512, c = document.createElement('canvas'); c.width = c.height = size;
@@ -53,7 +61,7 @@
   }
 
   // ── pins ─────────────────────────────────────────────────────────────────
-  function pkey() { return 'rhb-z3map-pins:' + gameId; }
+  function pkey() { return 'rhb-z3map-pins:' + (gameId || (rom ? 'map-' + mapHash(rom) : 'x')); }
   function loadPins() { try { pins = JSON.parse(localStorage.getItem(pkey()) || '[]') || []; } catch (e) { pins = []; } }
   function savePins() { try { localStorage.setItem(pkey(), JSON.stringify(pins)); } catch (e) {} }
   function addPin(w, x, y) {
@@ -148,13 +156,14 @@
   function setPlacing(on) { placing = on; pinBtn.setAttribute('aria-pressed', String(on)); cv.style.cursor = on ? 'crosshair' : 'grab'; host.querySelector('.z3m-hint').textContent = on ? 'Tap the map where the pin goes' : ''; }
 
   // ── the game ─────────────────────────────────────────────────────────────
+  function hide() { if (shown) { shown = false; host.hidden = true; if (onShow) { try { onShow(false); } catch (e) {} } } }
   function poll() {
-    var core = player && player.core, r = null, wr = null;
+    var P = typeof player === 'function' ? player() : player, core = P && P.core, r = null, wr = null;
     try { r = core && core.rom && core.rom(); wr = core && core.wram && core.wram(); } catch (e) {}
-    if (!r || !wr || wr.length < 0x20000) { if (shown) { shown = false; host.hidden = true; } return; }
-    if (r !== rom) { rom = isZ3(r) ? r : null; pics = {}; }
-    if (!rom) { if (shown) { shown = false; host.hidden = true; } return; }
-    if (!shown) { shown = true; host.hidden = false; loadPins(); setTimeout(fit, 0); }
+    if (!r || !wr || wr.length < 0x20000) { hide(); return; }
+    if (r !== rom) { rom = (hackOnly ? isHack(r) : isZ3(r)) ? r : null; pics = {}; }
+    if (!rom) { hide(); return; }
+    if (!shown) { shown = true; host.hidden = false; loadPins(); setTimeout(fit, 0); if (onShow) { try { onShow(true); } catch (e) {} } }
     var mod = wr[0x10], area = wr[0x8A], indoors = !!wr[0x1B];
     var x = (wr[0x22] | wr[0x23] << 8) / 8, y = (wr[0x20] | wr[0x21] << 8) / 8;
     var playing = (mod === 0x07 || mod === 0x09 || mod === 0x0B || mod === 0x0E || mod === 0x10) && x < W && y < W;
@@ -169,8 +178,9 @@
   }
 
   window.Z3Map = {
+    isHack: isHack, isZ3: isZ3, mapHash: mapHash,
     attach: function (o) {
-      player = o.player; host = o.host; gameId = o.gameId || '';
+      player = o.player; host = o.host; gameId = o.gameId || ''; hackOnly = !!o.hackOnly; onShow = o.onShow || null;
       try { follow = localStorage.getItem('rhb-z3map-follow') !== 'off'; } catch (e) {}
       host.hidden = true;
       host.innerHTML = '<style>' +
@@ -181,6 +191,7 @@
         '.z3m-tabs .sp { flex: 1; } .z3m-tabs [aria-pressed="true"] { color: #3fe060; } .z3m-tabs .z3m-pin[aria-pressed="true"] { color: #ffd166; }' +
         '.z3m-stage { position: relative; flex: 1 1 0; min-height: 0; } .z3m-stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; }' +
         '.z3m-label { position: absolute; z-index: 2; background: rgba(12,16,26,.94); border: 1px solid var(--line, #30363d); border-radius: 6px; padding: 6px 8px; font-size: 12.5px; color: #e6edf3; display: flex; flex-direction: column; gap: 4px; max-width: 220px; }' +
+        '.z3m-label[hidden], .z3m-at[hidden] { display: none; }' +
         '.z3m-label button { background: #1b2130; border: 1px solid #3a4556; color: #ff9f9f; border-radius: 4px; padding: 3px 6px; font-size: 12px; cursor: pointer; }' +
         '.z3m-hint { position: absolute; left: 0; right: 0; bottom: 0; text-align: center; font-size: 12px; color: #ffd166; padding: 4px; pointer-events: none; text-shadow: 0 1px 2px #000; }' +
         '.z3m-about { color: var(--dim, #8b95a3); font-size: 12px; margin: 6px 0 0; }</style>' +
