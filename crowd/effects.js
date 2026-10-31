@@ -1,7 +1,7 @@
 /*
  * Crowd effects for the Snes9x player: lets TikTok LIVE viewers change the
  * game. Gifts, likes, follows and shares arrive from the TikTok bridge
- * (Crowd Control+, crowd-plus/bridge.mjs, run on the streaming PC) over a WebSocket; each
+ * (Crowd Control+ or JinxCast, run on the streaming PC) over a WebSocket; each
  * one names an effect from the list below, which is queued and applied when
  * Link is in normal play (not in a menu, text box or transition).
  *

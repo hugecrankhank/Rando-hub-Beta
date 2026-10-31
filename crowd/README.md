@@ -4,75 +4,13 @@ Viewers' gifts, likes, follows and shares change your game: hearts, magic,
 rupees, bombs, arrows, inverted controls, no sword and more. The ROM is never
 changed; any seed works.
 
-```
-TikTok LIVE ──► your LIVE page (Chrome/Edge) ──► Crowd Control+ ──ws://localhost:21214──► game page ──► Snes9x RAM / buttons
-```
+It needs a bridge on the PC you stream from, which hears your LIVE and sends
+the effects: **Crowd Control+** (Hank's, shared directly rather than as a
+public download) or **JinxCast** (Snack OS). In the game: ⋯ menu → **Crowd
+effects** → **Connect to** the one you run, and tick *TikTok effects on*.
+The game's menu also has a test button for every effect, no bridge needed.
 
-- `effects.js` runs in the game page. It queues effects and applies them only
-  in normal play (not in menus, text boxes or screen transitions), about
-  0.75 s apart, and shows a small feed and gift cards on the game picture.
-- **Crowd Control+** (`crowd-plus/`, its own download) runs on the PC you stream
-  from. It hears your LIVE through the **local signer** (recommended: your own LIVE
-  page in a Chrome/Edge window it opens, read over Chrome's debugging connection,
-  `crowd-plus/localsigner.mjs`) or, as a backup, TikFinity (free app), turns gifts into effects
-  using `crowd-plus/mapping.json` (edited from its control panel), and runs the
-  control panel and stream overlays.
-
-The original panel-less bridge is retired and kept in `archive/crowd-control-standard`.
-
-## Setup
-
-1. Install Node.js 20 or newer. Have Chrome or Edge installed.
-2. (Backup only) TikFinity (free, https://tikfinity.zerody.one), logged in, port 21213.
-3. Double-click `Start Crowd Control+.bat` in the Crowd Control+ folder (or run
-   `node bridge.mjs` there). The control panel opens at http://localhost:21214/studio.
-   On its Dashboard, type your TikTok name and click Connect (local signer).
-   Full steps: `crowd-plus/INSTRUCTIONS.txt`.
-4. In the game on the **same PC**: ⋯ menu → **Crowd effects** → turn on, with
-   the address `ws://localhost:21214`. The status line should say
-   *connected*. If the browser asks to allow access to devices on your local
-   network, allow it.
-5. Set gifts up on the control panel's **Gifts & effects** tab, then go live.
-
-Every gift that arrives shows in the control panel's log with its exact name,
-even unmapped ones, with a one-click "add".
-
-## JinxCast (Snack OS)
-
-The game can also take its effects from JinxCast, Kuba's Snack OS, instead of
-Crowd Control+. Snack OS then does the TikTok/Twitch side (gifts, Bits, the
-reward menu, alerts) and Rando Hub still runs every effect itself, so any seed
-works and nothing is patched.
-
-1. Start Snack OS on the same PC (it listens for Rando Hub on
-   `ws://localhost:43386`; `RANDOHUB_PORT` in its `server/.env` moves it).
-2. In Snack OS pick **Rando Hub** as the game and wire gifts to effects.
-3. In the game: ⋯ menu → **Crowd effects** → **Connect to: JinxCast**, and
-   tick *TikTok effects on*. The **Crowd Control+** button next to it switches
-   back.
-
-Both games work (ALTTPR and Z1R); the effect ids are the same as above.
-Snack OS tags each effect with an `id`, and the game answers each one
-(protocol 2, announced as `proto: 2` in `hello`):
-
-```
-→ {type:'effect', id:7, effect:'invert', user:'someone', label:'Rose', count:1}
-← {type:'result', id:7, effect:'invert', status:'queued'}
-← {type:'result', id:7, effect:'invert', status:'applied'}          (when it lands)
-← {type:'result', id:7, effect:'fairy', status:'refused', reason:'No empty bottle'}
-```
-
-Requests without an `id` (Crowd Control+, the test buttons) are handled
-exactly as before.
-
-## Testing without going live
-
-- `Test mode (no TikTok).bat`, then type `gift Rose 3`, `like 600`, `follow`, or an
-  effect id like `invert` in the black window.
-- The game's ⋯ menu → Crowd effects has a test button for every effect (no
-  Crowd Control+ needed), plus "Test one boss".
-- The control panel has the same: **Gifts & effects → Test any effect**, and
-  **Live games → Test one boss**.
+Not for races: this changes the game mid-run.
 
 ## Effects
 
@@ -178,60 +116,3 @@ Timed effects count only time spent in play and stack (a second gift adds
 time). `ice` and `cucco_storm` switch on features built into the randomizer
 ROM itself; on a ROM without them the feed says so and nothing happens. They only filter buttons or hold a value each frame, so save states,
 resets and reloads can't leave the game stuck changed.
-
-## Seed rolls by coins
-
-`coinTiers` in mapping.json: a donation worth at least that many coins (gift
-value × streak count) does that effect instead of the gift's own; the highest
-tier reached wins. Defaults: 1000 `seed_roll` (same settings), 1200
-`seed_preset` (a random preset from Saved presets: your ★ ones if any, else
-all but glitched-logic ones), 2000 `seed_chaos` (random generator, every menu
-randomized except glitched logic, race, AVIANART timer modes and Kara's
-damage challenge; up to 3 tries). The randomizer side is
-`window.UnifiedRando.crowd` in `randomizer/app.js`.
-
-## Subathon clock
-
-The bridge keeps a countdown (`timer-state.json`, restored paused on restart).
-Control page: `http://localhost:21214/timer/control` (set, start, pause,
-adjust; it sends an `x-ccbridge` header, which other sites can't). Every coin
-adds `1 / timer.coinsPerSecond` seconds (fractions carry over between donations;
-the older `secondsPerCoin` still works) while the clock is set and not finished.
-It shows on the game (bottom centre, can be turned off in Crowd effects) and
-as an OBS source at `/timer` (`?size=`, `?bg=0`, `?label=0`).
-
-## Scrolling gift list (OBS)
-
-While the bridge runs, `http://localhost:21214/ticker` is a scrolling bar of
-every mapped gift and its effect, for an OBS browser source or a TikTok LIVE
-Studio link source. `?height=`, `?speed=` and `?bg=0` adjust it. Gift
-pictures come from `crowd-plus/icons/<Gift name>.png`.
-
-## mapping.json
-
-- `gifts`: gift name (any case) or gift id → effect id.
-- `likes`: `{ "every": 300, "effect": "heal_1" }` fires once per 300 likes.
-- `follow`, `share`: effect id; once per viewer per 10 minutes.
-- `durations`: seconds for timed effects, e.g. `{ "one_hit": 20 }`.
-- `ticker`: `title`, `speed`, and `labels` (nicer effect names) for the gift list.
-- `maxPerGift`: cap for a gift streak (e.g. 20 Roses still gives 5 heals).
-- `source`: `"tikfinity"` (default) or `"direct"`. Direct mode connects to
-  TikTok without TikFinity, using `tiktok-live-connector` and needs `username`,
-  `signServer` (`"euler"` or an `https://` sign server) and a paid
-  `signApiKey`.
-- `port`: the bridge's own port (default 21214; 21213 is TikFinity's).
-- `allowedOrigins`: pages allowed to connect to the bridge.
-
-## Good to know
-
-- **Phone play:** a page on `https://` can only reach `ws://localhost`, so the
-  game must run on the PC with the bridge. To play on a phone, put the bridge
-  behind an `https` tunnel (for example
-  `cloudflared tunnel --url http://localhost:21214`) and set the menu's bridge
-  address to the `wss://…` address it prints, and add the game's origin to
-  `allowedOrigins` if you open it from somewhere else.
-- **TikTok connection:** TikTok requires every LIVE connection to be signed by
-  an outside sign server. Euler Stream (used by `tiktok-live-connector`) and
-  tik.tools both charge for this now, which is why the default goes through
-  TikFinity, which handles the TikTok side for free.
-- Not for races: this changes the game mid-run.

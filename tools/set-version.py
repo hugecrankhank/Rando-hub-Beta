@@ -36,9 +36,10 @@ for rel in GAME_PAGES:
     if not n: s = s.replace('<meta charset="UTF-8">', '<meta charset="UTF-8">\n' + tag, 1) if '<meta charset="UTF-8">' in s else s.replace('<meta charset="utf-8">', '<meta charset="utf-8">\n' + tag, 1)
     open(p, 'w', encoding='utf-8').write(s)
 
-p = os.path.join(ROOT, 'crowd-plus', 'package.json')
-s = open(p, encoding='utf-8').read()
-s = re.sub(r'"version": "[^"]*"', f'"version": "{v}"', s, count=1)
-open(p, 'w', encoding='utf-8').write(s)
+p = os.path.join(ROOT, 'crowd-plus', 'package.json')   # Crowd Control+ is kept privately now; only if a copy is here
+if os.path.exists(p):
+    s = open(p, encoding='utf-8').read()
+    s = re.sub(r'"version": "[^"]*"', f'"version": "{v}"', s, count=1)
+    open(p, 'w', encoding='utf-8').write(s)
 
 print(f'Version set to {v}. Next: add "## {v}" to CHANGELOG.md, commit and push to main; the Release workflow publishes v{v}.')

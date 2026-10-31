@@ -1,7 +1,7 @@
 /*
  * Crowd effects for Zelda 1: lets TikTok LIVE viewers change the game, the
  * same way Rando Hub's crowd/effects.js does for ALTTP. Gifts, likes, follows
- * and shares arrive from Crowd Control+ (crowd-plus/bridge.mjs in Rando Hub,
+ * and shares arrive from Crowd Control+ or JinxCast (the bridge,
  * run on the streaming PC) over a WebSocket. Each names an effect below,
  * which is queued and applied while Link is in normal play.
  *

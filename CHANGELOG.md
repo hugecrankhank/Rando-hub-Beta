@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.71 (2026-10-31)
+
+- **Crowd Control+ is now shared privately.** It's no longer a download on the Releases page or in this repository; Hank sends it directly. The game side is unchanged: ⋯ menu → Crowd effects still connects to Crowd Control+ or JinxCast running on your PC, and every effect can still be tested from that menu. The JinxCast connector moved with it.
+
 ## Beta v1.14.70 (2026-10-31)
 
 - **Crowd effects: JinxCast.** Rando Hub's crowd effects can now come from **JinxCast** (Snack OS) as well as Crowd Control+: ⋯ menu → Crowd effects → **Connect to: JinxCast** (the **Crowd Control+** button switches back). Snack OS does the TikTok and Twitch side; Rando Hub still runs every effect itself, in ALTTPR and Z1R, so any seed works. Each effect Snack OS sends gets an answer back: queued, landed, or refused with the reason ("No empty bottle"). Crowd Control+ works exactly as before. Setup: [crowd/README.md](crowd/README.md#jinxcast-snack-os).

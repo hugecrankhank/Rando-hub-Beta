@@ -151,21 +151,10 @@ stream: hearts, rupees, inverted controls, ice physics, cucco attacks,
 even a brand-new seed. There's also a subathon clock and a scrolling gift
 list for OBS / TikTok LIVE Studio.
 
-Crowd control is a separate download: Crowd-Control-Plus-v{{VERSION}}.zip
-on the Releases page (https://github.com/hugecrankhank/Rando-hub/releases).
-It's the gift bridge plus a control panel and stream overlays (gift
-alerts, goal bars, top gifters, votes, boss detours and more). Open its
-INSTRUCTIONS.txt and follow it from the top; it's written for first-timers
-and takes about 15 minutes. Short version:
-
-  1. Install Node.js (free). Have Chrome or Edge.
-  2. Double-click "Start Crowd Control+.bat". The control panel opens.
-     Type your TikTok name and click Connect (no other apps needed).
-  3. In the game: ... menu -> Crowd effects -> turn on, address
-     ws://localhost:21214.
-
-It works with the website and with this zip copy. Test any effect from
-the game's ... menu or from the control panel.
+Crowd control needs a bridge on your PC: Crowd Control+ (shared
+directly by Hank, not a public download) or JinxCast (Snack OS).
+In the game: ... menu -> Crowd effects -> Connect to the one you run.
+Every effect can be tested from that menu without a bridge.
 
 
 =========================================================================

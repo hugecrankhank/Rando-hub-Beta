@@ -210,43 +210,11 @@ bosses add time) and a **scrolling gift list** for OBS / TikTok LIVE Studio. Wit
 between Zelda 3, Zelda 1, The Guardian Legend and FF6 Worlds Collide. The ROM is
 never changed; any seed works.
 
-```
-TikTok LIVE ──► your LIVE page (Chrome/Edge window) ──► Crowd Control+ ──ws://localhost:21214──► Rando Hub ──► Snes9x
-                                                         │
-                                                         └──► control panel + stream overlays (http://localhost:21214)
-```
-
-Crowd control is **Crowd Control+**, the second download on the
-[Releases page](https://github.com/hugecrankhank/Rando-hub/releases/latest): the gift
-bridge plus a control panel and stream overlays (gift alerts with sounds, goal bars,
-top gifters, chat votes, team battles, mystery box, boss detours, read-aloud and more).
-
-**Setup (about 15 minutes, once):**
-
-1. Download **`Crowd-Control-Plus-v<version>.zip`** from the
-   [latest release](https://github.com/hugecrankhank/Rando-hub/releases/latest) and unzip it.
-2. Install [Node.js](https://nodejs.org) (LTS). You also need Chrome or Edge.
-3. Double-click **`Start Crowd Control+.bat`** (Mac: the `.command` file). The first time
-   it installs the TikTok connection library (about a minute), then the control panel
-   opens in your browser at `http://localhost:21214/studio`.
-4. **Dashboard → TikTok connection** is on **Direct (recommended)**: type your TikTok
-   name and click **Connect**. Crowd Control+ joins your LIVE itself: no key, no login,
-   no other app (an optional free [Euler Stream](https://www.eulerstream.com) key gives
-   you a signing limit of your own). Two other ways are in the same menu: the free
-   [TikFinity](https://tikfinity.zerody.one) app (the backup) and the **local signer**
-   (Crowd Control+ opens your LIVE page in its own Chrome / Edge window and reads it).
-5. In Rando Hub on the **same PC**: **⋯ → Crowd effects** → turn on, address
-   `ws://localhost:21214`. Allow local-network access if the browser asks.
-6. Test effects from either place (the game's **⋯ → Crowd effects** or the control
-   panel's **Gifts & effects → Test any effect**), then go live.
-
-Gifts are set up in the control panel (no file editing). The beginner-friendly guide is
-[`crowd-plus/INSTRUCTIONS.txt`](crowd-plus/INSTRUCTIONS.txt); the technical overview of
-the effects is [`crowd/README.md`](crowd/README.md).
-
-The original panel-less Crowd Control is retired (it's kept in
-[`archive/crowd-control-standard`](archive/crowd-control-standard), and in every release up
-to v1.3.7). Its `mapping.json` works as-is in Crowd Control+.
+Crowd control runs through a bridge on the PC you stream from: **Crowd Control+**
+(Hank's gift bridge, control panel and stream overlays) or **JinxCast** (Snack OS).
+Crowd Control+ isn't a public download: Hank shares it directly. In Rando Hub,
+**⋯ → Crowd effects** connects to whichever one is running on the same PC.
+The effects themselves are listed in [`crowd/README.md`](crowd/README.md).
 
 ## Downloads and versions
 
@@ -267,14 +235,6 @@ Rando-Hub-v1.0.0/
 ├── README.md
 └── CHANGELOG.md
 ```
-
-Streamers also grab the second download, **`Crowd-Control-Plus-v<version>.zip`**
-(crowd control): the gift bridge plus a control panel (`http://localhost:21214/studio`) and
-OBS / TikTok LIVE Studio overlays: gift alerts with sounds, goal bars, top gifters,
-recent events and chat command replies, plus reading chat aloud, chat votes, team
-battles, a mystery box, a combo meter, predictions, run stats, death tax, clip
-markers, a hall of fame and welcome-back pop-ups. Its `INSTRUCTIONS.txt`
-walks through setup. Source: [`crowd-plus/`](crowd-plus).
 
 Playing from the zip needs [Node.js](https://nodejs.org) (or Python 3) and runs at
 `http://localhost:8067/`. The zip copy keeps its own saves, separate from the
@@ -748,8 +708,7 @@ and downloads Pyodide. To set it up on a fork: **Settings → Pages → Source:
 GitHub Actions**.
 
 **Hosting somewhere other than `hugecrankhank.github.io`:** add your site's
-address to `ALLOWED` in both relay workers (and deploy your own relays, below),
-and to `allowedOrigins` in `crowd-plus/mapping.json`. Kara's server only
+address to `ALLOWED` in both relay workers (and deploy your own relays, below),. Kara's server only
 answers sites she has allowed, so elsewhere her seeds are made in the browser.
 
 ### The seed relays
@@ -808,9 +767,7 @@ addons/                 item sounds, keys in hand, map prizes and other addition
 z1r/, glr/              the Zelda 1 and Guardian Legend apps (each complete, with its own README)
 sounds/                 item sound packs
 randomizer/             alttpr.com generator (JS port), Kara's branch, AVIANART, presets, sprites, MSU
-crowd/                  crowd control's game side: effects.js (in the app)
-crowd-plus/             Crowd Control+ (runs on your PC): gift bridge, control panel, stream overlays
-archive/                retired code kept for reference (the original panel-less crowd control)
+crowd/                  crowd control's game side: effects.js (in the app; the bridge is shared privately)
 relay/                  Cloudflare Worker sources for the alttpr.com and AVIANART relays
 release/                what goes in the release zip besides the app (INSTRUCTIONS.txt, Start files)
 tools/                  deploy and release scripts
@@ -955,8 +912,7 @@ AlttpBridge.peek(0x7EF340, 32)   // dump inventory bytes ($7EF340+)
 - **Changing ROMs reloads the page.** Your game is stashed first, so nothing is lost.
 - **Mudora 2.0 doesn't follow door shuffle or overworld shuffle** (neither do the other
   trackers); its logic is Muffins', so a logic question goes to him.
-- **Crowd control needs a PC** running Crowd Control+ (or an `https` tunnel to it for
-  phone play; see `crowd/README.md`). It changes the game mid-run, so it's not for races.
+- **Crowd control needs a PC** running a crowd control bridge (Crowd Control+ or JinxCast). It changes the game mid-run, so it's not for races.
 - Saves live in the browser's storage on the site you play from (the website and a
   zip copy are separate). On iPhone/iPad, install it to the Home Screen to keep them safe.
 

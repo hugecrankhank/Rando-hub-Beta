@@ -59,8 +59,8 @@ TROUBLESHOOTING
     delete %APPDATA%\{{NAME}}\Cache and start again.
   - Controller not detected: press a button on it once with the game window
     focused (the app only sees a pad after a button press).
-  - Crowd Control+ (TikTok gifts) is a separate download, as before: run its
-    bridge, then Crowd effects in the app connects to ws://localhost:21214.
+  - Crowd effects (TikTok gifts) need a bridge running on this PC
+    (Crowd Control+ or JinxCast); Crowd effects in the app connects to it.
 
 LICENSES
   Rando Hub: LICENSE.md and NOTICE.md (and Credits inside the app).
