@@ -37,6 +37,34 @@ The original panel-less bridge is retired and kept in `archive/crowd-control-sta
 Every gift that arrives shows in the control panel's log with its exact name,
 even unmapped ones, with a one-click "add".
 
+## JinxCast (Snack OS)
+
+The game can also take its effects from JinxCast, Kuba's Snack OS, instead of
+Crowd Control+. Snack OS then does the TikTok/Twitch side (gifts, Bits, the
+reward menu, alerts) and Rando Hub still runs every effect itself, so any seed
+works and nothing is patched.
+
+1. Start Snack OS on the same PC (it listens for Rando Hub on
+   `ws://localhost:43386`; `RANDOHUB_PORT` in its `server/.env` moves it).
+2. In Snack OS pick **Rando Hub** as the game and wire gifts to effects.
+3. In the game: ⋯ menu → **Crowd effects** → **Connect to: JinxCast**, and
+   tick *TikTok effects on*. The **Crowd Control+** button next to it switches
+   back.
+
+Both games work (ALTTPR and Z1R); the effect ids are the same as above.
+Snack OS tags each effect with an `id`, and the game answers each one
+(protocol 2, announced as `proto: 2` in `hello`):
+
+```
+→ {type:'effect', id:7, effect:'invert', user:'someone', label:'Rose', count:1}
+← {type:'result', id:7, effect:'invert', status:'queued'}
+← {type:'result', id:7, effect:'invert', status:'applied'}          (when it lands)
+← {type:'result', id:7, effect:'fairy', status:'refused', reason:'No empty bottle'}
+```
+
+Requests without an `id` (Crowd Control+, the test buttons) are handled
+exactly as before.
+
 ## Testing without going live
 
 - `Test mode (no TikTok).bat`, then type `gift Rose 3`, `like 600`, `follow`, or an

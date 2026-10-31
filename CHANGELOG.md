@@ -5,6 +5,12 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.70 (2026-10-31)
+
+- **Crowd effects: JinxCast.** Rando Hub's crowd effects can now come from **JinxCast** (Snack OS) as well as Crowd Control+: ⋯ menu → Crowd effects → **Connect to: JinxCast** (the **Crowd Control+** button switches back). Snack OS does the TikTok and Twitch side; Rando Hub still runs every effect itself, in ALTTPR and Z1R, so any seed works. Each effect Snack OS sends gets an answer back: queued, landed, or refused with the reason ("No empty bottle"). Crowd Control+ works exactly as before. Setup: [crowd/README.md](crowd/README.md#jinxcast-snack-os).
+- **The Snack OS side** is in the new `jinxcast/` folder: the connector Rando Hub's pages dial in to, and all 114 effects (ALTTPR and Z1R) as a JinxCast catalogue.
+- **Fix (Zelda 3):** an app effect that couldn't happen (seed reroll off, no MSU pack, no spoiler for Reveal) still showed a gift card and told the bridge it had landed. It now just says why in the feed, as Zelda 1 already did.
+
 ## Beta v1.14.69 (2026-10-31)
 
 - **Phones: Load ROM… in the 🎮 menu** on the Zelda 3 page, first entry ("Load ROM… (seed or vanilla)"): a rolled seed or the plain game, no seed to generate. It was only behind ⚙ on a phone (the header's Load ROM… button folds away there).

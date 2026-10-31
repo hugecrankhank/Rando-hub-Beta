@@ -20,11 +20,18 @@
  * Settings (bridge address, on/off) are in the emulator menu under
  * "Crowd effects". The bridge address defaults to ws://localhost:21214
  * (21213 is TikFinity's own port).
+ *
+ * JinxCast (Snack OS) speaks the same protocol on ws://localhost:43386; the
+ * menu's JinxCast button sets that address. Snack OS tags each effect with an
+ * id and gets one answer per effect back (protocol 2):
+ *   {type:'result', id, effect, status:'queued'|'applied'|'refused', reason}
+ * Crowd Control+ sends no ids and is answered as before ('applied' only).
  */
 (function (root) {
   'use strict';
 
   var SETTINGS_KEY = 's9x-crowd-settings';
+  var BRIDGES = { ccplus: 'ws://localhost:21214', jinx: 'ws://localhost:43386' };   // Crowd Control+ / JinxCast (Snack OS)
   var cfg = { enabled: false, url: 'ws://localhost:21214', feed: true, alerts: true, allowReroll: false, rerollOverlay: true, showTimer: true };
   try { Object.assign(cfg, JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}')); } catch (e) {}
   function saveCfg() { try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(cfg)); } catch (e) {} }
@@ -1619,14 +1626,20 @@
     var d = new Date(); hist.push(('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2) + ':' + ('0' + d.getSeconds()).slice(-2) + ' ' + t);
     if (hist.length > 14) hist.shift();
   }
-  function trigger(id, user, label) {
+  function trigger(id, user, label, jid) {
     var fx = EFFECTS[id];
     if (!fx) { console.warn('[crowd] unknown effect', id); note('unknown effect ' + id); return false; }
     if (queue.length >= MAX_QUEUE) { note('queue full, dropped ' + id); return false; }
-    queue.push({ id: id, user: user || '', label: label || '' });
+    queue.push({ id: id, user: user || '', label: label || '', jid: jid || 0 });
     note('queued ' + id + (user ? ' (' + user + ')' : '') + ', ' + queue.length + ' waiting');
     render();
     return true;
+  }
+
+  // One answer per JinxCast request (jobs from Crowd Control+ or the test
+  // buttons have no id and get none).
+  function report(job, status, reason) {
+    if (job && job.jid) send({ type: 'result', id: job.jid, effect: job.id, user: job.user, status: status, reason: reason || undefined });
   }
 
   // Does this ROM read the switch an effect needs? Looked up once per ROM.
@@ -1704,11 +1717,11 @@
     if (warpWatch) { queue.unshift(job); gap = 30; return; }   // a warp is still landing
     note('running ' + job.id);
     if (f.romCheck && !romHas(core, f.romCheck)) {
-      feed(f.name + ' needs a randomizer ROM (not this one)', 'info'); render(); return;
+      feed(f.name + ' needs a randomizer ROM (not this one)', 'info'); report(job, 'refused', 'needs a randomizer ROM'); render(); return;
     }
     if (f.check) {
       var why = f.check(ram);
-      if (why) { feed(f.name + ': ' + why, 'info'); render(); return; }
+      if (why) { feed(f.name + ': ' + why, 'info'); report(job, 'refused', why); render(); return; }
     }
     var secs = secsOf(job.id);
     var good = f.good;
@@ -1722,12 +1735,19 @@
     }
     else if (f.detour) {
       var dres = startDetour(job, f.detour, core, ram);
-      if (typeof dres === 'string') { note('detour refused: ' + dres); feed(f.name + ': ' + dres, 'info'); render(); return; }
+      if (typeof dres === 'string') { note('detour refused: ' + dres); feed(f.name + ': ' + dres, 'info'); report(job, 'refused', dres); render(); return; }
     }
-    else if (f.app) { try { f.app(job); } catch (e) { console.warn('[crowd]', job.id, e); } }
+    else if (f.app) {
+      // false = it could not happen (the feed has already said why), as in Zelda 1
+      var said; try { said = f.app(job); } catch (e) { console.warn('[crowd]', job.id, e); }
+      if (said === false) {
+        report(job, 'refused', /^seed_/.test(job.id) ? 'seed reroll is off in Rando Hub, or a new seed is already coming' : 'not available right now (Rando Hub\u2019s feed says why)');
+        render(); return;
+      }
+    }
     else {
       var res = f.apply(ram);
-      if (typeof res === 'string' && !/^flute only/.test(res)) { feed(f.name + ': ' + res, 'info'); render(); return; }
+      if (typeof res === 'string' && !/^flute only/.test(res)) { feed(f.name + ': ' + res, 'info'); report(job, 'refused', res); render(); return; }
       if (typeof res === 'string') feed(res, 'info');
       if (/^warp_/.test(job.id) && lastWarp) note('warp: ' + lastWarp);
       if (job.id === 'monster_mash' && lastMash) feed('🦇 ' + lastMash, 'bad');
@@ -1739,6 +1759,7 @@
     if (!cfg.alerts) feed((job.user ? job.user + ': ' : '') + (job.label ? job.label + ' → ' : '') + f.name + (secs ? ' (' + secs + 's)' : ''),
       good ? 'good' : 'bad');   // the gift card already says it
     send({ type: 'applied', effect: job.id, user: job.user });
+    report(job, 'applied');
     render();
   }
 
@@ -2320,14 +2341,17 @@
     try { ws = new WebSocket(cfg.url); } catch (e) { status = 'bad address'; render(); return; }
     ws.onopen = function () {
       status = 'connected'; retryMs = 2000; render();
-      send({ type: 'hello', app: 'alttpr-snes9x', effects: list() });
+      send({ type: 'hello', app: 'alttpr-snes9x', proto: 2, effects: list() });
       runSent = '';
     };
     ws.onmessage = function (e) {
       var m; try { m = JSON.parse(e.data); } catch (x) { return; }
       if (m.type === 'effect') {
-        var n = Math.max(1, Math.min(10, m.count | 0 || 1));
-        for (var i = 0; i < n; i++) trigger(m.effect, m.user, m.label);
+        var n = Math.max(1, Math.min(10, m.count | 0 || 1)), took = 0;
+        // a combo answers once, for its first effect
+        for (var i = 0; i < n; i++) if (trigger(m.effect, m.user, m.label, took ? 0 : m.id)) took++;
+        if (m.id) send(took ? { type: 'result', id: m.id, effect: m.effect, status: 'queued', queued: took }
+                            : { type: 'result', id: m.id, effect: m.effect, user: m.user, status: 'refused', reason: EFFECTS[m.effect] ? 'queue full' : 'unknown effect' });
       } else if (m.type === 'timer') {
         showClock(m);
       } else if (m.type === 'detour-test') {
@@ -2375,6 +2399,9 @@
     return '<h4>Crowd effects</h4>' + recent +
       '<div class="row"><span>TikTok effects on</span><input type="checkbox" data-ext="cc-enabled"' + (cfg.enabled ? ' checked' : '') + '></div>' +
       '<div class="row"><span>Bridge address</span><input type="text" data-ext="cc-url" value="' + esc(cfg.url) + '" style="width:55%;max-width:240px"></div>' +
+      '<div class="row"><span>Connect to</span><span>' +
+        '<button type="button" data-ext="cc-bridge" data-to="ccplus"' + (cfg.url === BRIDGES.ccplus ? ' class="primary"' : '') + '>Crowd Control+</button> ' +
+        '<button type="button" data-ext="cc-bridge" data-to="jinx"' + (cfg.url === BRIDGES.jinx ? ' class="primary"' : '') + '>JinxCast</button></span></div>' +
       '<div class="row"><span>Gift alerts over the hearts</span><input type="checkbox" data-ext="cc-alerts"' + (cfg.alerts ? ' checked' : '') + '></div>' +
       '<div class="row"><span>Show feed on game</span><input type="checkbox" data-ext="cc-feed"' + (cfg.feed ? ' checked' : '') + '></div>' +
       '<div class="row"><span>Allow seed reroll (ends this game)</span><input type="checkbox" data-ext="cc-reroll"' + (cfg.allowReroll ? ' checked' : '') + '></div>' +
@@ -2390,7 +2417,7 @@
       '<div class="row" style="margin-top:6px"><span>Test one boss</span><span><select data-ext="cc-boss-pick">' +
         Object.keys(BOSSES).map(function (k) { return '<option value="' + k + '"' + (k === bossPick ? ' selected' : '') + '>' + esc(BOSSES[k].name) + '</option>'; }).join('') +
         '</select> <button type="button" data-ext="cc-boss-go">Go</button></span></div>' +
-      (status === 'connected'
+      (status === 'connected' && cfg.url !== BRIDGES.jinx
         ? '<div class="acts" style="margin-top:6px"><button type="button" data-ext="cc-plus" data-what="gift">Fake gift (alert + effect)</button>' +
           '<button type="button" data-ext="cc-plus" data-what="mystery_box">Mystery box</button></div>'
         : '<p class="hint">Connect to Crowd Control+ for the mystery box and fake-gift tests.</p>') +
@@ -2406,6 +2433,7 @@
     else if (a === 'cc-cancel-reroll') cancelReroll();
     else if (a === 'cc-end-detour') cancelDetour();
     else if (a === 'cc-boss-go') { note('test button: boss ' + bossPick); testBoss(bossPick, 'test'); }
+    else if (a === 'cc-bridge') { cfg.url = BRIDGES[b.dataset.to] || cfg.url; bridgeInfo = ''; saveCfg(); note('bridge: ' + cfg.url); connect(); }
     else if (a === 'cc-plus') { note('test via Crowd Control+: ' + b.dataset.what); send({ type: 'test', what: b.dataset.what }); feed('Sent to Crowd Control+: ' + (b.dataset.what === 'gift' ? 'fake gift' : 'mystery box'), 'info'); }
     rr();
   }

@@ -23,6 +23,7 @@
   'use strict';
 
   var SETTINGS_KEY = 'z1r-crowd-settings';
+  var BRIDGES = { ccplus: 'ws://localhost:21214', jinx: 'ws://localhost:43386' };   // Crowd Control+ / JinxCast (Snack OS)
   var cfg = { enabled: false, url: 'ws://localhost:21214', feed: true, alerts: true, allowReroll: false, showTimer: true };
   try { Object.assign(cfg, JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}')); } catch (e) {}
   function saveCfg() { try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(cfg)); } catch (e) {} }
@@ -446,13 +447,18 @@
     var d = new Date(); hist.push(('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2) + ':' + ('0' + d.getSeconds()).slice(-2) + ' ' + t);
     if (hist.length > 14) hist.shift();
   }
-  function trigger(id, user, label) {
+  function trigger(id, user, label, jid) {
     if (!EFFECTS[id]) { note('unknown effect ' + id); return false; }
     if (queue.length >= MAX_QUEUE) { note('queue full, dropped ' + id); return false; }
-    queue.push({ id: id, user: user || '', label: label || '' });
+    queue.push({ id: id, user: user || '', label: label || '', jid: jid || 0 });
     note('queued ' + id + (user ? ' (' + user + ')' : '') + ', ' + queue.length + ' waiting');
     render();
     return true;
+  }
+
+  // One answer per JinxCast request (see crowd/effects.js; Crowd Control+ jobs have no id).
+  function report(job, status, reason) {
+    if (job && job.jid) send({ type: 'result', id: job.jid, effect: job.id, user: job.user, status: status, reason: reason || undefined });
   }
 
   function onFrame(c) {
@@ -483,23 +489,24 @@
     var secs = secsOf(job.id);
     if (fe.check) {
       var why = fe.check(ram);
-      if (why) { feed(fe.name + ': ' + why, 'info'); render(); return; }
+      if (why) { feed(fe.name + ': ' + why, 'info'); report(job, 'refused', why); render(); return; }
     }
     if (secs) {
       if (active[job.id]) { /* already on: the time just adds up */ }
       else if (fe.start) { try { fe.start(ram); } catch (e) { console.warn('[crowd]', job.id, e); } }
       active[job.id] = (active[job.id] || 0) + Math.round(secs * (c.fps || 60.1));
     } else if (fe.app) {
-      try { if (fe.app(job) === false) { render(); return; } } catch (e) { console.warn('[crowd]', job.id, e); }
+      try { if (fe.app(job) === false) { report(job, 'refused', 'seed reroll is off in Rando Hub, or a new seed is already coming'); render(); return; } } catch (e) { console.warn('[crowd]', job.id, e); }
     } else {
       var res = fe.apply(ram);
-      if (typeof res === 'string') { feed(fe.name + ': ' + res, 'info'); render(); return; }
+      if (typeof res === 'string') { feed(fe.name + ': ' + res, 'info'); report(job, 'refused', res); render(); return; }
     }
     gap = GAP_FRAMES;
     var who = job.user && job.user !== 'test' ? job.user : '';
     feed((who ? who + ': ' : '') + fe.name + (secs ? ' (' + secs + 's)' : '') + (/^boss_/.test(job.id) && crowdBoss ? ': ' + crowdBoss.name : ''), fe.good ? 'good' : 'bad');
     if (who) giftCard(who, job.label, fe.name, fe.good);
     send({ type: 'applied', effect: job.id, user: job.user });
+    report(job, 'applied');
     render();
   }
   function onInput(pad) {
@@ -655,13 +662,16 @@
     try { ws = new WebSocket(cfg.url); } catch (e) { status = 'bad address'; render(); return; }
     ws.onopen = function () {
       status = 'connected'; retryMs = 2000; runSent = ''; render();
-      send({ type: 'hello', app: 'z1r', effects: list() });
+      send({ type: 'hello', app: 'z1r', proto: 2, effects: list() });
     };
     ws.onmessage = function (e) {
       var m; try { m = JSON.parse(e.data); } catch (x) { return; }
       if (m.type === 'effect') {
-        var n = Math.max(1, Math.min(10, m.count | 0 || 1));
-        for (var i = 0; i < n; i++) trigger(m.effect, m.user, m.label);
+        var n = Math.max(1, Math.min(10, m.count | 0 || 1)), took = 0;
+        // a combo answers once, for its first effect
+        for (var i = 0; i < n; i++) if (trigger(m.effect, m.user, m.label, took ? 0 : m.id)) took++;
+        if (m.id) send(took ? { type: 'result', id: m.id, effect: m.effect, status: 'queued', queued: took }
+                            : { type: 'result', id: m.id, effect: m.effect, user: m.user, status: 'refused', reason: EFFECTS[m.effect] ? 'queue full' : 'unknown effect' });
       } else if (m.type === 'timer') showClock(m);
       else if (m.type === 'durations') { durations = m.secs && typeof m.secs === 'object' ? m.secs : {}; render(); }
       else if (m.type === 'status') { bridgeInfo = m.text || ''; render(); if (m.text) feed(m.text, 'info'); }
@@ -690,6 +700,9 @@
     return '<h4>Crowd effects</h4>' + recent +
       '<div class="row"><span>TikTok effects on</span><input type="checkbox" data-ext="cc-enabled"' + (cfg.enabled ? ' checked' : '') + '></div>' +
       '<div class="row"><span>Bridge address</span><input type="text" data-ext="cc-url" value="' + esc(cfg.url) + '" style="width:55%;max-width:240px"></div>' +
+      '<div class="row"><span>Connect to</span><span>' +
+        '<button type="button" data-ext="cc-bridge" data-to="ccplus"' + (cfg.url === BRIDGES.ccplus ? ' class="primary"' : '') + '>Crowd Control+</button> ' +
+        '<button type="button" data-ext="cc-bridge" data-to="jinx"' + (cfg.url === BRIDGES.jinx ? ' class="primary"' : '') + '>JinxCast</button></span></div>' +
       '<div class="row"><span>Gift alerts on the game</span><input type="checkbox" data-ext="cc-alerts"' + (cfg.alerts ? ' checked' : '') + '></div>' +
       '<div class="row"><span>Show feed on game</span><input type="checkbox" data-ext="cc-feed"' + (cfg.feed ? ' checked' : '') + '></div>' +
       '<div class="row"><span>Allow seed reroll (ends this game)</span><input type="checkbox" data-ext="cc-reroll"' + (cfg.allowReroll ? ' checked' : '') + '></div>' +
@@ -699,7 +712,7 @@
         ' · ' + queue.length + ' queued' + (timed.length ? ' · active: ' + esc(timed.join(', ')) : '') + '</p>' +
       '<p class="hint">Test an effect (it runs when you return to the game):</p>' +
       '<div class="acts">' + tests + '</div>' +
-      (status === 'connected'
+      (status === 'connected' && cfg.url !== BRIDGES.jinx
         ? '<div class="acts" style="margin-top:6px"><button type="button" data-ext="cc-plus" data-what="gift">Fake gift (alert + effect)</button>' +
           '<button type="button" data-ext="cc-plus" data-what="mystery_box">Mystery box</button></div>'
         : '<p class="hint">Connect to Crowd Control+ for the mystery box and fake-gift tests.</p>') +
@@ -718,6 +731,7 @@
     if (a === 'cc-test') { note('test button: ' + b.dataset.id); trigger(b.dataset.id, 'test'); }
     else if (a === 'cc-clear') { endAll(); queue.length = 0; cancelReroll(); }
     else if (a === 'cc-cancel-reroll') cancelReroll();
+    else if (a === 'cc-bridge') { cfg.url = BRIDGES[b.dataset.to] || cfg.url; bridgeInfo = ''; saveCfg(); note('bridge: ' + cfg.url); connect(); }
     else if (a === 'cc-plus') { send({ type: 'test', what: b.dataset.what }); feed('Sent to Crowd Control+: ' + (b.dataset.what === 'gift' ? 'fake gift' : 'mystery box'), 'info'); }
     rr();
   }
