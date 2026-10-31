@@ -57,11 +57,19 @@
     return s;
   }
   function isLive(k, i) { return !!(live && live.started && (k === 'keys' ? live.keys[i] : k === 'chars' ? live.chars[i].in : k === 'bosses' ? !!(beaten.spots[i]) : false)); }
+  // a key-item spot is done when the seed says what's there and Mario has it
+  function kspotLive(i) {
+    const it = (spoiler && spoiler['Item Locations']) || {}, cls = it[D.KEY_LOCATIONS[i][0]];
+    if (!cls) return false;
+    const k = D.KEY_ITEMS.findIndex((x) => x[0] === cls);
+    return k >= 0 && (isLive('keys', k) || !!(manual.keys && manual.keys[k]));
+  }
   function state() {
     const m = manual;
     const has = (k, i) => isLive(k, i) || !!(m[k] && m[k][i]);
     return {
       keys: D.KEY_ITEMS.map((_, i) => has('keys', i)),
+      kspots: D.KEY_LOCATIONS.map((_, i) => kspotLive(i) || !!(m.kspots && m.kspots[i])),
       chars: D.CHARACTERS.map((_, i) => has('chars', i)),
       bosses: D.BOSS_LOCATIONS.map((_, i) => has('bosses', i)),
       stars: live && live.started ? live.stars : (m.stars | 0),
@@ -88,7 +96,7 @@
   function loadManual() { try { manual = JSON.parse(localStorage.getItem(key()) || '{}') || {}; } catch (e) { manual = {}; } }
   function saveManual() { try { localStorage.setItem(key(), JSON.stringify(manual)); } catch (e) {} }
   function toggle(k, i) {
-    if (isLive(k, i)) return;
+    if (isLive(k, i) || (k === 'kspots' && kspotLive(i))) return;
     manual[k] = manual[k] || {};
     if (manual[k][i]) delete manual[k][i]; else manual[k][i] = 1;
     saveManual(); render();
@@ -102,12 +110,14 @@
       '<div class="t-stats" id="t-stats"></div>' +
       '<div class="t-tabs" role="tablist">' +
         '<button type="button" role="tab" data-view="party">Party</button>' +
+        '<button type="button" role="tab" data-view="map">Map</button>' +
         '<button type="button" role="tab" data-view="bosses">Bosses</button>' +
         '<button type="button" role="tab" data-view="seed">Seed</button>' +
       '</div>' +
       '<div class="t-view party"><div class="t-sec"><h4>Star Pieces <span id="n-stars"></span></h4><div class="stars" id="g-stars"></div></div>' +
         '<div class="t-sec"><h4>Party <span id="n-chars"></span></h4><div class="grid chars" id="g-chars"></div></div>' +
         '<div class="t-sec"><h4>Key items <span id="n-keys"></span></h4><div class="grid keys" id="g-keys"></div></div></div>' +
+      '<div class="t-view map"><div class="t-sec"><h4>Map <span id="n-map"></span></h4><div id="g-map"></div></div></div>' +
       '<div class="t-view bosses"><div class="t-sec"><h4>Bosses <span id="n-bosses"></span></h4><p class="fine">Won boss fights are ticked on their own (the game says which boss, the seed says where it sat); tap a spot to tick it by hand. With Reveal on, each spot shows who’s really there and ★ where a Star Piece is.</p><p class="fine" id="g-beaten"></p><div id="g-bosses"></div></div></div>' +
       '<div class="t-view seed"><div class="t-sec" id="g-seed"></div>' +
         '<div class="t-sec"><h4>Spoiler <label class="reveal"><input type="checkbox" id="t-reveal"> Reveal</label></h4><div id="g-spoiler"></div></div></div>' +
@@ -125,6 +135,7 @@
       const b = e.target.closest('[data-k]');
       if (b) toggle(b.dataset.k, +b.dataset.i);
     });
+    if (window.SMRPGMap) SMRPGMap.init($('g-map'), { onToggle: (k, i) => toggle(k, i) });
     setView(view);
   }
 
@@ -133,6 +144,7 @@
     root.dataset.view = v;
     root.querySelectorAll('.t-tabs button').forEach((b) => b.setAttribute('aria-selected', b.dataset.view === v ? 'true' : 'false'));
     try { localStorage.setItem('smrpg:view', v); } catch (e) {}
+    if (v === 'map' && window.SMRPGMap) SMRPGMap.redraw();
   }
 
   function render() {
@@ -171,6 +183,14 @@
     $('n-chars').textContent = count('chars') + '/5';
     $('n-keys').textContent = count('keys') + '/' + D.KEY_ITEMS.length;
     $('n-bosses').textContent = count('bosses') + '/' + D.BOSS_LOCATIONS.length;
+    $('n-map').textContent = (count('bosses') + count('kspots')) + '/' + (D.BOSS_LOCATIONS.length + D.KEY_LOCATIONS.length);
+    if (window.SMRPGMap) {
+      const kname = (cls) => { const k = D.KEY_ITEMS.find((x) => x[0] === cls); return k ? k[2] : cls; };
+      SMRPGMap.update({ bosses: s.bosses, kspots: s.kspots, bossLive: (i) => !!beaten.spots[i], kspotLive,
+        who: reveal ? D.BOSS_LOCATIONS.map((b) => (bossSp[b[0]] || {}).Boss || '') : null,
+        star: reveal ? D.BOSS_LOCATIONS.map((b) => (bossSp[b[0]] || {})['Star Piece'] === 'Yes') : null,
+        item: reveal ? D.KEY_LOCATIONS.map((k) => itemSp[k[0]] ? kname(itemSp[k[0]]) : '') : null });
+    }
     const bl = $('g-beaten'); if (bl) bl.textContent = beaten.bosses.length ? 'Beaten (from the game): ' + beaten.bosses.join(', ') : '';
     const l = live && live.started ? live : null;
     const stat = (ico, n, of, title) => '<span class="stat" title="' + esc(title) + '"><span class="ico">' + ico + '</span>' + n + (of ? '<small>/' + of + '</small>' : '') + '</span>';

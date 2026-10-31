@@ -46,6 +46,13 @@ Read from the running game every half second (no setup):
   Star Piece is, and the key items show where they are. Reveal is off by default, so a
   stream doesn't give the seed away.
 - Anything the game can't tell us you can tick by hand; manual ticks are kept per seed.
+- **The map:** the world laid out as the game's map screen lays it out, every place a
+  marker with its count of spots done (boss fights and key-item spots), greyed, gold
+  (some) or green (all). Tap a place for its spots and to tick one by hand; a key-item
+  spot ticks itself once the seed says what's there and Mario has it. With Reveal on,
+  the spots say who's really there, ★ where a Star Piece is and which key item sits
+  where. Pinch, scroll or double-tap to zoom (the names appear as you zoom in), drag
+  to pan. The picture is drawn by the page (an SVG), not taken from the game.
 
 Memory map (found with the emulator; the event memory layout as Lazy Shell documents it):
 the save block at `$7F:F800` (the new-game copy is at ROM `$3A002C`): 20 bytes per
@@ -63,6 +70,7 @@ the battle flag (`$316D`).
   generator in Pyodide; `gen/smrpg_randomizer.zip` — the randomizer (MIT, see its `LICENSE`)
 - `js/data.js` — presets, the flag tree (written by `tools/smrpg-bundle.py` from the
   randomizer's `flags.py`), key items, locations, the memory map
+- `js/map.js` — the map: the places and their spots, zoom and pan
 - `js/tracker.js`, `js/store.js`, `hub.js` (the hub's glue), `sw.js`, `manifest.webmanifest`
 
 To update the generator: `python3 tools/smrpg-bundle.py /path/to/smrpg_web_randomizer`.

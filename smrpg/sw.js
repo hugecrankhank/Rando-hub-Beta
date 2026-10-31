@@ -5,12 +5,12 @@
  */
 // One name per copy of the app (it shares the site with the hub and the other games)
 const PREFIX = 'smrpg-v', SCOPE = ':' + self.registration.scope;
-const CACHE = 'smrpg-v1' + SCOPE;
+const CACHE = 'smrpg-v2' + SCOPE;
 const EXTERNAL = ['https://fonts.googleapis.com/', 'https://fonts.gstatic.com/'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll([
-    './', './index.html', './manifest.webmanifest', './hub.js', './js/data.js', './js/store.js', './js/tracker.js', './js/seed.js', './js/app.js',
+    './', './index.html', './manifest.webmanifest', './hub.js', './js/data.js', './js/store.js', './js/map.js', './js/tracker.js', './js/seed.js', './js/app.js',
     './gen/seed-worker.js', './gen/smrpg_randomizer.zip',
     // the emulator (../emu/) and Python (../pyodide/) are outside this scope: the hub's offline cache keeps those
   ])).catch(() => {}));

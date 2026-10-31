@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="version" content="1.14.64">
+<meta name="version" content="1.14.65">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Super Mario RPG Randomizer - Rando Hub</title>
 <meta name="description" content="Roll Super Mario RPG Open World Randomizer seeds, play them, and track Star Pieces, key items and bosses in one page.">
@@ -85,7 +85,7 @@
     color: var(--dim); cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; }
   .t-tabs button[aria-selected="true"] { color: var(--gold); border-bottom-color: var(--gold); }
   .t-view { display: none; }
-  #tracker[data-view="party"] .t-view.party, #tracker[data-view="bosses"] .t-view.bosses, #tracker[data-view="seed"] .t-view.seed { display: block; }
+  #tracker[data-view="party"] .t-view.party, #tracker[data-view="map"] .t-view.map, #tracker[data-view="bosses"] .t-view.bosses, #tracker[data-view="seed"] .t-view.seed { display: block; }
   /* roomy: Party and Checks side by side, Objectives under */
   #tracker:not(.compact) .t-tabs { display: none; }
   #tracker:not(.compact) .t-view { display: block; }
@@ -129,6 +129,43 @@
   .chk.have { color: var(--text); }
   .chk.have i { background: var(--green); border-color: var(--green); }
   .chk:hover { background: rgba(255,255,255,.05); }
+  /* the map (map.js) */
+  #g-map { display: flex; flex-direction: column; height: 400px; min-height: 240px; border: 2px solid var(--cell-line); border-radius: 6px; background: #0c1526; overflow: hidden; }
+  .mp-bar { display: flex; align-items: center; gap: 6px; padding: 3px 4px 3px 8px; background: var(--cell); border-bottom: 2px solid var(--cell-line); font-size: 11.5px; color: var(--dim); }
+  .mp-bar .mp-hint { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mp-fit { background: none; border: 0; color: var(--dim); font-size: 13px; cursor: pointer; padding: 3px 6px; }
+  .mp-stage { position: relative; flex: 1 1 0; min-height: 0; overflow: hidden; }
+  .mp-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: grab; font-family: var(--body); }
+  .mp-road { stroke: #4b6690; stroke-width: 4; stroke-linecap: round; stroke-dasharray: 1 9; }
+  .mp-cap { font: italic 13px var(--body); fill: #4b6690; text-anchor: middle; letter-spacing: .04em; }
+  .mp-place { position: absolute; left: 0; top: 0; width: 0; height: 0; cursor: pointer; }
+  .mp-place .mp-dot { position: absolute; left: -13px; top: -13px; width: 26px; height: 26px; border-radius: 50%; background: #22314a; border: 2.5px solid #7f93b3; box-sizing: border-box;
+    display: flex; align-items: center; justify-content: center; font: 600 10.5px/1 var(--body); color: #d8e2f2; }
+  .mp-place.bare .mp-dot { left: -5px; top: -5px; width: 10px; height: 10px; border-width: 2px; border-color: #4b6690; }
+  .mp-place.some .mp-dot { border-color: var(--gold); }
+  .mp-place.all .mp-dot { background: var(--green); border-color: var(--green); color: #04140a; }
+  .mp-place.sel .mp-dot { box-shadow: 0 0 0 2px #0c1526, 0 0 0 4px #fff; }
+  .mp-place.star .mp-dot { box-shadow: 0 0 0 2px #0c1526, 0 0 0 3.5px rgba(255,209,102,.55); }
+  .mp-place .mp-label { position: absolute; left: 0; top: 15px; transform: translateX(-50%); white-space: nowrap; font: 11px/1.2 var(--body); color: #b7c4da;
+    text-shadow: 0 0 3px #0c1526, 0 0 3px #0c1526, 0 1px 2px #0c1526; pointer-events: none; }
+  .mp-place.bare .mp-label { top: 7px; font-size: 10px; color: #7f93b3; }
+  .mp-place.k-k .mp-label { color: #e6a9a9; }
+  .mp-place.star .mp-label::after { content: ' ★'; color: var(--gold); }
+  .mp-stage.z-mid .mp-place.bare .mp-label, .mp-stage.z-far .mp-label { display: none; }
+  .mp-stage.z-far .mp-place.sel .mp-label, .mp-stage.z-mid .mp-place.sel .mp-label { display: block; }
+  .mp-pop { position: absolute; z-index: 2; background: rgba(12,16,26,.95); border: 1px solid var(--cell-line); border-radius: 6px; padding: 6px 6px 4px; min-width: 180px; max-width: 260px; display: flex; flex-direction: column; gap: 1px; }
+  .mp-pop .mp-h { font: 400 14px/1 var(--px); color: var(--gold); padding: 2px 4px 6px; }
+  .mp-spot { position: relative; background: none; border: 0; text-align: left; padding: 4px 4px 4px 24px; cursor: pointer; font-size: 13px; color: var(--dim); line-height: 1.25; border-radius: 3px; display: block; width: 100%; }
+  .mp-spot i { position: absolute; left: 5px; top: 6px; width: 11px; height: 11px; border: 2px solid var(--cell-line); border-radius: 2px; }
+  .mp-spot.have { color: var(--text); } .mp-spot.have i { background: var(--green); border-color: var(--green); }
+  .mp-spot.live { cursor: default; }
+  .mp-spot em { display: block; font-style: normal; color: var(--gold); font-size: 12px; }
+  .mp-spot:hover { background: rgba(255,255,255,.05); }
+  #tracker.compact #g-map { height: auto; flex: 1 1 0; }
+  #tracker.compact .t-view.map { display: none; }
+  #tracker.compact[data-view="map"] .t-view.map { display: flex; flex-direction: column; overflow: hidden; }
+  #tracker.compact .t-view.map .t-sec { display: flex; flex-direction: column; flex: 1 1 0; min-height: 0; margin: 0; }
+  #tracker.compact .t-view.map h4 { display: none; }
   .seedline { font-size: 13px; color: var(--dim); } .seedline b { color: var(--gold); font-weight: 400; font-family: var(--px); margin-right: 6px; }
   .goal { display: grid; grid-template-columns: 1fr; gap: 1px; padding: 5px 0; border-bottom: 1px solid var(--cell-line); font-size: 13.5px; }
   .goal-r { color: var(--text); } .goal-r .letter { font: 400 14px/1 var(--px); color: var(--gold); margin-right: 4px; }
@@ -141,7 +178,8 @@
   /* roomy and wide: two columns */
   @media (min-width: 1500px) {
     #tracker:not(.compact) { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto 1fr auto; gap: 0 16px; align-content: start; }
-    #tracker:not(.compact) .t-stats, #tracker:not(.compact) .t-foot, #tracker:not(.compact) .t-view.seed { grid-column: 1 / -1; }
+    #tracker:not(.compact) .t-stats, #tracker:not(.compact) .t-foot, #tracker:not(.compact) .t-view.map, #tracker:not(.compact) .t-view.seed { grid-column: 1 / -1; }
+    #tracker:not(.compact) #g-map { height: 480px; }
   }
   /* compact (phones): one tab at a time, the list scrolls inside */
   #tracker.compact { display: flex; flex-direction: column; overflow: hidden; padding: 4px 8px calc(4px + env(safe-area-inset-bottom)); }
@@ -324,6 +362,7 @@
 <script src="../emu/player.js"></script>
 <script src="js/data.js"></script>
 <script src="js/store.js"></script>
+<script src="js/map.js"></script>
 <script src="js/tracker.js"></script>
 <script src="js/seed.js"></script>
 <script src="js/app.js"></script>

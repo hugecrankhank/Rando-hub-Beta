@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.65 (2026-10-30)
+
+- **Super Mario RPG: a map.** New Map tab in the tracker: the world laid out as the game's map screen lays it out, every place a marker with its count of spots done (boss fights and key-item spots): grey, gold (some) or green (all). Tap a place for its spots and to tick one by hand; a key-item spot ticks itself once the seed says what's there and Mario has it. With Reveal on, the spots say who's really there, ★ where a Star Piece is and which key item sits where. Pinch, scroll or double-tap to zoom (the names appear as you zoom in), drag to pan.
+
 ## Beta v1.14.64 (2026-10-30)
 
 - **Super Metroid: a map.** New Map tab in the tracker: the game's own area maps (Crateria, Brinstar, Norfair, Wrecked Ship, Maridia, Tourian) with a pin on every item spot, exactly where the item is, ticked as the game hands the item out, and Samus on it. Pinch, scroll or double-tap to zoom, drag to pan; tap a pin for its name (and its item with Reveal on) and to mark it by hand. **Follow** switches to the area Samus is in and keeps her in view. A diamond marks a spot that comes right after a shuffled boss. The picture is drawn from your ROM when the page runs (the pause-screen map tiles), so nothing of it ships with the hub; the pins are worked out from the room headers (`tools/sm-map-pins.py`).
