@@ -299,6 +299,8 @@ async function play(id) {
   P.boot('#game', new File([g.rom], 'patched-' + g.id + (g.system === 'nes' ? '.nes' : '.sfc')))
     .catch((e) => { console.error('[patched]', e); toast('The game didn’t start: ' + (e && e.message || e), 8000); });
   place();
+  // Zelda 3 hacks get a world map (z3map.js): it shows itself once such a ROM runs
+  if (g.system !== 'nes' && window.Z3Map) Z3Map.attach({ player: P, host: $('p-map'), gameId: g.id });
 }
 
 const q = new URLSearchParams(location.search);

@@ -5,6 +5,11 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.67 (2026-10-31)
+
+- **Patched games: a map for Zelda 3 hacks.** When the game running is a Link to the Past hack (Allhallows Eve, Parallel Worlds, anything built with ZScream), a map appears beside it: the hack's own world map, the one its pause screen shows, Light and Dark World, drawn from the ROM as it runs (nothing of it ships with the hub), with Link on it. **Follow** keeps him in view; **📍 Pin** drops a pin where you tap (or **⌖ Pin at Link**) with a note, kept for that game; tap a pin to read or remove it. Pinch, scroll or double-tap to zoom.
+- **Patched games** has the Games ▾ menu on phones too (one menu instead of the row of links), and its links follow Manage games.
+
 ## Beta v1.14.66 (2026-10-30)
 
 - **Games ▾ on the Zelda 3 page too.** The header's Zelda 1 ▸ / GLR ▸ / FF6 ▸ / FF1·4·5 ▾ / Patched ▸ buttons are now one **Games ▾** menu (a 🎮 on phones, next to 🎲), the same as the other game pages: the games you've ticked, the rest under *Add a game*. On the narrowest phones the header drops the "RANDO HUB" text to make room.
