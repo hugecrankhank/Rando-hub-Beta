@@ -34,7 +34,7 @@
       locs: D.LOCATIONS.map((l) => !!(r[M.ITEMS + (l[2] >> 3)] & (1 << (l[2] & 7)))),
       energy: w(M.ENERGY), maxEnergy: w(M.MAX_ENERGY), reserve: w(M.RESERVE), maxReserve: w(M.MAX_RESERVE),
       missiles: w(M.MISSILES), maxMissiles: w(M.MAX_MISSILES), supers: w(M.SUPERS), maxSupers: w(M.MAX_SUPERS), pbs: w(M.PBS), maxPbs: w(M.MAX_PBS),
-      state: r[M.STATE], area: r[M.AREA], room: w(M.ROOM),
+      state: r[M.STATE], area: r[M.AREA], room: w(M.ROOM), sx: w(M.SAMUS_X), sy: w(M.SAMUS_Y),
       started: false,
     };
     // in a game: playing (or paused, a door, a cutscene), with Samus's energy set up
@@ -67,6 +67,7 @@
       '<div class="t-stats" id="t-stats"></div>' +
       '<div class="t-tabs" role="tablist">' +
         '<button type="button" role="tab" data-view="items">Samus</button>' +
+        '<button type="button" role="tab" data-view="map">Map</button>' +
         '<button type="button" role="tab" data-view="locs">Spots</button>' +
         '<button type="button" role="tab" data-view="seed">Seed</button>' +
       '</div>' +
@@ -74,6 +75,7 @@
         '<div class="t-sec"><h4>DASH items</h4><div class="grid gear" id="g-extra"></div></div>' +
         '<div class="t-sec"><h4>Bosses <span id="n-bosses"></span></h4><div class="grid bosses" id="g-bosses"></div></div>' +
         '<div class="t-sec"><h4>Mini-bosses <span id="n-minis"></span></h4><div class="grid bosses" id="g-minis"></div></div></div>' +
+      '<div class="t-view map"><div class="t-sec"><h4>Map <span id="n-map"></span></h4><div id="g-map"></div></div></div>' +
       '<div class="t-view locs"><div class="t-sec"><h4>Item spots <span id="n-locs"></span></h4><p class="fine">The game ticks a spot as you take its item. With Reveal on, each spot shows what’s there.</p><div id="g-locs"></div></div></div>' +
       '<div class="t-view seed"><div class="t-sec" id="g-seed"></div>' +
         '<div class="t-sec"><h4>Spoiler <label class="reveal"><input type="checkbox" id="t-reveal"> Reveal</label></h4><div id="g-spoiler"></div></div></div>' +
@@ -89,12 +91,14 @@
       '<div class="area"><h5>' + esc(a) + ' <span class="an" data-area="' + ai + '"></span></h5><div class="list">' +
       D.LOCATIONS.map((l, i) => l[1] === ai ? '<button type="button" class="chk" data-k="locs" data-i="' + i + '"><i></i>' + esc(l[0]) + '<span class="what"></span></button>' : '').join('') + '</div></div>').join('');
     root.addEventListener('click', (e) => { const b = e.target.closest('[data-k]'); if (b) toggle(b.dataset.k, +b.dataset.i); });
+    if (window.SMRMap) SMRMap.init($('g-map'), { onToggle: (i) => toggle('locs', i) });
     setView(view);
   }
   function setView(v) {
     view = v; root.dataset.view = v;
     root.querySelectorAll('.t-tabs button').forEach((b) => b.setAttribute('aria-selected', b.dataset.view === v ? 'true' : 'false'));
     try { localStorage.setItem('smr:view', v); } catch (e) {}
+    if (v === 'map' && window.SMRMap) SMRMap.redraw();
   }
 
   function render() {
@@ -131,8 +135,10 @@
     $('n-gear').textContent = count('gear') + '/' + D.GEAR.length;
     $('n-bosses').textContent = count('bosses') + '/4';
     $('n-minis').textContent = count('minis') + '/' + D.MINIS.length;
-    const shown = D.LOCATIONS.filter((l, i) => !root.querySelector('[data-k="locs"][data-i="' + i + '"]').hidden).length;
+    const shownArr = D.LOCATIONS.map((l, i) => !root.querySelector('[data-k="locs"][data-i="' + i + '"]').hidden), shown = shownArr.filter(Boolean).length;
     $('n-locs').textContent = count('locs') + '/' + shown;
+    $('n-map').textContent = count('locs') + '/' + shown;
+    if (window.SMRMap) SMRMap.update({ have: s.locs, shown: shownArr, names: D.LOCATIONS.map((l) => l[0]), items: reveal ? D.LOCATIONS.map((l) => at[l[0] + '|' + AREA_KEY[l[1]]] || '') : null, liveHave: (i) => isLive('locs', i) });
     const l = live && live.started ? live : null;
     const stat = (ico, n, of, title) => '<span class="stat" title="' + esc(title) + '"><span class="ico">' + ico + '</span>' + n + (of ? '<small>/' + of + '</small>' : '') + '</span>';
     $('t-stats').innerHTML =
@@ -164,9 +170,10 @@
   let last = '';
   function poll() {
     const s = readRam();
-    if (!s) { live = null; setLink(window.Snes9xPlayer && Snes9xPlayer.ready ? 'waiting' : 'manual'); if (last !== 'none') { last = 'none'; render(); } return; }
+    if (!s) { live = null; if (window.SMRMap) SMRMap.setSamus(null); setLink(window.Snes9xPlayer && Snes9xPlayer.ready ? 'waiting' : 'manual'); if (last !== 'none') { last = 'none'; render(); } return; }
     live = s;
     setLink(s.started ? 'live' : 'waiting');
+    if (window.SMRMap) SMRMap.setSamus(s);
     const sig = JSON.stringify([s.gear, s.bosses, s.minis, s.locs, s.energy, s.maxEnergy, s.reserve, s.missiles, s.maxMissiles, s.supers, s.maxSupers, s.pbs, s.maxPbs, s.started]);
     if (sig !== last) { last = sig; render(); }
   }

@@ -10,6 +10,7 @@
 
   // ── tracker ───────────────────────────────────────────────────────────────
   SMRTracker.ram = () => { const c = window.Snes9xPlayer && Snes9xPlayer.core; return c ? c.wram() : null; };
+  if (window.SMRMap) SMRMap.rom = () => { const c = window.Snes9xPlayer && Snes9xPlayer.core; try { return c && c.rom ? c.rom() : null; } catch (e) { return null; } };
   SMRTracker.init($('tracker'));
   SMRTracker.onLink((s) => {
     const el = $('link-status');

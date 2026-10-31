@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.64 (2026-10-30)
+
+- **Super Metroid: a map.** New Map tab in the tracker: the game's own area maps (Crateria, Brinstar, Norfair, Wrecked Ship, Maridia, Tourian) with a pin on every item spot, exactly where the item is, ticked as the game hands the item out, and Samus on it. Pinch, scroll or double-tap to zoom, drag to pan; tap a pin for its name (and its item with Reveal on) and to mark it by hand. **Follow** switches to the area Samus is in and keeps her in view. A diamond marks a spot that comes right after a shuffled boss. The picture is drawn from your ROM when the page runs (the pause-screen map tiles), so nothing of it ships with the hub; the pins are worked out from the room headers (`tools/sm-map-pins.py`).
+
 ## Beta v1.14.63 (2026-10-30)
 
 - **Zelda 3 crowd effects: Master Sword lock / unlock** (`master_lock`, `master_unlock`, permanent). The lock puts the Master Sword in Link's hands and keeps it there: swords he finds in the game are swallowed (the pickup is spent, the sword stays the Master Sword), and only a crowd **Sword upgrade** moves it up, the lock moving with it. The timed sword effects (Sword gone, Sword downgrade, Master Sword) still lend it out on top and give the locked level back. Sword stolen takes the lock with the sword; unlock lets go. Kept in this browser with the ROM, like the sword loans, so a reload keeps it. Crowd Control+ shows a warning before it goes on a gift.
