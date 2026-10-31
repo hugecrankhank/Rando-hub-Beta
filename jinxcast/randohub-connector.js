@@ -3,6 +3,9 @@
  * Copyright (c) 2026 Hank (hugecrankhank). Part of Rando Hub, licensed like the
  * rest of it (LICENSE.md, NOTICE.md).
  *
+ * Permission: this file may be used and adapted in Snack OS / JinxCast, with
+ * credit to Huge Crank Hank (Hank @huge_crank_hank) kept (NOTICE.md, 3).
+ *
  * The Snack OS side of the link: a server module for JinxCast / Snack OS
  * (Kuba's stream engine) that Rando Hub's game pages connect to. It lives in
  * Snack OS's server/ folder as randohub-connector.js, next to

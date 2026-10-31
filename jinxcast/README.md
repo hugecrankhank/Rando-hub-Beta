@@ -24,4 +24,8 @@ The game side is in `crowd/effects.js` and `z1r/js/crowd.js`: ⋯ menu → Crowd
 effects → **Connect to: JinxCast**. The messages are described in
 [crowd/README.md](../crowd/README.md#jinxcast-snack-os).
 
+**Permission:** it's fine to use and adapt these files in Snack OS / JinxCast,
+with credit to **Huge Crank Hank (Hank @huge_crank_hank)**. See
+[NOTICE.md](../NOTICE.md), additional permission 3.
+
 Not part of the app download (`tools/make-release.py` leaves this folder out).

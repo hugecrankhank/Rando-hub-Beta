@@ -210,7 +210,7 @@ doc = {
         'games': 'games lists which of Rando Hub\'s two games an effect exists in. Sent while the hub is on the other game, it is refused with that reason rather than lost.',
         'house': 'house = true marks Rando Hub originals: effects JinxCast has no equivalent for in that game. jinxcast_equivalent names the closest existing JinxCast effect where there is one.',
         'durations': 'duration_ms is what Rando Hub ships with. A slider change in Jinx Cast is sent to the hub when it connects.',
-        'credit': 'Rando Hub effects by Hank @huge_crank_hank.',
+        'credit': 'Rando Hub effects by Huge Crank Hank (Hank @huge_crank_hank). May be used and adapted in Snack OS / JinxCast with that credit kept (Rando Hub NOTICE.md, additional permission 3).',
     },
     'effects': effects,
 }

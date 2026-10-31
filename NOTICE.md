@@ -23,6 +23,12 @@ In addition to the PolyForm Strict License, the licensor grants these permission
    changing, distributing or selling the software itself.
 2. **Linking.** You may link to the website, this repository and its Releases page
    anywhere. (Links aren't copies, so share those rather than the files.)
+3. **Snack OS / JinxCast.** The JinxCast connector in `jinxcast/`
+   (`randohub-connector.js`, `randohub-effects.json`, `build-effects.py`) may be
+   used and adapted in Snack OS / JinxCast, including in its distributed builds,
+   with credit to **Huge Crank Hank (Hank @huge_crank_hank)** kept in the files
+   and wherever Snack OS credits its contributors. This covers those files only,
+   not the rest of Rando Hub.
 
 ## Asking for permission
 
