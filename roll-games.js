@@ -99,7 +99,8 @@
   // header buttons) move under the New seed button, which opens a small menu.
   var PHONE_MQ = '(max-width: 760px), (max-height: 560px)';
   // opts: { always: shown at every size (the hub), confirm(name) → false to stay,
-  //         label: the closed menu's text, shortLabel: the same on phones }
+  //         label: the closed menu's text, shortLabel: the same on phones,
+  //         actions: [{ label, run }] for this page, listed first (the hub's Load ROM…) }
   function gamesMenu(currentUrl, linkIds, extras, opts) {
     opts = opts || {};
     var sel = document.createElement('select');
@@ -112,6 +113,7 @@
       var on = others.filter(function (x) { return s[x[2]]; }), off = others.filter(function (x) { return !s[x[2]]; });
       var label = phone.matches && opts.shortLabel ? opts.shortLabel : (opts.label || 'Games ▾');
       sel.innerHTML = '<option value="">' + label + '</option>' +
+        (opts.actions && opts.actions.length ? '<optgroup label="' + (opts.actionsLabel || 'This game') + '">' + opts.actions.map(function (a, i) { return '<option value="act:' + i + '">' + a.label + '</option>'; }).join('') + '</optgroup>' : '') +
         '<optgroup label="Games">' +
         on.map(function (x) { return '<option value="' + base + x[0] + '">' + x[1] + '</option>'; }).join('') +
         '</optgroup>' + (off.length ? '<optgroup label="Add a game">' + off.map(function (x) { return '<option value="add:' + x[2] + '">+ ' + x[1] + '</option>'; }).join('') + '</optgroup>' : '') +
@@ -125,6 +127,7 @@
       var v = sel.value; sel.value = '';
       if (!v) return;
       if (v === 'manage') { manage(currentUrl); return; }
+      if (v.indexOf('act:') === 0) { var act = opts.actions[+v.slice(4)]; if (act) act.run(); return; }
       var target = ALL.filter(function (x) { return base + x[0] === v || 'add:' + x[2] === v; })[0];
       if (opts.confirm && !opts.confirm(target ? target[1] : '')) return;
       if (v.indexOf('add:') === 0) {

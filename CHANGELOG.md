@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.69 (2026-10-31)
+
+- **Phones: Load ROM… in the 🎮 menu** on the Zelda 3 page, first entry ("Load ROM… (seed or vanilla)"): a rolled seed or the plain game, no seed to generate. It was only behind ⚙ on a phone (the header's Load ROM… button folds away there).
+
 ## Beta v1.14.68 (2026-10-31)
 
 - **Zelda 3 page: the hack map.** Load a Link to the Past hack with **Load ROM…** (Allhallows Eve, say) and a **🗺 Hack map** button appears (bottom right; top right on phones): the same map Patched games got in 1.14.67, the hack's own world map from its ROM with Link on it and your pins, in a panel over the game. **⧉ Pop out** puts it in a window of its own for a stream capture. Vanilla and randomizer seeds keep Mudora's map and show nothing new; a hack is told by its world map not being the original's.
