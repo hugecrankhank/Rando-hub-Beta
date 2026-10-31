@@ -336,7 +336,12 @@
     'body.phone.tracker-emo #frames #emo-frame { display: block !important; flex: 1; height: auto !important; min-height: 0; }',
     'body.phone.tracker-emo #phone-map-btn { display: none !important; }',
     // header: title, status dots and ⚙; everything else behind the ⚙
-    'body.phone:not(.phone-menu) header > :not(h1):not(#pad-status):not(#link-status):not(#phone-gear):not(#reroll-btn):not(#sprite-btn):not(#sprite-fav-btn):not(#music-btn):not(#music-roll-btn):not(#phone-map-btn) { display: none !important; }',
+    'body.phone:not(.phone-menu) header > :not(h1):not(#pad-status):not(#link-status):not(#phone-gear):not(#hub-games):not(#reroll-btn):not(#sprite-btn):not(#sprite-fav-btn):not(#music-btn):not(#music-roll-btn):not(#phone-map-btn) { display: none !important; }',
+    // Games ▾ (a 🎮) leads the right-hand group; the brand text goes on the narrowest phones to make room
+    'body.phone #hub-games { margin-left: auto; min-height: 34px; min-width: 44px; max-width: 52px !important; padding: 0 6px !important; text-align: center; }',
+    'body.phone #hub-games ~ #reroll-btn, body.phone.phone-map-tab #hub-games ~ #phone-map-btn { margin-left: 0 !important; }',
+    '@media (max-width: 480px) { body.phone header h1 .app-name, body.phone header h1 .app-ver { display: none; } }',
+    '@media (max-width: 400px) { body.phone header { gap: 6px 8px; } body.phone header h1 { flex: none; } body.phone header > button, body.phone #hub-games { min-width: 40px !important; padding-left: 5px !important; padding-right: 5px !important; } }',
     // 🎲 Reroll (and the Sprite button, Full) stay in the header next to ⚙
     'body.phone #reroll-btn { margin-left: auto; min-height: 34px; }',
     // narrower phones: 🎲 alone, so the header stays on one line

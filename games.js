@@ -108,6 +108,7 @@
       var a = R.allowed(); a[cb.dataset.roll] = cb.checked; a.z3 = true; R.setAllowed(a);
     });
     window.addEventListener('storage', function (e) { if (e.key === R.KEY || e.key === EITHER_KEY || e.key === R.SHOWN_KEY) paintGames(); });
+    document.body.addEventListener('rh-games-changed', paintGames);   // Manage games (the Games menu)
   }
 
   // ── ?roll=1: arrived from Zelda 1's reroll ────────────────────────────────

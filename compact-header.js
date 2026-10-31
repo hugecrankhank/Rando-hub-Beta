@@ -66,7 +66,7 @@
     refit();
   }
 
-  var KEEP = ['#pad-status', '#link-status', '#hdr-gear', '#reroll-btn', '#sprite-btn', '#sprite-fav-btn', '#music-btn', '#music-roll-btn', '#layout-sel'];
+  var KEEP = ['#pad-status', '#link-status', '#hdr-gear', '#hub-games', '#reroll-btn', '#sprite-btn', '#sprite-fav-btn', '#music-btn', '#music-roll-btn', '#layout-sel'];
   var CSS = [
     '#hdr-gear { display: none; }',
     // closed: title, the quick buttons, status dots and ⚙; the rest behind ⚙
@@ -74,6 +74,7 @@
       ' { display: none !important; }',
     'body.hdr-compact:not(.hdr-menu) header { flex-wrap: nowrap; }',
     'body.hdr-compact #reroll-btn { margin-left: auto; min-height: 34px; }',
+    'body.hdr-compact #hub-games { margin-left: auto; min-height: 34px; } body.hdr-compact #hub-games ~ #reroll-btn { margin-left: 0; }',
     'body.hdr-compact #reroll-btn ~ #hdr-gear { margin-left: 0; }',
     'body.hdr-compact:not(.hdr-menu) #pad-status span, body.hdr-compact:not(.hdr-menu) #link-status span { display: none; }',
     'body.hdr-compact #hdr-gear { display: inline-block; margin-left: auto; min-width: 44px; min-height: 34px; font-size: 18px; }',

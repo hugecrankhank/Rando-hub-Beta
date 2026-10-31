@@ -8,7 +8,7 @@
  *    keys hides for Muffins' own tracker, which keeps its own count.
  *    In the iPad and phone headers (everything already behind their ⚙) the
  *    same settings simply sit in that menu.
- *  - Zelda 1 ▸ and GLR ▸ next to 🎲 Reroll: switch to the Zelda 1 randomizer
+ *  - Games ▾ next to 🎲 Reroll: switch to another game, add or manage games
  *    (z1r/) or The Guardian Legend randomizer (glr/).
  *
  * Loaded after reroll.js and addons/hub-items.js (which add the buttons and
@@ -104,67 +104,22 @@
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setOpen(false); });
   }
 
-  function z1Button() {
-    if ($('z1-btn') || !window.RandoGames) return;
-    var b = document.createElement('button');
-    b.type = 'button'; b.id = 'z1-btn';
-    b.textContent = 'Zelda 1 ▸';
-    b.title = 'Switch to the Zelda 1 randomizer (Z1R)';
-    b.addEventListener('click', function () {
-      if (window.EJS_emulator && !confirm('Switch to Zelda 1?\n\nThe current game will be closed.')) return;
-      location.href = window.RandoGames.Z1_URL;
+  // Games ▾ next to 🎲 Reroll: every other game (the ones ticked in "Games
+  // shown"; the rest under "Add a game"), and Manage games… (show / hide,
+  // Offload a game's stored ROM and seed). The same menu the game pages have.
+  function gamesButton() {
+    if ($('hub-games') || !window.RandoRoll) return;
+    var sel = window.RandoRoll.gamesMenu('', [], [], {
+      always: true, shortLabel: '\uD83C\uDFAE\u25BE',
+      confirm: function (name) { return !(window.EJS_emulator && !confirm('Switch to ' + (name || 'another game') + '?\n\nThe current game will be closed.')); },
     });
-    var g = document.createElement('button');
-    g.type = 'button'; g.id = 'glr-btn';
-    g.textContent = 'GLR ▸';
-    g.title = 'Switch to The Guardian Legend randomizer (GLR)';
-    g.addEventListener('click', function () {
-      if (window.EJS_emulator && !confirm('Switch to The Guardian Legend?\n\nThe current game will be closed.')) return;
-      location.href = window.RandoGames.GLR_URL;
-    });
-    var ff = document.createElement('button');
-    ff.type = 'button'; ff.id = 'ff6-btn';
-    ff.textContent = 'FF6 ▸';
-    ff.title = 'Switch to Final Fantasy VI: Worlds Collide';
-    ff.addEventListener('click', function () {
-      if (window.EJS_emulator && !confirm('Switch to FF6 Worlds Collide?\n\nThe current game will be closed.')) return;
-      location.href = window.RandoGames.FF6_URL;
-    });
-    var fx = document.createElement('select');
-    fx.id = 'ffr-sel'; fx.title = 'More Final Fantasy randomizers: FF1R, FF4 Free Enterprise, FF5 Career Day (rolled on their own sites, played and tracked here)';
-    fx.innerHTML = '<option value="">FF1·4·5 ▾</option><option value="ff1" data-game="ff1">FF1 Randomizer</option><option value="ff4" data-game="ff4">FF4 Free Enterprise</option><option value="ff5" data-game="ff5">FF5 Career Day</option>';
-    fx.addEventListener('change', function () {
-      var v = fx.value; fx.value = '';
-      if (!v) return;
-      if (window.EJS_emulator && !confirm('Switch games?\n\nThe current game will be closed.')) return;
-      location.href = window.RandoGames.FFR_URLS[v];
-    });
-    var pt = document.createElement('button');
-    pt.type = 'button'; pt.id = 'patched-btn';
-    pt.textContent = 'Patched ▸';
-    pt.title = 'Patched games: play NES and SNES ROM hacks (your ROM + the hack\u2019s patch) on these emulators';
-    pt.addEventListener('click', function () {
-      if (window.EJS_emulator && !confirm('Switch to Patched games?\n\nThe current game will be closed.')) return;
-      location.href = 'patched/';
-    });
-    // "Games shown" (the Game row): hidden games lose their button here too
-    b.dataset.game = 'z1'; g.dataset.game = 'glr'; ff.dataset.game = 'ff6'; pt.dataset.game = 'patched';
-    function applyShown() {
-      var R = window.RandoRoll; if (!R) return;
-      var s = R.shown();
-      [b, g, ff, pt].forEach(function (el) { el.style.display = s[el.dataset.game] === false ? 'none' : ''; });
-      var any = false;
-      fx.querySelectorAll('option[data-game]').forEach(function (o) { o.hidden = s[o.dataset.game] === false; if (!o.hidden) any = true; });
-      fx.style.display = any ? '' : 'none';
-    }
-    applyShown();
-    document.body.addEventListener('rh-games-shown', applyShown);
-    window.addEventListener('storage', function (e) { if (window.RandoRoll && e.key === window.RandoRoll.SHOWN_KEY) applyShown(); });
+    sel.title = 'Games: switch to another game, add one, or manage them (show, hide, offload)';
+    sel.className = '';
     var after = $('reroll-btn') || $('rando-split');
-    if (after) { after.parentNode.insertBefore(b, after.nextSibling); b.parentNode.insertBefore(g, b.nextSibling); g.parentNode.insertBefore(ff, g.nextSibling); ff.parentNode.insertBefore(fx, ff.nextSibling); fx.parentNode.insertBefore(pt, fx.nextSibling); }
+    if (after) after.parentNode.insertBefore(sel, after); else document.querySelector('header').appendChild(sel);
   }
 
-  function init() { build(); z1Button(); }
+  function init() { build(); gamesButton(); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();

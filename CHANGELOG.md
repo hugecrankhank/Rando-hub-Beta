@@ -5,6 +5,11 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.66 (2026-10-30)
+
+- **Games ▾ on the Zelda 3 page too.** The header's Zelda 1 ▸ / GLR ▸ / FF6 ▸ / FF1·4·5 ▾ / Patched ▸ buttons are now one **Games ▾** menu (a 🎮 on phones, next to 🎲), the same as the other game pages: the games you've ticked, the rest under *Add a game*. On the narrowest phones the header drops the "RANDO HUB" text to make room.
+- **Manage games… / Offload.** At the bottom of every Games menu: tick the games you play (what "Games shown" did), and **Offload** a game you're done with: its stored ROM and seed are cleared to free space (the dialog shows what each game holds and what the site uses in all); its saves stay, and it's back once you add it again and pick the ROM.
+
 ## Beta v1.14.65 (2026-10-30)
 
 - **Super Mario RPG: a map.** New Map tab in the tracker: the world laid out as the game's map screen lays it out, every place a marker with its count of spots done (boss fights and key-item spots): grey, gold (some) or green (all). Tap a place for its spots and to tick one by hand; a key-item spot ticks itself once the seed says what's there and Mario has it. With Reveal on, the spots say who's really there, ★ where a Star Piece is and which key item sits where. Pinch, scroll or double-tap to zoom (the names appear as you zoom in), drag to pan.

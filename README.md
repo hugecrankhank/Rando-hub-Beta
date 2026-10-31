@@ -483,11 +483,13 @@ work without touching Hutch's code:
 
 ## Other games: Zelda 1, The Guardian Legend and Final Fantasy I, IV, V and VI
 
-The **Game** row at the top of the Randomizer bar (and **Zelda 1 ▸** / **GLR ▸** / **FF6 ▸** /
-**FF1·4·5 ▾** in the header) switches games. **Games shown ▾** in that row picks which games
-appear anywhere (Game row, headers, menus, the reroll list): Zelda 3 and Zelda 1 to start,
-tick the others you play. Each is its own app inside the hub, with its own emulator,
-seed generator, tracker and saves, and buttons back to the others.
+**Games ▾** in the header (a 🎮 on phones; every page has it) switches games: the games
+you've ticked, the rest under *Add a game*, and **Manage games…**, which picks which games
+appear anywhere (Game row, menus, the reroll list; Zelda 3 and Zelda 1 to start) and can
+**Offload** a game you're done with: its stored ROM and seed are cleared to free space,
+its saves stay, and it's back once you add it again and pick the ROM. The **Game** row at
+the top of the Randomizer bar has the same links and switches. Each game is its own app
+inside the hub, with its own emulator, seed generator, tracker and saves.
 
 - **Zelda 1** (`z1r/`):
   seeds made by [ZORA](https://github.com/tetraly/zora) from your own Legend of Zelda
