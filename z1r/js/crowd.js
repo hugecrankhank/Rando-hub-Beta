@@ -18,6 +18,9 @@
  *   Z1Crowd.list()                            // ids and names
  *
  * Settings are in the emulator menu (⋯) under "Crowd effects".
+ *
+ * Master copy: Crowd Control+ (effects/z1r/js/crowd.js). Edit it there and run its
+ * sync-effects.py; the copy in Rando Hub is overwritten by the next sync.
  */
 (function (root) {
   'use strict';

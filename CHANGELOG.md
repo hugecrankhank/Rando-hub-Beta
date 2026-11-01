@@ -5,6 +5,11 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.86 (2026-11-01)
+
+- **Crowd effects have one master copy, kept with Crowd Control+.** The effect files here (crowd/effects.js, z1r/js/crowd.js, glr/js/crowd.js, jail.js, crowd/README.md) are copies synced from it; each says so at the top.
+- Guardian Legend crowd effects now mean the same as Zelda 3's: Defense down is one step for good (as Shield downgrade), and Attack / Defense stolen drop to the minimum and stay (as the sword or shield being stolen).
+
 ## Beta v1.14.85 (2026-11-01)
 
 - **Crowd effects for The Guardian Legend** (GLR, and hacks like TGL Secret Edition), through Crowd Control+ or JinxCast as in Zelda 1 and 3: ⚙ Settings → Crowd effects, with gift alerts, the feed, the subathon clock and test buttons. 39 effects, using Zelda 3's effect ids so the same gift mapping works: hearts are health (1 heart = 8), rupees and magic are power chips, the sword is Attack, the shield is Defense, an item is a sub-weapon.

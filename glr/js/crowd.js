@@ -22,6 +22,9 @@
  *   GLRCrowd.list()                            // ids and names
  *
  * Settings are in the emulator menu (⚙) under "Crowd effects".
+ *
+ * Master copy: Crowd Control+ (effects/glr/js/crowd.js). Edit it there and run its
+ * sync-effects.py; the copy in Rando Hub is overwritten by the next sync.
  */
 (function (root) {
   'use strict';
@@ -175,14 +178,16 @@
       apply: function (r) { if (r[A.ATTACK] >= 9) return 'Attack is as high as it goes'; r[A.ATTACK]++; } },
     sword_down:  statLoan('sword_down', A.ATTACK, 'Attack down', function (v) { return Math.max(1, v - 1); }),
     sword_off:   statLoan('sword_off', A.ATTACK, 'Attack to minimum', function () { return 1; }),
-    sword_steal: { name: 'Attack stolen (-1, stays)', good: false,
-      apply: function (r) { if (r[A.ATTACK] <= 1) return 'Attack is as low as it goes'; r[A.ATTACK]--; } },
+    sword_steal: { name: 'Attack stolen (to minimum, stays)', good: false,   // Zelda 3: the sword gone until Link finds another
+      apply: function (r) { if (r[A.ATTACK] <= 1) return 'Attack is as low as it goes'; r[A.ATTACK] = 1; } },
     shield_up:   { name: 'Defense up', good: true,
       apply: function (r) { if (r[A.DEFENSE] >= 9) return 'Defense is as high as it goes'; r[A.DEFENSE]++; } },
-    shield_down: statLoan('shield_down', A.DEFENSE, 'Defense down', function (v) { return Math.max(1, v - 1); }),
-    shield_off:  statLoan('shield_off', A.DEFENSE, 'Defense to minimum', function () { return 1; }),
-    shield_steal:{ name: 'Defense stolen (-1, stays)', good: false,
+    // as in Zelda 3: shield_down is one step for good, shield_off a while, shield_steal for good
+    shield_down: { name: 'Defense down (-1, stays)', good: false,
       apply: function (r) { if (r[A.DEFENSE] <= 1) return 'Defense is as low as it goes'; r[A.DEFENSE]--; } },
+    shield_off:  statLoan('shield_off', A.DEFENSE, 'Defense to minimum', function () { return 1; }),
+    shield_steal:{ name: 'Defense stolen (to minimum, stays)', good: false,
+      apply: function (r) { if (r[A.DEFENSE] <= 1) return 'Defense is as low as it goes'; r[A.DEFENSE] = 1; } },
 
     item_off:    { name: 'Sub-weapon gone', good: false, secs: 30,
       check: function (r) { for (var i = 0; i < WEAPONS.length; i++) if (weaponLevel(r, i)) return ''; return 'No sub-weapons to take'; },

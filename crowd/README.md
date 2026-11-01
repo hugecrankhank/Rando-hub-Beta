@@ -1,5 +1,7 @@
 # Crowd effects (TikTok LIVE)
 
+<!-- Master copy: Crowd Control+ (effects/crowd/README.md); synced into Rando Hub by its sync-effects.py. -->
+
 Viewers' gifts, likes, follows and shares change your game: hearts, magic,
 rupees, bombs, arrows, inverted controls, no sword and more. The ROM is never
 changed; any seed works.
@@ -116,3 +118,13 @@ Timed effects count only time spent in play and stack (a second gift adds
 time). `ice` and `cucco_storm` switch on features built into the randomizer
 ROM itself; on a ROM without them the feed says so and nothing happens. They only filter buttons or hold a value each frame, so save states,
 resets and reloads can't leave the game stuck changed.
+
+## The other games
+
+Zelda 1 (`z1r/js/crowd.js`) and The Guardian Legend (`glr/js/crowd.js`, GLR and
+hacks like TGL Secret Edition) use the same ids wherever an effect means the
+same thing, so one gift mapping drives every game; each game tells the bridge
+which effects it has when it connects, and the rest are skipped while it's on.
+In The Guardian Legend hearts are health (one heart = 8, an Energy Tank's
+worth), rupees and magic are power chips, the sword is Attack, the shield is
+Defense and an item is a sub-weapon: see the GLR README's "Crowd effects".

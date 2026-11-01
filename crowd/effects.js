@@ -26,6 +26,9 @@
  * id and gets one answer per effect back (protocol 2):
  *   {type:'result', id, effect, status:'queued'|'applied'|'refused', reason}
  * Crowd Control+ sends no ids and is answered as before ('applied' only).
+ *
+ * Master copy: Crowd Control+ (effects/crowd/effects.js). Edit it there and run its
+ * sync-effects.py; the copy in Rando Hub is overwritten by the next sync.
  */
 (function (root) {
   'use strict';

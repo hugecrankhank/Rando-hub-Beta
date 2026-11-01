@@ -133,7 +133,7 @@ power chips, the sword is Attack, the shield is Defense, an item is a sub-weapon
 - Chips: +50, -50, to max, small refill, lose all, locked (no sub-weapons) for a while
 - Controls: inverted D-pad, no main gun, no sub-weapon, A and B swapped, freeze, jail
 - Picture and speed: mirror, upside down, wobble, tiny screen, retro CRT, speed up, slow motion
-- Attack / Defense: up, down or to minimum for a while, stolen (-1, stays); a sub-weapon gone for a while
+- Attack / Defense (as Zelda 3's sword / shield): up; Attack down or to minimum for a while; Defense down one step for good or to minimum for a while; either stolen (to minimum, stays); a sub-weapon gone for a while
 - New seed (same flags, random preset, chaos): off unless "Allow seed reroll" is ticked
 
 Zelda-only effects (bottles, arrows, warps, bosses, sprites, music…) aren't offered

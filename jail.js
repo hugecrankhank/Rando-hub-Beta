@@ -10,6 +10,9 @@
  *   Zelda 3  $22 / $20 (x / y in the world) - camera $E2 / $E8
  *   Zelda 1  $70 / $84 (x / y on the NES screen; the picture starts 8 lines down)
  *   GLR      $530 / $518 (the Guardian, object 0: x centre / y)
+ *
+ * Master copy: Crowd Control+ (effects/jail.js). Edit it there and run its
+ * sync-effects.py; the copy in Rando Hub is overwritten by the next sync.
  */
 (function () {
   'use strict';
