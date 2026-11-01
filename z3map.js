@@ -16,7 +16,11 @@
  * the Light World tilemap is 64x64 tiles at $0A:C727 (PC 0x54727) in four 32x32
  * quarters, the Dark World 32x32 at $0A:D727 (PC 0x55727), half the scale; the
  * colours at $0A:DB27 (PC 0x55B27), 128 a world. Offsets of the US ROM, which
- * ZScream hacks are built on. Link: $7E:008A the overworld area (bit 6 = Dark
+ * ZScream hacks are built on. A hack can move the pictures: when the game's
+ * loaders are hooked (a JSL at $00:E399 for the tiles, $00:8E54 for the
+ * tilemap; Allhallows Eve does this), the hook's code says where each world's
+ * tiles ("LDA #bank / STA $02 ... LDY #addr / STY $00") and tilemap ("LDA #bank
+ * / STA $4304", from $8000, 64x64 in four quarters) are, and those are used. Link: $7E:008A the overworld area (bit 6 = Dark
  * World), $7E:0022 / $7E:0020 his x / y in the world (4096 px across, so an
  * eighth of that on the 512 px map), $7E:001B indoors.
  *
@@ -57,23 +61,57 @@
   // Japanese 1.0 ROM has it; randomizer seeds keep it
   var VANILLA = ['ebec8708'];
   function mapHash(r) { var h = 0x811c9dc5; for (var i = 0x54727; i < 0x55B27; i++) { h ^= r[i]; h = Math.imul(h, 0x01000193); } return (h >>> 0).toString(16).padStart(8, '0'); }
-  function isHack(r) { return isZ3(r) && VANILLA.indexOf(mapHash(r)) < 0; }
+  function hooked(r) { return r[0x6399] === 0x22 || r[0x0E54] === 0x22; }   // a hack that moved its map
+  function isHack(r) { return isZ3(r) && (VANILLA.indexOf(mapHash(r)) < 0 || hooked(r)); }
+  function lorom(bank, addr) { return (bank & 0x7F) * 0x8000 + (addr & 0x7FFF); }
+  function jslAt(pc) { return rom[pc] === 0x22 ? lorom(rom[pc + 3], rom[pc + 1] | rom[pc + 2] << 8) : -1; }
+  // where each world's map comes from: { gfx, tm, quarters } (PC offsets)
+  function sources() {
+    var out = [{ gfx: GFX, tm: LW, quarters: true }, { gfx: GFX, tm: DW, quarters: false }];
+    try {
+      var g = jslAt(0x6399), t = jslAt(0x0E54), i, k, found;
+      if (g > 0 && g + 0x100 < rom.length) {
+        found = [];
+        for (i = g; i < g + 0x100 && found.length < 2; i++) {
+          if (rom[i] === 0xA9 && rom[i + 2] === 0x85 && rom[i + 3] === 0x02) {
+            for (k = i + 4; k < i + 40; k++) if (rom[k] === 0xA0 && rom[k + 3] === 0x84 && rom[k + 4] === 0x00) { found.push(lorom(rom[i + 1], rom[k + 1] | rom[k + 2] << 8)); break; }
+          }
+        }
+        if (found[0] != null) out[0].gfx = found[0];
+        if (found[1] != null) out[1].gfx = found[1];
+      }
+      if (t > 0 && t + 0x100 < rom.length) {
+        found = [];
+        for (i = t; i < t + 0x100 && found.length < 2; i++) if (rom[i] === 0xA9 && rom[i + 2] === 0x8D && rom[i + 3] === 0x04 && rom[i + 4] === 0x43) found.push(lorom(rom[i + 1], 0x8000));
+        if (found[0] != null) out[0] = { gfx: out[0].gfx, tm: found[0], quarters: true };
+        if (found[1] != null) out[1] = { gfx: out[1].gfx, tm: found[1], quarters: true };
+      }
+      out.forEach(function (o) { if (o.gfx + 0x4000 > rom.length || o.tm + 0x1000 > rom.length) throw 0; });
+    } catch (e) { out = [{ gfx: GFX, tm: LW, quarters: true }, { gfx: GFX, tm: DW, quarters: false }]; }
+    return out;
+  }
   function picture(w) {
     if (pics[w]) return pics[w];
-    var size = w ? 256 : 512, c = document.createElement('canvas'); c.width = c.height = size;
-    var g = c.getContext('2d'), id = g.createImageData(size, size), px = id.data, pb = w ? 128 : 0;
+    var src = sources()[w], size = src.quarters ? 512 : 256, c = document.createElement('canvas'); c.width = c.height = size;
+    var g = c.getContext('2d'), id = g.createImageData(size, size), px = id.data, pb = w ? 128 : 0, x0 = size, y0 = size, x1 = 0, y1 = 0;
     var cols = [];
     for (var i = 0; i < 128; i++) { var v = rom[PAL + (pb + i) * 2] | rom[PAL + (pb + i) * 2 + 1] << 8; cols.push([(v & 31) << 3, ((v >> 5) & 31) << 3, ((v >> 10) & 31) << 3]); }
-    function tile(t, x0, y0) {
-      var o = GFX + t * 64;
+    function tile(t, tx0, ty0) {
+      var o = src.gfx + t * 64, any = false;
       for (var y = 0; y < 8; y++) for (var x = 0; x < 8; x++) {
-        var v = rom[o + y * 8 + x], col = cols[v & 127], p = ((y0 + y) * size + x0 + x) * 4;
+        var v = rom[o + y * 8 + x], col = cols[v & 127], p = ((ty0 + y) * size + tx0 + x) * 4;
         px[p] = col[0]; px[p + 1] = col[1]; px[p + 2] = col[2]; px[p + 3] = 255;
+        if (v) any = true;
       }
+      if (any) { x0 = Math.min(x0, tx0); y0 = Math.min(y0, ty0); x1 = Math.max(x1, tx0 + 8); y1 = Math.max(y1, ty0 + 8); }
     }
-    if (!w) { var p = LW; [[0, 0], [32, 0], [0, 32], [32, 32]].forEach(function (q) { for (var r = 0; r < 32; r++) for (var cc = 0; cc < 32; cc++) tile(rom[p++], (q[0] + cc) * 8, (q[1] + r) * 8); }); }
-    else { var p2 = DW; for (var r2 = 0; r2 < 32; r2++) for (var c2 = 0; c2 < 32; c2++) tile(rom[p2++], c2 * 8, r2 * 8); }
+    var p = src.tm;
+    if (src.quarters) [[0, 0], [32, 0], [0, 32], [32, 32]].forEach(function (q) { for (var r = 0; r < 32; r++) for (var cc = 0; cc < 32; cc++) tile(rom[p++], (q[0] + cc) * 8, (q[1] + r) * 8); });
+    else for (var r2 = 0; r2 < 32; r2++) for (var c2 = 0; c2 < 32; c2++) tile(rom[p++], c2 * 8, r2 * 8);
     g.putImageData(id, 0, 0);
+    // the drawn part (a hack's map can sit on black inside the 512 x 512), in map units
+    var k = W / size;
+    c.box = x1 > x0 ? [x0 * k, y0 * k, x1 * k, y1 * k] : [0, 0, W, W];
     return (pics[w] = c);
   }
 
@@ -216,7 +254,8 @@
   function fit() {
     var s = size(), b = [0, 0, W, W], D = world === 2 ? dget(dung) : null;
     if (world === 2) b = D ? D.box : [0, 0, 5 * C, 5 * C];
-    var pad = world === 2 ? 14 : 0, bw = b[2] - b[0], bh = b[3] - b[1];
+    else if (rom) b = picture(world).box;
+    var pad = world === 2 ? 14 : 2, bw = b[2] - b[0], bh = b[3] - b[1];
     zoom = Math.min((s[0] - pad * 2) / bw, (s[1] - pad * 2 - (world === 2 ? 14 : 0)) / bh);
     tx = (s[0] - bw * zoom) / 2 - b[0] * zoom; ty = (s[1] - bh * zoom) / 2 - b[1] * zoom + (world === 2 ? 7 : 0);
     moved = false; redraw();

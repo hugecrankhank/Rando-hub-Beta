@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.74 (2026-10-31)
+
+- **Hack map: the real pictures, in the tracker's place.** Allhallows Eve keeps its world maps somewhere else than the original game (its own map loader, hooked in at $00:E399 and $00:8E54, reads each world's tiles and tilemap from banks $36 / $37); the map now follows the hack's loader, so Light World ("Land of Allhallow") and Dark World ("Land of Shadows") show as the game shows them instead of noise, cropped to the drawn part. On the Zelda 3 page the map takes the tracker's place by itself when such a hack is loaded, at the tracker's size; **Tracker ⇄** swaps back, the 🗺 button swaps to the map again. With the tracker off it opens over the game as before.
+
 ## Beta v1.14.73 (2026-10-31)
 
 - **Fixed: Load ROM… in the 🎮 menu did nothing on iPhone.** iOS only opens a file picker from a tap on the page itself, and a choice in a drop-down list doesn't count. The Zelda 3 page's Games menu is now a menu of buttons, and Load ROM… in it opens the picker directly.
