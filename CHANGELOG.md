@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.75 (2026-10-31)
+
+- **Hack map: one set of buttons.** On a phone the tracker's own **Light World / Dark World** tabs now show the hack's maps (Items / Keys stay the tracker's), and one button where − / + sit swaps those tabs between the hack map (**Tracker ⇄**) and the tracker's map (**🗺 Map ⇄**). The map's extra rows are gone: Dungeons, Pin and Follow sit in a small bar in the map's corner, and Follow moves the tab along when Link changes worlds. On a computer it's one row too (Pop out and Tracker ⇄ joined the map's own row).
+
 ## Beta v1.14.74 (2026-10-31)
 
 - **Hack map: the real pictures, in the tracker's place.** Allhallows Eve keeps its world maps somewhere else than the original game (its own map loader, hooked in at $00:E399 and $00:8E54, reads each world's tiles and tilemap from banks $36 / $37); the map now follows the hack's loader, so Light World ("Land of Allhallow") and Dark World ("Land of Shadows") show as the game shows them instead of noise, cropped to the drawn part. On the Zelda 3 page the map takes the tracker's place by itself when such a hack is loaded, at the tracker's size; **Tracker ⇄** swaps back, the 🗺 button swaps to the map again. With the tracker off it opens over the game as before.

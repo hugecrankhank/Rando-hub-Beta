@@ -47,7 +47,7 @@
   var host, stage, cv, ctx, tabs, label, followBtn, pinBtn, atBtn;
   var player = null, gameId = '', rom = null, pics = {};
   var world = 0, follow = true, zoom = 1, tx = 0, ty = 0, moved = false, dirty = false, placing = false;
-  var dtick = 0;
+  var dtick = 0, onWorld = null, z3root = null;
   var link = null, lastOut = null, pins = [], sel = -1, shown = false, hackOnly = false, onShow = null;
 
   function isZ3(r) {
@@ -269,6 +269,7 @@
     if (w === 2 && !dget(dung)) { var l = dungeons(); if (l.length) { dung = l[0].d; dfloor = l[0].below; } }
     paintSub();
     fit();
+    if (onWorld) { try { onWorld(w); } catch (e) {} }
   }
   function redraw() { if (dirty) return; dirty = true; requestAnimationFrame(draw); }
   function draw() {
@@ -385,8 +386,13 @@
 
   window.Z3Map = {
     isHack: isHack, isZ3: isZ3, mapHash: mapHash,
+    // the page's own tabs choose the world (no-op when it's already that one, so Follow stays on)
+    view: function (w) { if (tabs && w !== world) setWorld(w, true); },
+    get world() { return world; },
+    setCompact: function (on) { if (z3root) { z3root.classList.toggle('compact', !!on); redraw(); } },
+    addControl: function (el) { if (tabs) tabs.appendChild(el); },
     attach: function (o) {
-      player = o.player; host = o.host; gameId = o.gameId || ''; hackOnly = !!o.hackOnly; onShow = o.onShow || null;
+      player = o.player; host = o.host; gameId = o.gameId || ''; hackOnly = !!o.hackOnly; onShow = o.onShow || null; onWorld = o.onWorld || null;
       try { follow = localStorage.getItem('rhb-z3map-follow') !== 'off'; } catch (e) {}
       host.hidden = true;
       host.innerHTML = '<style>' +
@@ -406,6 +412,11 @@
         '.z3m-floors { display: inline-flex; gap: 3px; flex-wrap: wrap; } .z3m-floors button { background: #161b22; color: #c9d1d9; border: 1px solid #2a313c; border-radius: 5px; padding: 3px 7px; font: 600 12px system-ui, sans-serif; cursor: pointer; }' +
         '.z3m-floors button[aria-pressed="true"] { background: #ffd166; color: #20232a; border-color: #ffd166; }' +
         '.z3m-sub label { display: inline-flex; align-items: center; gap: 4px; margin-left: auto; cursor: pointer; }' +
+        // compact: the page's own tabs pick the world; the map's controls float in its corner
+        '.z3m.compact { position: relative; }' +
+        '.z3m.compact .z3m-tabs { position: absolute; right: 6px; bottom: 6px; z-index: 3; padding: 2px; gap: 0; background: rgba(12,16,26,.88); border: 1px solid #2a313c; border-radius: 8px; }' +
+        '.z3m.compact .z3m-tabs [data-w="0"], .z3m.compact .z3m-tabs [data-w="1"], .z3m.compact .z3m-tabs .sp { display: none; }' +
+        '.z3m.compact .z3m-tabs button { padding: 6px 7px; border-bottom: 0; margin: 0; font-size: 12.5px; }' +
         '.z3m-about { color: var(--dim, #8b95a3); font-size: 12px; margin: 6px 0 0; }</style>' +
         '<div class="z3m"><div class="z3m-tabs" role="tablist">' + WORLDS.map(function (n, i) { return '<button type="button" role="tab" data-w="' + i + '">' + n + '</button>'; }).join('') +
         '<span class="sp"></span><button type="button" class="z3m-at" title="Drop a pin where Link stands" hidden>⌖ Pin at Link</button><button type="button" class="z3m-pin" aria-pressed="false" title="Drop a pin: tap the map where it goes">📍 Pin</button>' +
@@ -431,6 +442,7 @@
       cv.addEventListener('wheel', function (e) { e.preventDefault(); var p = pos(e); zoomAt(p[0], p[1], Math.exp(-e.deltaY * 0.0022)); }, { passive: false });
       if (window.ResizeObserver) new ResizeObserver(function () { redraw(); }).observe(stage);
       tabs.querySelector('[data-w="0"]').setAttribute('aria-selected', 'true');
+      z3root = host.querySelector('.z3m');
       setInterval(poll, 250);
     },
   };

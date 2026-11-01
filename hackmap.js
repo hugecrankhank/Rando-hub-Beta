@@ -7,37 +7,49 @@
  * randomizer seeds have Mudora's map already, so nothing shows for them.
  *
  * With the tracker on, the map takes the tracker's place by itself (same spot,
- * same size), with "Tracker" to swap back; the 🗺 button swaps to the map again.
- * With the tracker off it opens in a panel over the game.
+ * same size). On a phone the tracker's Light World / Dark World tabs show the
+ * hack's maps and one button where − / + sit swaps them back to the tracker's;
+ * on a computer "Tracker ⇄" on the map's row swaps back and the 🗺 button
+ * swaps to the map again. With the tracker off it opens in a panel over the game.
  */
 (function () {
   'use strict';
   var $ = function (id) { return document.getElementById(id); };
-  var btn = null, panel = null, popup = null, dock = null, docked = false, wantDock = true, isOn = false;
+  var btn = null, panel = null, popup = null, dock = null, wantDock = true, isOn = false, swap = null;
+  function phone() { return document.body.classList.contains('phone'); }
+  function mapTab() { return document.body.classList.contains('phone-map-tab'); }
   function frames() { var f = $('frames'); return f && f.offsetParent !== null && f.getBoundingClientRect().height > 80 ? f : null; }
   function host() { return $('hm-host'); }
+  // Phones: the tracker's Light World / Dark World tabs show the hack's maps, Items / Keys the tracker,
+  // and one button (where − / + sit) swaps the map tabs between the hack map and the tracker's map.
   function place() {
-    var f = isOn && wantDock ? frames() : null;
+    var f = isOn && wantDock ? frames() : null, onPhone = phone();
+    var showDock = !!f && (!onPhone || mapTab());
+    document.body.classList.toggle('hm-on', isOn);
+    document.body.classList.toggle('hm-docked', isOn && wantDock);
+    if (swap) swap.textContent = wantDock ? 'Tracker \u21C4' : '\uD83D\uDDFA Map \u21C4';
     if (f) {
-      if (!dock) {
-        dock = document.createElement('div'); dock.id = 'hm-dock';
-        dock.innerHTML = '<div class="hm-dbar"><span>\uD83D\uDDFA Hack map</span><button type="button" class="hm-pop" title="The map in a window of its own (for a stream capture)">\u29C9 Pop out</button><button type="button" class="hm-trk" title="Back to the tracker (the 🗺 button brings the map back)">Tracker \u21C4</button></div><div class="hm-dbody"></div>';
-        dock.querySelector('.hm-pop').addEventListener('click', popOut);
-        dock.querySelector('.hm-trk').addEventListener('click', function () { wantDock = false; place(); });
-      }
+      if (!dock) { dock = document.createElement('div'); dock.id = 'hm-dock'; }
       if (getComputedStyle(f).position === 'static') f.style.position = 'relative';
       if (dock.parentNode !== f) f.appendChild(dock);
-      var hb = dock.querySelector('.hm-dbody'); if (host().parentNode !== hb) hb.appendChild(host());
-      dock.hidden = false; docked = true; panel.hidden = true;
+      if (host().parentNode !== dock) dock.appendChild(host());
+      window.Z3Map.setCompact(onPhone);
+      dock.hidden = !showDock; panel.hidden = true;
       btn.classList.remove('show');
+      if (onPhone && showDock) syncTab();
     } else {
       if (dock) dock.hidden = true;
-      docked = false;
+      window.Z3Map.setCompact(false);
       var pb = panel.querySelector('.hm-body'); if (host().parentNode !== pb) pb.appendChild(host());
-      btn.classList.toggle('show', isOn);
+      btn.classList.toggle('show', isOn && !(onPhone && frames()));
       if (!isOn) { panel.hidden = true; btn.classList.remove('on'); }
     }
     window.dispatchEvent(new Event('resize'));
+  }
+  // the phone tab the user is on picks the world
+  function syncTab() {
+    var on = document.querySelector('#phone-tabs button.on');
+    if (on && (on.dataset.tab === 'lw' || on.dataset.tab === 'dw') && window.Z3Map.world !== 2) window.Z3Map.view(on.dataset.tab === 'dw' ? 1 : 0);
   }
   function popOut() {
     if (popup && !popup.closed) { popup.focus(); return; }
@@ -61,11 +73,13 @@
       '#hm-panel .z3m { flex: 1 1 0 !important; height: auto !important; } #hm-panel .z3m-about { display: none; }' +
       '#hm-dock { position: absolute; inset: 0; z-index: 20; display: flex; flex-direction: column; background: #0b0f16; }' +
       '#hm-dock[hidden] { display: none; }' +
-      '#hm-dock .hm-dbar { flex: none; display: flex; align-items: center; gap: 6px; padding: 4px 6px 4px 10px; background: #11161f; border-bottom: 1px solid #2a313c; font: 600 12.5px system-ui, sans-serif; color: #c9d1d9; }' +
-      '#hm-dock .hm-dbar span { flex: 1; } #hm-dock .hm-dbar button { background: #161b22; color: #e6e9ee; border: 1px solid #2a313c; border-radius: 6px; padding: 4px 8px; font: 12px system-ui, sans-serif; cursor: pointer; }' +
-      '#hm-dock .hm-dbody { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; } #hm-dock .hm-dbody > div { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; }' +
+      '#hm-dock > div { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; }' +
+      // phones: the swap button sits where − / + are; − / + only for the tracker's own map
+      '#hm-swap { display: none; min-height: 36px; padding: 0 10px; font-size: 13px; white-space: nowrap; }' +
+      'body.hm-on #hm-swap { display: inline-flex; align-items: center; } body.hm-on.hm-docked #phone-zoom > button:not(#hm-swap) { display: none; }' +
+      '#hm-dock .z3m-tabs .hm-ctl { color: #c9d1d9; }' +
       '#hm-dock .z3m { flex: 1 1 0 !important; height: auto !important; border: 0 !important; border-radius: 0 !important; } #hm-dock .z3m-about { display: none; }' +
-      'body.phone #hm-dock .hm-pop { display: none; }' +
+      'body.phone #hm-dock .hm-pop, body.phone #hm-dock .hm-trk { display: none; }' +
       'body.phone #hm-panel { right: 0; left: 0; bottom: 0; width: auto; height: 58vh; border-radius: 12px 12px 0 0; } body.phone #hm-panel .hm-pop { display: none; }';
     document.head.appendChild(st);
     btn = document.createElement('button'); btn.id = 'hm-btn'; btn.type = 'button';
@@ -74,16 +88,49 @@
     panel.innerHTML = '<div class="hm-head"><span>Hack map</span><button type="button" class="hm-pop" title="The map in a window of its own (for a stream capture)">⧉ Pop out</button><button type="button" class="hm-close" aria-label="Close">✕</button></div><div class="hm-body"><div id="hm-host" hidden></div></div>';
     document.body.appendChild(btn); document.body.appendChild(panel);
     btn.addEventListener('click', function () {
-      if (frames()) { wantDock = true; place(); return; }   // back in the tracker's place
+      if (frames()) { wantDock = true; place(); return; }   // (phones use the swap button instead)   // back in the tracker's place
       panel.hidden = !panel.hidden; btn.classList.toggle('on', !panel.hidden); if (!panel.hidden) window.dispatchEvent(new Event('resize'));
     });
     panel.querySelector('.hm-close').addEventListener('click', function () { panel.hidden = true; btn.classList.remove('on'); });
     panel.querySelector('.hm-pop').addEventListener('click', popOut);
     window.Z3Map.attach({ player: function () { return window.Snes9xPlayer; }, host: $('hm-host'), hackOnly: true,
-      onShow: function (on) { isOn = on; if (on) wantDock = true; place(); } });
+      onShow: function (on) { isOn = on; if (on) wantDock = true; place(); },
+      // Follow moved to the other world: the phone's tab follows (its click comes back here as a no-op)
+      onWorld: function (w) {
+        if (!phone() || w === 2 || !isOn || !wantDock || !mapTab()) return;
+        var b = document.querySelector('#phone-tabs button[data-tab="' + (w ? 'dw' : 'lw') + '"]');
+        if (b && !b.classList.contains('on')) b.click();
+      } });
+    // computers: Pop out and Tracker ⇄ on the map's own row (one row, no extra bar)
+    [['\u29C9 Pop out', 'hm-pop', popOut, 'The map in a window of its own (for a stream capture)'], ['Tracker \u21C4', 'hm-trk', function () { wantDock = false; place(); }, 'Back to the tracker (the \uD83D\uDDFA button brings the map back)']].forEach(function (c) {
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'hm-ctl ' + c[1]; b.textContent = c[0]; b.title = c[3]; b.addEventListener('click', c[2]);
+      window.Z3Map.addControl(b);
+    });
+    // phones: the tabs and the swap button
+    function phoneBits() {
+      var z = $('phone-zoom'), tb = $('phone-tabs');
+      if (z && !swap) {
+        swap = document.createElement('button'); swap.type = 'button'; swap.id = 'hm-swap'; swap.title = 'Swap the map tabs between the hack\u2019s map and the tracker\u2019s';
+        swap.addEventListener('click', function () { wantDock = !wantDock; place(); });
+        z.insertBefore(swap, z.firstChild);
+      }
+      if (tb && !tb.dataset.hm) {
+        tb.dataset.hm = '1';
+        tb.addEventListener('click', function (e) {
+          var b = e.target.closest('button[data-tab]'); if (!b || !isOn || !wantDock) return;
+          if (b.dataset.tab === 'lw') window.Z3Map.view(0); else if (b.dataset.tab === 'dw') window.Z3Map.view(1);
+          setTimeout(place, 0);
+        });
+      }
+    }
+    phoneBits();
     // the layout can change (the tracker turned on or off, a phone turned): follow it
-    var lastF = null;
-    setInterval(function () { var f = !!frames(); if (isOn && f !== lastF) { lastF = f; place(); } }, 1000);
+    var lastK = '';
+    setInterval(function () {
+      phoneBits();
+      var k = [!!frames(), phone(), mapTab()].join();
+      if (isOn && k !== lastK) { lastK = k; place(); }
+    }, 500);
   }
   function init() { if (window.Z3Map) build(); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
