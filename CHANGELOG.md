@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.77 (2026-10-31)
+
+- **Hack map on phones: the controls no longer cover the map.** Dungeons, Pin, Follow and ⟲ sit in a slim row under the map instead of floating over it.
+
 ## Beta v1.14.76 (2026-10-31)
 
 - **Zelda 3 hacks in the tracker:**
