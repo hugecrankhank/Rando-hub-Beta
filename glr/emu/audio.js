@@ -3,6 +3,8 @@
  * core's output, and a master gain for volume. Browsers (iOS especially)
  * only allow sound after a tap, so unlock() is called from input handlers.
  */
+// iPhone / iPad: the shared background handler (ios-audio.js at the app root)
+(function () { try { if (window.RHIosAudio || !document.currentScript) return; var sc = document.createElement('script'); sc.src = new URL('../../ios-audio.js', document.currentScript.src).href; (document.head || document.documentElement).appendChild(sc); } catch (e) {} })();
 (function () {
   'use strict';
   function Audio() {
@@ -19,6 +21,7 @@
     var AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return Promise.resolve();
     this.ctx = new AC({ latencyHint: 'interactive' });
+    try { if (window.RHIosAudio) window.RHIosAudio.add(this.ctx); } catch (e) {}   // iPhone: let go of it in the background (ios-audio.js)
     this.gain = this.ctx.createGain();
     this.gain.connect(this.ctx.destination);
     this.applyVolume();
@@ -33,7 +36,7 @@
   // Call from a user gesture.
   Audio.prototype.unlock = function () {
     if (!this.ctx) this.start();
-    if (this.ctx && this.ctx.state !== 'running') { try { this.ctx.resume(); } catch (e) {} }
+    if (this.ctx && !document.hidden && this.ctx.state !== 'running') { try { this.ctx.resume(); } catch (e) {} }
   };
   Audio.prototype.setRate = function (r) {
     this.inRate = r;

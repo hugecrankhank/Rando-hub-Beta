@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.80 (2026-11-01)
+
+- iPhone: the app lets go of the audio session when it goes to the background or is closed, so the lock-screen Now Playing card no longer hangs around. The hub's volume fix no longer restarts the sound while the page is hidden.
+
 ## Beta v1.14.79 (2026-10-31)
 
 - **Guardian Legend fixes:**

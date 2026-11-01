@@ -105,6 +105,7 @@ export class MsuPlayer {
       const AC = window.AudioContext || window.webkitAudioContext;
       if (!AC) return;
       try { this.ctx = new AC({ sampleRate: RATE }); } catch (e) { this.ctx = new AC(); }
+      try { if (window.RHIosAudio) window.RHIosAudio.add(this.ctx); } catch (e) {}   // iPhone: let go of it in the background
       this.gain = this.ctx.createGain();
       this.gain.connect(this.ctx.destination);
     }
@@ -194,7 +195,7 @@ export class MsuPlayer {
     const paused = now - this.lastFrameAt > 600;   // not just a slow screen load
     if (this.ctx) {
       if (paused && this.ctx.state === 'running') this.ctx.suspend().catch(() => {});
-      if (!paused && this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
+      if (!paused && !document.hidden && this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
     }
     if (this.stream) {
       const el = this.stream.el;
