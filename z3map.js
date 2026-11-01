@@ -112,6 +112,10 @@
     // the drawn part (a hack's map can sit on black inside the 512 x 512), in map units
     var k = W / size;
     c.box = x1 > x0 ? [x0 * k, y0 * k, x1 * k, y1 * k] : [0, 0, W, W];
+    // A map drawn at half scale: the whole world in the middle 256 x 256, a border
+    // round it (Allhallows Eve's parchment). Measured against the game's own map
+    // screen, a world pixel is then at world / 16 + 128, not world / 8.
+    c.half = src.quarters && x1 > x0 && x0 * k >= 64 && y0 * k >= 64 && x1 * k <= 448 && y1 * k <= 448;
     return (pics[w] = c);
   }
 
@@ -363,7 +367,8 @@
     if (!rom) { hide(); return; }
     if (!shown) { shown = true; host.hidden = false; loadPins(); setTimeout(fit, 0); if (onShow) { try { onShow(true); } catch (e) {} } }
     var mod = wr[0x10], area = wr[0x8A], indoors = !!wr[0x1B];
-    var x = (wr[0x22] | wr[0x23] << 8) / 8, y = (wr[0x20] | wr[0x21] << 8) / 8;
+    var half = picture(area & 0x40 ? 1 : 0).half;
+    var x = (wr[0x22] | wr[0x23] << 8) / (half ? 16 : 8) + (half ? 128 : 0), y = (wr[0x20] | wr[0x21] << 8) / (half ? 16 : 8) + (half ? 128 : 0);
     var playing = (mod === 0x07 || mod === 0x09 || mod === 0x0B || mod === 0x0E || mod === 0x10) && (indoors || (x < W && y < W));
     var was = link;
     if (!playing) link = null;

@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.78 (2026-10-31)
+
+- **Fixed: Link's dot on Allhallows Eve's map was in the wrong place.** The hack draws its whole world at half scale in the middle of its map (the parchment), where the original game fills the map edge to edge. Measured against the game's own map screen at several spots, a world position there is world ÷ 16 + 128, not world ÷ 8; the dot now uses that whenever a map's drawing sits in the middle like this, and lands where the game's own marker does.
+
 ## Beta v1.14.77 (2026-10-31)
 
 - **Hack map on phones: the controls no longer cover the map.** Dungeons, Pin, Follow and ⟲ sit in a slim row under the map instead of floating over it.
