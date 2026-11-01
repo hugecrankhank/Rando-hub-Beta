@@ -2,13 +2,28 @@
  * Rando Hub glue for The Guardian Legend (glr/), loaded by one <script> line
  * in glr/index.html. GLR lives here now (its old repository is archived).
  *
- * GLR is a game you pick yourself: rerolls, "either game" and Crowd Control
- * never roll a seed here. This only adds the way back to the other games and
+ * GLR is a game you pick yourself: rerolls and "either game" never land here
+ * from another game (Crowd effects can roll a new GLR seed while playing GLR,
+ * when allowed in its settings: js/crowd.js). This only adds the way back to the other games and
  * puts GLR seeds in the hub's seed history.
  */
 (function () {
   'use strict';
   var HUB = '../';
+
+  // Before js/crowd.js reads its settings: the connection follows the hub's.
+  try {
+    var hubCc = JSON.parse(localStorage.getItem('s9x-crowd-settings') || 'null');
+    if (hubCc) {
+      var mine = JSON.parse(localStorage.getItem('glr-crowd-settings') || 'null');
+      var fresh = !mine;
+      mine = mine || {};
+      ['enabled', 'url'].concat(fresh ? ['feed', 'alerts', 'allowReroll', 'showTimer'] : []).forEach(function (k) {
+        if (k in hubCc) mine[k] = hubCc[k];
+      });
+      localStorage.setItem('glr-crowd-settings', JSON.stringify(mine));
+    }
+  } catch (e) {}
 
   function logSeed() {
     try {

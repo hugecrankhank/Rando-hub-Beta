@@ -9,6 +9,7 @@
  * Where Link is on screen:
  *   Zelda 3  $22 / $20 (x / y in the world) - camera $E2 / $E8
  *   Zelda 1  $70 / $84 (x / y on the NES screen; the picture starts 8 lines down)
+ *   GLR      $530 / $518 (the Guardian, object 0: x centre / y)
  */
 (function () {
   'use strict';
@@ -23,6 +24,7 @@
       var x = (r[0x22] | r[0x23] << 8) - (r[0xE2] | r[0xE3] << 8), y = (r[0x20] | r[0x21] << 8) - (r[0xE8] | r[0xE9] << 8);
       return { x: x, y: y, w: 16, h: 24 };              // his position is the top of his head (OAM)
     }
+    if (window.GLRCrowd && r.length >= 0x800) return { x: r[0x530] - 8, y: r[0x518] - 16, w: 16, h: 16 };   // The Guardian Legend: object 0 ($530 x centre, $518 y)
     if (r.length >= 0x800) return { x: r[0x70], y: r[0x84] - 8, w: 16, h: 16 };
     return null;
   }

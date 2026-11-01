@@ -161,7 +161,7 @@
       const r = await generate();
       await GLRStore.set('current', { bytes: r.rom.buffer.slice(0), name: r.name, meta: r.meta }).catch(() => {});
       $('seed-dlg').close();
-      onPlay({ rom: r.rom, name: r.name, meta: r.meta });
+      onPlay({ rom: r.rom, name: r.name, meta: r.meta, auto: !!(opts && opts.auto) });   // auto: a crowd reroll, no "switch?" question
       return r;
     },
     release() {},

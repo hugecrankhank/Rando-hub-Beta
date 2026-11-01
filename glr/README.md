@@ -121,6 +121,24 @@ only shown once you've picked it up. Tracking is saved per ROM.
 
 See [docs/ROM-NOTES.md](docs/ROM-NOTES.md) for the ROM and RAM notes.
 
+## Crowd effects
+
+TikTok gifts, likes, follows and shares change the game through Crowd Control+ or
+JinxCast, as in Zelda 1 and Zelda 3 (⚙ Settings → Crowd effects; the connection
+follows the hub's). The effect ids are Zelda 3's, so one mapping drives every game:
+hearts are health (one heart = 8, an Energy Tank's worth), rupees and magic are
+power chips, the sword is Attack, the shield is Defense, an item is a sub-weapon.
+
+- Health: full heal, +8, -16 (never kills), down to 8, instant death, one-hit KO, ±1 Energy Tank
+- Chips: +50, -50, to max, small refill, lose all, locked (no sub-weapons) for a while
+- Controls: inverted D-pad, no main gun, no sub-weapon, A and B swapped, freeze, jail
+- Picture and speed: mirror, upside down, wobble, tiny screen, retro CRT, speed up, slow motion
+- Attack / Defense: up, down or to minimum for a while, stolen (-1, stays); a sub-weapon gone for a while
+- New seed (same flags, random preset, chaos): off unless "Allow seed reroll" is ticked
+
+Zelda-only effects (bottles, arrows, warps, bosses, sprites, music…) aren't offered
+here; the bridge skips them while GLR is connected. `js/crowd.js`.
+
 ## Debugging
 
 ```js

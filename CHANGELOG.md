@@ -5,6 +5,14 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.85 (2026-11-01)
+
+- **Crowd effects for The Guardian Legend** (GLR, and hacks like TGL Secret Edition), through Crowd Control+ or JinxCast as in Zelda 1 and 3: ⚙ Settings → Crowd effects, with gift alerts, the feed, the subathon clock and test buttons. 39 effects, using Zelda 3's effect ids so the same gift mapping works: hearts are health (1 heart = 8), rupees and magic are power chips, the sword is Attack, the shield is Defense, an item is a sub-weapon.
+  - Health: full, +8, -16 (never kills), down to 8, instant death, one-hit KO, ±1 Energy Tank. Chips: +50, -50, to max, small refill, lose all, locked for a while.
+  - Inverted D-pad, no main gun, no sub-weapon, A/B swapped, freeze, jail (bars drawn around the Guardian); mirror, upside down, wobble, tiny screen, retro CRT, speed up, slow motion.
+  - Attack and Defense up, down or to minimum for a while, or stolen; a sub-weapon gone for 30 s; new GLR seed (off unless allowed).
+  - The GLR emulator gained the speed and picture tricks the other games' emulators have.
+
 ## Beta v1.14.84 (2026-11-01)
 
 - **Guardian Legend hacks get the GLR map and tracker** (TGL Secret Edition 3.3 and others built on the game's own room tables). In Patched games, playing one opens it in the GLR page, the way Allhallows Eve gets its map: the labyrinth map is drawn from the hack's own ROM (all 370 of its screens, its items, bosses, corridors and key doors) and tracks live (where you are, health, chips, items, keys, corridors cleared), with the run timer. Play ROM file on the GLR page does the same with a hack's .nes. (patched/?play=<id>&here=1 plays it on the Patched page instead, without the map.)
