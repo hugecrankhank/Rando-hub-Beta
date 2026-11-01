@@ -5,6 +5,14 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.76 (2026-10-31)
+
+- **Zelda 3 hacks in the tracker:**
+  - **Item pictures** were cut from the running game's pause menu, and a hack lays its menu out its own way (Allhallows Eve's came out jumbled). For a hack they're now cut from the plain game: the base ROM kept for rolling seeds (Randomizer bar → Base ROM…).
+  - **Keys** shows the hack's own dungeons instead of the original game's (Allhallows Eve: six), from its ROM: map, compass, big key, small keys held, and how much of each Link has seen. Tap one to open its map.
+  - **⟲** on the map (top right, like Mudora's) re-centers and fits it.
+  - An empty dungeon floor says why (no rooms seen yet; All rooms shows them).
+
 ## Beta v1.14.75 (2026-10-31)
 
 - **Hack map: one set of buttons.** On a phone the tracker's own **Light World / Dark World** tabs now show the hack's maps (Items / Keys stay the tracker's), and one button where − / + sit swaps those tabs between the hack map (**Tracker ⇄**) and the tracker's map (**🗺 Map ⇄**). The map's extra rows are gone: Dungeons, Pin and Follow sit in a small bar in the map's corner, and Follow moves the tab along when Link changes worlds. On a computer it's one row too (Pop out and Tracker ⇄ joined the map's own row).

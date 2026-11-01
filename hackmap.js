@@ -17,7 +17,31 @@
   var $ = function (id) { return document.getElementById(id); };
   var btn = null, panel = null, popup = null, dock = null, wantDock = true, isOn = false, swap = null;
   function phone() { return document.body.classList.contains('phone'); }
-  function mapTab() { return document.body.classList.contains('phone-map-tab'); }
+  function curTab() { var b = document.querySelector('#phone-tabs button.on'); return b ? b.dataset.tab : ''; }
+  function mapTab() { var t = curTab(); return t === 'lw' || t === 'dw' || t === 'keys'; }
+  var keysView = false, keysEl = null;
+  // The hack's own dungeons (the tracker's Keys list is the original game's):
+  // map, compass, big key, small keys held, and how much of each Link has seen.
+  function keysPanel() {
+    if (!keysEl) {
+      keysEl = document.createElement('div'); keysEl.id = 'hm-keys';
+      keysEl.addEventListener('click', function (e) {
+        var r = e.target.closest('[data-d]'); if (!r) return;
+        var d = +r.dataset.d;
+        if (phone()) { var b = document.querySelector('#phone-tabs button[data-tab="lw"]'); if (b) b.click(); } else { keysView = false; place(); }
+        setTimeout(function () { window.Z3Map.showDungeon(d); }, 60);   // after the tab has picked its world
+      });
+    }
+    var L = window.Z3Map.dungeonStatus();
+    keysEl.innerHTML = '<div class="hk-h">Dungeons <small>this hack\u2019s own, from its ROM \u00B7 tap one for its map</small></div>' + (L.length ? L.map(function (x) {
+      var k = x.keys > 99 ? 0 : x.keys, pct = x.total ? Math.round(x.seen / x.total * 100) : 0;
+      return '<button type="button" class="hk-row' + (x.here ? ' here' : '') + (pct === 100 ? ' done' : '') + '" data-d="' + x.d + '">' +
+        '<span class="hk-n"><b>' + x.name + (x.here ? ' \u2022' : '') + '</b><small>' + x.floors + '</small></span>' +
+        '<span class="hk-i' + (x.map ? ' on' : '') + '" title="Map">\uD83D\uDDFA</span><span class="hk-i' + (x.compass ? ' on' : '') + '" title="Compass">\uD83E\uDDED</span><span class="hk-i' + (x.bigkey ? ' on' : '') + '" title="Big key">\uD83D\uDDDD</span>' +
+        '<span class="hk-k' + (k ? ' on' : '') + '" title="Small keys held">\uD83D\uDD11 ' + k + '</span><span class="hk-p" title="Rooms seen">' + pct + '%</span></button>';
+    }).join('') : '<p class="hk-none">No dungeon maps in this ROM.</p>');
+    return keysEl;
+  }
   function frames() { var f = $('frames'); return f && f.offsetParent !== null && f.getBoundingClientRect().height > 80 ? f : null; }
   function host() { return $('hm-host'); }
   // Phones: the tracker's Light World / Dark World tabs show the hack's maps, Items / Keys the tracker,
@@ -33,8 +57,12 @@
       if (getComputedStyle(f).position === 'static') f.style.position = 'relative';
       if (dock.parentNode !== f) f.appendChild(dock);
       if (host().parentNode !== dock) dock.appendChild(host());
+      var kp = keysPanel(); if (kp.parentNode !== dock) dock.appendChild(kp);
+      var showKeys = onPhone ? curTab() === 'keys' : keysView;
+      kp.hidden = !showKeys; host().style.display = showKeys ? 'none' : '';
       window.Z3Map.setCompact(onPhone);
       dock.hidden = !showDock; panel.hidden = true;
+      if (!showKeys) window.Z3Map.fit();
       btn.classList.remove('show');
       if (onPhone && showDock) syncTab();
     } else {
@@ -74,12 +102,20 @@
       '#hm-dock { position: absolute; inset: 0; z-index: 20; display: flex; flex-direction: column; background: #0b0f16; }' +
       '#hm-dock[hidden] { display: none; }' +
       '#hm-dock > div { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; }' +
+      '#hm-keys { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 4px 6px 10px; font: 14px system-ui, sans-serif; color: #c9d1d9; } #hm-keys[hidden] { display: none !important; }' +
+      '#hm-keys .hk-h { padding: 8px 6px; font: 600 12px system-ui, sans-serif; color: #8b95a3; text-transform: uppercase; letter-spacing: .05em; } #hm-keys .hk-h small { text-transform: none; letter-spacing: 0; font-weight: 400; margin-left: 6px; }' +
+      '#hm-keys .hk-row { all: unset; box-sizing: border-box; width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 12px; margin: 0 0 6px; background: #161b22; border-left: 4px solid #e5534b; border-radius: 6px; cursor: pointer; }' +
+      '#hm-keys .hk-row.done { border-left-color: #3fb950; } #hm-keys .hk-row.here { background: #1d2636; }' +
+      '#hm-keys .hk-n { flex: 1; min-width: 0; } #hm-keys .hk-n b { display: block; font-weight: 650; color: #e6edf3; } #hm-keys .hk-n small { display: block; color: #8b95a3; font-size: 12px; }' +
+      '#hm-keys .hk-i { font-size: 20px; opacity: .22; filter: grayscale(1); } #hm-keys .hk-i.on { opacity: 1; filter: none; }' +
+      '#hm-keys .hk-k { color: #8b95a3; white-space: nowrap; opacity: .45; } #hm-keys .hk-k.on { color: #ffd166; opacity: 1; } #hm-keys .hk-p { min-width: 3em; text-align: right; color: #e6edf3; font-weight: 600; }' +
+      '#hm-keys .hk-none { color: #8b95a3; padding: 10px; }' +
       // phones: the swap button sits where − / + are; − / + only for the tracker's own map
       '#hm-swap { display: none; min-height: 36px; padding: 0 10px; font-size: 13px; white-space: nowrap; }' +
-      'body.hm-on #hm-swap { display: inline-flex; align-items: center; } body.hm-on.hm-docked #phone-zoom > button:not(#hm-swap) { display: none; }' +
+      'body.hm-on #phone-zoom { display: flex; } body.hm-on #hm-swap { display: inline-flex; align-items: center; } body.hm-on.hm-docked #phone-zoom > button:not(#hm-swap) { display: none; }' +
       '#hm-dock .z3m-tabs .hm-ctl { color: #c9d1d9; }' +
       '#hm-dock .z3m { flex: 1 1 0 !important; height: auto !important; border: 0 !important; border-radius: 0 !important; } #hm-dock .z3m-about { display: none; }' +
-      'body.phone #hm-dock .hm-pop, body.phone #hm-dock .hm-trk { display: none; }' +
+      'body.phone #hm-dock .hm-pop, body.phone #hm-dock .hm-trk, body.phone #hm-dock .hm-keysbtn { display: none; }' +
       'body.phone #hm-panel { right: 0; left: 0; bottom: 0; width: auto; height: 58vh; border-radius: 12px 12px 0 0; } body.phone #hm-panel .hm-pop { display: none; }';
     document.head.appendChild(st);
     btn = document.createElement('button'); btn.id = 'hm-btn'; btn.type = 'button';
@@ -102,7 +138,7 @@
         if (b && !b.classList.contains('on')) b.click();
       } });
     // computers: Pop out and Tracker ⇄ on the map's own row (one row, no extra bar)
-    [['\u29C9 Pop out', 'hm-pop', popOut, 'The map in a window of its own (for a stream capture)'], ['Tracker \u21C4', 'hm-trk', function () { wantDock = false; place(); }, 'Back to the tracker (the \uD83D\uDDFA button brings the map back)']].forEach(function (c) {
+    [['\uD83D\uDD11 Keys', 'hm-keysbtn', function () { keysView = !keysView; place(); }, 'This hack\u2019s dungeons: map, compass, big key, small keys'], ['\u29C9 Pop out', 'hm-pop', popOut, 'The map in a window of its own (for a stream capture)'], ['Tracker \u21C4', 'hm-trk', function () { wantDock = false; place(); }, 'Back to the tracker (the \uD83D\uDDFA button brings the map back)']].forEach(function (c) {
       var b = document.createElement('button'); b.type = 'button'; b.className = 'hm-ctl ' + c[1]; b.textContent = c[0]; b.title = c[3]; b.addEventListener('click', c[2]);
       window.Z3Map.addControl(b);
     });
@@ -117,7 +153,9 @@
       if (tb && !tb.dataset.hm) {
         tb.dataset.hm = '1';
         tb.addEventListener('click', function (e) {
-          var b = e.target.closest('button[data-tab]'); if (!b || !isOn || !wantDock) return;
+          var b = e.target.closest('button[data-tab]'); if (!b || !isOn) return;
+          setTimeout(place, 0);
+          if (!wantDock) return;
           if (b.dataset.tab === 'lw') window.Z3Map.view(0); else if (b.dataset.tab === 'dw') window.Z3Map.view(1);
           setTimeout(place, 0);
         });
@@ -128,8 +166,9 @@
     var lastK = '';
     setInterval(function () {
       phoneBits();
-      var k = [!!frames(), phone(), mapTab()].join();
+      var k = [!!frames(), phone(), curTab()].join();
       if (isOn && k !== lastK) { lastK = k; place(); }
+      if (isOn && keysEl && !keysEl.hidden) keysPanel();   // keep the list live
     }, 500);
   }
   function init() { if (window.Z3Map) build(); }

@@ -528,31 +528,44 @@
   M._useIcons = useIcons;   // for tests: pictures as the worker sends them
   var iconJob = null;
   function loadIcons(g) {
-    get('rhb-mudora', 'icons', 'v8-' + g).then(function (hit) {
+    var P = M.player(), core = P && P.core, rom = null;
+    try { rom = core && core.rom().slice(); } catch (e) {}
+    // A ROM hack (Allhallows Eve…) lays its pause menu out its own way, so its
+    // pictures are cut from the plain game instead: the base ROM kept for rolling
+    // seeds (Randomizer bar, Base ROM…). Kept apart from what an earlier version
+    // cut from the hack itself.
+    var Z = up(function (w) { return w.Z3Map; }), hack = !!(rom && Z && Z.isHack && Z.isHack(rom)), key = (hack ? 'v8h-' : 'v8-') + g;
+    get('rhb-mudora', 'icons', key).then(function (hit) {
       if (M.game !== g) return;
       if (hit && hit.crystal) { useIcons(hit); return; }
-      var P = M.player(), core = P && P.core, rom = null;
-      try { rom = core && core.rom().slice(); } catch (e) {}
       if (!rom || !rom.length) { M.iconState = 'norom'; emit('icons'); return; }
-      if (iconJob) { try { iconJob.terminate(); } catch (e) {} }
-      M.iconState = 'drawing'; emit('icons');
-      var wk;
-      try { wk = iconJob = new Worker(M.base + 'iconworker.js'); } catch (e) { M.iconState = 'failed'; emit('icons'); return; }
-      wk.onmessage = function (ev) {
-        try { wk.terminate(); } catch (e) {}
-        if (iconJob === wk) iconJob = null;
+      if (!hack) { drawIconsFrom(g, key, rom); return; }
+      get('rhb-beta-s9x-kara', 'kv', 'base-jp10').then(function (base) {
         if (M.game !== g) return;
-        if (ev.data && ev.data.dims) console.log('[mudora] menu pictures', JSON.stringify(ev.data.dims));
-        if (ev.data && ev.data.icons) {
-          var copy = {};   // keep a copy: the canvases below don't need the originals
-          Object.keys(ev.data.icons).forEach(function (k) { copy[k] = ev.data.icons[k].slice(0); });
-          put('rhb-mudora', 'icons', 'v8-' + g, copy);
-          useIcons(ev.data.icons);
-        } else { M.iconState = 'failed'; emit('icons'); console.warn('[mudora] icons', ev.data && ev.data.error); }
-      };
-      wk.onerror = function () { M.iconState = 'failed'; emit('icons'); };
-      wk.postMessage({ rom: rom.buffer }, [rom.buffer]);
+        if (!base || !base.length) { M.iconState = 'norom'; emit('icons'); console.warn('[mudora] a ROM hack: the item pictures need the base ROM (Randomizer bar, Base ROM…)'); return; }
+        drawIconsFrom(g, key, new Uint8Array(base).slice());
+      });
     });
+  }
+  function drawIconsFrom(g, key, rom) {
+    if (iconJob) { try { iconJob.terminate(); } catch (e) {} }
+    M.iconState = 'drawing'; emit('icons');
+    var wk;
+    try { wk = iconJob = new Worker(M.base + 'iconworker.js'); } catch (e) { M.iconState = 'failed'; emit('icons'); return; }
+    wk.onmessage = function (ev) {
+      try { wk.terminate(); } catch (e) {}
+      if (iconJob === wk) iconJob = null;
+      if (M.game !== g) return;
+      if (ev.data && ev.data.dims) console.log('[mudora] menu pictures', JSON.stringify(ev.data.dims));
+      if (ev.data && ev.data.icons) {
+        var copy = {};   // keep a copy: the canvases below don't need the originals
+        Object.keys(ev.data.icons).forEach(function (k) { copy[k] = ev.data.icons[k].slice(0); });
+        put('rhb-mudora', 'icons', key, copy);
+        useIcons(ev.data.icons);
+      } else { M.iconState = 'failed'; emit('icons'); console.warn('[mudora] icons', ev.data && ev.data.error); }
+    };
+    wk.onerror = function () { M.iconState = 'failed'; emit('icons'); };
+    wk.postMessage({ rom: rom.buffer }, [rom.buffer]);
   }
 
   // ── marks: which item you've seen at a check (per game) ───────────────────

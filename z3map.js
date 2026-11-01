@@ -178,6 +178,11 @@
         grid[qy * 10 + qx] = { room: m.room, vis: !!vis, cell: i };
       }
     }
+    if (!grid.some(Boolean)) {
+      ctx.font = '13px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#8b95a3';
+      ctx.fillText('No rooms seen on this floor yet.', s[0] / 2, s[1] / 2 - 9);
+      ctx.fillText('They appear as Link goes (all of them with the map), or tick All rooms.', s[0] / 2, s[1] / 2 + 9);
+    }
     // the floors: rooms, then their walls
     grid.forEach(function (g, j) {
       if (!g) return;
@@ -391,6 +396,21 @@
     get world() { return world; },
     setCompact: function (on) { if (z3root) { z3root.classList.toggle('compact', !!on); redraw(); } },
     addControl: function (el) { if (tabs) tabs.appendChild(el); },
+    fit: function () { if (stage) fit(); },
+    // the hack's dungeons and what Link holds for each (the Keys list)
+    dungeonStatus: function () {
+      if (!rom) return [];
+      var wr = wram(); if (!wr) return [];
+      var here = link && link.w === 2 ? link.d : -1, w16 = function (a) { return wr[a] | wr[a + 1] << 8; };
+      return dungeons().map(function (D, i) {
+        var bit = 0x8000 >> D.d, total = 0, seen = 0, done = {};
+        D.rooms.forEach(function (m) { if (!m || done[m.room]) return; done[m.room] = 1; var sb = wr[0xF000 + m.room * 2] & 15; for (var k = 0; k < 4; k++) if (m.q[k]) { total++; if (sb & (8 >> k)) seen++; } });
+        return { d: D.d, name: 'Dungeon ' + (i + 1), floors: floorName(D, 0) + (D.n > 1 ? '\u2013' + floorName(D, D.n - 1) : ''),
+          map: !!(w16(0xF368) & bit), compass: !!(w16(0xF364) & bit), bigkey: !!(w16(0xF366) & bit),
+          keys: here === D.d ? wr[0xF36F] : wr[0xF37C + D.d], here: here === D.d, seen: seen, total: total };
+      });
+    },
+    showDungeon: function (d) { var D = dget(d); if (D) { if (world !== 2) { dung = d; dfloor = D.below; setWorld(2, true); } else setDungeon(d, D.below, true); } },
     attach: function (o) {
       player = o.player; host = o.host; gameId = o.gameId || ''; hackOnly = !!o.hackOnly; onShow = o.onShow || null; onWorld = o.onWorld || null;
       try { follow = localStorage.getItem('rhb-z3map-follow') !== 'off'; } catch (e) {}
@@ -417,12 +437,14 @@
         '.z3m.compact .z3m-tabs { position: absolute; right: 6px; bottom: 6px; z-index: 3; padding: 2px; gap: 0; background: rgba(12,16,26,.88); border: 1px solid #2a313c; border-radius: 8px; }' +
         '.z3m.compact .z3m-tabs [data-w="0"], .z3m.compact .z3m-tabs [data-w="1"], .z3m.compact .z3m-tabs .sp { display: none; }' +
         '.z3m.compact .z3m-tabs button { padding: 6px 7px; border-bottom: 0; margin: 0; font-size: 12.5px; }' +
+        '.z3m-reset { position: absolute; top: 6px; right: 6px; z-index: 3; width: 34px; height: 34px; border-radius: 8px; border: 1px solid #3a4556; background: rgba(12,16,26,.85); color: #e6edf3; font-size: 18px; line-height: 1; cursor: pointer; }' +
+        '.z3m-tabs .z3m-fit { display: none; }' +
         '.z3m-about { color: var(--dim, #8b95a3); font-size: 12px; margin: 6px 0 0; }</style>' +
         '<div class="z3m"><div class="z3m-tabs" role="tablist">' + WORLDS.map(function (n, i) { return '<button type="button" role="tab" data-w="' + i + '">' + n + '</button>'; }).join('') +
         '<span class="sp"></span><button type="button" class="z3m-at" title="Drop a pin where Link stands" hidden>⌖ Pin at Link</button><button type="button" class="z3m-pin" aria-pressed="false" title="Drop a pin: tap the map where it goes">📍 Pin</button>' +
         '<button type="button" class="z3m-follow" aria-pressed="' + follow + '" title="Switch to the world or dungeon floor Link is in and keep him in view">⌖ Follow</button><button type="button" class="z3m-fit" title="Fit the map">⤢</button></div>' +
         '<div class="z3m-sub" hidden><select aria-label="Dungeon"></select><span class="z3m-floors"></span><label title="Every room, as with the map and compass (the game shows the rooms you\u2019ve seen, all of them once you have the map, the boss with the compass)"><input type="checkbox" class="z3m-all"> All rooms</label></div>' +
-        '<div class="z3m-stage"><canvas></canvas><div class="z3m-label" hidden><span class="n"></span><button type="button">Remove pin</button></div><div class="z3m-hint"></div></div></div>' +
+        '<div class="z3m-stage"><canvas></canvas><button type="button" class="z3m-reset" title="Re-center and fit the map">\u27F2</button><div class="z3m-label" hidden><span class="n"></span><button type="button">Remove pin</button></div><div class="z3m-hint"></div></div></div>' +
         '<p class="z3m-about">The hack’s own maps, from its ROM: the world map and its dungeon maps (rooms you’ve seen, all of them once you have the map). Link is the green dot; pins are yours, kept for this game.</p>';
       stage = host.querySelector('.z3m-stage'); cv = stage.querySelector('canvas'); ctx = cv.getContext('2d'); tabs = host.querySelector('.z3m-tabs'); label = host.querySelector('.z3m-label');
       followBtn = host.querySelector('.z3m-follow'); pinBtn = host.querySelector('.z3m-pin'); atBtn = host.querySelector('.z3m-at');
@@ -434,6 +456,7 @@
       dsub.querySelector('.z3m-all').checked = showAll;
       dsub.querySelector('.z3m-all').addEventListener('change', function (e) { showAll = e.target.checked; try { localStorage.setItem('rhb-z3map-allrooms', showAll ? 'on' : 'off'); } catch (x) {} redraw(); });
       host.querySelector('.z3m-fit').addEventListener('click', fit);
+      host.querySelector('.z3m-reset').addEventListener('click', function () { follow && link ? (moved = false, fit()) : fit(); });
       followBtn.addEventListener('click', function () { follow = !follow; followBtn.setAttribute('aria-pressed', String(follow)); try { localStorage.setItem('rhb-z3map-follow', follow ? 'on' : 'off'); } catch (e) {} if (follow) moved = false; });
       pinBtn.addEventListener('click', function () { setPlacing(!placing); });
       atBtn.addEventListener('click', function () { if (link && (!link.indoors || link.w === 2)) addPin(link.w, link.x, link.y); });
