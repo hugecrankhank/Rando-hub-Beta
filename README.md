@@ -142,7 +142,9 @@ in the library there; nothing is uploaded and no games or patches come with the 
 made with ZScream). Mudora's map is the wrong one for a new world, so a **🗺 Hack map**
 button appears instead (bottom right; the top right on phones): the hack's own world map,
 Light and Dark World, drawn from its ROM, with Link as a green dot (**Follow** keeps him in
-view), and **📍 Pin** to mark spots with a note, kept per hack. **⧉ Pop out** puts the map in
+view), its **Dungeons** too (the game's own dungeon maps from the ROM: a floor at a time, the rooms
+you've seen, all of them once you have the map, the boss with the compass, or **All rooms**;
+Follow switches to Link's dungeon and floor), and **📍 Pin** to mark spots with a note, kept per hack. **⧉ Pop out** puts the map in
 a window of its own for a stream capture (`hackmap.html`). Crowd Control works on a hack as
 far as the hack keeps the game's memory layout, which ZScream hacks do; the item tracker and
 the dungeon map are vanilla's and won't match.
