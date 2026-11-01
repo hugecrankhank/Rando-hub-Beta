@@ -311,6 +311,7 @@
   }
 
   function download(bytes, name, type) {
+    if (window.RHSaveFile) return window.RHSaveFile(bytes, name, type);
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([bytes], { type: type || 'application/octet-stream' }));
     a.download = name; document.body.append(a); a.click();

@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.83 (2026-11-01)
+
+- **Save ROM file** in every game's ⚙ Settings (the emulator menu, next to Restart): saves the ROM being played, as the emulator has it: a seed, a patched game from Patched games, or a plain ROM. On iPhone and iPad it opens the share sheet, so you can pick Save to Files (a download link does nothing in the home-screen app); the seed dialogs' Download ROM and Patched games' Save the patched ROM do the same now.
+
 ## Beta v1.14.82 (2026-11-01)
 
 - Phones: the run timer is in the header now (next to ⚙) on Zelda 1, GLR, Super Metroid, Mario RPG and FF6, instead of under the New seed menu. It shows just the time, without the hour until the run passes one. GLR's 🎲 Reroll moves under New seed on phones to make room. (The FF pages keep ⏱ Timer in their Games list on phones.)

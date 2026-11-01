@@ -97,7 +97,8 @@ function card(g) {
     item('Choose a cover picture…', () => pickCover(g, showLibrary));
     if (g.cover) item('Remove the cover (pick the title screen again)', async () => { g.cover = null; g.coverAuto = false; await put('games', g); showLibrary(); });
     item('Save the patched ROM…', () => {
-      const a = document.createElement('a'); a.href = blobUrl(new Blob([g.rom])); a.download = g.name.replace(/[\\/:*?"<>|]+/g, '') + (g.system === 'nes' ? '.nes' : '.sfc'); a.click();
+      const n = g.name.replace(/[\\/:*?"<>|]+/g, '') + (g.system === 'nes' ? '.nes' : '.sfc');
+      if (window.RHSaveFile) window.RHSaveFile(g.rom, n); else { const a = document.createElement('a'); a.href = blobUrl(new Blob([g.rom])); a.download = n; a.click(); }
     });
     item('Delete', async () => {
       if (!confirm('Delete "' + g.name + '" from this browser? Its in-game saves are kept, so adding it again picks them up.')) return;

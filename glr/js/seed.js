@@ -119,6 +119,7 @@
   }
   $('generate').addEventListener('click', () => { generate().catch(() => {}); });
   function download(bytes, name, type) {
+    if (window.RHSaveFile) return window.RHSaveFile(bytes, name, type);
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([bytes], { type }));
     a.download = name;

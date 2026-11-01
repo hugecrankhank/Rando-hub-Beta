@@ -151,6 +151,26 @@
   var started = false, core = null, video = null, audio = null, input = null;
   var root, canvas, touchEl, menuEl, pill, toastEl, msgEl;
   var running = false, paused = false, ff = false, gameName = '', lastSram = null;
+  var romBytes = null, romFile = '';   // the ROM being played, for "Save ROM file"
+  // Save a file the person keeps (the ROM being played). iPhones and iPads:
+  // the share sheet ("Save to Files"), since a download link does nothing in
+  // the home-screen app; elsewhere a normal download.
+  if (!window.RHSaveFile) window.RHSaveFile = function (bytes, name, type) {
+    type = type || 'application/octet-stream';
+    var ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+    if (ios && typeof File === 'function' && navigator.canShare) {
+      try {
+        var f = new File([bytes], name, { type: type });
+        if (navigator.canShare({ files: [f] })) return navigator.share({ files: [f] }).catch(function (e) { if (e && e.name !== 'AbortError') dl(); });
+      } catch (e) {}
+    }
+    dl();
+    function dl() {
+      var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([bytes], { type: type })); a.download = name;
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 10000);
+    }
+  };
+
   var speedMul = 1, audioAcc = 0;   // crowd speed effects: 1.5 = faster, 0.5 = slow motion
   var screenFx = {}, tempFilter = null;
   // Add-ons (crowd/effects.js) plug in here without touching the loop:
@@ -342,6 +362,7 @@
       '<div class="bd">' +
       '<h4>Game</h4><div class="acts">' +
         '<button type="button" data-a="restart">Restart</button>' +
+        '<button type="button" data-a="saverom" title="Save the ROM being played (a seed or a patched game) as a file">💾 Save ROM file</button>' +
         (root.requestFullscreen ? '<button type="button" data-a="fs">Full screen</button>' : '') +
       '</div>' +
       '<p class="hint">Save and load states from the bar on the game screen (💾 / 📂, S1–S4 picks the slot). In-game saves are kept automatically for each seed. Keys: F5 save state, F8 load state, hold ` to fast-forward.</p>' +
@@ -374,6 +395,7 @@
       var b = e.target.closest('button'); if (!b) return;
       var a = b.dataset.a;
       if (a === 'close') closeMenu();
+      else if (a === 'saverom') saveRom();
       else if (a === 'restart') { if (confirm('Restart the game?')) { core.reset(); audio.clear(); menuEl._resume = true; closeMenu(); } }
       else if (a === 'fs') { closeMenu(); fullscreen(); }
       else if (a === 'dgwarp') { var sel = menuEl.querySelector('[data-x=dgwarp]'); lastWarp = +sel.value; menuEl._resume = true; closeMenu(); dgWarp(lastWarp); }
@@ -700,6 +722,12 @@
     saveState: saveState, loadState: loadState, openMenu: openMenu,
   };
 
+  function saveRom() {
+    if (!romBytes) return;
+    var n = (romFile || gameName || 'game').replace(/[\\/:*?"<>|]+/g, '');
+    if (!/\.(sfc|smc|nes|fds)$/i.test(n)) n += '.sfc';
+    window.RHSaveFile(romBytes, n);
+  }
   // ── boot ────────────────────────────────────────────────────────────────
   function boot(container, file) {
     if (started) return Promise.reject(new Error('already started'));
@@ -745,6 +773,7 @@
       core = r[0];
       if (!r[1] || r[1].length < 0x8000) throw new Error('the ROM for "' + name + '" was empty (' + (r[1] ? r[1].length : 0) + ' bytes).');
       if (!core.load(r[1])) throw new Error('Snes9x could not load "' + name + '".');
+      romBytes = r[1]; romFile = name;
       audio.setRate(core.sampleRate);
       return kvGet(sramKey());
     }).then(function (saved) {
@@ -767,6 +796,7 @@
   }
 
   window.Snes9xPlayer = {
+    saveRom: saveRom, get romBytes() { return romBytes; },
     boot: boot, hooks: hooks, setTouchPlacement: setTouchPlacement,
     get emulator() { return running ? ejs : null; },
     get core() { return running ? core : null; },

@@ -157,6 +157,26 @@
   function pad2Now() { if (pad2Left <= 0) return 0; pad2Left--; return pad2Mask; }
   var root, canvas, touchEl, menuEl, pill, toastEl, msgEl;
   var running = false, paused = false, ff = false, gameName = '', lastSram = null;
+  var romBytes = null, romFile = '';   // the ROM being played, for "Save ROM file"
+  // Save a file the person keeps (the ROM being played). iPhones and iPads:
+  // the share sheet ("Save to Files"), since a download link does nothing in
+  // the home-screen app; elsewhere a normal download.
+  if (!window.RHSaveFile) window.RHSaveFile = function (bytes, name, type) {
+    type = type || 'application/octet-stream';
+    var ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+    if (ios && typeof File === 'function' && navigator.canShare) {
+      try {
+        var f = new File([bytes], name, { type: type });
+        if (navigator.canShare({ files: [f] })) return navigator.share({ files: [f] }).catch(function (e) { if (e && e.name !== 'AbortError') dl(); });
+      } catch (e) {}
+    }
+    dl();
+    function dl() {
+      var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([bytes], { type: type })); a.download = name;
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 10000);
+    }
+  };
+
   // Add-ons (crowd/effects.js) plug in here without touching the loop:
   //   input(pad) -> pad   change the buttons the game sees this frame
   //   frame(core)         runs after every emulated frame
@@ -350,6 +370,7 @@
       '<div class="bd">' +
       '<h4>Game</h4><div class="acts">' +
         '<button type="button" data-a="restart">Restart</button>' +
+        '<button type="button" data-a="saverom" title="Save the ROM being played (a seed or a patched game) as a file">💾 Save ROM file</button>' +
         (root.requestFullscreen ? '<button type="button" data-a="fs">Full screen</button>' : '') +
       '</div><p class="hint">Save and load states from the bar on the game screen (💾 / 📂, S1–S4 picks the slot). In-game saves are kept automatically for each seed. Keys: F5 save state, F8 load state, hold ` to fast-forward.</p>' +
       '<h4>Sound</h4><div class="row"><span>Volume</span><input type="range" min="0" max="1" step="0.05" data-s="volume" value="' + cfg.volume + '"></div>' +
@@ -384,6 +405,7 @@
       var b = e.target.closest('button'); if (!b) return;
       var a = b.dataset.a;
       if (a === 'close') closeMenu();
+      else if (a === 'saverom') saveRom();
       else if (a === 'restart') { if (confirm('Restart the game?')) { core.reset(); audio.clear(); menuEl._resume = true; closeMenu(); } }
       else if (a === 'fs') { closeMenu(); fullscreen(); }
       else if (a === 'resetmap') { input.keymap = Object.assign({}, EmuInput.DEFAULT_KEYS); input.padmap = Object.assign({}, EmuInput.DEFAULT_PAD); cfg.keymap = cfg.padmap = null; saveCfg(); renderMenu(); }
@@ -642,6 +664,12 @@
     saveState: saveState, loadState: loadState, openMenu: openMenu,
   };
 
+  function saveRom() {
+    if (!romBytes) return;
+    var n = (romFile || gameName || 'game').replace(/[\\/:*?"<>|]+/g, '');
+    if (!/\.(sfc|smc|nes|fds)$/i.test(n)) n += '.nes';
+    window.RHSaveFile(romBytes, n);
+  }
   // ── boot ────────────────────────────────────────────────────────────────
   function boot(container, file) {
     if (started) return Promise.reject(new Error('already started'));
@@ -688,6 +716,7 @@
       if (!r[1] || r[1].length < 0x4010) throw new Error('the ROM for "' + name + '" was empty (' + (r[1] ? r[1].length : 0) + ' bytes).');
       applyCoreOptions();   // before load: the core reads its options when the game starts
       if (!core.load(r[1])) throw new Error('The emulator could not load "' + name + '".');
+      romBytes = r[1]; romFile = name;
       audio.setRate(core.sampleRate);
       return kvGet(sramKey());
     }).then(function (saved) {
@@ -710,6 +739,7 @@
   }
 
   window.EmuPlayer = {
+    saveRom: saveRom, get romBytes() { return romBytes; },
     boot: boot, hooks: hooks, setTouchPlacement: setTouchPlacement,
     get emulator() { return running ? ejs : null; },
     get core() { return running ? core : null; },
