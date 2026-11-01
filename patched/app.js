@@ -248,6 +248,23 @@ function richness(f) {
 }
 const toBlob = (cv) => new Promise((r) => cv.toBlob(r, 'image/png'));
 
+// A Guardian Legend ROM (or a hack of it): mapper 2, 128 KB, and the game's
+// room table parses (glr/js/tgl-data.js, the same check the GLR map uses).
+async function isTGL(rom) {
+  rom = rom instanceof Uint8Array ? rom : new Uint8Array(rom);
+  if (rom.length < 16 + 0x20000 || rom[4] !== 8 || ((rom[6] >> 4) | (rom[7] & 0xF0)) !== 2) return false;
+  try { if (!window.TGL) await loadScript('../glr/js/tgl-data.js'); return window.TGL.parseRooms(rom).filter((r) => !r.empty).length > 300; } catch (e) { return false; }
+}
+// the GLR page's store (glr/js/store.js): the game it opens with
+function glrPut(k, v) {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open('glr', 1);
+    req.onupgradeneeded = () => req.result.createObjectStore('kv');
+    req.onerror = () => reject(req.error);
+    req.onsuccess = () => { const t = req.result.transaction('kv', 'readwrite'); t.objectStore('kv').put(v, k); t.oncomplete = () => resolve(); t.onerror = () => reject(t.error); };
+  });
+}
+
 async function play(id) {
   const g = await get('games', id).catch(() => null);
   if (!g) { toast('That game isn’t in this browser any more.'); history.replaceState(null, '', location.pathname); return showLibrary(); }
@@ -263,6 +280,17 @@ async function play(id) {
   const note = sessionStorage.getItem('rhb-patched-note');
   if (note) { sessionStorage.removeItem('rhb-patched-note'); toast(note, 6000); }
 
+  // The Guardian Legend and its hacks (TGL Secret Edition, ...) play in the GLR
+  // page, which draws the labyrinth map from the ROM and tracks it live: the
+  // same as Allhallows Eve getting its map here. ?here=1 plays it here instead.
+  if (g.system === 'nes' && !q.get('here') && await isTGL(g.rom)) {
+    try {
+      await glrPut('current', { bytes: new Uint8Array(g.rom).slice().buffer, name: g.name + '.nes', meta: { source: 'patched', patched: g.id } });
+      sessionStorage.setItem('glr:autoplay', '1');
+      location.replace('../glr/');
+      return;
+    } catch (e) { console.warn('[patched] GLR hand-off', e); }
+  }
   window.EMU_BASE = EMU[g.system];
   try {
     for (const f of ['core.js', 'video.js', 'audio.js', 'input.js', 'player.js']) await loadScript(EMU[g.system] + f);

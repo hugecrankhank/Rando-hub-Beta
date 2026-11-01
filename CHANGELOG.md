@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.84 (2026-11-01)
+
+- **Guardian Legend hacks get the GLR map and tracker** (TGL Secret Edition 3.3 and others built on the game's own room tables). In Patched games, playing one opens it in the GLR page, the way Allhallows Eve gets its map: the labyrinth map is drawn from the hack's own ROM (all 370 of its screens, its items, bosses, corridors and key doors) and tracks live (where you are, health, chips, items, keys, corridors cleared), with the run timer. Play ROM file on the GLR page does the same with a hack's .nes. (patched/?play=<id>&here=1 plays it on the Patched page instead, without the map.)
+
 ## Beta v1.14.83 (2026-11-01)
 
 - **Save ROM file** in every game's ⚙ Settings (the emulator menu, next to Restart): saves the ROM being played, as the emulator has it: a seed, a patched game from Patched games, or a plain ROM. On iPhone and iPad it opens the share sheet, so you can pick Save to Files (a download link does nothing in the home-screen app); the seed dialogs' Download ROM and Patched games' Save the patched ROM do the same now.
