@@ -5,6 +5,11 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.81 (2026-11-01)
+
+- Run timer on every game page, like Zelda 1's: GLR, Super Metroid, Mario RPG, FF6, FF1, FF4, FF5 and Patched. ⏱ in the header (on phones: under New seed, or in the Games list on the FF pages) has Start / Pause, Reset and "Pop out for stream", a window with just the timer for OBS / TikTok LIVE Studio (run-timer.html?game=…, ?bg=0 for a transparent background). Each game keeps its own run.
+- Auto (on by default) starts it when a game is started from the title screen, only from 0:00, and stops it at the end in GLR (corridor 21 cleared), Super Metroid (Samus escapes Zebes) and FF4 Free Enterprise (the game is won).
+
 ## Beta v1.14.80 (2026-11-01)
 
 - iPhone: the app lets go of the audio session when it goes to the background or is closed, so the lock-screen Now Playing card no longer hangs around. The hub's volume fix no longer restarts the sound while the page is hidden.

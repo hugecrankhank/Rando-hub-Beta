@@ -1,6 +1,6 @@
 {
  "edition": "full",
- "version": "833c40b560b5",
+ "version": "6827fa44bf64",
  "cache": "rando-hub-v1",
  "files": [
   "./",
@@ -24,8 +24,14 @@
   "offline.js",
   "web-update.js",
   "game-header.js",
+  "run-timer.js",
+  "run-timer.html",
+  "ios-audio.js",
   "cursor-hide.js",
-  "halloween.js", "fog.js", "rain.js", "jail.js",
+  "halloween.js",
+  "fog.js",
+  "rain.js",
+  "jail.js",
   "player-name.js",
   "go-mode.js",
   "dungeon-card.js",
