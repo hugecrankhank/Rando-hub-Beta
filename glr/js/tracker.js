@@ -6,7 +6,8 @@
  *   $52/$53 screen X/Y, $30 bit 6 = flying a corridor
  *   $47/$48 max/current health, $4C/$4D chips (max $4E/$4F)
  *   $4A attack, $4B defense, $6B shield, $46 Red Landers
- *   $04A0-$04A8 item and mini-boss flags, $04A9-$04AA corridors cleared
+ *   $04A0-$04A8 item and mini-boss flags, $04A9-$04AB corridors cleared
+ *   (corridor n: bit (n-1)&7 of $04A9 + (n-1)/8, as the game's own $EFC7 works it out)
  *   $04AC-$04AE sub-weapon levels (2 bits each), $04AF Enemy Eraser ammo,
  *   $04B0 keys
  * What an item room or mini-boss holds is read from the ROM you're playing,
@@ -53,7 +54,7 @@
     if (!live) return null;
     if (k[0] === 'w') { const i = +k.slice(1); return (live.w[i >> 2] >> ((i & 3) * 2)) & 3; }
     if (k[0] === 'k') return (live.keys >> (+k.slice(1) - 1)) & 1;
-    if (k[0] === 'c') { const c = +k.slice(1); return c <= 16 ? (live.cleared >> (c - 1)) & 1 : 0; }
+    if (k[0] === 'c') { const c = +k.slice(1); return c <= 21 ? (live.cleared >> (c - 1)) & 1 : 0; }
     if (k === 'ee') return live.ee;
     if (k === 'bl') return Math.max(0, (live.hpMax >> 3) - 8);
     if (k === 'rl') return live.redLanders;
@@ -82,7 +83,7 @@
       x: r[0x52], y: r[0x53], area: r[0x50] & 0x0F, corridor: !!(r[0x30] & 0x40),
       hp: r[0x48], hpMax: r[0x47], chips: r[0x4C] | (r[0x4D] << 8), chipMax: r[0x4E] | (r[0x4F] << 8),
       attack: r[0x4A], defense: r[0x4B], shield: r[0x6B], redLanders: r[0x46],
-      flags: Array.from(r.subarray(0x4A0, 0x4A9)), cleared: r[0x4A9] | (r[0x4AA] << 8),
+      flags: Array.from(r.subarray(0x4A0, 0x4A9)), cleared: r[0x4A9] | (r[0x4AA] << 8) | ((r[0x4AB] & 0x1F) << 16),
       w: [r[0x4AC], r[0x4AD], r[0x4AE] & 0x3F], ee: (r[0x4AE] & 0x40) ? r[0x4AF] : 0, keys: r[0x4B0] & 0x7F,
       score: Array.from(r.subarray(0x170, 0x176)).map((d) => d & 15).join('').replace(/^0+(?=\d)/, '') + '0',
     };
@@ -113,7 +114,7 @@
       if (now && !was) { logFlag(b); changed = true; }
     }
     // Corridors cleared, keys gained
-    for (let c = 1; c <= 16; c++) {
+    for (let c = 1; c <= 21; c++) {
       if (((live.cleared >> (c - 1)) & 1) && !((S.cleared >> (c - 1)) & 1)) { addLog('Cleared corridor ' + c, 'corridor', c); changed = true; }
     }
     for (let k = 1; k <= 7; k++) {

@@ -143,7 +143,10 @@
       loadBaseFromStore().then(paintBase);
       paintBase();
     },
-    open() { $('result').hidden = true; setStatus(''); if (!$('seed').value) $('seed').value = String(Math.floor(Math.random() * 1e9)); $('seed-dlg').showModal(); },
+    // A fresh seed number every time the dialog opens: it used to keep the last one,
+    // so New seed → Generate rolled the same seed again (same rewards, same keys).
+    // Type a number over it to replay a particular seed.
+    open() { $('result').hidden = true; setStatus(''); $('seed').value = String(Math.floor(Math.random() * 1e9)); $('seed-dlg').showModal(); },
     // A reroll (the hub's 🎲, or one that landed here from another game): the flags
     // you used last, or a random preset for Crowd Control's preset / chaos modes,
     // a fresh seed number, then play. The dialog shows while it works.

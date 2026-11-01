@@ -51,7 +51,7 @@
     corridor: 0x51,              // corridor being played (0 = labyrinth)
     mode: 0x30,
     flags: 0x04A0,               // 9 bytes: item / mini-boss flags (by index)
-    cleared: 0x04A9,             // corridors cleared, bit (n-1)
+    cleared: 0x04A9,             // corridors cleared: 3 bytes, corridor n = bit (n-1)&7 of $04A9 + (n-1)/8
     weapons: 0x04AC,             // 3 bytes, 2 bits per sub-weapon level
     eraser: 0x04AF,              // Enemy Eraser ammo; $04AE bit 6 = have it
     keys: 0x04B0,                // bit (k-1) = key k

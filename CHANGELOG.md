@@ -5,6 +5,12 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.79 (2026-10-31)
+
+- **Guardian Legend fixes:**
+  - **Corridors 17–21 tick themselves when cleared.** The tracker read only the first two bytes of the game's cleared-corridor flags (corridors 1–16); the game keeps 17–21 in the third ($04AB), as its own code works it out.
+  - **New seed rolls a new seed.** The dialog kept the last seed number, so New seed → Generate made the same seed again (same corridor rewards, same keys) until 🎲 or a reload. It now starts with a fresh number every time; type one over it to replay a seed. (The randomizer itself was fine: across 200 seeds corridor 1 gave all seven keys and over ten different first rewards.)
+
 ## Beta v1.14.78 (2026-10-31)
 
 - **Fixed: Link's dot on Allhallows Eve's map was in the wrong place.** The hack draws its whole world at half scale in the middle of its map (the parchment), where the original game fills the map edge to edge. Measured against the game's own map screen at several spots, a world position there is world ÷ 16 + 128, not world ÷ 8; the dot now uses that whenever a map's drawing sits in the middle like this, and lands where the game's own marker does.
