@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.82 (2026-11-01)
+
+- Phones: the run timer is in the header now (next to ⚙) on Zelda 1, GLR, Super Metroid, Mario RPG and FF6, instead of under the New seed menu. It shows just the time, without the hour until the run passes one. GLR's 🎲 Reroll moves under New seed on phones to make room. (The FF pages keep ⏱ Timer in their Games list on phones.)
+
 ## Beta v1.14.81 (2026-11-01)
 
 - Run timer on every game page, like Zelda 1's: GLR, Super Metroid, Mario RPG, FF6, FF1, FF4, FF5 and Patched. ⏱ in the header (on phones: under New seed, or in the Games list on the FF pages) has Start / Pause, Reset and "Pop out for stream", a window with just the timer for OBS / TikTok LIVE Studio (run-timer.html?game=…, ?bg=0 for a transparent background). Each game keeps its own run.

@@ -98,7 +98,9 @@
   var btn = null, menu = null;
   function paint() {
     if (!btn) return;
-    btn.querySelector('b').textContent = fmt(ms(), false);
+    var f = fmt(ms(), false), b = btn.querySelector('b');
+    // the hour in its own span: phones leave out a 0 hour, to fit the header
+    b.innerHTML = '<i class="tm-h' + (f.charAt(0) === '0' ? ' z' : '') + '">' + f.slice(0, f.indexOf(':') + 1) + '</i>' + f.slice(f.indexOf(':') + 1);
     btn.classList.toggle('run', !!T.start);
     btn.classList.toggle('done', T.done);
     if (menu) { var go = menu.querySelector('[data-t=go]'); if (go) go.textContent = T.start ? '⏸ Pause' : (ms() ? '▶ Resume' : '▶ Start'); }
@@ -148,7 +150,8 @@
       '#rht-menu button:hover { background: #24304f; }' +
       '#rht-menu label { font-size: 12px; color: #aab; display: flex; gap: 6px; align-items: flex-start; }' +
       // phones: the pages with a Games menu move it under New seed (roll-games.js); the rest show just the time
-      '@media (max-width: 760px), (max-height: 560px) { #rh-timer .rht-i { display: none; } #rh-timer b { margin-left: 0; } }';
+      '@media (max-width: 760px), (max-height: 560px) { #rh-timer .rht-i { display: none; } #rh-timer b { margin-left: 0; } #rh-timer .tm-h.z { display: none; } #rh-timer { padding-left: 5px !important; padding-right: 5px !important; font-size: .85em; } }' +
+      '#rh-timer i { font-style: normal; }';
     document.head.appendChild(st);
     btn = document.createElement('button');
     btn.type = 'button'; btn.id = 'rh-timer'; btn.className = 'btn';

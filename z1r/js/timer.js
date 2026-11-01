@@ -47,7 +47,9 @@
   var btn = null, menu = null;
   function paint() {
     if (!btn) return;
-    btn.querySelector('b').textContent = fmt(ms(), false);
+    var f = fmt(ms(), false), b = btn.querySelector('b');
+    // the hour in its own span: phones leave out a 0 hour, to fit the header
+    b.innerHTML = '<i class="tm-h' + (f.charAt(0) === '0' ? ' z' : '') + '">' + f.slice(0, f.indexOf(':') + 1) + '</i>' + f.slice(f.indexOf(':') + 1);
     btn.classList.toggle('run', !!T.start);
     btn.classList.toggle('done', T.done);
     if (menu) { var go = menu.querySelector('[data-t=go]'); if (go) go.textContent = T.start ? '⏸ Pause' : (ms() ? '▶ Resume' : '▶ Start'); }
@@ -93,11 +95,13 @@
       '#z1t-menu button { all: unset; display: block; padding: 9px 12px; border-radius: 4px; background: #1d2433; cursor: pointer; font-size: 15px; }' +
       '#z1t-menu button:hover { background: #24304f; }' +
       '#z1t-menu label { font-size: 12px; color: #aab; display: flex; gap: 6px; align-items: flex-start; }' +
-      '@media (max-width: 760px), (max-height: 560px) { #z1-timer { display: none !important; } }';
+      // phones: just the time, next to ⚙ (Hank's iPhone, Nov 2026)
+      '@media (max-width: 760px), (max-height: 560px) { #z1-timer { display: inline-flex !important; padding-left: 5px !important; padding-right: 5px !important; font-size: .85em; } #z1-timer .z1t-i { display: none; } #z1-timer b { margin-left: 0; } #z1-timer .tm-h.z { display: none; } }' +
+      '#z1-timer i { font-style: normal; }';
     document.head.appendChild(st);
     btn = document.createElement('button');
     btn.type = 'button'; btn.id = 'z1-timer'; btn.className = 'btn';
-    btn.innerHTML = '⏱<b>0:00:00</b>';
+    btn.innerHTML = '<span class="z1t-i">⏱</span><b>0:00:00</b>';
     btn.title = 'Run timer: tap for start / pause, reset and a pop-out window for the stream';
     btn.addEventListener('click', openMenu);
     var anchor = $('z1-die') || $('game-settings') || $('pad-status') || $('link-status');

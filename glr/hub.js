@@ -48,7 +48,7 @@
       newSeed.parentNode.insertBefore(link('hub-patched', HUB + 'patched/', 'Patched', 'Patched games: NES and SNES ROM hacks on these emulators'), newSeed).dataset.game = 'patched';
       var R = window.RandoRoll;
       if (R) R.applyShown(newSeed.parentNode);
-      if (R) newSeed.parentNode.insertBefore(R.gamesMenu('glr/', ['hub-back', 'hub-z1', 'hub-ff', 'hub-smrpg', 'hub-sm', 'hub-patched'], [{ id: 'rh-timer', label: '⏱ Timer' }]), newSeed);
+      if (R) newSeed.parentNode.insertBefore(R.gamesMenu('glr/', ['hub-back', 'hub-z1', 'hub-ff', 'hub-smrpg', 'hub-sm', 'hub-patched'], [{ id: 'hub-reroll', label: '🎲 Reroll' }]), newSeed);
       // 🎲 Reroll: a new seed with the flags you used last, or another game if the
       // hub's "Rerolls can land on" says so
       var rr = document.createElement('button');
