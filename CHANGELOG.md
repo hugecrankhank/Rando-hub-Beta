@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.73 (2026-10-31)
+
+- **Fixed: Load ROM… in the 🎮 menu did nothing on iPhone.** iOS only opens a file picker from a tap on the page itself, and a choice in a drop-down list doesn't count. The Zelda 3 page's Games menu is now a menu of buttons, and Load ROM… in it opens the picker directly.
+
 ## Beta v1.14.72 (2026-10-31)
 
 - **Hack map: the dungeon maps.** A **Dungeons** tab beside Light and Dark World (the hub's 🗺 Hack map, its pop-out window, and Patched games): the hack's own dungeon maps, read from its ROM where ZScream keeps them, a floor at a time (B2…3F buttons, a dungeon picker). As the game shows them: the rooms you've seen, every room once you have that dungeon's map, the boss's room (☠) with its compass; **All rooms** shows everything. Link is on it in his room, and **Follow** switches to his dungeon and floor as he goes. Pins work there too.

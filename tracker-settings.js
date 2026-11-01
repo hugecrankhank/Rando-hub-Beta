@@ -113,7 +113,7 @@
       always: true, shortLabel: '\uD83C\uDFAE\u25BE', actionsLabel: 'Zelda 3',
       // Load ROM… lives in the header on a computer; on phones the header is folded
       // behind ⚙, so the menu carries it (a rolled seed, or the plain game)
-      actions: [{ label: '\uD83D\uDCC2 Load ROM\u2026 (seed or vanilla)', run: function () { var i = $('rom-input'); if (i) i.click(); } }],
+      actions: [{ label: '\uD83D\uDCC2 Load ROM\u2026 (seed or vanilla)', input: 'rom-input' }],
       confirm: function (name) { return !(window.EJS_emulator && !confirm('Switch to ' + (name || 'another game') + '?\n\nThe current game will be closed.')); },
     });
     sel.title = 'Games: switch to another game, add one, or manage them (show, hide, offload)';

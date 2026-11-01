@@ -103,6 +103,7 @@
   //         actions: [{ label, run }] for this page, listed first (the hub's Load ROM…) }
   function gamesMenu(currentUrl, linkIds, extras, opts) {
     opts = opts || {};
+    if (opts.actions && opts.actions.length) return tapMenu(currentUrl, opts);
     var sel = document.createElement('select');
     sel.className = 'btn'; sel.id = 'hub-games'; sel.setAttribute('aria-label', 'Games');
     sel.style.cssText = '-webkit-appearance: none; appearance: none; padding-right: 10px; display: ' + (opts.always ? 'inline-flex' : 'none') + '; max-width: 104px; text-overflow: ellipsis;';
@@ -174,6 +175,62 @@
       menu.style.left = Math.round(Math.max(6, Math.min(r.left, window.innerWidth - menu.offsetWidth - 6))) + 'px';
       setTimeout(function () { document.addEventListener('pointerdown', outside, true); }, 0);
     }, true);
+  }
+
+  // The same menu as a button and a list of buttons: what the hub uses, since
+  // iPhones only open a file picker from a tap on the page itself (a choice in
+  // a <select> doesn't count), and the hub's menu carries Load ROM….
+  // actions: [{ label, input: id of a file input }] or [{ label, run }]
+  function tapMenu(currentUrl, opts) {
+    var btn = document.createElement('button');
+    btn.type = 'button'; btn.id = 'hub-games'; btn.className = 'btn'; btn.setAttribute('aria-haspopup', 'menu'); btn.setAttribute('aria-label', 'Games');
+    btn.style.cssText = 'display: inline-flex; align-items: center; justify-content: center; white-space: nowrap;';
+    var phone = window.matchMedia(PHONE_MQ), menu = null;
+    function label() { btn.textContent = phone.matches && opts.shortLabel ? opts.shortLabel : (opts.label || 'Games \u25BE'); }
+    label(); if (phone.addEventListener) phone.addEventListener('change', label);
+    if (!document.getElementById('hub-games-css')) {
+      var st = document.createElement('style'); st.id = 'hub-games-css';
+      st.textContent = '#hg-menu { position: fixed; z-index: 1000; min-width: 220px; max-height: calc(100vh - 80px); overflow-y: auto; background: #111; border: 2px solid #3a6df0; border-radius: 8px; padding: 4px; box-shadow: 0 8px 24px rgba(0,0,0,.6); display: flex; flex-direction: column; -webkit-overflow-scrolling: touch; }' +
+        '#hg-menu .h { padding: 8px 14px 4px; font: 600 12px system-ui, sans-serif; color: #8b95a3; text-transform: uppercase; letter-spacing: .04em; }' +
+        '#hg-menu button, #hg-menu label { all: unset; box-sizing: border-box; display: block; padding: 11px 14px; font: 16px system-ui, sans-serif; color: #fff; cursor: pointer; border-radius: 4px; white-space: nowrap; }' +
+        '#hg-menu button:active, #hg-menu button:hover, #hg-menu label:active, #hg-menu label:hover { background: #24304f; }' +
+        '#hg-menu hr { border: 0; border-top: 1px solid #2a313c; margin: 4px 6px; }';
+      document.head.appendChild(st);
+    }
+    function close() { if (menu) { menu.remove(); menu = null; } document.removeEventListener('pointerdown', outside, true); }
+    function outside(e) { if (menu && !menu.contains(e.target) && e.target !== btn) close(); }
+    function head(t) { var h = document.createElement('div'); h.className = 'h'; h.textContent = t; menu.appendChild(h); }
+    function item(t, fn) { var b = document.createElement('button'); b.type = 'button'; b.textContent = t; b.addEventListener('click', function () { close(); fn(); }); menu.appendChild(b); }
+    function go(name, url) { if (opts.confirm && !opts.confirm(name)) return; location.href = url; }
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (menu) { close(); return; }
+      menu = document.createElement('div'); menu.id = 'hg-menu'; menu.setAttribute('role', 'menu');
+      head(opts.actionsLabel || 'This game');
+      opts.actions.forEach(function (a) {
+        if (a.input) {   // a <label for> the file input: a tap on it opens the picker everywhere, iOS included
+          var l = document.createElement('label'); l.htmlFor = a.input; l.textContent = a.label;
+          l.addEventListener('click', function () { setTimeout(close, 0); });
+          menu.appendChild(l);
+        } else item(a.label, a.run);
+      });
+      var s = shown(), others = ALL.filter(function (x) { return x[0] !== currentUrl; });
+      var on = others.filter(function (x) { return s[x[2]]; }), off = others.filter(function (x) { return !s[x[2]]; });
+      menu.appendChild(document.createElement('hr')); head('Games');
+      on.forEach(function (x) { item(x[1], function () { go(x[1], base + x[0]); }); });
+      if (off.length) {
+        menu.appendChild(document.createElement('hr')); head('Add a game');
+        off.forEach(function (x) { item('+ ' + x[1], function () { if (opts.confirm && !opts.confirm(x[1])) return; var s2 = shown(); s2[x[2]] = true; setShown(s2); location.href = base + x[0]; }); });
+      }
+      menu.appendChild(document.createElement('hr'));
+      item('\u2699 Manage games\u2026', function () { manage(currentUrl); });
+      document.body.appendChild(menu);
+      var r = btn.getBoundingClientRect();
+      menu.style.top = Math.round(r.bottom + 6) + 'px';
+      menu.style.left = Math.round(Math.max(6, Math.min(r.left, window.innerWidth - menu.offsetWidth - 6))) + 'px';
+      setTimeout(function () { document.addEventListener('pointerdown', outside, true); }, 0);
+    });
+    return btn;
   }
 
   // ── Manage games: which are shown, and "Offload" to clear a game's stored ──
