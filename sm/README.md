@@ -40,6 +40,17 @@ Read from the running game every half second (no setup):
   and a moved boss says where it is. Reveal is off by default.
 - DASH's own items (Double Jump, Heat Shield, Pressure Valve) have no flag the tracker
   knows yet: tap them when you have them. Manual ticks are kept per seed.
+- **Logic:** with DASH's own rules, each spot is coloured for what Samus has right now:
+  green = in logic (there and back), orange = reachable but no way back to the ship
+  yet, red = not yet; taken spots fade. On the map's pins and in the Spots list. It's
+  DASH's generator doing the work (`js/logic.js`, in the same worker as New seed): DASH
+  writes the seed number and every setting into the ROM, so the seed's graph is built
+  again from the ROM being played and checked against its item bytes, whoever made the
+  seed (here, dashrando.net, another copy of the hub). Race seeds hide their settings,
+  so they get no logic; a seed made elsewhere also gets its spoiler (behind Reveal)
+  this way. Red means "not in DASH's logic yet", the same rules DASH uses to make sure a
+  seed can be finished; a trick the logic doesn't expect can still get you there. Boss
+  deaths count by the boss's own flag, wherever the boss shuffle put it.
 - **The map:** the game's own area maps (Crateria, Brinstar, Norfair, Wrecked Ship,
   Maridia, Tourian) with a pin on every item spot, exactly where the item is, and Samus
   on it. Pinch, scroll or double-tap to zoom, drag to pan; tap a pin for its name (and

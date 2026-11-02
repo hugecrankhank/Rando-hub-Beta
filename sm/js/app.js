@@ -69,6 +69,7 @@
     const id = SMRHash(entry.rom);
     const label = entry.meta && entry.meta.seed ? 'Seed ' + entry.meta.seed : entry.name;
     SMRTracker.setSession(id, label, entry.meta || {}, entry.spoiler || {}, entry.placed || []);
+    if (window.SMRLogic) SMRLogic.load(entry.rom);   // DASH's logic for the tracker, from the seed's own ROM
     document.title = describe(entry) + ' - Super Metroid DASH';
     boot(new File([entry.rom], 'sm-' + id + '.sfc'), id, !!(opts && opts.resume));
   }

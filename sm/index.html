@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="version" content="1.14.86">
+<meta name="version" content="1.14.87">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Super Metroid DASH - Rando Hub</title>
 <meta name="description" content="Roll Super Metroid DASH randomizer seeds, play them, and track Samus’s gear, bosses and every item spot in one page.">
@@ -127,6 +127,12 @@
   .chk i { position: absolute; left: 3px; top: 6px; width: 12px; height: 12px; border: 2px solid var(--cell-line); border-radius: 2px; }
   .chk.have { color: var(--text); }
   .chk.have i { background: var(--green); border-color: var(--green); }
+  /* logic (js/logic.js): the box's border says whether DASH's rules put the spot in reach now */
+  .chk.r-ok i { border-color: var(--green); } .chk.r-ok { color: var(--text); }
+  .chk.r-back i { border-color: #ff9f43; } .chk.r-no i { border-color: #e5534b; }
+  .legend .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; vertical-align: -1px; }
+  .legend .dot.ok { background: var(--green); } .legend .dot.back { background: #ff9f43; } .legend .dot.no { background: #e5534b; }
+  .legend:empty { display: none; }
   .chk:hover { background: rgba(255,255,255,.05); }
   /* the map (map.js) */
   #g-map { display: flex; flex-direction: column; height: 400px; min-height: 240px; border: 2px solid var(--cell-line); border-radius: 6px; background: #0b1018; overflow: hidden; }
@@ -340,6 +346,7 @@
 <script src="../emu/player.js"></script>
 <script src="js/data.js"></script>
 <script src="js/store.js"></script>
+<script src="js/logic.js"></script>
 <script src="js/map.js"></script>
 <script src="js/tracker.js"></script>
 <script src="js/seed.js"></script>

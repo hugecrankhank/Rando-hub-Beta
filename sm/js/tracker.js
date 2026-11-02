@@ -21,6 +21,7 @@
   let root = null, sessionId = 'manual', meta = {}, spoiler = {}, placed = [], manual = {}, link = 'manual';
   const linkFns = [];
   let live = null, view = 'items', compact = false, reveal = false;
+  let reach = null;   // js/logic.js: { 'spot|Area': 'ok' | 'back' | 'no' }, or null without logic
 
   // ── state from RAM ───────────────────────────────────────────────────────
   function readRam() {
@@ -76,7 +77,7 @@
         '<div class="t-sec"><h4>Bosses <span id="n-bosses"></span></h4><div class="grid bosses" id="g-bosses"></div></div>' +
         '<div class="t-sec"><h4>Mini-bosses <span id="n-minis"></span></h4><div class="grid bosses" id="g-minis"></div></div></div>' +
       '<div class="t-view map"><div class="t-sec"><h4>Map <span id="n-map"></span></h4><div id="g-map"></div></div></div>' +
-      '<div class="t-view locs"><div class="t-sec"><h4>Item spots <span id="n-locs"></span></h4><p class="fine">The game ticks a spot as you take its item. With Reveal on, each spot shows what’s there.</p><div id="g-locs"></div></div></div>' +
+      '<div class="t-view locs"><div class="t-sec"><h4>Item spots <span id="n-locs"></span></h4><p class="fine">The game ticks a spot as you take its item. With Reveal on, each spot shows what’s there.</p><p class="fine legend" id="t-legend"></p><div id="g-locs"></div></div></div>' +
       '<div class="t-view seed"><div class="t-sec" id="g-seed"></div>' +
         '<div class="t-sec"><h4>Spoiler <label class="reveal"><input type="checkbox" id="t-reveal"> Reveal</label></h4><div id="g-spoiler"></div></div></div>' +
       '<div class="t-foot"><span id="t-link"></span><button type="button" class="linkish" id="t-clear">Clear manual ticks</button></div>';
@@ -138,7 +139,9 @@
     const shownArr = D.LOCATIONS.map((l, i) => !root.querySelector('[data-k="locs"][data-i="' + i + '"]').hidden), shown = shownArr.filter(Boolean).length;
     $('n-locs').textContent = count('locs') + '/' + shown;
     $('n-map').textContent = count('locs') + '/' + shown;
-    if (window.SMRMap) SMRMap.update({ have: s.locs, shown: shownArr, names: D.LOCATIONS.map((l) => l[0]), items: reveal ? D.LOCATIONS.map((l) => at[l[0] + '|' + AREA_KEY[l[1]]] || '') : null, liveHave: (i) => isLive('locs', i) });
+    if (window.SMRMap) SMRMap.update({ have: s.locs, shown: shownArr, names: D.LOCATIONS.map((l) => l[0]), items: reveal ? D.LOCATIONS.map((l) => at[l[0] + '|' + AREA_KEY[l[1]]] || '') : null, liveHave: (i) => isLive('locs', i), reach: reachArr() });
+    paintReach();
+    askLogic(s);
     const l = live && live.started ? live : null;
     const stat = (ico, n, of, title) => '<span class="stat" title="' + esc(title) + '"><span class="ico">' + ico + '</span>' + n + (of ? '<small>/' + of + '</small>' : '') + '</span>';
     $('t-stats').innerHTML =
@@ -150,11 +153,57 @@
     renderSeed();
   }
 
+  // ── logic (js/logic.js): what DASH's rules say Samus can reach now ────────
+  const AREA_KEY = ['Crateria', 'GreenBrinstar', 'RedBrinstar', 'KraidsLair', 'CrocomiresLair', 'WreckedShip', 'EastMaridia', 'WestMaridia', 'UpperNorfair', 'LowerNorfair'];
+  const DASH_GEAR = { 'Morph Ball': 'Morph', 'Bombs': 'Bombs', 'Spring Ball': 'SpringBall', 'Screw Attack': 'ScrewAttack', 'Varia Suit': 'Varia', 'Gravity Suit': 'Gravity', 'Hi-Jump Boots': 'HJB', 'Space Jump': 'SpaceJump',
+    'Speed Booster': 'Speed', 'Grapple Beam': 'Grapple', 'X-Ray Scope': 'Xray', 'Charge Beam': 'Charge', 'Ice Beam': 'Ice', 'Wave Beam': 'Wave', 'Spazer': 'Spazer', 'Plasma Beam': 'Plasma',
+    'Double Jump': 'DoubleJump', 'Heat Shield': 'HeatShield', 'Pressure Valve': 'PressureValve' };
+  const DASH_MINI = { 'Spore Spawn': 'SporeSpawn', 'Crocomire': 'Crocomire', 'Botwoon': 'Botwoon', 'Golden Torizo': 'GoldTorizo' };
+  // Samus's gear and ticks → DASH's inventory. Pack counts come from the game
+  // (5 a pack; a tank is 100); by hand, only the gear and bosses count.
+  function inventory(s) {
+    const l = live && live.started ? live : null;
+    const gear = D.GEAR.map((g, i) => s.gear[i] ? DASH_GEAR[g[0]] : null).concat(D.EXTRA.map((g, i) => s.extra[i] ? DASH_GEAR[g] : null)).filter(Boolean);
+    const bosses = {}, minis = {};
+    D.BOSSES.forEach((b, i) => { if (s.bosses[i]) bosses[b[0]] = true; });
+    D.MINIS.forEach((b, i) => { if (s.minis[i] && DASH_MINI[b[0]]) minis[DASH_MINI[b[0]]] = true; });
+    return { gear, missiles: l ? Math.round(l.maxMissiles / 5) : 0, supers: l ? Math.round(l.maxSupers / 5) : 0, pbs: l ? Math.round(l.maxPbs / 5) : 0,
+      etanks: l ? Math.max(0, Math.round((l.maxEnergy - 99) / 100)) : 0, reserves: l ? Math.round(l.maxReserve / 100) : 0, bosses, minis };
+  }
+  let lastInv = '';
+  function askLogic(s) {
+    if (!window.SMRLogic) return;
+    const inv = inventory(s), sig = JSON.stringify(inv);
+    if (sig === lastInv) return;
+    lastInv = sig; SMRLogic.update(inv);
+  }
+  function reachOf(i) { const l = D.LOCATIONS[i]; return reach ? reach[l[0] + '|' + AREA_KEY[l[1]]] || null : null; }
+  function reachArr() { return reach ? D.LOCATIONS.map((l, i) => reachOf(i)) : null; }
+  function paintReach() {
+    const s = state();
+    root.querySelectorAll('[data-k="locs"]').forEach((b) => {
+      const i = +b.dataset.i, r = s.locs[i] ? null : reachOf(i);
+      b.classList.toggle('r-ok', r === 'ok'); b.classList.toggle('r-back', r === 'back'); b.classList.toggle('r-no', r === 'no');
+    });
+    const lg = $('t-legend'), st = window.SMRLogic ? SMRLogic.state : null;
+    if (lg) lg.innerHTML = reach
+      ? '<span class="dot ok"></span> in logic now (there and back) · <span class="dot back"></span> reachable, but no way back yet · <span class="dot no"></span> not yet — DASH’s own rules, seed ' + esc(st && st.seed || '')
+      : st && st.loading ? 'Working out the logic from the ROM…' : st && st.error ? 'No logic: ' + esc(st.error) + '.' : '';
+  }
+  if (window.SMRLogic) {
+    SMRLogic.onReach((r) => { reach = r; paintReach(); if (window.SMRMap) SMRMap.update({ reach: reachArr() }); });
+    SMRLogic.onState((st) => {
+      // a ROM made elsewhere: the seed's own placements come back with the logic, so Reveal works
+      if (st.ok && !placed.length && st.placed) { placed = st.placed; spoiler = st.spoiler || spoiler; if (!meta.seed) meta.seed = String(st.seed); meta.fromRom = true; }
+      lastInv = ''; render();
+    });
+  }
+
   function renderSeed() {
     const sd = $('g-seed'), g = $('g-spoiler');
     if (!sd) return;
     const m = meta || {};
-    sd.innerHTML = (m.seed ? '<div class="seedline"><b>Seed</b> <span class="selectable">' + esc(m.seed) + '</span>' + (m.preset ? ' <small>' + esc(m.preset) + '</small>' : '') + '</div>' : '') +
+    sd.innerHTML = (m.seed ? '<div class="seedline"><b>Seed</b> <span class="selectable">' + esc(m.seed) + '</span>' + (m.preset ? ' <small>' + esc(m.preset) + '</small>' : m.fromRom ? ' <small>read from the ROM</small>' : '') + '</div>' : '') +
       (m.hash ? '<div class="seedline fine">DASH seed code: <span class="selectable">' + esc(m.hash) + '</span></div>' : '');
     const sp = spoiler || {};
     if (!Object.keys(sp).length) { g.innerHTML = '<p class="empty">' + (m.seed ? 'This seed has no spoiler.' : 'Roll a seed here and its spoiler is kept behind this switch.') + '</p>'; return; }
@@ -189,6 +238,7 @@
     setSession(id, label, m, sp, pl) {
       sessionId = id || 'manual'; meta = m || {}; spoiler = sp || {}; placed = pl || [];
       reveal = false; const cb = $('t-reveal'); if (cb) cb.checked = false;
+      reach = null; lastInv = '';
       loadManual(); render();
     },
     setCompact(on) { compact = !!on; root.classList.toggle('compact', compact); },

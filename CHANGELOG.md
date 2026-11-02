@@ -5,6 +5,12 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.87 (2026-11-01)
+
+- **Super Metroid: logic on the map and in the Spots list.** With DASH's own rules, every item spot is coloured for what Samus has right now: green = in logic (there and back), orange = reachable but no way back to the ship yet, red = not yet; taken spots fade. The map's pins, the Spots list and a tapped pin's label all show it, and it updates as you pick things up (or tick by hand).
+  - It's DASH's generator doing the work. DASH writes the seed number and every setting into the ROM, so the seed's graph is built again from the ROM being played and checked against its item bytes: a seed made anywhere (dashrando.net, another copy of the hub) gets the same logic, and its spoiler (behind Reveal) too. Race seeds hide their settings, so they show no logic and say so.
+  - Red is "not in DASH's logic yet", the rules DASH uses to make sure a seed can be finished; a trick the logic doesn't expect can still get you there.
+
 ## Beta v1.14.86 (2026-11-01)
 
 - **Crowd effects have one master copy, kept with Crowd Control+.** The effect files here (crowd/effects.js, z1r/js/crowd.js, glr/js/crowd.js, jail.js, crowd/README.md) are copies synced from it; each says so at the top.

@@ -2,7 +2,7 @@ var __defProp = Object.defineProperty;
 var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
-// ../../../tmp/tmp.1FRopwCRfN/buffer-shim.js
+// ../../../tmp/tmp.53fuvtkm57/buffer-shim.js
 var Buffer2 = {
   from(x, enc) {
     if (typeof x === "string" && enc === "base64") {
@@ -26,10 +26,10 @@ function wrap(u) {
   return u;
 }
 
-// ../../../tmp/tmp.1FRopwCRfN/buffer-global.js
+// ../../../tmp/tmp.53fuvtkm57/buffer-global.js
 globalThis.Buffer = Buffer2;
 
-// ../../../tmp/dash/packages/core/lib/bps-patch.js
+// ../../../tmp/claude-0/-home-claude/9f12fe1c-f3f6-5b25-a496-8abf0bb110a2/scratchpad/dash/packages/core/lib/bps-patch.js
 var BpsPatch = class _BpsPatch {
   constructor(buffer) {
     this.patchBuffer = buffer;
@@ -147,7 +147,7 @@ var BpsPatch = class _BpsPatch {
 };
 var bps_patch_default = BpsPatch;
 
-// ../../../tmp/dash/packages/core/lib/dotnet-random.js
+// ../../../tmp/claude-0/-home-claude/9f12fe1c-f3f6-5b25-a496-8abf0bb110a2/scratchpad/dash/packages/core/lib/dotnet-random.js
 var DotNetRandom = class {
   constructor(Seed) {
     __publicField(this, "MBIG", 2147483647);
@@ -294,7 +294,7 @@ var DotNetRandom = class {
 };
 var dotnet_random_default = DotNetRandom;
 
-// ../../../tmp/dash/packages/core/lib/locations.ts
+// ../../../tmp/claude-0/-home-claude/9f12fe1c-f3f6-5b25-a496-8abf0bb110a2/scratchpad/dash/packages/core/lib/locations.ts
 var Area = Object.freeze({
   Crateria: 0,
   GreenBrinstar: 1,
@@ -461,7 +461,7 @@ var getLocations = () => [
   loc(519235, 84, Area.LowerNorfair, 106, "Space Jump")
 ];
 
-// ../../../tmp/dash/packages/core/lib/items.ts
+// ../../../tmp/claude-0/-home-claude/9f12fe1c-f3f6-5b25-a496-8abf0bb110a2/scratchpad/dash/packages/core/lib/items.ts
 var Item = Object.freeze({
   // Vanilla items
   EnergyTank: 61143,
@@ -562,7 +562,7 @@ var isFungible = (itemType) => {
   }
 };
 
-// ../../../tmp/dash/packages/core/data/interface.ts
+// ../../../tmp/claude-0/-home-claude/9f12fe1c-f3f6-5b25-a496-8abf0bb110a2/scratchpad/dash/packages/core/data/interface.ts
 var BOSS_DOORS = {
   // Boss Entry Door Pointers
   DoorToKraidBoss: 501140,
@@ -728,7 +728,7 @@ var DASH_CLASSIC_PATCHES = [
   }
 ];
 
-// ../../../tmp/dash/packages/core/lib/loadout.ts
+// ../../../tmp/claude-0/-home-claude/9f12fe1c-f3f6-5b25-a496-8abf0bb110a2/scratchpad/dash/packages/core/lib/loadout.ts
 function createLoadout() {
   return {
     hasBombs: false,
@@ -1002,7 +1002,7 @@ var checkFlags = (load) => {
   return (condition) => eval(`(${condition.toString()})()`);
 };
 
-// ../../../tmp/dash/packages/core/lib/graph/search.ts
+// ../../../tmp/claude-0/-home-claude/9f12fe1c-f3f6-5b25-a496-8abf0bb110a2/scratchpad/dash/packages/core/lib/graph/search.ts
 var searchAndCache = (graph, vertex, test) => {
   let queue = [vertex];
   let pos = 0;
@@ -1068,7 +1068,7 @@ var canReachVertex = (graph, startVertex, endVertex, test) => {
   return false;
 };
 
-// ../../../tmp/dash/packages/core/helpers/converters.ts
+// ../../../tmp/claude-0/-home-claude/9f12fe1c-f3f6-5b25-a496-8abf0bb110a2/scratchpad/dash/packages/core/helpers/converters.ts
 function toHexString(data) {
   const value = new Uint8Array(data);
   return Array.from(value, function(byte) {
@@ -1083,7 +1083,7 @@ function base64ToSafe(b642, trim = false) {
   return safe.replace(/=*$/, "");
 }
 
-// ../../../tmp/dash/packages/core/lib/params.ts
+// ../../../tmp/claude-0/-home-claude/9f12fe1c-f3f6-5b25-a496-8abf0bb110a2/scratchpad/dash/packages/core/lib/params.ts
 var ENCODED_PARAMS_SIZE = 7;
 var MapLayout = {
   Standard: 1,
@@ -1132,6 +1132,17 @@ var majorModeToBits = (mode) => {
   }
   throw new Error("unknown major mode");
 };
+var bitsToMajorMode = (bits) => {
+  switch (bits) {
+    case 0:
+      return MajorDistributionMode.Standard;
+    case 2:
+      return MajorDistributionMode.Full;
+    case 3:
+      return MajorDistributionMode.Chozo;
+  }
+  throw new Error("unknown major mode");
+};
 var minorModeToBits = (minorDistribution) => {
   switch (minorDistribution) {
     case MinorDistributionMode.Standard:
@@ -1142,12 +1153,30 @@ var minorModeToBits = (minorDistribution) => {
       throw new Error("unknown minor mode");
   }
 };
+var bitsToMinorMode = (bits) => {
+  switch (bits) {
+    case 0:
+      return MinorDistributionMode.Standard;
+    case 1:
+      return MinorDistributionMode.Dash;
+  }
+  throw new Error("unknown minor mode");
+};
 var mapLayoutToBits = (layout) => {
   switch (layout) {
     case MapLayout.Standard:
       return 0;
     case MapLayout.Classic:
       return 2;
+  }
+  throw new Error("unknown map layout");
+};
+var bitsToMapLayout = (bits) => {
+  switch (bits) {
+    case 0:
+      return MapLayout.Standard;
+    case 2:
+      return MapLayout.Classic;
   }
   throw new Error("unknown map layout");
 };
@@ -1182,8 +1211,67 @@ var paramsToBytes = (seed, settings, options) => {
   bytes[6] = relaxed | mystery | spoiler | bossesKnown;
   return bytes;
 };
+var bytesToParams = (input) => {
+  const bytes = new Uint8Array(ENCODED_PARAMS_SIZE).fill(0);
+  if (input.length > ENCODED_PARAMS_SIZE) {
+    bytes.set(input.subarray(0, ENCODED_PARAMS_SIZE));
+  } else {
+    bytes.set(input);
+  }
+  const seed = bytes[0] | bytes[1] << 8 | bytes[2] << 16;
+  const fanfare = bytes[5] >> 7 & 1;
+  const gravity = bytes[5] >> 6 & 1;
+  const area = bytes[3] >> 6 & 3;
+  const boss = bytes[4] & 15;
+  const mapLayout = bitsToMapLayout(bytes[5] & 3);
+  const beam = bytes[5] >> 2 & 3;
+  const suit = bytes[5] >> 4 & 3;
+  const doubleJump = bytes[4] >> 4 & 1;
+  const heatShield = bytes[4] >> 5 & 1;
+  const pressureValve = bytes[4] >> 6 & 3;
+  const relaxed = bytes[6] >> 6 & 3;
+  const mystery = bytes[6] >> 5 & 1;
+  const spoiler = bytes[6] >> 4 & 1;
+  const bossesKnown = bytes[6] >> 3 & 1;
+  const major = bitsToMajorMode(bytes[3] >> 2 & 3);
+  const minor = bitsToMinorMode(bytes[3] >> 4 & 3);
+  const extra = [];
+  if (doubleJump != 0) {
+    extra.push(Item.DoubleJump);
+  }
+  if (heatShield != 0) {
+    extra.push(Item.HeatShield);
+  }
+  if (pressureValve != 0) {
+    extra.push(Item.PressureValve);
+    if (pressureValve > 1) {
+      extra.push(Item.PressureValve);
+    }
+  }
+  return {
+    seed,
+    settings: {
+      mapLayout,
+      majorDistribution: major,
+      minorDistribution: minor,
+      extraItems: extra,
+      randomizeAreas: area == 1,
+      bossMode: boss,
+      beamMode: beam,
+      suitMode: suit,
+      gravityHeatReduction: gravity == 0 ? GravityHeatReduction.Off : GravityHeatReduction.On
+    },
+    options: {
+      DisableFanfare: fanfare == 0,
+      RelaxedLogic: relaxed == 1,
+      Mystery: mystery == 1,
+      Spoiler: spoiler == 1,
+      BossesKnown: bossesKnown == 1
+    }
+  };
+};
 
-// ../../../tmp/dash/packages/core/lib/graph/solver.ts
+// ../../../tmp/claude-0/-home-claude/9f12fe1c-f3f6-5b25-a496-8abf0bb110a2/scratchpad/dash/packages/core/lib/graph/solver.ts
 var isGraphValid = (graph, settings, loadout) => {
   const solver = new GraphSolver(graph, settings);
   return solver.isValid(loadout);
@@ -1290,7 +1378,7 @@ var GraphSolver = class {
   }
 };
 
-// ../../../tmp/dash/packages/core/lib/graph/data/standard/area.js
+// ../../../tmp/claude-0/-home-claude/9f12fe1c-f3f6-5b25-a496-8abf0bb110a2/scratchpad/dash/packages/core/lib/graph/data/standard/area.js
 var Crateria_PreMoat_to_Crabs = {
   edges: ["PreMoat", "Door_CrateriaCrabs"],
   requires: true
@@ -1401,7 +1489,7 @@ var StandardAreaEdgeUpdates = [
   EastMaridia_AqueductPortal_to_Aqueduct
 ];
 
-// ../../../tmp/dash/packages/core/lib/graph/data/portals.ts
+// ../../../tmp/claude-0/-home-claude/9f12fe1c-f3f6-5b25-a496-8abf0bb110a2/scratchpad/dash/packages/core/lib/graph/data/portals.ts
 var samePortal = (a, b) => {
   return a.name === b.name && a.area === b.area;
 };
@@ -1611,7 +1699,7 @@ var generatePortals = (seed, area, boss) => {
   return generateAreaPortals(areaSeed).concat(generateBossPortals(boss, seed));
 };
 
-// ../../../tmp/dash/packages/core/lib/graph/data/chozo/vertex.js
+// ../../../tmp/claude-0/-home-claude/9f12fe1c-f3f6-5b25-a496-8abf0bb110a2/scratchpad/dash/packages/core/lib/graph/data/chozo/vertex.js
 var Crateria_Missiles_Alpha = {
   name: "Missiles (230)",
   type: "major"
@@ -1715,7 +1803,7 @@ var ChozoVertexUpdates = [
   GreenBrinstar_EnergyTank_WaveGate
 ];
 
-// ../../../tmp/dash/packages/core/lib/graph/data/relaxed/edges.js
+// ../../../tmp/claude-0/-home-claude/9f12fe1c-f3f6-5b25-a496-8abf0bb110a2/scratchpad/dash/packages/core/lib/graph/data/relaxed/edges.js
 var WestMaridia_DoorMainStreet_to_MainStreet = {
   edges: ["Door_MainStreet", "MainStreet"],
   requires: () => CanMoveInWestMaridia
@@ -1794,7 +1882,7 @@ var RelaxedEdgeUpdates = [
   UpperNorfair_IceBeamGatesBottomLeft_to_CrumbleShaft
 ];
 
-// ../../../tmp/dash/packages/core/lib/graph/data/base/edges/crateria.js
+// ../../../tmp/claude-0/-home-claude/9f12fe1c-f3f6-5b25-a496-8abf0bb110a2/scratchpad/dash/packages/core/lib/graph/data/base/edges/crateria.js
 var crateriaEdges = {
   Ship: {
     "Power Bombs (Landing Site)": () => (CanFly || HasSpeed) && CanUsePowerBombs,
@@ -1920,7 +2008,7 @@ var crateriaEdges = {
   }
 };
 
-// ../../../tmp/dash/packages/core/lib/graph/data/base/edges/greenbrinstar.js
+// ../../../tmp/claude-0/-home-claude/9f12fe1c-f3f6-5b25-a496-8abf0bb110a2/scratchpad/dash/packages/core/lib/graph/data/base/edges/greenbrinstar.js
 var greenbrinstarEdges = {
   Door_GreenElevator: {
     "Missiles (Early Bridge)": () => CanOpenRedDoors,
@@ -2007,7 +2095,7 @@ var greenbrinstarEdges = {
   }
 };
 
-// ../../../tmp/dash/packages/core/lib/graph/data/base/edges/redbrinstar.js
+// ../../../tmp/claude-0/-home-claude/9f12fe1c-f3f6-5b25-a496-8abf0bb110a2/scratchpad/dash/packages/core/lib/graph/data/base/edges/redbrinstar.js
 var redbrinstarEdges = {
   Door_RedTower: {
     RedTowerMid: true
@@ -2077,7 +2165,7 @@ var redbrinstarEdges = {
   }
 };
 
-// ../../../tmp/dash/packages/core/lib/graph/data/base/edges/kraid.js
+// ../../../tmp/claude-0/-home-claude/9f12fe1c-f3f6-5b25-a496-8abf0bb110a2/scratchpad/dash/packages/core/lib/graph/data/base/edges/kraid.js
 var kraidslairEdges = {
   Door_KraidsLair: {
     "Energy Tank (Kraid)": () => HasDefeatedBrinstarBoss && (CanOpenRedDoors || CanDestroyBombWalls),
@@ -2099,7 +2187,7 @@ var kraidslairEdges = {
   }
 };
 
-// ../../../tmp/dash/packages/core/lib/graph/data/base/edges/crocomire.js
+// ../../../tmp/claude-0/-home-claude/9f12fe1c-f3f6-5b25-a496-8abf0bb110a2/scratchpad/dash/packages/core/lib/graph/data/base/edges/crocomire.js
 var crocomireEdges = {
   Door_CrocsLair: {
     PostCroc: () => CanKillCrocomire
@@ -2129,7 +2217,7 @@ var crocomireEdges = {
   }
 };
 
-// ../../../tmp/dash/packages/core/lib/graph/data/base/edges/westmaridia.js
+// ../../../tmp/claude-0/-home-claude/9f12fe1c-f3f6-5b25-a496-8abf0bb110a2/scratchpad/dash/packages/core/lib/graph/data/base/edges/westmaridia.js
 var westmaridiaEdges = {
   Door_MainStreet: {
     MainStreet: true
@@ -2195,7 +2283,7 @@ var westmaridiaEdges = {
   }
 };
 
-// ../../../tmp/dash/packages/core/lib/graph/data/base/edges/eastmaridia.js
+// ../../../tmp/claude-0/-home-claude/9f12fe1c-f3f6-5b25-a496-8abf0bb110a2/scratchpad/dash/packages/core/lib/graph/data/base/edges/eastmaridia.js
 var eastmaridiaEdges = {
   Door_Aqueduct: {
     Aqueduct: () => CanUsePowerBombs
@@ -2314,7 +2402,7 @@ var eastmaridiaEdges = {
   }
 };
 
-// ../../../tmp/dash/packages/core/lib/graph/data/base/edges/uppernorfair.js
+// ../../../tmp/claude-0/-home-claude/9f12fe1c-f3f6-5b25-a496-8abf0bb110a2/scratchpad/dash/packages/core/lib/graph/data/base/edges/uppernorfair.js
 var uppernorfairEdges = {
   Door_BusinessCenterLeft: {
     BusinessCenter: true
@@ -2467,7 +2555,7 @@ var uppernorfairEdges = {
   }
 };
 
-// ../../../tmp/dash/packages/core/lib/graph/data/base/edges/lowernorfair.js
+// ../../../tmp/claude-0/-home-claude/9f12fe1c-f3f6-5b25-a496-8abf0bb110a2/scratchpad/dash/packages/core/lib/graph/data/base/edges/lowernorfair.js
 var lowernorfairEdges = {
   Door_RidleyMouth: {
     Ruins: () => HasVaria && (HasGravity || HasHiJump && TotalTanks >= 2 || HasPressureValve && TotalTanks >= 3)
@@ -2567,7 +2655,7 @@ var lowernorfairEdges = {
   }
 };
 
-// ../../../tmp/dash/packages/core/lib/graph/data/base/edges/wreckedship.js
+// ../../../tmp/claude-0/-home-claude/9f12fe1c-f3f6-5b25-a496-8abf0bb110a2/scratchpad/dash/packages/core/lib/graph/data/base/edges/wreckedship.js
 var wreckedshipEdges = {
   Door_Ocean: {
     "Missiles (Ocean Bottom)": true
@@ -2642,7 +2730,7 @@ var wreckedshipEdges = {
   }
 };
 
-// ../../../tmp/dash/packages/core/lib/graph/data/base/edges/boss.js
+// ../../../tmp/claude-0/-home-claude/9f12fe1c-f3f6-5b25-a496-8abf0bb110a2/scratchpad/dash/packages/core/lib/graph/data/base/edges/boss.js
 var kraidEdges = {
   Exit_Kraid: {
     Boss_Kraid: true
@@ -2694,7 +2782,7 @@ var bossEdges = [
   ridleyEdges
 ];
 
-// ../../../tmp/dash/packages/core/lib/graph/data/base/definitions.ts
+// ../../../tmp/claude-0/-home-claude/9f12fe1c-f3f6-5b25-a496-8abf0bb110a2/scratchpad/dash/packages/core/lib/graph/data/base/definitions.ts
 var getAllVertices = () => {
   return [
     {
@@ -4401,7 +4489,7 @@ var getStandardEdges = () => {
   ];
 };
 
-// ../../../tmp/dash/packages/core/lib/graph/data/chozo/edges.js
+// ../../../tmp/claude-0/-home-claude/9f12fe1c-f3f6-5b25-a496-8abf0bb110a2/scratchpad/dash/packages/core/lib/graph/data/chozo/edges.js
 var UpperNorfair_CathedralEntrance_to_BubbleMountainMain = {
   edges: ["CathedralEntrance", "BubbleMountainMain"],
   requires: () => HellRunTanks >= 3 && CanOpenGreenDoors
@@ -4410,7 +4498,7 @@ var ChozoEdgeUpdates = [
   UpperNorfair_CathedralEntrance_to_BubbleMountainMain
 ];
 
-// ../../../tmp/dash/packages/core/lib/graph/init.ts
+// ../../../tmp/claude-0/-home-claude/9f12fe1c-f3f6-5b25-a496-8abf0bb110a2/scratchpad/dash/packages/core/lib/graph/init.ts
 var createGraph = (portalMapping, vertexUpdates, edgeUpdates) => {
   const allVertices = getAllVertices();
   const findVertex = (name, area) => {
@@ -4577,7 +4665,7 @@ var loadGraph = (seed, attempt, mapLayout, majorDistributionMode, areaShuffle = 
   return g;
 };
 
-// ../../../tmp/dash/packages/core/lib/graph/itemPool.ts
+// ../../../tmp/claude-0/-home-claude/9f12fe1c-f3f6-5b25-a496-8abf0bb110a2/scratchpad/dash/packages/core/lib/graph/itemPool.ts
 var getItemPool = (seed, settings, count) => {
   const { majorDistribution, minorDistribution, extraItems, beamMode } = settings;
   const rnd = new dotnet_random_default(seed);
@@ -4730,7 +4818,7 @@ var getItemPool = (seed, settings, count) => {
   return itemPool;
 };
 
-// ../../../tmp/dash/packages/core/lib/graph/fill.ts
+// ../../../tmp/claude-0/-home-claude/9f12fe1c-f3f6-5b25-a496-8abf0bb110a2/scratchpad/dash/packages/core/lib/graph/fill.ts
 var canPlaceItem_Full = (item, vertex) => {
   if (vertex.item != void 0) {
     return false;
@@ -4956,7 +5044,7 @@ var generateSeed = (seed, settings, options) => {
   throw new Error(`Failed to generate seed ${seed}`);
 };
 
-// ../../../tmp/dash/packages/core/data/doors.ts
+// ../../../tmp/claude-0/-home-claude/9f12fe1c-f3f6-5b25-a496-8abf0bb110a2/scratchpad/dash/packages/core/data/doors.ts
 var DOORS = [
   {
     door: "Door_KraidBoss",
@@ -5397,14 +5485,14 @@ var isBossEdge = (edge) => {
 };
 var doors_default = DOORS;
 
-// ../../../tmp/dash/packages/core/data.ts
+// ../../../tmp/claude-0/-home-claude/9f12fe1c-f3f6-5b25-a496-8abf0bb110a2/scratchpad/dash/packages/core/data.ts
 var Vanilla = {
   headered: "9a4441809ac9331cdbc6a50fba1a8fbfd08bc490bc8644587ee84a4d6f924fea",
   unheadered: "12b77c4bc9c1832cee8881244659065ee1d84c70c3d29e6eaf92e6798cc2ca72",
   headeredLength: 512
 };
 
-// ../../../tmp/dash/packages/core/lib/vanilla.ts
+// ../../../tmp/claude-0/-home-claude/9f12fe1c-f3f6-5b25-a496-8abf0bb110a2/scratchpad/dash/packages/core/lib/vanilla.ts
 var getCrypto = () => {
   try {
     return window.crypto;
@@ -5423,7 +5511,7 @@ async function getSignature(data) {
 var isHeadered = (signature) => signature === Vanilla.headered;
 var isVerified = (signature) => signature === Vanilla.unheadered;
 
-// ../../../tmp/dash/packages/core/helpers/patcher.ts
+// ../../../tmp/claude-0/-home-claude/9f12fe1c-f3f6-5b25-a496-8abf0bb110a2/scratchpad/dash/packages/core/helpers/patcher.ts
 var patchRom = (vanillaRom, basePatch, seedPatch) => {
   let rom = basePatch.Apply(vanillaRom);
   seedPatch.forEach((p) => {
@@ -5435,7 +5523,7 @@ var patchRom = (vanillaRom, basePatch, seedPatch) => {
   return rom;
 };
 
-// ../../../tmp/dash/packages/core/lib/presets.ts
+// ../../../tmp/claude-0/-home-claude/9f12fe1c-f3f6-5b25-a496-8abf0bb110a2/scratchpad/dash/packages/core/lib/presets.ts
 var defaultOptions = {
   DisableFanfare: false,
   RelaxedLogic: false,
@@ -6017,7 +6105,7 @@ var Preset_2017_MM = {
   options: defaultOptions
 };
 
-// ../../../tmp/dash/packages/core/lib/graph/utils.ts
+// ../../../tmp/claude-0/-home-claude/9f12fe1c-f3f6-5b25-a496-8abf0bb110a2/scratchpad/dash/packages/core/lib/graph/utils.ts
 var getAreaTransitions = (graph) => {
   return graph.filter((n) => isAreaEdge(n)).map((n) => {
     return [
@@ -6057,7 +6145,7 @@ var getItemLocations = (graph, sorted) => {
   return nodes.sort((a, b) => a.location.address - b.location.address);
 };
 
-// ../../../tmp/dash/packages/core/helpers/encoder.ts
+// ../../../tmp/claude-0/-home-claude/9f12fe1c-f3f6-5b25-a496-8abf0bb110a2/scratchpad/dash/packages/core/helpers/encoder.ts
 var SEED_ENCODING_VERSION = 0;
 var BOSS_NAMES = ["Kraid", "Phantoon", "Draygon", "Ridley"];
 var BOSS_AREAS = ["KraidsLair", "WreckedShip", "EastMaridia", "LowerNorfair"];
@@ -6159,10 +6247,10 @@ var encodeSeed = (params, graph) => {
   return base64ToSafe(encoded);
 };
 
-// ../../../tmp/dash/packages/core/index.ts
+// ../../../tmp/claude-0/-home-claude/9f12fe1c-f3f6-5b25-a496-8abf0bb110a2/scratchpad/dash/packages/core/index.ts
 var computeCRC32 = bps_patch_default.CRC32;
 
-// ../../../tmp/dash/packages/core/lib/sm-rando.ts
+// ../../../tmp/claude-0/-home-claude/9f12fe1c-f3f6-5b25-a496-8abf0bb110a2/scratchpad/dash/packages/core/lib/sm-rando.ts
 var generateSeedPatch = (seed, settings, graph, options, race, key) => {
   if (!Number.isInteger(seed)) {
     throw new Error("Seed is not an integer!");
@@ -6423,7 +6511,7 @@ var getBosses = (graph) => {
   ];
 };
 
-// ../../../tmp/dash/packages/core/lib/randomize.ts
+// ../../../tmp/claude-0/-home-claude/9f12fe1c-f3f6-5b25-a496-8abf0bb110a2/scratchpad/dash/packages/core/lib/randomize.ts
 async function RandomizeRom(seed = 0, settings, opts, config, race = false, permaGraph = []) {
   if (!config.vanillaBytes) {
     throw Error("No vanilla ROM data found");
@@ -6460,7 +6548,7 @@ async function RandomizeRom(seed = 0, settings, opts, config, race = false, perm
 }
 var randomize_default = RandomizeRom;
 
-// ../../../tmp/tmp.1FRopwCRfN/entry.ts
+// ../../../tmp/tmp.53fuvtkm57/entry.ts
 var patchBase = "";
 var setPatchBase = (url) => {
   patchBase = url;
@@ -6520,6 +6608,134 @@ async function generate(vanilla, seed, settings, options, presetName) {
   const res = await randomize_default(seed, settings, options, { vanillaBytes: vanilla, presetName }, false, graph);
   return { data: res.data, name: res.name, hash: res.hash, spoiler: { Bosses: bosses(graph), "Area Transitions": areaTransitions(graph), Items: items(graph) }, placed: placed(graph) };
 }
+var SEED_FLAGS = TABLE_FLAGS.SeedFlags;
+function readSeedParams(rom) {
+  if (rom.length < SEED_FLAGS + 12) return { error: "not a Super Metroid ROM" };
+  const b = rom.subarray(SEED_FLAGS, SEED_FLAGS + 12);
+  for (let i = ENCODED_PARAMS_SIZE; i < 12; i++) if (b[i] !== 238) return { error: "not a DASH seed" };
+  if (b[0] === 238 && b[1] === 238 && b[2] === 238 && b[3] === 238) return { error: "a race seed: its settings are hidden" };
+  try {
+    const p = bytesToParams(b);
+    if (!(p.seed >= 1 && p.seed <= 1e6)) return { error: "not a DASH seed" };
+    return p;
+  } catch (e) {
+    return { error: "not a DASH seed (" + String(e?.message || e) + ")" };
+  }
+}
+var logicGraph = null;
+var logicStart = null;
+var logicBosses = {};
+function logicLoad(seed, settings, options, rom) {
+  const graph = generateSeed(seed, settings, options);
+  if (rom) {
+    let bad = 0, n = 0;
+    getLocations().forEach((l) => {
+      const v = graph.find((e) => e.from.name == l.name && getArea(e.from.area) == l.area)?.from;
+      if (!v || !v.item) return;
+      n++;
+      const want = l.GetItemBytes(v.item.type);
+      if (rom[l.address] !== want[0] || rom[l.address + 1] !== want[1]) bad++;
+    });
+    if (!n || bad) {
+      logicGraph = null;
+      return { ok: false, error: bad ? "the ROM's items don't match seed " + seed + " (" + bad + " of " + n + " differ)" : "no items found" };
+    }
+  }
+  logicGraph = graph;
+  logicStart = graph[0].from;
+  logicBosses = bosses(graph);
+  return { ok: true, seed, settings, options, placed: placed(graph), spoiler: { Bosses: logicBosses, "Area Transitions": areaTransitions(graph), Items: items(graph) } };
+}
+function logicLoaded() {
+  return !!logicGraph;
+}
+var GEAR_ITEM = {
+  Morph: Item.Morph,
+  Bombs: Item.Bombs,
+  SpringBall: Item.SpringBall,
+  ScrewAttack: Item.ScrewAttack,
+  Varia: Item.Varia,
+  Gravity: Item.Gravity,
+  HJB: Item.HJB,
+  SpaceJump: Item.SpaceJump,
+  Speed: Item.Speed,
+  Grapple: Item.Grapple,
+  Xray: Item.Xray,
+  Charge: Item.Charge,
+  Ice: Item.Ice,
+  Wave: Item.Wave,
+  Spazer: Item.Spazer,
+  Plasma: Item.Plasma,
+  DoubleJump: Item.DoubleJump,
+  HeatShield: Item.HeatShield,
+  PressureValve: Item.PressureValve
+};
+var BOSS_AT = [["Kraid's Lair", "Kraid", Item.DefeatedBrinstarBoss], ["Wrecked Ship", "Phantoon", Item.DefeatedWreckedShipBoss], ["East Maridia", "Draygon", Item.DefeatedMaridiaBoss], ["Lower Norfair", "Ridley", Item.DefeatedNorfairBoss]];
+var MINI_ITEM = { SporeSpawn: Item.DefeatedSporeSpawn, Crocomire: Item.DefeatedCrocomire, Botwoon: Item.DefeatedBotwoon, GoldTorizo: Item.DefeatedGoldTorizo };
+function loadoutOf(inv) {
+  const load2 = createLoadout();
+  (inv.gear || []).forEach((g) => {
+    if (GEAR_ITEM[g] != null) addItem(load2, GEAR_ITEM[g]);
+  });
+  const times = (n, t) => {
+    for (let i = 0; i < (n | 0); i++) addItem(load2, t);
+  };
+  times(inv.missiles, Item.Missile);
+  times(inv.supers, Item.Super);
+  times(inv.pbs, Item.PowerBomb);
+  times(inv.etanks, Item.EnergyTank);
+  times(inv.reserves, Item.Reserve);
+  BOSS_AT.forEach(([spot, vanilla, item]) => {
+    const who = logicBosses[spot] || vanilla;
+    if (inv.bosses && inv.bosses[who]) addItem(load2, item);
+  });
+  Object.keys(MINI_ITEM).forEach((k) => {
+    if (inv.minis && inv.minis[k]) addItem(load2, MINI_ITEM[k]);
+  });
+  return load2;
+}
+function logicReach(inv) {
+  if (!logicGraph || !logicStart) return null;
+  const graph = logicGraph, test = checkFlags(loadoutOf(inv));
+  const memo = /* @__PURE__ */ new Map();
+  const open = (c) => {
+    if (c === true) return true;
+    let r = memo.get(c);
+    if (r === void 0) {
+      try {
+        r = !!test(c);
+      } catch (e) {
+        r = false;
+      }
+      memo.set(c, r);
+    }
+    return r;
+  };
+  const fwd = /* @__PURE__ */ new Map(), rev = /* @__PURE__ */ new Map();
+  graph.forEach((e) => {
+    (fwd.get(e.from) || fwd.set(e.from, []).get(e.from)).push(e);
+    (rev.get(e.to) || rev.set(e.to, []).get(e.to)).push(e);
+  });
+  const flood = (adj, other) => {
+    const seen = /* @__PURE__ */ new Set([logicStart]), q = [logicStart];
+    for (let i = 0; i < q.length; i++) (adj.get(q[i]) || []).forEach((e) => {
+      const v = other(e);
+      if (!seen.has(v) && open(e.condition)) {
+        seen.add(v);
+        q.push(v);
+      }
+    });
+    return seen;
+  };
+  const there = flood(fwd, (e) => e.to), back = flood(rev, (e) => e.from);
+  const out = {};
+  graph.forEach((e) => {
+    const v = e.from;
+    if (v.type !== "major" && v.type !== "minor") return;
+    out[v.name + "|" + v.area] = there.has(v) ? back.has(v) ? "ok" : "back" : "no";
+  });
+  return out;
+}
 export {
   BeamMode,
   BossMode,
@@ -6537,5 +6753,9 @@ export {
   getSignature,
   isHeadered,
   isVerified,
+  logicLoad,
+  logicLoaded,
+  logicReach,
+  readSeedParams,
   setPatchBase
 };

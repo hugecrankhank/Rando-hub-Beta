@@ -8,6 +8,10 @@
 // Messages out: { type: 'stage', text }
 //               { type: 'done', rom, name, hash, seed, spoiler, placed, ms }
 //               { type: 'error', error, detail }
+//
+// The tracker's logic (js/logic.js) uses the same worker, kept open:
+//   { type: 'logic-load', rom }        → { type: 'logic-loaded', ok, seed, settings, placed, spoiler } or { ok: false, error }
+//   { type: 'logic', inv, n }          → { type: 'logic-reach', n, reach: { 'spot|Area': 'ok' | 'back' | 'no' } }
 
 const stage = (text) => postMessage({ type: 'stage', text });
 let core = null;
@@ -20,6 +24,21 @@ const ready = boot();
 
 onmessage = async (e) => {
   const m = e.data;
+  if (m.type === 'logic-load') {
+    try {
+      await ready;
+      const p = core.readSeedParams(m.rom);
+      if (p.error) { postMessage({ type: 'logic-loaded', ok: false, error: p.error }); return; }
+      const r = core.logicLoad(p.seed, p.settings, p.options, m.rom);
+      postMessage(Object.assign({ type: 'logic-loaded' }, r));
+    } catch (err) { postMessage({ type: 'logic-loaded', ok: false, error: String((err && err.message) || err) }); }
+    return;
+  }
+  if (m.type === 'logic') {
+    try { await ready; postMessage({ type: 'logic-reach', n: m.n, reach: core.logicReach(m.inv) }); }
+    catch (err) { postMessage({ type: 'logic-reach', n: m.n, reach: null, error: String((err && err.message) || err) }); }
+    return;
+  }
   if (m.type !== 'gen') return;
   const t0 = performance.now();
   try {

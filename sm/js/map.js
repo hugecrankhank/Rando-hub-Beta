@@ -4,7 +4,7 @@
  *
  *   SMRMap.init(el, { onToggle(i) })
  *   SMRMap.rom = () => Uint8Array | null       the ROM the picture is drawn from
- *   SMRMap.update({ have, shown, names, items, liveHave })
+ *   SMRMap.update({ have, shown, names, items, liveHave, reach })   reach[i]: 'ok' | 'back' | 'no' | null (js/logic.js)
  *   SMRMap.setSamus(live)                     where Samus is (room, x, y), or null
  *
  * The picture is the pause-screen map, drawn here from the ROM the way the game
@@ -26,7 +26,7 @@
   let host, stage, cv, ctx, tabs, label, fitBtn, followBtn;
   let area = 0, follow = true, zoom = 3, tx = 0, ty = 0, moved = false, sel = -1;
   let pics = { rom: null }, base = null, baseAsked = 0;
-  let st = { have: [], shown: [], names: [], items: null, liveHave: () => false }, samus = null, onToggle = null;
+  let st = { have: [], shown: [], names: [], items: null, liveHave: () => false, reach: null }, samus = null, onToggle = null;
   let dirty = false, lastArea = -1;
 
   // ── the ROM and the picture ──────────────────────────────────────────────
@@ -106,11 +106,14 @@
     const pins = pinsIn(area), R = Math.max(3.5, Math.min(7, 2 + zoom * 1.2));   // smaller pins when the whole area is on screen
     pins.forEach((i) => {
       const q = D.MAP_PINS[i], x = tx + q[1] * zoom, y = ty + q[2] * zoom, have = !!st.have[i], boss = q.length > 3;
+      // with logic (js/logic.js): green = in logic now, orange = there but no way back, red = not yet; taken spots fade
+      const r = !have && st.reach ? st.reach[i] : null;
+      const line = r === 'ok' ? green : r === 'back' ? '#ff9f43' : r === 'no' ? '#e5534b' : have ? green : gold;
       ctx.beginPath();
       if (boss) { ctx.moveTo(x, y - R - 1); ctx.lineTo(x + R + 1, y); ctx.lineTo(x, y + R + 1); ctx.lineTo(x - R - 1, y); ctx.closePath(); }
       else ctx.arc(x, y, R, 0, Math.PI * 2);
-      ctx.fillStyle = have ? 'rgba(63,185,80,.85)' : 'rgba(10,14,22,.9)'; ctx.fill();
-      ctx.lineWidth = i === sel ? 3 : 2; ctx.strokeStyle = have ? green : gold; ctx.stroke();
+      ctx.fillStyle = have ? (st.reach ? 'rgba(63,185,80,.35)' : 'rgba(63,185,80,.85)') : r === 'ok' ? 'rgba(63,185,80,.75)' : r === 'back' ? 'rgba(255,159,67,.75)' : r === 'no' ? 'rgba(229,83,75,.6)' : 'rgba(10,14,22,.9)'; ctx.fill();
+      ctx.lineWidth = i === sel ? 3 : 2; ctx.strokeStyle = line; ctx.globalAlpha = have && st.reach ? 0.55 : 1; ctx.stroke(); ctx.globalAlpha = 1;
       if (have) { ctx.beginPath(); ctx.moveTo(x - 3, y); ctx.lineTo(x - 1, y + 2.5); ctx.lineTo(x + 3.5, y - 3); ctx.lineWidth = 2; ctx.strokeStyle = '#fff'; ctx.stroke(); }
     });
     if (samus && samus.area === area) {
@@ -122,7 +125,8 @@
     if (sel >= 0 && pins.indexOf(sel) >= 0) {
       const q = D.MAP_PINS[sel], x = tx + q[1] * zoom, y = ty + q[2] * zoom;
       label.hidden = false;
-      label.querySelector('.n').textContent = st.names[sel] + (st.items && st.items[sel] ? ' · ' + st.items[sel] : '');
+      const rs = !st.have[sel] && st.reach ? st.reach[sel] : null;
+      label.querySelector('.n').textContent = st.names[sel] + (st.items && st.items[sel] ? ' · ' + st.items[sel] : '') + (rs === 'ok' ? ' · in logic' : rs === 'back' ? ' · reachable, no way back yet' : rs === 'no' ? ' · not in logic yet' : '');
       const b = label.querySelector('button'); b.hidden = st.liveHave(sel); b.textContent = st.have[sel] ? 'Unmark' : 'Mark as taken';
       const lw = label.offsetWidth, lh = label.offsetHeight;
       label.style.left = Math.max(4, Math.min(cw - lw - 4, x - lw / 2)) + 'px';
