@@ -191,7 +191,7 @@
       : st && st.loading ? 'Working out the logic from the ROM…' : st && st.error ? 'No logic: ' + esc(st.error) + '.' : '';
   }
   if (window.SMRLogic) {
-    SMRLogic.onReach((r) => { reach = r; paintReach(); if (window.SMRMap) SMRMap.update({ reach: reachArr() }); });
+    SMRLogic.onReach((r) => { reach = r; paintReach(); if (window.SMRMap) SMRMap.update({ reach: reachArr() }); renderSeed(); });
     SMRLogic.onState((st) => {
       // a ROM made elsewhere: the seed's own placements come back with the logic, so Reveal works
       if (st.ok && !placed.length && st.placed) { placed = st.placed; spoiler = st.spoiler || spoiler; if (!meta.seed) meta.seed = String(st.seed); meta.fromRom = true; }
@@ -199,12 +199,25 @@
     });
   }
 
+  // What the logic was told Samus has (so a wrong colour can be traced): the Seed tab
+  function logicLine() {
+    const st = window.SMRLogic ? SMRLogic.state : null;
+    if (!st) return '';
+    if (!st.ok) return '<div class="seedline fine">Logic: ' + (st.loading ? 'working it out from the ROM…' : st.error ? 'none (' + esc(st.error) + ')' : 'none') + '</div>';
+    const inv = inventory(state()), c = {}; if (reach) Object.values(reach).forEach((v) => { c[v] = (c[v] || 0) + 1; });
+    const bosses = Object.keys(inv.bosses), minis = Object.keys(inv.minis);
+    return '<div class="seedline fine">Logic: DASH, seed ' + esc(st.seed) + (reach ? ' · ' + (c.ok || 0) + ' in logic, ' + (c.back || 0) + ' no way back, ' + (c.no || 0) + ' not yet' : '') +
+      '<br>Samus has: ' + esc(inv.gear.join(', ') || 'nothing') + ' · ' + inv.missiles + ' missile, ' + inv.supers + ' super, ' + inv.pbs + ' power bomb packs · ' + inv.etanks + ' tanks, ' + inv.reserves + ' reserves' +
+      (bosses.length || minis.length ? ' · beaten: ' + esc(bosses.concat(minis).join(', ')) : '') + '</div>';
+  }
+
   function renderSeed() {
     const sd = $('g-seed'), g = $('g-spoiler');
     if (!sd) return;
     const m = meta || {};
     sd.innerHTML = (m.seed ? '<div class="seedline"><b>Seed</b> <span class="selectable">' + esc(m.seed) + '</span>' + (m.preset ? ' <small>' + esc(m.preset) + '</small>' : m.fromRom ? ' <small>read from the ROM</small>' : '') + '</div>' : '') +
-      (m.hash ? '<div class="seedline fine">DASH seed code: <span class="selectable">' + esc(m.hash) + '</span></div>' : '');
+      (m.hash ? '<div class="seedline fine">DASH seed code: <span class="selectable">' + esc(m.hash) + '</span></div>' : '') +
+      logicLine();
     const sp = spoiler || {};
     if (!Object.keys(sp).length) { g.innerHTML = '<p class="empty">' + (m.seed ? 'This seed has no spoiler.' : 'Roll a seed here and its spoiler is kept behind this switch.') + '</p>'; return; }
     if (!reveal) { g.innerHTML = '<p class="empty">Hidden. Turn Reveal on to see where the bosses, the area doors and every item are.</p>'; return; }

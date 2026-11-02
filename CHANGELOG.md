@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.88 (2026-11-01)
+
+- Super Metroid: the Seed tab shows what the logic was told Samus has (gear, packs, tanks, bosses beaten) and how many spots are in logic / no way back / not yet, so a colour that looks wrong can be traced.
+
 ## Beta v1.14.87 (2026-11-01)
 
 - **Super Metroid: logic on the map and in the Spots list.** With DASH's own rules, every item spot is coloured for what Samus has right now: green = in logic (there and back), orange = reachable but no way back to the ship yet, red = not yet; taken spots fade. The map's pins, the Spots list and a tapped pin's label all show it, and it updates as you pick things up (or tick by hand).
