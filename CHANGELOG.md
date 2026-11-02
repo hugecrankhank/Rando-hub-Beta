@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.89 (2026-11-02)
+
+- **Super Metroid: a crashed game no longer gets autosaved.** When the game crashed (music still playing, the picture and HUD frozen or garbled), the 20-second autosave kept the crash, so every reload came back frozen. The autosave now only saves while the game is running (Super Metroid's own frame counter has to be moving) and keeps the last three good snapshots: Continue tries the newest, and if it's frozen, the one before. If every snapshot is frozen (as for anyone who hit this before the fix), the game restarts so you can load your file from your last save station. A toast says when the game seems to have frozen.
+
 ## Beta v1.14.88 (2026-11-01)
 
 - Super Metroid: the Seed tab shows what the logic was told Samus has (gear, packs, tanks, bosses beaten) and how many spots are in logic / no way back / not yet, so a colour that looks wrong can be traced.

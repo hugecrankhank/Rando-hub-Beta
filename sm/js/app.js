@@ -129,14 +129,43 @@
   // start screen; a snapshot of the running game (every 20 s and when the app
   // goes to the background) lets Continue pick up where you were. In-game
   // saves are kept too (the player keeps the cartridge's save RAM).
-  let autosaveKey = null;
+  //
+  // A crashed game must never become the snapshot (Heffie, Nov 2026: the game
+  // crashed, music still playing, the HUD garbled, and the next autosave kept
+  // the crash, so every reload came back frozen). So a snapshot is only taken
+  // while the game is alive: Super Metroid's main loop counts its frames at
+  // $7E:05B6 and stops counting when it crashes (the music runs on the sound
+  // chip and keeps going). The last three good snapshots are kept; if the one
+  // restored doesn't run, the one before it is tried, then the cartridge's own
+  // save (a reset: the file select, with the last save station).
+  let autosaveKey = null, lastFrames = -1, frozenFor = 0, warned = false;
+  const KEEP = 3;
+  function frames() { const c = window.Snes9xPlayer && Snes9xPlayer.core; const r = c && c.wram ? c.wram() : null; return r && r.length > 0x5B7 ? r[0x5B6] | r[0x5B7] << 8 : -1; }
+  // alive: the main loop's counter moved since the last look (checked each second)
+  setInterval(() => {
+    if (!autosaveKey || document.hidden || (window.Snes9xPlayer && Snes9xPlayer.paused)) return;
+    const f = frames();
+    if (f < 0) return;
+    frozenFor = f === lastFrames ? frozenFor + 1 : 0;
+    lastFrames = f;
+    if (frozenFor === 8 && !warned) { warned = true; toast('The game seems to have frozen: the autosave keeps the last point it was running. Reload to go back there.', 8000); }
+    if (frozenFor === 0) warned = false;
+  }, 1000);
+  function alive() { return frozenFor < 2 && lastFrames >= 0; }
   function snapshotNow() {
     const gm = window.EJS_emulator && window.EJS_emulator.gameManager;
-    if (!gm || !autosaveKey) return;
+    if (!gm || !autosaveKey || !alive()) return;
     let st;
     try { st = gm.getState(); } catch (e) { return; }
     if (!st || st.length < 1024) return;
-    SMRStore.set(autosaveKey, { state: new Uint8Array(st).buffer, t: Date.now() }).catch(() => {});
+    const snap = { state: new Uint8Array(st).buffer, t: Date.now() };
+    SMRStore.get(autosaveKey).then((list) => {
+      list = Array.isArray(list && list.snaps) ? list.snaps : list && list.state ? [list] : [];
+      // a new one at most every 20 s; the older ones spread out (≥ 1 min apart) so a crash can't push them all out
+      if (list.length && list[0].t > snap.t - 1000 * 60 * 1 && list.length >= KEEP) list.shift();
+      list.unshift(snap); list = list.slice(0, KEEP);
+      return SMRStore.set(autosaveKey, { snaps: list });
+    }).catch(() => {});
   }
   function startAutosave(id, resume) {
     autosaveKey = 'resume:' + id;
@@ -147,20 +176,34 @@
     };
     if (!resume) { begin(); return; }
     SMRStore.get(autosaveKey).then((saved) => {
-      if (saved && saved.state) {
+      const list = saved && Array.isArray(saved.snaps) ? saved.snaps : saved && saved.state ? [saved] : [];
+      if (!list.length) { begin(); return; }
+      // try the newest; if it doesn't run (the counter doesn't move in 3 s), the next, then a reset
+      const tryAt = (i) => {
+        if (i >= list.length) {
+          try { Snes9xPlayer.core.reset(); } catch (e) {}
+          toast('Every autosave was frozen, so the game restarted: load your file to carry on from your last save station.', 9000);
+          SMRStore.set(autosaveKey, { snaps: [] }).catch(() => {});
+          begin(); return;
+        }
+        try { window.EJS_emulator.gameManager.loadState(new Uint8Array(list[i].state)); }
+        catch (e) { console.warn('[autosave] could not restore', e); tryAt(i + 1); return; }
+        const f0 = frames();
         setTimeout(() => {
-          try { window.EJS_emulator.gameManager.loadState(new Uint8Array(saved.state)); toast('Picked up where you left off'); }
-          catch (e) { console.warn('[autosave] could not restore', e); }
+          if (frames() === f0) { console.warn('[autosave] snapshot', i, 'is frozen'); tryAt(i + 1); return; }
+          if (i) SMRStore.set(autosaveKey, { snaps: list.slice(i) }).catch(() => {});   // the frozen ones go
+          toast(i ? 'The last autosave was frozen; picked up from an earlier one (' + Math.round((list[0].t - list[i].t) / 1000) + ' s before)' : 'Picked up where you left off');
           begin();
-        }, 600);
-      } else begin();
+        }, 3000);
+      };
+      setTimeout(() => tryAt(0), 600);
     });
   }
-  function toast(text) {
+  function toast(text, ms) {
     const t = document.createElement('div');
     t.className = 'toast'; t.textContent = text; t.setAttribute('role', 'status');
     document.body.append(t);
-    setTimeout(() => t.remove(), 3500);
+    setTimeout(() => t.remove(), ms || 3500);
   }
 
   // ── controller indicator ──────────────────────────────────────────────────
