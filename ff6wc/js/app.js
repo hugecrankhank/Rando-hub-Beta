@@ -127,14 +127,21 @@
   // start screen; a snapshot of the running game (every 20 s and when the app
   // goes to the background) lets Continue pick up where you were. In-game
   // saves are kept too (the player keeps the cartridge's save RAM).
+  // A crashed game is never autosaved, and the last three good snapshots are
+  // kept (../game-health.js, Nov 2026: a crash that got autosaved came back on
+  // every reload).
+  // No main-loop counter known for this game: game-health.js watches the whole work RAM.
   let autosaveKey = null;
+  const health = RHHealth.create({ onFrozen: () => toast('The game seems to have frozen: the autosave keeps the last point it was running. Reload to go back there.', 8000) });
   function snapshotNow() {
     const gm = window.EJS_emulator && window.EJS_emulator.gameManager;
-    if (!gm || !autosaveKey) return;
+    if (!gm || !autosaveKey || !health.alive()) return;
     let st;
     try { st = gm.getState(); } catch (e) { return; }
     if (!st || st.length < 1024) return;
-    FF6Store.set(autosaveKey, { state: new Uint8Array(st).buffer, t: Date.now() }).catch(() => {});
+    const snap = { state: new Uint8Array(st).buffer, t: Date.now() };   // own buffer, not a view into the emulator
+    const key = autosaveKey;
+    FF6Store.get(key).then((v) => FF6Store.set(key, { snaps: RHHealth.push(v, snap) })).catch(() => {});
   }
   function startAutosave(id, resume) {
     autosaveKey = 'resume:' + id;
@@ -145,20 +152,21 @@
     };
     if (!resume) { begin(); return; }
     FF6Store.get(autosaveKey).then((saved) => {
-      if (saved && saved.state) {
-        setTimeout(() => {
-          try { window.EJS_emulator.gameManager.loadState(new Uint8Array(saved.state)); toast('Picked up where you left off'); }
-          catch (e) { console.warn('[autosave] could not restore', e); }
-          begin();
-        }, 600);
-      } else begin();
+      const list = RHHealth.norm(saved);
+      if (!list.length) { begin(); return; }
+      setTimeout(() => RHHealth.restore({
+        list, health, toast, done: begin,
+        load: (state) => { window.EJS_emulator.gameManager.loadState(new Uint8Array(state)); },
+        keep: (rest) => FF6Store.set(autosaveKey, { snaps: rest }).catch(() => {}),
+        reset: () => { const p = window.Snes9xPlayer && Snes9xPlayer.core ? Snes9xPlayer : window.EmuPlayer; p.core.reset(); },
+      }), 600);
     });
   }
-  function toast(text) {
+  function toast(text, ms) {
     const t = document.createElement('div');
     t.className = 'toast'; t.textContent = text; t.setAttribute('role', 'status');
     document.body.append(t);
-    setTimeout(() => t.remove(), 3500);
+    setTimeout(() => t.remove(), ms || 3500);
   }
 
   // ── controller indicator ──────────────────────────────────────────────────

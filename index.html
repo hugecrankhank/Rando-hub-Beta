@@ -8,7 +8,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <title>Rando Hub Beta</title>
 <meta name="application-name" content="Rando Hub">
-<meta name="version" content="1.14.89">
+<meta name="version" content="1.14.90">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#161b22">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
@@ -587,7 +587,7 @@
 </head>
 <body>
 <header>
-  <h1 title="Rando Hub Beta (v1.14.89)"><svg class="app-die" viewBox="-130 -130 260 260" aria-hidden="true"><g transform="rotate(-12)"><rect x="-108" y="-108" width="216" height="216" rx="32" fill="#fff" stroke="#c8102e" stroke-width="16"/><circle cx="-56" cy="-56" r="23" fill="#c8102e"/><circle cx="56" cy="-56" r="23" fill="#14213d"/><circle r="23" fill="#c8102e"/><circle cx="-56" cy="56" r="23" fill="#14213d"/><circle cx="56" cy="56" r="23" fill="#c8102e"/></g></svg><span class="app-name">RANDO <span>HUB</span></span><small class="app-ver">v1.14.89 beta</small></h1>
+  <h1 title="Rando Hub Beta (v1.14.90)"><svg class="app-die" viewBox="-130 -130 260 260" aria-hidden="true"><g transform="rotate(-12)"><rect x="-108" y="-108" width="216" height="216" rx="32" fill="#fff" stroke="#c8102e" stroke-width="16"/><circle cx="-56" cy="-56" r="23" fill="#c8102e"/><circle cx="56" cy="-56" r="23" fill="#14213d"/><circle r="23" fill="#c8102e"/><circle cx="-56" cy="56" r="23" fill="#14213d"/><circle cx="56" cy="56" r="23" fill="#c8102e"/></g></svg><span class="app-name">RANDO <span>HUB</span></span><small class="app-ver">v1.14.90 beta</small></h1>
 
   <div id="rando-split">
     <button id="r-toggle" aria-expanded="false" aria-controls="rando-bar" title="Show or hide the randomizer settings (they fold away by themselves when you go back to playing)">Randomizer<span id="r-gen-name"> · alttpr.com</span></button>
@@ -999,7 +999,7 @@
 <script src="emo-host.js"></script>
 <script src="sheet.js"></script>
 <script src="longpress.js"></script>
-<script src="seed-log.js"></script><script src="credits.js"></script><script src="roll-games.js"></script><script src="games.js"></script><script src="reroll.js"></script><script src="tracker-settings.js"></script><script src="addons/map-prizes.js"></script><script src="compact-header.js"></script><script src="offline.js"></script><script src="web-update.js"></script><script src="go-mode.js"></script><script src="cursor-hide.js"></script><script src="halloween.js"></script><script src="fog.js"></script><script src="rain.js"></script><script src="ios-audio.js"></script><script src="jail.js"></script><script src="z3map.js"></script><script src="hackmap.js"></script><script src="player-name.js"></script><script src="dungeon-card.js"></script>
+<script src="seed-log.js"></script><script src="credits.js"></script><script src="roll-games.js"></script><script src="games.js"></script><script src="reroll.js"></script><script src="tracker-settings.js"></script><script src="addons/map-prizes.js"></script><script src="compact-header.js"></script><script src="offline.js"></script><script src="web-update.js"></script><script src="go-mode.js"></script><script src="cursor-hide.js"></script><script src="halloween.js"></script><script src="fog.js"></script><script src="rain.js"></script><script src="ios-audio.js"></script><script src="game-health.js"></script><script src="jail.js"></script><script src="z3map.js"></script><script src="hackmap.js"></script><script src="player-name.js"></script><script src="dungeon-card.js"></script>
 <script>
 (function () {
   'use strict';
@@ -1556,6 +1556,14 @@
   var pausedForBackground = false;
   var currentRom = null;       // { bytes, name } of the game that's running
   var pendingState = null;     // a state to load as soon as the game starts
+  var pendingOlder = [];       // the earlier good saves behind it, tried if it turns out frozen
+  var lastSpot = null;         // the last saved spot (kept in memory: the close event has no time to read it back)
+  // A crashed game is never saved (game-health.js, Nov 2026): Zelda 3's main
+  // loop counts frames at $7E:001A and stops when the game crashes, even when
+  // the music keeps going. The two good saves before the newest are kept with
+  // it (at least a minute apart), so a crash can't leave only frozen ones.
+  var health = RHHealth.create({ counter: function (r) { return r.length > 0x1A ? r[0x1A] : null; },
+    onFrozen: function () { if (window.Snes9xPlayer) Snes9xPlayer.toast('The game seems to have frozen: the saved spot keeps the last point it was running. Reload and Resume to go back there.'); } });
   var switching = false;       // reloading to switch games
   function idbPutNow(db, key, val) {
     return new Promise(function (resolve) {
@@ -1596,11 +1604,18 @@
   function saveSpot() {
     var ejs = window.EJS_emulator;
     // pendingState: the saved spot hasn't been loaded yet; don't overwrite it with the title screen
-    if (switching || pendingState || !ejs || !ejs.gameManager || !currentRom) return;
+    if (switching || pendingState || !ejs || !ejs.gameManager || !currentRom || !health.alive()) return;
     try {
       var state = ejs.gameManager.getState();
-      if (state && state.length) idbPut(RESUME_KEY, {
-        state: state, rom: currentRom.bytes, name: currentRom.name, at: Date.now() });
+      if (!state || !state.length) return;
+      var now = Date.now(), older = [];
+      if (lastSpot && lastSpot.rom === currentRom.bytes) {
+        older = [{ state: lastSpot.state, at: lastSpot.at }].concat(lastSpot.older || []);
+        if (older.length >= 3 && older[0].at > now - 60000) older.shift();   // the newest is replaced; the older ones stay spread out
+        older = older.slice(0, 2);
+      }
+      lastSpot = { state: new Uint8Array(state).slice(), rom: currentRom.bytes, name: currentRom.name, at: now, older: older };
+      idbPut(RESUME_KEY, lastSpot);
     } catch (e) {}
   }
   // Every 30 s while the game runs, even when the window is covered (on a
@@ -1636,6 +1651,8 @@
     ph.insertBefore(box, ph.firstChild);
     $('resume-btn').addEventListener('click', function () {
       pendingState = r.state;
+      pendingOlder = (r.older || []).map(function (o) { return o.state; });
+      lastSpot = r;
       startRom(new Uint8Array(r.rom), r.name, true);
     });
     $('resume-discard').addEventListener('click', function () {
@@ -1673,6 +1690,15 @@
       ejs.gameManager.loadState(new Uint8Array(st));
       pendingState = null;
       AlttpBridge.invalidate();
+      // a saved spot that doesn't run (a crash saved before the fix): the one before it, then a restart
+      health.runs(3000).then(function (ok) {
+        if (ok) return;
+        var next = pendingOlder.shift();
+        if (next) { pendingState = next; if (lastSpot) { lastSpot.state = next; lastSpot.older = (lastSpot.older || []).slice(1); } loadPendingState(0); Snes9xPlayer.toast('That saved spot was frozen: trying an earlier one'); return; }
+        try { Snes9xPlayer.core.reset(); } catch (x) {}
+        lastSpot = null; idbTake(RESUME_KEY);
+        Snes9xPlayer.toast('Every saved spot was frozen, so the game restarted: load your file to carry on from your last save.');
+      });
     } catch (e) {
       if (tries < 10) setTimeout(function () { loadPendingState(tries + 1); }, 500);
       else pendingState = null;

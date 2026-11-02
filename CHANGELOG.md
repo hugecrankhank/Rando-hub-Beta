@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.90 (2026-11-02)
+
+- **Every game: a crashed game is never autosaved.** What fixed Super Metroid in 1.14.89 now covers Zelda 3 (the saved spot behind Resume), Zelda 1, The Guardian Legend, Mario RPG, FF6, FF1, FF4 and FF5: a snapshot is only taken while the game is running, the last three good ones are kept (at least a minute apart), and Continue / Resume falls back past a frozen one to the one before, then to a restart (in-game saves are kept). A toast says when the game seems to have frozen. Zelda 3 and Super Metroid watch their own frame counters (they stop when the game crashes, even with the music still playing); the others watch the game's whole memory.
+
 ## Beta v1.14.89 (2026-11-02)
 
 - **Super Metroid: a crashed game no longer gets autosaved.** When the game crashed (music still playing, the picture and HUD frozen or garbled), the 20-second autosave kept the crash, so every reload came back frozen. The autosave now only saves while the game is running (Super Metroid's own frame counter has to be moving) and keeps the last three good snapshots: Continue tries the newest, and if it's frozen, the one before. If every snapshot is frozen (as for anyone who hit this before the fix), the game restarts so you can load your file from your last save station. A toast says when the game seems to have frozen.

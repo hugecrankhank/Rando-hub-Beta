@@ -10,7 +10,7 @@ const EXTERNAL = ['https://fonts.googleapis.com/', 'https://fonts.gstatic.com/']
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll([
-    './', './index.html', './manifest.webmanifest', './hub.js', './js/data.js', './js/store.js', './js/logic.js', './js/map.js', './js/tracker.js', './js/seed.js', './js/app.js',
+    './', './index.html', './manifest.webmanifest', './hub.js', './js/data.js', './js/store.js', './js/logic.js', './js/map.js', './js/tracker.js', './js/seed.js', './js/app.js', '../game-health.js',
     './gen/seed-worker.js', './gen/dash-core.js', './gen/patches/dash_standard.bps', './gen/patches/dash_standard_area.bps',
     // the emulator (../emu/) and Python (../pyodide/) are outside this scope: the hub's offline cache keeps those
   ])).catch(() => {}));

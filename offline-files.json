@@ -1,6 +1,6 @@
 {
  "edition": "full",
- "version": "e9c577bab67c",
+ "version": "f6c8bf9a7512",
  "cache": "rando-hub-v1",
  "files": [
   "./",
@@ -27,6 +27,7 @@
   "run-timer.js",
   "run-timer.html",
   "ios-audio.js",
+  "game-health.js",
   "cursor-hide.js",
   "halloween.js",
   "fog.js",
