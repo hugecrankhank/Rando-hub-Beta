@@ -23,6 +23,10 @@
  * when the big key or the prize turns up, the result shows over the game:
  * exact guesses win, otherwise the closest.
  *
+ * While a round runs, a card over the game shows it (how to guess, a bar per
+ * number, the answer and who called it): on stream with no OBS setup and no
+ * Crowd Control+ ("Show the round on the game" in the panel).
+ *
  * Opened by its buttons by the maps (Mudora's map bar, through
  * window.RandoLiveGames.open) and in the Desktop layout's window bar.
  * A round is kept per seed, so a reload keeps the guesses.
@@ -124,7 +128,19 @@
   setInterval(function () { if (tfWanted()) { if (!tf.ws && !tf.retryT) tfConnect(); } else if (tf.ws) tfClose('off'); }, 2000);
 
   // ── Crowd Control+: its rounds, from chat ─────────────────────────────────
-  function cc() { var C = window.RandoCrowd; return C && C.connected() ? C : null; }
+  // ccMute: this Crowd Control+ didn't answer Start (a copy from before it ran these
+  // games, Oct 2026): the rounds run here instead, for the rest of this visit
+  var ccMute = false;
+  function cc() { var C = window.RandoCrowd; return !ccMute && C && C.connected() ? C : null; }
+  function ccStart(g) {
+    ccAct(g + '-start');
+    setTimeout(function () {
+      if (!cc() || ccRound(g)) return;
+      ccMute = true; newRound(g); render();
+      toast('Crowd Control+ didn\u2019t start the round (it may need updating), so it runs here: guesses from TikFinity chat or typed in.');
+    }, 3000);
+  }
+  function toast(t) { var P = window.Snes9xPlayer; if (P && P.toast) P.toast(t); }
   var ccWas = false, ccResultSeen = { gt: null, dig: null };
   function ccRound(g) { var C = cc(); return C ? C.live()[g === 'gt' ? 'gtguess' : 'digguess'] : null; }
   function ccLive(g) {
@@ -183,7 +199,65 @@
     clearTimeout(announce.t); announce.t = setTimeout(function () { banner.classList.remove('show'); }, 9000);
   }
 
-  // ── the panel ─────────────────────────────────────────────────────────────
+  // ── the round on the game itself (no Crowd Control+ needed) ───────────────
+  // A card over the game while a round runs, like Crowd Control+'s GT big key /
+  // Digging Game overlays: how to guess, how many guesses, a bar per number
+  // (how many picked it), the chests / digs so far, and at the end the answer
+  // and who called it. On the game picture, so it's on stream with no OBS
+  // setup. With Crowd Control+ connected it shows its round the same way.
+  // Hidden after the result has been up a while; "Show on the game" turns it off.
+  var OV_KEY = 'rhb-live-games-overlay', ovOn = true, ov = null, ovDoneAt = {};
+  try { ovOn = localStorage.getItem(OV_KEY) !== '0'; } catch (e) {}
+  // one view of a round, local or Crowd Control+'s
+  function view(g) {
+    var C = cc();
+    if (C) {
+      var R = ccRound(g); if (!R) return null;
+      var L = ccLive(g) || {};
+      return { open: !!R.open, n: R.guesses || 0, counts: R.counts || {}, count: L.count || 0, cmd: R.command || '!' + g,
+        result: R.result ? { at: R.result.at, winners: R.result.winners || [], off: R.result.off } : null, id: 'cc' + R.id };
+    }
+    var Rl = S[g]; if (!Rl) return null;
+    var counts = {}; Rl.guesses.forEach(function (q) { counts[q.n] = (counts[q.n] || 0) + 1; });
+    var Lv = live(g) || {};
+    return { open: !!Rl.open, n: Rl.guesses.length, counts: counts, count: Math.max(0, (Lv.count || 0) - (Rl.count0 || 0)), cmd: '!' + g,
+      result: Rl.result && !Rl.result.unknown ? Rl.result : null, id: 'l' + (Rl.count0 || 0) + ':' + Rl.guesses.length };
+  }
+  function ovPaint() {
+    var host = window.Snes9xPlayer && window.Snes9xPlayer.fx && window.Snes9xPlayer.fx.container;
+    // the round to show: the open one, else the one waiting for its answer, else a fresh result
+    var pick = null, now = Date.now();
+    ['gt', 'dig'].forEach(function (g) {
+      var v = view(g); if (!v) return;
+      if (v.result) { var k = g + v.result.at; if (!ovDoneAt[k]) ovDoneAt[k] = now; if (now - ovDoneAt[k] > 15000) return; }
+      if (!pick || (v.open && !pick.v.open)) pick = { g: g, v: v };
+    });
+    if (!ovOn || !host || !pick) { if (ov) ov.style.display = 'none'; return; }
+    if (!ov || !ov.isConnected) { ov = el('div', 'lg-ov'); host.appendChild(ov); }
+    ov.style.display = '';
+    var g = pick.g, v = pick.v, G = GAMES[g], R = v.result;
+    var max = 1; for (var k2 in v.counts) max = Math.max(max, v.counts[k2]);
+    var bars = '';
+    for (var n = 1; n <= G.max; n++) {
+      var c = v.counts[n] || 0, cls = R && n === R.at ? ' win' : !R && n <= v.count ? ' past' : '';
+      bars += '<i class="b' + cls + '" style="height:' + Math.max(6, Math.round(c / max * 100)) + '%"></i>';
+    }
+    var state = R ? 'FOUND!' : v.open ? 'GUESS NOW' : 'LOCKED';
+    var how = R ? (g === 'gt' ? 'The big key was in chest <b>#' + R.at + '</b>' : 'The prize came on dig <b>#' + R.at + '</b>')
+      : v.open ? 'Type <b>' + esc(v.cmd) + ' 1</b>–<b>' + G.max + '</b> · ' + v.n + (v.n === 1 ? ' guess' : ' guesses')
+      : v.n + (v.n === 1 ? ' guess' : ' guesses') + ' in · ' + G.counted.toLowerCase() + ': ' + v.count;
+    var foot = '';
+    if (R) foot = R.winners && R.winners.length ? '<b>' + (R.off === 0 ? 'Called it:' : 'Closest (' + R.off + ' off):') + '</b> ' + R.winners.slice(0, 6).map(esc).join(', ') + (R.winners.length > 6 ? ' +' + (R.winners.length - 6) : '') : 'Nobody guessed!';
+    ov.className = 'lg-ov ' + (R ? 'done' : v.open ? 'open' : 'locked');
+    ov.innerHTML = '<div class="h"><span>' + G.icon + ' ' + (g === 'gt' ? 'GT BIG KEY' : 'DIGGING GAME') + '</span><em>' + state + '</em></div>' +
+      '<div class="q">' + esc(G.q) + '</div><div class="how">' + how + '</div>' +
+      '<div class="bars">' + bars + '</div><div class="ax"><span>1</span><span>' + Math.ceil(G.max / 2) + '</span><span>' + G.max + '</span></div>' +
+      (foot ? '<div class="foot">' + foot + '</div>' : '');
+  }
+  function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  setInterval(ovPaint, 700);
+  document.addEventListener('rh-livegame', ovPaint);
+
   var CSS =
     '#lg-panel { position: fixed; z-index: 80; right: 12px; top: 64px; width: min(340px, calc(100vw - 24px)); max-height: calc(100vh - 80px); display: flex; flex-direction: column;' +
     ' background: var(--panel, #161b22); border: 1px solid var(--line, #2a313c); border-radius: 10px; box-shadow: 0 12px 32px rgba(0,0,0,.55); color: var(--text, #e6e9ee); font: 13px/1.35 system-ui, sans-serif; }' +
@@ -216,7 +290,7 @@
     '#lg-panel li.win { background: rgba(63,185,80,.18); }' +
     '#lg-panel li button { background: none; border: 0; color: var(--dim, #8b95a3); cursor: pointer; font-size: 14px; }' +
     '#lg-panel .lg-note { font-size: 11px; color: var(--dim, #8b95a3); }' +
-    '.lg-banner { position: absolute; left: 50%; top: 14%; transform: translate(-50%, -10px); z-index: 27; pointer-events: none; display: flex; align-items: center; gap: 10px;' +
+    '.lg-banner { position: absolute; left: 50%; top: 44%; transform: translate(-50%, -10px); z-index: 27; pointer-events: none; display: flex; align-items: center; gap: 10px;' +
     ' max-width: 86%; padding: 8px 16px 8px 12px; border-radius: 10px; background: rgba(18,12,34,.94); border: 2px solid #ffd166; box-shadow: 0 6px 20px rgba(0,0,0,.55);' +
     ' color: #fff; opacity: 0; transition: opacity .3s, transform .3s; }' +
     '.lg-banner.show { opacity: 1; transform: translate(-50%, 0); }' +
@@ -224,7 +298,22 @@
     '@keyframes lg-bop { to { transform: translateY(-3px) scale(1.1); } }' +
     '.lg-banner b { display: block; font: 700 15px/1.25 system-ui, sans-serif; color: #ffd166; }' +
     '.lg-banner i { display: block; font: 600 13px/1.25 system-ui, sans-serif; font-style: normal; }' +
-    '#win-bar .lg-open { white-space: nowrap; }';
+    '#win-bar .lg-open { white-space: nowrap; }' +
+    '.lg-ov { position: absolute; right: 8px; top: 8px; z-index: 26; pointer-events: none; width: min(300px, 46%); box-sizing: border-box; padding: 8px 10px 9px;' +
+    ' border-radius: 10px; background: rgba(18,12,34,.88); border: 2px solid #8a7bd8; color: #fff; font: 600 12px/1.3 system-ui, sans-serif; text-shadow: 0 1px 2px #000; animation: lg-in .4s ease; }' +
+    '.lg-ov.open { border-color: #3fb950; } .lg-ov.done { border-color: #ffd166; }' +
+    '@keyframes lg-in { from { opacity: 0; transform: translateY(-8px); } }' +
+    '.lg-ov .h { display: flex; justify-content: space-between; gap: 8px; font: 700 11px/1.2 system-ui, sans-serif; letter-spacing: .06em; color: #ffd166; }' +
+    '.lg-ov .h em { font-style: normal; color: #fff; background: rgba(255,255,255,.12); padding: 0 6px; border-radius: 4px; }' +
+    '.lg-ov.open .h em { background: #238636; } .lg-ov.done .h em { background: #9e6a03; }' +
+    '.lg-ov .q { font: 800 13px/1.25 system-ui, sans-serif; margin: 4px 0 2px; }' +
+    '.lg-ov .how { color: #d6d0ee; } .lg-ov .how b { color: #fff; }' +
+    '.lg-ov .bars { display: flex; align-items: flex-end; gap: 1px; height: 38px; margin-top: 6px; }' +
+    '.lg-ov .b { flex: 1; background: rgba(255,255,255,.35); border-radius: 2px 2px 0 0; }' +
+    '.lg-ov .b.past { background: rgba(255,255,255,.12); } .lg-ov .b.win { background: #ffd166; }' +
+    '.lg-ov .ax { display: flex; justify-content: space-between; font-size: 9px; color: #a9a2c8; margin-top: 1px; }' +
+    '.lg-ov .foot { margin-top: 5px; color: #fff; } .lg-ov .foot b { color: #ffd166; }' +
+    '@media (max-width: 760px) { .lg-ov { width: 58%; font-size: 11px; padding: 6px 8px; } .lg-ov .q { display: none; } .lg-ov .bars { height: 26px; } }';
 
   function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
   function build() {
@@ -269,6 +358,11 @@
     });
     var body = el('div', 'lg-body');
     body.append(el('div', 'lg-q', G.q));
+    var ovRow = el('label'); ovRow.style.cssText = 'display:flex;align-items:center;gap:6px;cursor:pointer';
+    var ovCb = el('input'); ovCb.type = 'checkbox'; ovCb.checked = ovOn;
+    ovCb.onchange = function () { ovOn = ovCb.checked; try { localStorage.setItem(OV_KEY, ovOn ? '1' : '0'); } catch (e) {} ovPaint(); };
+    ovRow.append(ovCb, el('span', null, 'Show the round on the game (guesses, bars, the winner)'));
+    body.append(ovRow);
     var lv = el('div', 'lg-live');
     var a = el('div'); a.append(el('small', null, G.counted), el('strong', 'lg-count', '–'));
     var b2 = el('div'); b2.append(el('small', null, tab === 'gt' ? 'Big key' : 'Prize'), el('strong', 'lg-found', '–'));
@@ -358,7 +452,7 @@
     if (!R) {
       body.append(el('div', 'lg-state', 'No round open. Start one before the first ' + G.what + '; chat guesses come in here as they\u2019re typed, and the game says who called it.'));
       var go = el('button', 'lg-b primary', 'Start a round'); go.type = 'button';
-      go.onclick = function () { ccAct(tab + '-start'); }; body.append(go);
+      go.onclick = function () { ccStart(tab); }; body.append(go);
       return;
     }
     var state = R.result ? 'done' : R.open ? 'open' : 'closed';
@@ -391,7 +485,7 @@
       var again = el('button', 'lg-b', 'Show it again'); again.type = 'button';
       again.onclick = function () { announce(tab, { at: R.result.at, winners: R.result.winners || [], off: R.result.off }); }; row.append(again);
       var nr = el('button', 'lg-b', 'New round'); nr.type = 'button';
-      nr.onclick = function () { ccAct(tab + '-start'); }; row.append(nr);
+      nr.onclick = function () { ccStart(tab); }; row.append(nr);
     }
     body.append(row);
     body.append(el('div', 'lg-note', tab === 'gt' ? 'Chests count 1\u201322: the places in Ganon\u2019s Tower the big key can be, in the order you open them. The same round shows on Crowd Control+\u2019s Live tab and its GT big key overlay.' : 'Digs count from the first shovel in the Digging Game. The same round shows on Crowd Control+\u2019s Live tab and its Digging Game overlay.'));

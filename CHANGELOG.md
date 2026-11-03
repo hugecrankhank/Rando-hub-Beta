@@ -5,6 +5,12 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.95 (2026-11-03)
+
+- **GT big key and Digging Game rounds show on the game, no Crowd Control+ needed** (HydeOut). While a round runs, a card over the game (top right) shows how to guess (!gt / !dig and the range), how many guesses are in, a bar per number for how many picked it, the chests or digs so far, and at the end the answer and who called it. It's on the game picture, so it's on stream with no OBS setup. Guesses come from TikTok chat through TikFinity, or typed in. "Show the round on the game" in the Live games panel turns it off. With Crowd Control+ connected, the card shows its round the same way.
+- **Start a round works with any Crowd Control+.** A Crowd Control+ from before these games (late October) ignored Start, so nothing happened. Now, if it doesn't answer within 3 seconds, the round runs here instead (and says so).
+- The "Big key found!" banner sits mid-screen, clear of the round's card.
+
 ## Beta v1.14.94 (2026-11-02)
 
 - **Credits screen redone:** the die beside the Rando Hub title, developed by Hank (@huge_crank_hank), and the play testers with their TikTok handles under their names: Gumby007 (@gumby.oo7), HydeOutGaming (@jennkevden), Kallax (@kallax_99), BulldogTimmy (@bulldogtimmy) and Heffie's Homies (@heffie638). A flashing LOADING over the bar, and it now stays about 6 seconds so it can be read.
