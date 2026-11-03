@@ -546,9 +546,11 @@ var RH_SPLASH = (function () {
     else if (!on && lock) { lock.release().catch(function () {}); lock = null; }
   }
   document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) setTimeout(recoverGraphics, 200);
     if (document.hidden) flushSram(); else if (running && !paused) wake(true);
   });
   window.addEventListener('pagehide', function () { flushSram(); });
+  window.addEventListener('pageshow', function (e) { if (e.persisted) setTimeout(recoverGraphics, 200); });
 
   // ── frame loop ──────────────────────────────────────────────────────────
   // If the display refresh is within 1% of the SNES rate (~60.1 Hz), run
@@ -636,6 +638,28 @@ var RH_SPLASH = (function () {
   // iOS can take the graphics context away under memory pressure (e.g. right
   // after Kara's generator ran in the browser); the picture then goes black.
   // Ask for it back and rebuild the renderer when it returns.
+  // iPhone / iPad (Nov 2026): closing the app and opening it again right away
+  // can come back with the graphics gone (iOS frees them in the background) and
+  // no "restored" event, so the picture stayed black. On the way back: draw the
+  // last frame again, and if the graphics context is lost and doesn't come back
+  // within a second, start a fresh canvas. Trackers drawn on canvases get a
+  // resize event so they redraw too.
+  function recoverGraphics() {
+    if (!video || !canvas) return;
+    var gl = video.gl;
+    if (gl && gl.isContextLost && gl.isContextLost()) {
+      setTimeout(function () {
+        if (!video || !video.gl || !video.gl.isContextLost()) return;
+        var c2 = canvas.cloneNode(false);
+        canvas.parentNode.replaceChild(c2, canvas); canvas = c2;
+        canvas.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+        watchGl();
+        try { video = new Video(canvas); applyAspect(); applyFilter(); applyScreenFx(); if (running && core) video.upload(paintFrame(core.frame())); stats.glRebuilt = (stats.glRebuilt || 0) + 1; }
+        catch (e) { stats.gfxErr = String(e && e.message || e); }
+      }, 1000);
+    } else { try { if (running && core) video.upload(paintFrame(core.frame())); video.draw(); } catch (e) {} }
+    setTimeout(function () { try { window.dispatchEvent(new Event('resize')); } catch (e) {} }, 300);
+  }
   function watchGl() {
     canvas.addEventListener('webglcontextlost', function (e) { e.preventDefault(); stats.glLost++; });
     canvas.addEventListener('webglcontextrestored', function () {
@@ -654,7 +678,7 @@ var RH_SPLASH = (function () {
       ['Frames run', stats.frames + ' (' + Math.round(stats.frames / Math.max(1, (performance.now() - stats.started) / 1000)) + '/s)'],
       ['Picture', f ? f.w + '×' + f.h + ', ' + lit + '% lit' : '—'],
       ['Filter', ((video && video.presetId) || cfg.filter) + (window.NesXbrz && NesXbrz.ready && Video.PRESETS[cfg.filter] && Video.PRESETS[cfg.filter].cpu ? ', xBRZ ' + NesXbrz.ms().toFixed(2) + ' ms per frame' : '')],
-      ['Graphics', gl ? (gl.isContextLost() ? 'LOST' : 'ok') + ', lost ' + stats.glLost + '×, restored ' + stats.glRestored + '×' : 'none'],
+      ['Graphics', gl ? (gl.isContextLost() ? 'LOST' : 'ok') + ', lost ' + stats.glLost + '×, restored ' + stats.glRestored + '×' + (stats.glRebuilt ? ', rebuilt ' + stats.glRebuilt + '×' : '') : 'none'],
       ['Audio', audio && audio.ctx ? audio.ctx.state + ' @ ' + audio.ctx.sampleRate : 'not started'],
       ['Screen', ema ? (1000 / ema).toFixed(1) + ' Hz, ' + (Math.abs(ema - 1000 / (core && core.loaded ? core.fps : 60.0988)) / (1000 / 60.0988) < 0.01 ? 'one game frame per refresh' : 'paced by the clock') : '\u2014'],
       ['Refreshes missed', stats.missed + ' of ' + stats.ticks + (stats.ticks ? ' (' + (100 * stats.missed / stats.ticks).toFixed(1) + '%)' : '')],
