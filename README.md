@@ -939,7 +939,7 @@ Gumby" and so on (`randomizer/hub-credits.js`; the captions that hint at items s
 ## Credits
 
 - Rando Hub: developed by **Hank (@huge_crank_hank)**; play tested by **Heffie**,
-  **HydeOut** and **Gumby**. The same credits show on the screen before every game
+  **HydeOut**, **Gumby**, **Kallax** and **BulldogTimmy**. The same credits show on the screen before every game
   boots (`credits-splash.js`), in every game.
 - Tracker: [Hutch-ALTTPR Tracker](https://github.com/hutchch/ALTTPR-Tracker)
   by Hutch (hutchch), MIT License (see `tracker/LICENSE`).

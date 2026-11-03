@@ -22,7 +22,7 @@
   var CREDITS = {
     title: 'RANDO HUB',
     dev: ['DEVELOPED BY', 'HANK', '@HUGE_CRANK_HANK'],
-    testers: ['PLAY TESTED BY', 'HEFFIE', 'HYDEOUT', 'GUMBY'],
+    testers: ['PLAY TESTED BY', 'HEFFIE', 'HYDEOUT', 'GUMBY', 'KALLAX', 'BULLDOGTIMMY'],
   };
   var SHOW_MS = 4000, FADE_MS = 450;
   var W = 256, H = 224;
@@ -79,7 +79,11 @@
     text(g, CREDITS.dev[1], W / 2, 98, 8, '#ffffff', '#000');
     text(g, CREDITS.dev[2], W / 2, 110, 8, '#a9bddf');
     text(g, CREDITS.testers[0], W / 2, 132, 8, '#ffd166');
-    CREDITS.testers.slice(1).forEach(function (n, i) { text(g, n, W / 2, 146 + i * 12, 8, '#ffffff', '#000'); });
+    // the testers, as many to a line as fit (8 px a letter, 28 letters a line)
+    var lines = [], cur = '';
+    CREDITS.testers.slice(1).forEach(function (n) { var t2 = cur ? cur + '  ' + n : n; if (t2.length > 28 && cur) { lines.push(cur); cur = n; } else cur = t2; });
+    if (cur) lines.push(cur);
+    lines.forEach(function (l, i) { text(g, l, W / 2, 146 + i * 12, 8, '#ffffff', '#000'); });
     // the loading bar: fills over the time it's shown
     var k = Math.min(1, t / SHOW_MS), bx = 64, by = H - 22, bw = W - 128;
     g.fillStyle = '#2a3552'; g.fillRect(bx - 1, by - 1, bw + 2, 6);
@@ -97,7 +101,7 @@
         wrap.style.cssText = 'position:absolute;inset:0;z-index:60;background:#05070d;display:flex;align-items:center;justify-content:center;transition:opacity ' + FADE_MS + 'ms ease;pointer-events:auto;';
         var cv = document.createElement('canvas'); cv.width = W; cv.height = H;
         cv.setAttribute('role', 'img');
-        cv.setAttribute('aria-label', 'Rando Hub. Developed by Hank, @huge_crank_hank. Play tested by Heffie, HydeOut and Gumby.');
+        cv.setAttribute('aria-label', 'Rando Hub. Developed by Hank, @huge_crank_hank. Play tested by Heffie, HydeOut, Gumby, Kallax and BulldogTimmy.');
         cv.style.cssText = 'width:100%;height:100%;object-fit:contain;image-rendering:pixelated;image-rendering:crisp-edges;';
         wrap.appendChild(cv); root.appendChild(wrap);
         var g = cv.getContext('2d'), t0 = performance.now(), done = false;
