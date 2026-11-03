@@ -21,6 +21,8 @@ Things here were learned the hard way; each line says why.
   - Test it: load a ROM, wait 22 s (a snapshot), freeze the RAM view
     (`core.wram = () => copy`), check no new snapshot and the "seems to have
     frozen" toast, then Continue.
+- The credits screen (`credits-splash.js`) comes with the emulators' player.js: a
+  new game on another emulator must show it before booting too.
 - `../ios-audio.js` comes with the emulator's audio.js (iPhone: no Now
   Playing card left behind).
 - `../game-header.js`, `../run-timer.js` (stream timer), `../cursor-hide.js`,

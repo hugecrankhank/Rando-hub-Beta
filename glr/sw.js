@@ -12,7 +12,7 @@ self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll([
     './', './index.html', './manifest.webmanifest', './js/icons.js', './js/store.js', './js/nes-bridge.js',
     './js/tgl-data.js', './js/cpu6502.js', './js/labmap.js', './js/labmap-worker.js', './js/randomizer.js',
-    './js/tracker.js', './js/seed.js', './js/diag.js', './js/app.js', '../game-health.js', './js/crowd.js', './emu/shaders/crt-pi.glsl',
+    './js/tracker.js', './js/seed.js', './js/diag.js', './js/app.js', '../game-health.js', '../credits-splash.js', '../fonts/PressStart2P-Regular.ttf', './js/crowd.js', './emu/shaders/crt-pi.glsl',
     './emu/core.js', './emu/palettes.js', './emu/xbrz.js', './emu/xbrz.wasm', './emu/video.js', './emu/audio.js', './emu/audio-worklet.js', './emu/input.js', './emu/player.js',
     './emu/fceumm.wasm', './emu/shaders/stock.glsl', './emu/shaders/6xbrz.glsl',
   ])).catch(() => {}));

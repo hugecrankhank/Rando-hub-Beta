@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.91 (2026-11-02)
+
+- **Credits screen before every game.** While the emulator loads, every game (Zelda 3, Zelda 1, GLR, Super Metroid, Mario RPG, the FF games, Patched games) shows a title card drawn like a console screen: Rando Hub, developed by Hank (@huge_crank_hank), play tested by Heffie, HydeOut and Gumby, with a loading bar. About 4 seconds, most of it while the game is loading anyway; it's part of how the emulators start, not a setting.
+
 ## Beta v1.14.90 (2026-11-02)
 
 - **Every game: a crashed game is never autosaved.** What fixed Super Metroid in 1.14.89 now covers Zelda 3 (the saved spot behind Resume), Zelda 1, The Guardian Legend, Mario RPG, FF6, FF1, FF4 and FF5: a snapshot is only taken while the game is running, the last three good ones are kept (at least a minute apart), and Continue / Resume falls back past a frozen one to the one before, then to a restart (in-game saves are kept). A toast says when the game seems to have frozen. Zelda 3 and Super Metroid watch their own frame counters (they stop when the game crashes, even with the music still playing); the others watch the game's whole memory.

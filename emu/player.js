@@ -12,6 +12,18 @@
  *
  *   Snes9xPlayer.boot('#game', file)   // a File (or { bytes, name })
  */
+// The credits screen before every game (../credits-splash.js): loaded with the player, shown while it boots
+var RH_SPLASH = (function () {
+  try {
+    if (window.RHSplash) return Promise.resolve();
+    var src = document.currentScript && document.currentScript.src; if (!src) return Promise.resolve();
+    return new Promise(function (res) {
+      var sc = document.createElement('script'); sc.src = new URL('../credits-splash.js', src).href;
+      sc.onload = sc.onerror = function () { res(); };
+      (document.head || document.documentElement).appendChild(sc);
+    });
+  } catch (e) { return Promise.resolve(); }
+})();
 (function () {
   'use strict';
   var BASE = window.EMU_BASE || 'emu/';   // EMU_BASE: a page in another folder (patched/)
@@ -769,7 +781,9 @@
     audio.volume = cfg.volume; audio.muted = cfg.muted;
     requestAnimationFrame(tick);
 
-    return Promise.all([Snes9xCore.create(BASE + 'snes9x.wasm'), bytesP]).then(function (r) {
+    // the credits screen shows while the core loads; the game starts once it has been seen
+    var splashP = RH_SPLASH.then(function () { return window.RHSplash ? window.RHSplash.show(root) : null; }).catch(function () {});
+    return Promise.all([Snes9xCore.create(BASE + 'snes9x.wasm'), bytesP, splashP]).then(function (r) {
       core = r[0];
       if (!r[1] || r[1].length < 0x8000) throw new Error('the ROM for "' + name + '" was empty (' + (r[1] ? r[1].length : 0) + ' bytes).');
       if (!core.load(r[1])) throw new Error('Snes9x could not load "' + name + '".');
