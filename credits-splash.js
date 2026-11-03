@@ -6,7 +6,7 @@
  * Drawn like a console screen: a 256 x 224 picture (the SNES's own size, pixel
  * for pixel), scaled up sharp to fit the emulator, in the Press Start 2P pixel
  * font. It runs while the emulator loads and the game waits for it, so it is
- * always seen (about 4 seconds, no skip). It is part of how the emulators
+ * always seen (about 6 seconds, long enough to read; no skip). It is part of how the emulators
  * boot, not a setting. Rando Hub's licence (LICENSE.md, PolyForm Strict) does
  * not allow changed copies, so removing it is not allowed either.
  *
@@ -21,10 +21,14 @@
 
   var CREDITS = {
     title: 'RANDO HUB',
-    dev: ['DEVELOPED BY', 'HANK', '@HUGE_CRANK_HANK'],
-    testers: ['PLAY TESTED BY', 'HEFFIE', 'HYDEOUT', 'GUMBY', 'KALLAX', 'BULLDOGTIMMY'],
+    dev: ['DEVELOPED BY', 'HANK', '@huge_crank_hank'],
+    testersTitle: 'PLAY TESTED BY',
+    testersNote: 'TikTok Handles',
+    // [name, TikTok handle]
+    // (the longest name last: it gets a row of its own, the full width)
+    testers: [['GUMBY007', '@gumby.oo7'], ['HYDEOUTGAMING', '@jennkevden'], ['KALLAX', '@kallax_99'], ['BULLDOGTIMMY', '@bulldogtimmy'], ["HEFFIE'S HOMIES", '@heffie638']],
   };
-  var SHOW_MS = 4000, FADE_MS = 450;
+  var SHOW_MS = 6000, FADE_MS = 450;
   var W = 256, H = 224;
 
   var fontP = null;
@@ -72,24 +76,30 @@
     });
     // top and bottom bars, as on a title card
     g.fillStyle = '#c8102e'; g.fillRect(0, 0, W, 3); g.fillRect(0, H - 3, W, 3);
-    die(g, W / 2, 30, 22, t);
-    text(g, CREDITS.title, W / 2, 50, 16, '#ffffff', '#c8102e');
-    g.fillStyle = '#2a3552'; g.fillRect(40, 74, W - 80, 1);
-    text(g, CREDITS.dev[0], W / 2, 84, 8, '#ffd166');
-    text(g, CREDITS.dev[1], W / 2, 98, 8, '#ffffff', '#000');
-    text(g, CREDITS.dev[2], W / 2, 110, 8, '#a9bddf');
-    text(g, CREDITS.testers[0], W / 2, 132, 8, '#ffd166');
-    // the testers, as many to a line as fit (8 px a letter, 28 letters a line)
-    var lines = [], cur = '';
-    CREDITS.testers.slice(1).forEach(function (n) { var t2 = cur ? cur + '  ' + n : n; if (t2.length > 28 && cur) { lines.push(cur); cur = n; } else cur = t2; });
-    if (cur) lines.push(cur);
-    lines.forEach(function (l, i) { text(g, l, W / 2, 146 + i * 12, 8, '#ffffff', '#000'); });
+    // the die to the left of the title, the pair centred: die 16 (+2 border each side) + 8 gap + 9 letters x 16
+    var dieW = 20, gap = 8, titleW = CREDITS.title.length * 16, x0 = Math.round((W - (dieW + gap + titleW)) / 2);
+    die(g, x0 + dieW / 2, 21, 16, t);
+    text(g, CREDITS.title, x0 + dieW + gap + titleW / 2, 13, 16, '#ffffff', '#c8102e');
+    g.fillStyle = '#2a3552'; g.fillRect(40, 37, W - 80, 1);
+    text(g, CREDITS.dev[0], W / 2, 44, 8, '#ffd166');
+    text(g, CREDITS.dev[1], W / 2, 55, 8, '#ffffff', '#000');
+    text(g, CREDITS.dev[2], W / 2, 65, 8, '#25f4ee');
+    text(g, CREDITS.testersTitle, W / 2, 90, 8, '#ffd166');
+    text(g, CREDITS.testersNote, W / 2, 100, 8, '#25f4ee');
+    // the testers two to a row, each name above its TikTok handle (an odd one out sits in the middle)
+    CREDITS.testers.forEach(function (p, i) {
+      var row = Math.floor(i / 2), alone = i === CREDITS.testers.length - 1 && i % 2 === 0;
+      var x = alone ? W / 2 : (i % 2 ? 192 : 64), y = 119 + row * 25;   // an empty line under the heading, and room between the rows
+      text(g, p[0], x, y, 8, '#ffffff', '#000');
+      text(g, p[1], x, y + 9, 8, '#25f4ee');
+    });
     // the loading bar: fills over the time it's shown
-    var k = Math.min(1, t / SHOW_MS), bx = 64, by = H - 22, bw = W - 128;
+    var k = Math.min(1, t / SHOW_MS), bx = 64, by = H - 11, bw = W - 128;
     g.fillStyle = '#2a3552'; g.fillRect(bx - 1, by - 1, bw + 2, 6);
     g.fillStyle = '#0b0f19'; g.fillRect(bx, by, bw, 4);
     g.fillStyle = '#3fb950'; g.fillRect(bx, by, Math.round(bw * k), 4);
-    if (Math.floor(t / 400) % 2 === 0) text(g, 'LOADING', W / 2, by - 12, 8, '#8b95a3');
+    if (Math.floor(t / 400) % 2 === 0) text(g, 'LOADING', W / 2, by - 13, 8, '#8b95a3');   // flashing, above the bar
+
   }
 
   function show(root) {
@@ -101,7 +111,7 @@
         wrap.style.cssText = 'position:absolute;inset:0;z-index:60;background:#05070d;display:flex;align-items:center;justify-content:center;transition:opacity ' + FADE_MS + 'ms ease;pointer-events:auto;';
         var cv = document.createElement('canvas'); cv.width = W; cv.height = H;
         cv.setAttribute('role', 'img');
-        cv.setAttribute('aria-label', 'Rando Hub. Developed by Hank, @huge_crank_hank. Play tested by Heffie, HydeOut, Gumby, Kallax and BulldogTimmy.');
+        cv.setAttribute('aria-label', 'Rando Hub. Developed by Hank, @huge_crank_hank. Play tested by (TikTok handles): ' + CREDITS.testers.map(function (p) { return p[0] + ' ' + p[1]; }).join(', ') + '.');
         cv.style.cssText = 'width:100%;height:100%;object-fit:contain;image-rendering:pixelated;image-rendering:crisp-edges;';
         wrap.appendChild(cv); root.appendChild(wrap);
         var g = cv.getContext('2d'), t0 = performance.now(), done = false;
