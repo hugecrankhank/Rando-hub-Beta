@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.97 (2026-11-04)
+
+- **FF5 Career Day: the Elder Branch ticks itself** (Kallax). It was the one key item left to mark by hand: the tracker only watched the randomizer's shared key-item bit, which that item's own routine doesn't always leave set; it now also watches the Elder Branch's own flag ($7E:0A22 bit 1, the one Career Day's key_items.asm sets for it).
+
 ## Beta v1.14.96 (2026-11-03)
 
 - **Metroid (NES, 1986) randomizer** (`metroid/`): Rando Hub's own. Roll a seed from your Metroid (USA) ROM, play it on the hub's NES emulator, and the tracker follows. All 38 power-up spots are shuffled (Bombs, High Jump, Screw Attack, Varia, the beams, 8 Energy Tanks, the missile packs); "Start with Maru Mari" (on by default) puts something else at its spot; the logic is careful (no bomb jumps or tricks) and every seed is checked to be finishable. Spoiler with the spheres. Tracker: gear, tanks, missiles, energy, the Kraid and Ridley statues, "Way out", and every spot by area, ticked by the game itself (it records each item it hands out) and coloured by what Samus can reach now; Reveal shows what's where. Map: the game's own world map, one area per tab, with pins, elevators and Samus on it. Play ROM file takes seeds from other Metroid randomizers too. In the Games menu (add it under "Add a game"), the reroll list, the stream timer, autosave with the crash guard, and the credits screen.
