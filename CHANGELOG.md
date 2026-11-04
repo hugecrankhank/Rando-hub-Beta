@@ -5,9 +5,9 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
-## Beta v1.14.97 (2026-11-04)
+## Beta v1.14.98 (2026-11-04)
 
-- **FF5 Career Day: the Elder Branch ticks itself** (Kallax). It was the one key item left to mark by hand: the tracker only watched the randomizer's shared key-item bit, which that item's own routine doesn't always leave set; it now also watches the Elder Branch's own flag ($7E:0A22 bit 1, the one Career Day's key_items.asm sets for it).
+- **FF5 Career Day: the key items tick right** (Kallax). The tracker had the key-item bits the wrong way round, so every key item was ticking its mirror (the Walse Tower Key showed as Anti Barrier, Ifrit's Fire as Hiryuu Call, a Tablet as another Tablet...) and three with no mirror, the Elder Branch, the Bracelet and the Moogle Suit, never ticked at all. Checked against the game's own Key items menu with Career Day's ROM: the bit order is the game's ($80 down), and now matches. (Replaces v1.14.97's narrower Elder Branch fix.)
 
 ## Beta v1.14.96 (2026-11-03)
 
