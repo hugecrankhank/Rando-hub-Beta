@@ -13,7 +13,10 @@
 const PYODIDE_VERSION = '0.27.7';
 const LOCAL = new URL('../../pyodide/', import.meta.url).href;
 const CDN = `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/`;
-const PACKAGE = new URL('worldscollide.zip', import.meta.url).href;
+// ?wc=dev: Worlds Collide's dev branch (the newest flags, as ff6worldscollide.com's dev
+// version); otherwise the stable release
+const DEV = new URL(import.meta.url).searchParams.get('wc') === 'dev';
+const PACKAGE = new URL(DEV ? 'worldscollide-dev.zip' : 'worldscollide.zip', import.meta.url).href;
 
 const stage = (text) => postMessage({ type: 'stage', text });
 

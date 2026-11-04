@@ -12,7 +12,10 @@ Works on PC, tablets and phones, and installs as an app.
 
 ## How it works
 
-- **The generator is Worlds Collide itself.** Its source (MIT, unchanged, `wc/worldscollide.zip`)
+- **The generator is Worlds Collide itself**, in two versions to pick from: the newest,
+  its dev branch (1.4.4 dev, the latest flags: `wc/worldscollide-dev.zip`, the default), and
+  the last stable release (1.4.3, `wc/worldscollide.zip`) for races and older flag strings.
+  Its source (MIT, unchanged)
   runs in your browser with Pyodide (Python compiled to WebAssembly), in a worker, so
   the page stays responsive. Python and the generator are downloaded the first time
   you roll (about 15 MB, then cached). A seed takes roughly 10–40 s depending on the device.

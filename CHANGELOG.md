@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.99 (2026-11-04)
+
+- **FF6 Worlds Collide: the newest version** (Kallax). New seed now has a "Worlds Collide version" choice: **1.4.4 dev** (the default: the newest, with its latest flags like level cap -lc, require characters -rc, random starting levels -stlr, limited shops -sli, expensive restoratives -seri, no free heals -nfh, fully random commands, "Oops All <Boss>", Max HP objectives, plus its bug fixes), or **1.4.3 stable** (the release the hub had until now) for races and older flag strings. Flag strings from ff6worldscollide.com's current flag builder work again. The choice is remembered.
+
 ## Beta v1.14.98 (2026-11-04)
 
 - **FF5 Career Day: the key items tick right** (Kallax). The tracker had the key-item bits the wrong way round, so every key item was ticking its mirror (the Walse Tower Key showed as Anti Barrier, Ifrit's Fire as Hiryuu Call, a Tablet as another Tablet...) and three with no mirror, the Elder Branch, the Bracelet and the Moogle Suit, never ticked at all. Checked against the game's own Key items menu with Career Day's ROM: the bit order is the game's ($80 down), and now matches. (Replaces v1.14.97's narrower Elder Branch fix.)

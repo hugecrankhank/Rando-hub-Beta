@@ -59,6 +59,16 @@
     m.className = 'msg';
   }
 
+  // ── which Worlds Collide: the dev branch (newest flags) or the stable release ──
+  function wcVersion() { const s = $('wc-version'); return s ? s.value : 'dev'; }
+  function paintVersion() {
+    const m = $('wc-version-about'); if (!m) return;
+    m.textContent = wcVersion() === 'dev'
+      ? 'The newest Worlds Collide, with its latest flags (level cap, require characters, starting levels, limited shops, no free heals…). Flag strings from ff6worldscollide.com’s current flag builder work here.'
+      : 'The last stable release. Use it for a race or a flag string made on 1.4.3; newer flags aren’t in it.';
+    try { localStorage.setItem('ff6wc:version', wcVersion()); } catch (e) {}
+  }
+
   // ── seeds ────────────────────────────────────────────────────────────────
   function randomSeed() {
     const a = 'abcdefghijklmnopqrstuvwxyz0123456789', v = new Uint8Array(12);
@@ -78,7 +88,7 @@
     busy = true; $('generate').disabled = true; $('result').hidden = true;
     setStatus('Starting…', 'busy');
     return new Promise((resolve, reject) => {
-      const w = new Worker('wc/seed-worker.js', { type: 'module' });
+      const w = new Worker('wc/seed-worker.js' + (wcVersion() === 'dev' ? '?wc=dev' : ''), { type: 'module' });
       const bytes = base.bytes.slice(0);
       const t = setTimeout(() => { w.terminate(); reject(new Error('The generator took too long (5 minutes).')); }, 300000);
       w.onmessage = (e) => {
@@ -149,6 +159,8 @@
     sel.addEventListener('change', paintPreset);
     $('flags').addEventListener('input', paintFlagMsg);
     paintPreset();
+    const vs = $('wc-version');
+    if (vs) { try { vs.value = localStorage.getItem('ff6wc:version') || 'dev'; } catch (e) {} if (!vs.value) vs.value = 'dev'; vs.addEventListener('change', paintVersion); paintVersion(); }
     $('seed').value = '';
     $('dice').addEventListener('click', () => { $('seed').value = randomSeed(); });
     $('base-input').addEventListener('change', async (ev) => {
