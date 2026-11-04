@@ -45,10 +45,11 @@
       fsel.addEventListener('change', function () { if (fsel.value) location.href = fsel.value; });
       newSeed.parentNode.insertBefore(fsel, newSeed);
       newSeed.parentNode.insertBefore(link('hub-smrpg', HUB + 'smrpg/', 'SMRPG', 'Super Mario RPG: Open World Randomizer'), newSeed).dataset.game = 'smrpg';
+      newSeed.parentNode.insertBefore(link('hub-metroid', HUB + 'metroid/', 'Metroid', 'Metroid (NES): Rando Hub’s own randomizer'), newSeed).dataset.game = 'metroid';
       newSeed.parentNode.insertBefore(link('hub-patched', HUB + 'patched/', 'Patched', 'Patched games: NES and SNES ROM hacks on these emulators'), newSeed).dataset.game = 'patched';
       var R = window.RandoRoll;
       if (R) R.applyShown(newSeed.parentNode);
-      if (R) newSeed.parentNode.insertBefore(R.gamesMenu('sm/', ['hub-back', 'hub-z1', 'hub-glr', 'hub-ff', 'hub-smrpg', 'hub-patched']), newSeed);
+      if (R) newSeed.parentNode.insertBefore(R.gamesMenu('sm/', ['hub-back', 'hub-z1', 'hub-glr', 'hub-ff', 'hub-smrpg', 'hub-metroid', 'hub-patched']), newSeed);
       var rr = document.createElement('button');
       rr.className = 'btn'; rr.id = 'hub-reroll'; rr.type = 'button'; rr.innerHTML = '🎲<span class="hub-short"> Reroll</span>';
       rr.title = 'A new seed with the flags you used last' + (R && R.others('sm').length ? ' (or a ' + R.others('sm').join(' / ') + ' seed: ticked in the hub’s Game row)' : '');

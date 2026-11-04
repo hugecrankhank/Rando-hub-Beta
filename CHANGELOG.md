@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.96 (2026-11-03)
+
+- **Metroid (NES, 1986) randomizer** (`metroid/`): Rando Hub's own. Roll a seed from your Metroid (USA) ROM, play it on the hub's NES emulator, and the tracker follows. All 38 power-up spots are shuffled (Bombs, High Jump, Screw Attack, Varia, the beams, 8 Energy Tanks, the missile packs); "Start with Maru Mari" (on by default) puts something else at its spot; the logic is careful (no bomb jumps or tricks) and every seed is checked to be finishable. Spoiler with the spheres. Tracker: gear, tanks, missiles, energy, the Kraid and Ridley statues, "Way out", and every spot by area, ticked by the game itself (it records each item it hands out) and coloured by what Samus can reach now; Reveal shows what's where. Map: the game's own world map, one area per tab, with pins, elevators and Samus on it. Play ROM file takes seeds from other Metroid randomizers too. In the Games menu (add it under "Add a game"), the reroll list, the stream timer, autosave with the crash guard, and the credits screen.
+
 ## Beta v1.14.95 (2026-11-03)
 
 - **GT big key and Digging Game rounds show on the game, no Crowd Control+ needed** (HydeOut). While a round runs, a card over the game (top right) shows how to guess (!gt / !dig and the range), how many guesses are in, a bar per number for how many picked it, the chests or digs so far, and at the end the answer and who called it. It's on the game picture, so it's on stream with no OBS setup. Guesses come from TikTok chat through TikFinity, or typed in. "Show the round on the game" in the Live games panel turns it off. With Crowd Control+ connected, the card shows its round the same way.

@@ -27,6 +27,7 @@
     ['alttp_vt_randomizer', 'sporchia (MIT), base patch from z3randomizer', 'https://github.com/sporchia/alttp_vt_randomizer'],
     ['Super Mario RPG Open World Randomizer', 'Dorkmaster Flek and the SMRPG randomizer contributors (MIT)', 'https://github.com/Super-Mario-RPG-Randomizer/smrpg_web_randomizer'],
     ['DASH, the Super Metroid randomizer', 'Kipp, MassHesteria, cassidymoen, kupppo, PapaSchmo, derp and the DASH contributors (MIT)', 'https://github.com/dashrando/dash-randomizer'],
+    ['Metroid (NES) disassembly, used for the Metroid randomizer', 'ZaneDubya, Dirty McDingus and the MetroidMMC3 contributors', 'https://github.com/ZaneDubya/MetroidMMC3'],
     ['Snes9x', 'the Snes9x team (non-commercial license)', 'https://github.com/snes9xgit/snes9x'],
     ['AVIANART', 'avianart.games', 'https://avianart.games'],
     ['Link sprites', 'the alttpr.com sprite library and its artists', 'https://alttpr.com/en/sprites'],

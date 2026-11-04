@@ -475,7 +475,7 @@ inside the hub, with its own emulator, seed generator, tracker and saves.
   seeds made by [ZORA](https://github.com/tetraly/zora) from your own Legend of Zelda
   (USA) ROM. Crowd control works there too: effects both games have keep their names,
   ALTTP-only ones are skipped. **Rerolls can land on** (tick Zelda 3, Zelda 1, Guardian
-  Legend, FF6, SMRPG, Super Metroid in the Game row) lets 🎲 Reroll and Crowd Control's random preset / CHAOS
+  Legend, FF6, SMRPG, Super Metroid, Metroid in the Game row) lets 🎲 Reroll and Crowd Control's random preset / CHAOS
   seeds pick one of the ticked games at random, so you can keep it to the Zelda series,
   or mix in Final Fantasy, as you like (*New seed (same settings)* always stays in the
   game being played). FF1, FF4 and FF5 are rolled on their own sites, so rerolls can't
@@ -506,6 +506,13 @@ inside the hub, with its own emulator, seed generator, tracker and saves.
   sets, area and boss shuffles...) and its settings one by one. The tracker reads the game:
   gear and beams, tanks and ammo, the bosses and mini-bosses, and every item spot by area
   (the game marks each one as you take it); the spoiler sits behind a Reveal switch.
+- **Metroid** (`metroid/`): Rando Hub's own item randomizer for the 1986 NES game, from
+  your own Metroid (USA) ROM, played on the hub's NES emulator. All 38 power-up spots are
+  shuffled (start with Maru Mari or leave it where it was) with careful logic so every seed
+  can be finished; a spoiler with the spheres. The tracker reads the game: gear, tanks,
+  missiles, the Kraid and Ridley statues, and every spot by area (the game records each
+  item it hands out), coloured by what Samus can reach now; the world map, one area per tab,
+  with a pin on every spot and Samus on it.
 - **Final Fantasy Randomizer (FF1), FF4 Free Enterprise, FF5 Career Day** (`ffr/`):
   seeds are rolled on each randomizer's own site (FF1R and FE generate in your
   browser there), then played here on the hub's NES or SNES with a tracker that reads
