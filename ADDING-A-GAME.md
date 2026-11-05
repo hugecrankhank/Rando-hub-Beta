@@ -28,6 +28,17 @@ Things here were learned the hard way; each line says why.
 - `../game-header.js`, `../run-timer.js` (stream timer), `../cursor-hide.js`,
   `../web-update.js` with `data-hub="../"`, and the Games menu
   (`roll-games.js`) like the other pages.
+- **Pop-outs: `../game-popout.js`** (with `data-hub="../"`, before `game-header.js`).
+  It adds "⧉ Tracker" and "⧉ Map" to the tracker: the live tracker, or just its
+  map, moves into a window of its own (`popout-panel.html`) for a second screen or
+  stream capture, and back when that window closes. It finds the tracker by
+  `#tracker` and the map by `#g-map`, `.ow-map` or `.lab-map`, so give the page's
+  tracker `id="tracker"` and its map one of those. A map should redraw on
+  `resize` and size itself from its own box (not the page's window).
+  (Zelda 3's own pop-outs are `desktop.js`.)
+- A map, when the game has a world to show: `../world-map.js` (the shared viewer:
+  worlds as tabs, pins, the player's dot, Follow, zoom), the pictures drawn from
+  the player's ROM at run time, never shipped.
 - Add the page's new files to `offline-files.json` (and its `sw.js`).
 - Crowd effects: written in the private Crowd Control+ repo (`effects/`) and
   synced in with its `sync-effects.py`; use Zelda 3's effect ids where an

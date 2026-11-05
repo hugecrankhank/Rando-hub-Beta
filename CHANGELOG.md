@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.101 (2026-11-04)
+
+- **Pop out the tracker and the map, in every game.** Zelda 1, Guardian Legend, Super Metroid, Metroid, Super Mario RPG, FF6 Worlds Collide, FF1, FF4 and FF5 now have "⧉ Tracker" and "⧉ Map" at the top of the tracker (on computers): the live tracker, or just its map, moves into a window of its own for a second screen or stream capture. It's the same tracker, not a copy, so it keeps autotracking and every tick and tap works there; the game takes the whole page while the tracker is out. Close the window (or "Bring back") and it returns. Zelda 3 keeps its own pop-outs. Every new game gets them too.
+
 ## Beta v1.14.100 (2026-11-04)
 
 - **Maps for all the Final Fantasy randomizers.** A new Map tab in FF1 Randomizer, FF4 Free Enterprise, FF5 Career Day and FF6 Worlds Collide: the game's own world maps, drawn from your ROM (nothing of the games is shipped), with pins and the party's dot following the game (dimmed inside towns). Pan, pinch or wheel to zoom; Follow keeps the party in view; tap a pin for its name.

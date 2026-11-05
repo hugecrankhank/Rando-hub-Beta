@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rando Hub</title>
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<!--
+  A game page's tracker or map in a window of its own (game-popout.js). The
+  page moves its live element in here and copies its styles; this page only
+  makes the element fill the window.
+-->
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; }
+  #slot { position: absolute; inset: 0; display: flex; flex-direction: column; }
+  #slot > * { flex: 1 1 auto; min-height: 0; }
+  #slot[data-kind="tracker"] > aside { overflow-y: auto; border: 0 !important; max-height: none !important; height: auto !important; width: auto !important; }
+  #slot[data-kind="map"] { padding: 4px; box-sizing: border-box; }
+  #wait { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #8b95a3; font: 14px system-ui, sans-serif; background: #0e1116; }
+  #slot:not(:empty) + #wait { display: none; }
+</style>
+</head>
+<body>
+<div id="slot"></div>
+<div id="wait">Opening…</div>
+</body>
+</html>
