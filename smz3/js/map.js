@@ -106,7 +106,7 @@
         worlds: [{ name: 'Light', width: ZW, height: ZH, picture: () => zeldaPicture('lw', onLoad) }, { name: 'Dark', width: ZW, height: ZH, picture: () => zeldaPicture('dw', onLoad) }]
           .concat(AREAS.map((n, a) => ({ name: n, width: MW, height: MH, picture: () => smPicture(a) }))),
         pins, name: (i) => names(i), onToggle: opts.onToggle,
-        empty: 'Zebes is drawn from the ROM being played: start a seed.',
+        empty: 'Start a seed: Zebes is drawn from its ROM.',
       });
       return viewer;
     },

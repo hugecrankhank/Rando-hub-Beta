@@ -83,7 +83,7 @@
       pins: hyrulePins().concat(zebesPins()),
       name: (i) => names(i),
       onToggle: opts.onToggle,
-      empty: 'Hyrule is drawn from the Zelda ROM being played: start a seed.',
+      empty: 'Start a seed: Hyrule is drawn from its ROM.',
     });
   }
 

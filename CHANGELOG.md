@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.112 (2026-11-05)
+
+- **SMZ3 and Zelda 1 + Metroid: a bigger map on phones.** On a phone the map's world tabs sit in one row that scrolls sideways (no counts under them) and the legend is tucked away, so the map itself gets the height; the SMZ3 legend no longer mentions dungeon markers.
+
 ## Beta v1.14.111 (2026-11-05)
 
 - **SMZ3: dungeon cards, and the map keeps to the overworld.** The Dungeons tab (was Bosses) now opens with a card per dungeon, as Mudora's: its prize (once the boss falls, or with Reveal), chests left, small keys in hand, big key · map · compass read from the game, and its boss; tap a card to jump to its checks. The Light and Dark World map shows the overworld checks only (75 and 26); the dungeons' live on their cards.
