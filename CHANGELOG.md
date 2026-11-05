@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.113 (2026-11-05)
+
+- **SMZ3: the Zelda 3 trackers.** A Tracker menu at the top of the column offers the Zelda side the way the Zelda 3 page does: **Mudora 2.0** (now the default), Mudora, Hutch, Rando Hub's own SMZ3 tracker (both games), or off. They run inside the column and autotrack the Zelda side (pictures and maps cut from your ROM), whichever game is running: while Super Metroid runs they see Zelda's last frame with its save block kept current from the combo's save RAM. On a phone, Items / Light / Dark / Keys pick Mudora's view.
+
 ## Beta v1.14.112 (2026-11-05)
 
 - **SMZ3 and Zelda 1 + Metroid: a bigger map on phones.** On a phone the map's world tabs sit in one row that scrolls sideways (no counts under them) and the legend is tucked away, so the map itself gets the height; the SMZ3 legend no longer mentions dungeon markers.

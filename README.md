@@ -531,7 +531,9 @@ inside the hub, with its own emulator, seed generator, tracker and saves.
   reads both games whichever is running: items (with their pictures), bosses with their prizes,
   all 316 locations coloured by SMZ3's own logic, and a map (the Light and Dark World, Zebes'
   six areas drawn from the ROM) with a pin on every location; the tracker and the map each pop
-  out into a window of their own. A samus.link seed plays with Play ROM file.
+  out into a window of their own. The Zelda side can be shown by the hub's Zelda 3 trackers
+  instead (Mudora 2.0 by default, Mudora, Hutch), reading the Zelda half of the combo as they
+  would a plain Zelda 3. A samus.link seed plays with Play ROM file.
 - **Zelda 1 + Metroid** (`zm/`): Rando Hub's own linked randomizer, nothing of anyone else's.
   Both games run in the hub's NES emulator, one at a time: Hyrule's four "take any road"
   caves are portals to Zebes, and Zebes' elevator rooms lead back (the ⇄ button). One item

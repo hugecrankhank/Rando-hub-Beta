@@ -53,6 +53,17 @@ nothing uploaded: your ROMs stay in your browser.
     keys aside).
   - **Seed**: the seed, its settings and share code; Reveal shows every
     location's item and the spoiler.
+  - **Tracker** (the menu at the top of the column): which tracker shows the
+    Zelda side, as the hub's Zelda 3 page offers them: **Mudora 2.0** (the
+    default), **Mudora**, **Hutch**, Rando Hub's own SMZ3 tracker (both games,
+    above), or off. The Zelda 3 trackers run in `z3host.html` inside the
+    column: it answers their reads as if a plain Zelda 3 were running (the
+    Zelda half of the combo put back in LoROM order for the ROM, Zelda's work
+    RAM while Zelda runs, its last frame with the save block refreshed from
+    the combo's save RAM while Super Metroid runs), so they autotrack the
+    Zelda side as on the Zelda 3 page, pictures and maps cut from your ROM.
+    The Metroid side is Rando Hub's tracker's. On a phone, Items / Light /
+    Dark / Keys above the frame pick Mudora's view.
   - **⧉ Tracker** and **⧉ Map** (desktop): each in a window of its own, for a
     second screen or a stream capture (`../game-popout.js`): the live tracker
     moves there, keeps autotracking, and comes back when the window closes.
@@ -81,4 +92,5 @@ MIT), matched by ROM address (`js/data.js`).
   YAML), `gen/zsm.ips` (the combo base patch), the two MIT licences.
 - `js/data.js` — the base ROMs, the location memory table.
 - `js/seed.js` — the New seed dialog; `js/tracker.js` — the tracker; `js/map.js` — its map (`../world-map.js`); `js/icons.js` — Metroid's item icons.
+- `js/z3pick.js` — the Tracker menu; `z3host.html` — the Zelda 3 trackers' host (the bridge and player they read).
 - `js/app.js`, `js/store.js` — the player, saves, autosave (as `../smw/`).

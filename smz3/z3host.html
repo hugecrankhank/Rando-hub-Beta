@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Zelda tracker · SMZ3</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #0b0f16; overflow: hidden; }
+  #wrap { display: flex; flex-direction: column; height: 100%; }
+  iframe { border: 0; width: 100%; display: block; background: #1b1b1b; }
+  #emo-frame { flex: 1 1 0; min-height: 0; }
+  #items-wrap { flex: 0 0 auto; } #items-frame { height: 300px; } #map-frame { flex: 1 1 0; min-height: 0; }
+  body.hutch #emo-frame { display: none; }
+  body.mudora #items-wrap, body.mudora #map-frame { position: absolute; left: -4000px; top: 0; width: 900px; height: 700px; }   /* Hutch's pages run out of sight for their logic */
+  body.mudora2 #items-wrap, body.mudora2 #map-frame { display: none; }
+</style>
+</head>
+<body>
+<!--
+  z3host.html — the hub's Zelda 3 trackers (Mudora 2.0, Mudora, Hutch) inside
+  the SMZ3 page: they read a Zelda game through window.AlttpBridge in a parent
+  window, so this page stands between them and the SMZ3 player and answers as
+  if a plain Zelda 3 were running:
+    ROM reads     the Zelda half of the combo, put back in its 1 MB LoROM order
+                  (the combo keeps Zelda's bank b at $400000 + b * $10000 + $8000)
+    WRAM reads    Zelda's work RAM while Zelda runs; while Super Metroid runs,
+                  the last Zelda frame with the save block ($7EF000..$7EF4FF)
+                  refreshed from where the combo keeps it (save RAM $0000..)
+    the player    a Snes9xPlayer look-alike whose core.rom() is that Zelda ROM
+                  (Mudora cuts its item pictures and maps from it)
+  ?t=mudora2 (the default) | mudora (Hutch's pages run hidden for its logic) | hutch
+-->
+<div id="wrap">
+  <div id="items-wrap"><iframe id="items-frame" title="Item tracker"></iframe></div>
+  <iframe id="map-frame" title="Map"></iframe>
+  <iframe id="emo-frame" title="Zelda tracker"></iframe>
+</div>
+<script>
+(function () {
+  'use strict';
+  var WRAM_BASE = 0xF50000, WRAM_SIZE = 0x20000, SRAM_BASE = 0xE00000, Z3_AT = 0x400000, SAVE = 0xF000, SAVE_LEN = 0x500, GAME = 0x33FE;
+  var mode = (new URLSearchParams(location.search).get('t') || 'mudora2');
+  if (['mudora2', 'mudora', 'hutch'].indexOf(mode) < 0) mode = 'mudora2';
+  document.body.className = mode;
+
+  function hostPlayer() { try { return parent.Snes9xPlayer || null; } catch (e) { return null; } }
+  function core() { var P = hostPlayer(); return P && P.ready ? P.core : null; }
+  var z3 = null, z3Of = null, snap = null;
+  function z3Rom() {
+    var c = core(); if (!c) return z3;
+    var r; try { r = c.rom(); } catch (e) { return z3; }
+    if (!r || r.length < 0x600000) return z3;
+    if (z3 && z3Of === r.length + ':' + r[Z3_AT + 0x8000] + ':' + r[Z3_AT + 0xFFC0]) return z3;
+    z3 = new Uint8Array(0x100000);
+    for (var b = 0; b < 0x20; b++) z3.set(r.subarray(Z3_AT + b * 0x10000 + 0x8000, Z3_AT + b * 0x10000 + 0x10000), b * 0x8000);
+    z3Of = r.length + ':' + r[Z3_AT + 0x8000] + ':' + r[Z3_AT + 0xFFC0];
+    return z3;
+  }
+  function zeldaRunning(c) { try { var s = c.sram(); return s && s.length > GAME && s[GAME] === 0; } catch (e) { return false; } }
+  // Zelda's work RAM as the trackers expect it
+  function wram() {
+    var c = core(); if (!c) return null;
+    var w = c.wram();
+    if (zeldaRunning(c)) { snap = null; return w; }
+    // Super Metroid is running: Zelda's last frame, its save block from where the combo keeps it
+    if (!snap) { snap = new Uint8Array(WRAM_SIZE); snap[0x10] = 0x09; }   // (never ran Zelda yet: "on the overworld", nothing else)
+    try { var s = c.sram(); snap.set(s.subarray(0, SAVE_LEN), SAVE); } catch (e) {}
+    return snap;
+  }
+  var lastZ = null;
+  setInterval(function () { var c = core(); if (c && zeldaRunning(c)) { try { lastZ = c.wram().slice(); } catch (e) {} if (lastZ) snap = lastZ; } }, 1000);   // keep Zelda's last frame for the swap
+  function copy(out, src, off, len) { if (!src) return; var n = Math.max(0, Math.min(len, src.length - off)); if (n > 0) out.set(src.subarray(off, off + n)); }
+  function read(addr, len) {
+    var out = new Uint8Array(len);
+    if (addr >= WRAM_BASE && addr < WRAM_BASE + WRAM_SIZE) copy(out, wram(), addr - WRAM_BASE, len);
+    else if (addr >= SRAM_BASE && addr < 0xF00000) { var c = core(); if (c) { try { copy(out, c.sram(), addr - SRAM_BASE, len); } catch (e) {} } }
+    else if (addr < SRAM_BASE) copy(out, z3Rom(), addr, len);
+    return out;
+  }
+  var listeners = [];
+  window.AlttpBridge = {
+    read: read,
+    ready: function () { return !!core() && !!z3Rom(); },
+    setRom: function () {}, invalidate: function () {}, patchRom: function () { return 0; },
+    writeWram: function (addr, bytes) { var c = core(); if (!c || !zeldaRunning(c)) return false; var off = addr - WRAM_BASE; if (off < 0 || off + bytes.length > WRAM_SIZE) return false; c.wram().set(bytes, off); return true; },
+    status: function () { var c = core(); return { romLoaded: !!z3Rom(), running: !!c, mode: c ? 'live' : 'idle', ptr: -1, romName: (hostPlayer() || {}).gameName || '' }; },
+    onStatus: function (fn) { listeners.push(fn); return function () { listeners = listeners.filter(function (f) { return f !== fn; }); }; },
+    deviceName: 'Snes9x (built-in, SMZ3)',
+    peek: function (a, n) { var x = (a >= 0x7E0000 && a < 0x800000) ? WRAM_BASE + (a - 0x7E0000) : a; return Array.from(read(x, n || 16), function (b) { return b.toString(16).padStart(2, '0'); }).join(' '); },
+  };
+  // the player, as Mudora looks for it: core.rom() is the Zelda ROM
+  var fakeCore = { rom: function () { return z3Rom() || new Uint8Array(0); }, wram: function () { return wram() || new Uint8Array(WRAM_SIZE); }, sram: function () { var c = core(); return c ? c.sram() : new Uint8Array(0); }, get loaded() { return !!core(); } };
+  window.Snes9xPlayer = { get core() { return core() ? fakeCore : null; }, get ready() { return !!core(); }, get gameName() { var P = hostPlayer(); return (P && P.gameName) || ''; }, get romBytes() { return z3Rom(); }, hooks: {}, fx: {}, toast: function () {} };
+  // the pages
+  var IT = document.getElementById('items-frame'), MP = document.getElementById('map-frame'), EM = document.getElementById('emo-frame');
+  if (mode === 'hutch' || mode === 'mudora') { IT.src = '../tracker/itemtracker.html'; MP.src = '../tracker/map.html'; }
+  if (mode === 'mudora2') EM.src = '../mudora2/index.html';
+  else if (mode === 'mudora') EM.src = '../mudora/index.html';
+  // phones: the SMZ3 page says which of Mudora's tabs to show
+  window.addEventListener('message', function (ev) {
+    var d = ev.data || {};
+    if (d.type === 'smz3-phone') { try { var P = EM.contentWindow && (EM.contentWindow.MudoraPhone || EM.contentWindow.EmoPhone); if (P) P.set(d.tab || null); } catch (e) {} }
+  });
+})();
+</script>
+</body>
+</html>
