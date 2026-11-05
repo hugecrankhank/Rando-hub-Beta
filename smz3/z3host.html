@@ -127,7 +127,8 @@
         r.onsuccess = function () {
           try {
             var st = r.result.transaction('icons', 'readwrite').objectStore('icons'), q = st.openCursor();
-            q.onsuccess = function () { var c = q.result; if (!c) { res(); return; } var v = c.value; if (v && !(v.sword1 && v.bottle1 && v.gloves1)) c.delete(); c.continue(); };
+            var drawn = function (buf) { if (!buf) return false; var a = new Uint8Array(buf); for (var i = 3; i < a.length; i += 4) if (a[i]) return true; return false; };   // a cut with any pixel in it
+            q.onsuccess = function () { var c = q.result; if (!c) { res(); return; } var v = c.value; if (v && !(drawn(v.sword1) && drawn(v.bottle1) && drawn(v.gloves1) && drawn(v.shield1))) c.delete(); c.continue(); };
             q.onerror = function () { res(); };
           } catch (e) { res(); }
         };

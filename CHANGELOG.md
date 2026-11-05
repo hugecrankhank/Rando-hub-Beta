@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.117 (2026-11-05)
+
+- **SMZ3: the sword, shield, gloves and bottles get their pictures.** The picture set Mudora had cached from the combo's unbootable Zelda half did have those cuts, only empty, so the last version kept it; a cached set whose equipment cuts hold no pixels is now dropped and cut again from the plain ROM.
+
 ## Beta v1.14.116 (2026-11-05)
 
 - **SMZ3: every Mudora picture, and the counters.** A picture set Mudora had cached from the combo's unbootable Zelda half was short of the sword, shield, gloves and bottles; those sets are dropped and cut again from the plain ROM, so every item has its picture. The hub's run counters (checks, deaths, bonks, GT chests and the big key, the digging game) and small keys in hand now reach Mudora and Hutch here as on the Zelda 3 page. Before Zelda has run, the trackers no longer read the combo's blank save as a game.
