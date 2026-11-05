@@ -475,7 +475,7 @@ inside the hub, with its own emulator, seed generator, tracker and saves.
   seeds made by [ZORA](https://github.com/tetraly/zora) from your own Legend of Zelda
   (USA) ROM. Crowd control works there too: effects both games have keep their names,
   ALTTP-only ones are skipped. **Rerolls can land on** (tick Zelda 3, Zelda 1, Guardian
-  Legend, FF6, SMRPG, Super Metroid, Metroid, Super Mario World in the Game row) lets 🎲 Reroll and Crowd Control's random preset / CHAOS
+  Legend, FF6, SMRPG, Super Metroid, Metroid, Super Mario World, SMZ3 in the Game row) lets 🎲 Reroll and Crowd Control's random preset / CHAOS
   seeds pick one of the ticked games at random, so you can keep it to the Zelda series,
   or mix in Final Fantasy, as you like (*New seed (same settings)* always stays in the
   game being played). FF1, FF4 and FF5 are rolled on their own sites, so rerolls can't
@@ -523,6 +523,13 @@ inside the hub, with its own emulator, seed generator, tracker and saves.
   exit count out of 96, lives and coins. The overworld map (Dinosaur Land and the six
   submaps, drawn from the ROM as the game has them now: paths open as you play), a pin on
   every exit and Mario on it.
+- **SMZ3** (`smz3/`): Super Metroid and A Link to the Past in one game. Seeds made by the
+  [SMZ3 Randomizer](https://github.com/tewtal/SMZ3Randomizer) (samus.link's generator, v11.3.2)
+  ported to run in your browser, from your own Super Metroid and Japanese Link to the Past 1.0
+  ROMs: the same seed and settings make the same game as samus.link (checked byte for byte).
+  Every setting samus.link has, share codes, spoiler; played on the hub's Snes9x. The tracker
+  reads both games whichever is running: items, bosses with their prizes, and all 316 locations,
+  coloured by SMZ3's own logic. A samus.link seed plays with Play ROM file.
 - **Final Fantasy Randomizer (FF1), FF4 Free Enterprise, FF5 Career Day** (`ffr/`):
   seeds are rolled on each randomizer's own site (FF1R and FE generate in your
   browser there), then played here on the hub's NES or SNES with a tracker that reads

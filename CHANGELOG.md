@@ -5,6 +5,12 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.106 (2026-11-05)
+
+- **New game: SMZ3** (`smz3/`, in the Games menu and the Game row): Super Metroid and A Link to the Past in one game, items shuffled across both. Seeds come from the SMZ3 Randomizer itself (v11.3.2, the generator behind samus.link), ported to run in your browser from your own Super Metroid (Japan, USA) and Japanese Link to the Past 1.0 ROMs. The same seed and settings make the same game as samus.link: seed 321661004 built here matches samus.link's ROM byte for byte. Every samus.link setting (Super Metroid logic, goal, Ganon's Tower and Ganon crystals, Tourian bosses, first sword, Morph Ball, keysanity, race), share codes, spoiler, Download ROM.
+- **Tracker** for both games, whichever one is running (the other is read from its save RAM): Zelda's and Super Metroid's items, the ten dungeons, Agahnim and the four Metroid bosses with their prizes (read from the ROM, so samus.link's seeds work too), and all 316 locations ticked as you take them, coloured by SMZ3's own logic (green: reachable now). Reveal shows every location's item and the spoiler. A samus.link seed plays with Play ROM file.
+- Crash-proof autosave and Continue, the credits screen, the pop-out tracker, phone layouts and the stream timer (stops when the credits roll). The maps (Hyrule and Zebes) come next.
+
 ## Beta v1.14.105 (2026-11-05)
 
 - **Re-center button on the maps.** Super Mario World's map now has the ⟲ button in its top-right corner, like Zelda 3's: one tap zooms back out and centers the whole map (or the submap you're on) after you've zoomed in or dragged it around. The other games' maps (FF6 Worlds Collide, FF1, FF4, FF5, Super Metroid, Metroid, Mario RPG) get the same button in the same place, in place of the small ⤢ in their tab bars.

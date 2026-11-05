@@ -44,7 +44,7 @@
 
   function init() {
     var css = document.createElement('style');
-    css.textContent = '#hub-back, #hub-z1, #hub-ff6, #hub-ff1, #hub-ff4, #hub-ff5, #hub-smrpg, #hub-sm, #hub-metroid, #hub-smw, #hub-patched { text-decoration: none; white-space: nowrap; }';
+    css.textContent = '#hub-back, #hub-z1, #hub-ff6, #hub-ff1, #hub-ff4, #hub-ff5, #hub-smrpg, #hub-sm, #hub-metroid, #hub-smw, #hub-smz3, #hub-patched { text-decoration: none; white-space: nowrap; }';
     document.head.appendChild(css);
     var newSeed = document.getElementById('new-seed');
     if (newSeed) {
@@ -62,10 +62,11 @@
       newSeed.parentNode.insertBefore(link('hub-sm', HUB + 'sm/', 'SM', 'Super Metroid: DASH'), newSeed).dataset.game = 'sm';
       newSeed.parentNode.insertBefore(link('hub-metroid', HUB + 'metroid/', 'Metroid', 'Metroid (NES): Rando Hub’s own randomizer'), newSeed).dataset.game = 'metroid';
       newSeed.parentNode.insertBefore(link('hub-smw', HUB + 'smw/', 'SMW', 'Super Mario World Randomizer'), newSeed).dataset.game = 'smw';
+      newSeed.parentNode.insertBefore(link('hub-smz3', HUB + 'smz3/', 'SMZ3', 'SMZ3: Super Metroid + A Link to the Past'), newSeed).dataset.game = 'smz3';
       newSeed.parentNode.insertBefore(link('hub-patched', HUB + 'patched/', 'Patched', 'Patched games: NES and SNES ROM hacks on these emulators'), newSeed).dataset.game = 'patched';
       var R = window.RandoRoll;
       if (R) R.applyShown(newSeed.parentNode);
-      if (R) newSeed.parentNode.insertBefore(R.gamesMenu('glr/', ['hub-back', 'hub-z1', 'hub-ff', 'hub-smrpg', 'hub-sm', 'hub-patched', 'hub-metroid', 'hub-smw'], [{ id: 'hub-reroll', label: '🎲 Reroll' }]), newSeed);
+      if (R) newSeed.parentNode.insertBefore(R.gamesMenu('glr/', ['hub-back', 'hub-z1', 'hub-ff', 'hub-smrpg', 'hub-sm', 'hub-patched', 'hub-metroid', 'hub-smw', 'hub-smz3'], [{ id: 'hub-reroll', label: '🎲 Reroll' }]), newSeed);
       // 🎲 Reroll: a new seed with the flags you used last, or another game if the
       // hub's "Rerolls can land on" says so
       var rr = document.createElement('button');
