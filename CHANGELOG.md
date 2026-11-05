@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.111 (2026-11-05)
+
+- **SMZ3: dungeon cards, and the map keeps to the overworld.** The Dungeons tab (was Bosses) now opens with a card per dungeon, as Mudora's: its prize (once the boss falls, or with Reveal), chests left, small keys in hand, big key · map · compass read from the game, and its boss; tap a card to jump to its checks. The Light and Dark World map shows the overworld checks only (75 and 26); the dungeons' live on their cards.
+
 ## Beta v1.14.110 (2026-11-05)
 
 - **Zelda 1 + Metroid: map and icon tracker, both with their own pop-out.** The tracker's Items show every item's picture (Link's the hub's Zelda 1 icons, Samus's new pixel icons, plus tanks, missiles, Kraid and Ridley). A new Map tab: Hyrule's overworld drawn from the Zelda ROM being played and Zebes from Metroid's own map, a pin on every spot (a dungeon's on its entrance), the portals ringed in purple, Link and Samus where they are (Follow switches worlds with the portal), zoom, ⟲ re-centre. ⧉ Tracker and ⧉ Map each open in a window of their own (a second screen, or a stream capture).

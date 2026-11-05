@@ -35,14 +35,18 @@ nothing uploaded: your ROMs stay in your browser.
     are the hub's Zelda 3 tracker's own (`../tracker/items/`), Metroid's the
     hub's pixel icons (`js/icons.js`).
   - **Map** (`js/map.js`): the Light and Dark World (the Zelda 3 tracker's map
-    pictures, with its check positions: a dungeon's checks sit on its marker)
+    pictures, with its check positions: the overworld's checks; the dungeons'
+    are on their cards)
     and Super Metroid's six areas, drawn from the SM half of the ROM being
-    played the way the game draws its pause map; a pin on every one of the
-    316 locations, coloured by the logic, Link or Samus where they are
+    played the way the game draws its pause map; a pin on every overworld and
+    Metroid location, coloured by the logic, Link or Samus where they are
     (Follow switches to their world), pan / pinch / wheel zoom, ⟲ re-centre.
-  - **Bosses**: the ten dungeons and Agahnim, and Kraid, Phantoon, Draygon and
-    Ridley, each with its prize (crystal, pendant or boss token) once it's
-    beaten. The prizes, medallions and crystal counts are read from the ROM
+  - **Dungeons** (as Mudora's cards): each of the 13 with its prize (once the
+    boss falls, or with Reveal), chests left, small keys in hand, big key, map
+    and compass (read from the save block), and its boss; tap a card for its
+    checks. Then the bosses: the ten dungeons' and Agahnim, Kraid, Phantoon,
+    Draygon and Ridley, each with its prize (crystal, pendant or boss token)
+    once it's beaten. The prizes, medallions and crystal counts are read from the ROM
     itself, so they're right for samus.link's seeds too.
   - **Checks**: all 316 locations by region, each ticked as the game marks it
     taken; coloured by SMZ3's own logic (green: reachable with what you have,

@@ -64,6 +64,19 @@
     ['Swamp Palace', 'Arrghus'], ['Skull Woods', 'Mothula'], ["Thieves' Town", 'Blind'], ['Ice Palace', 'Kholdstare'], ['Misery Mire', 'Vitreous'], ['Turtle Rock', 'Trinexx']];
   const BOSS_LOC = Z3_BOSSES.map(([r, b]) => LOCS.findIndex((l) => l.name === r + ' - ' + b));
   const SM_BOSSES = [['Brinstar Kraid', 'Kraid', 1], ['Wrecked Ship', 'Phantoon', 3], ['Maridia Inner', 'Draygon', 4], ['Norfair Lower East', 'Ridley', 2]];
+  // the dungeons, as Mudora's cards: [key, short, region, big key [offset, mask], map [offset, mask], compass [offset, mask], small keys in hand (offset), their number]
+  // (the save block: $7EF000..; Hutch's tracker's offsets; keys in hand per dungeon at $F4E0.. as the game keeps them)
+  const DUNGEONS = [
+    ['hc', 'HC', 'Hyrule Castle', [0x367, 0x40], [0x369, 0x40], null, 0x4E0, 1], ['ep', 'EP', 'Eastern Palace', [0x367, 0x20], [0x369, 0x20], [0x365, 0x20], 0x4E2, 0],
+    ['dp', 'DP', 'Desert Palace', [0x367, 0x10], [0x369, 0x10], [0x365, 0x10], 0x4E3, 1], ['toh', 'ToH', 'Tower of Hera', [0x366, 0x20], [0x368, 0x20], [0x364, 0x20], 0x4EA, 1],
+    ['ct', 'AT', 'Castle Tower', null, null, null, 0x4E4, 2], ['pod', 'PoD', 'Palace of Darkness', [0x367, 0x02], [0x369, 0x02], [0x365, 0x02], 0x4E6, 6],
+    ['sp', 'SP', 'Swamp Palace', [0x367, 0x04], [0x369, 0x04], [0x365, 0x04], 0x4E5, 1], ['sw', 'SW', 'Skull Woods', [0x366, 0x80], [0x368, 0x80], [0x364, 0x80], 0x4E8, 3],
+    ['tt', 'TT', "Thieves' Town", [0x366, 0x10], [0x368, 0x10], [0x364, 0x10], 0x4EB, 1], ['ip', 'IP', 'Ice Palace', [0x366, 0x40], [0x368, 0x40], [0x364, 0x40], 0x4E9, 2],
+    ['mm', 'MM', 'Misery Mire', [0x367, 0x01], [0x369, 0x01], [0x365, 0x01], 0x4E7, 3], ['tr', 'TR', 'Turtle Rock', [0x366, 0x08], [0x368, 0x08], [0x364, 0x08], 0x4EC, 4],
+    ['gt', 'GT', "Ganon's Tower", [0x366, 0x04], [0x368, 0x04], [0x364, 0x04], 0x4ED, 4],
+  ];
+  const DG_LOCS = DUNGEONS.map(([, , region]) => LOCS.map((l, i) => l.region === region && !/Knights$|Lanmolas$|Moldorm$|Helmasaur King$|Arrghus$|Mothula$|Blind$|Kholdstare$|Vitreous$|Trinexx$/.test(l.name) ? i : -1).filter((i) => i >= 0));
+  const DG_BOSS = DUNGEONS.map(([, , region]) => { const b = Z3_BOSSES.findIndex(([r]) => r === region); return b >= 0 ? BOSS_LOC[b] : -1; });
 
   // ── reading the game ─────────────────────────────────────────────────────
   function readLive() {
@@ -91,7 +104,9 @@
     SM_ITEMS.forEach(([k, , f]) => { inv[k] = f(m) || 0; });
     const smBoss = SM_BOSSES.map(([, , area]) => !!(m.bosses[area] & 1));
     const z3Boss = BOSS_LOC.map((i) => i >= 0 && checks[i]);
-    return { game, started, checks, inv, smBoss, z3Boss, aga: z[0x3C5] >= 3, pendants: z[0x374], crystals: z[0x37A], hearts: z[0x36C] >> 3, wram: r };
+    const bit = (f) => !!(f && z[f[0]] & f[1]);
+    const dun = DUNGEONS.map((d) => ({ bk: bit(d[3]), map: bit(d[4]), compass: bit(d[5]), keys: z[d[6]] || 0 }));
+    return { game, started, checks, inv, smBoss, z3Boss, aga: z[0x3C5] >= 3, pendants: z[0x374], crystals: z[0x37A], hearts: z[0x36C] >> 3, wram: r, dun };
   }
 
   // the logic: the world as this ROM has it, and what the inventory reaches
@@ -153,13 +168,15 @@
       '<div class="t-tabs" role="tablist">' +
         '<button type="button" role="tab" data-view="items">Items</button>' +
         '<button type="button" role="tab" data-view="map">Map</button>' +
-        '<button type="button" role="tab" data-view="bosses">Bosses</button>' +
+        '<button type="button" role="tab" data-view="bosses">Dungeons</button>' +
         '<button type="button" role="tab" data-view="checks">Checks</button>' +
         '<button type="button" role="tab" data-view="seed">Seed</button>' +
       '</div>' +
       '<div class="t-view items"><div class="t-sec"><h4>Zelda <span id="n-z3"></span></h4><div class="grid gear" id="g-z3"></div></div>' +
         '<div class="t-sec"><h4>Super Metroid <span id="n-sm"></span></h4><div class="grid gear" id="g-sm"></div></div></div>' +
-      '<div class="t-view bosses"><div class="t-sec"><h4>Dungeons <span id="n-dun"></span></h4><div class="grid bosses" id="g-dun"></div></div>' +
+      '<div class="t-view bosses"><div class="t-sec"><h4>Dungeons <span id="n-dun"></span></h4><div class="grid dungeons" id="g-dg"></div>' +
+        '<p class="fine">Each card: its prize (once the boss falls, or with Reveal), chests left, small keys in hand, big key · map · compass, the boss. Tap a card to open its checks.</p></div>' +
+        '<div class="t-sec"><h4>Bosses <span id="n-dun"></span></h4><div class="grid bosses" id="g-dun"></div></div>' +
         '<div class="t-sec"><h4>Metroid bosses <span id="n-smb"></span></h4><div class="grid bosses" id="g-smb"></div></div>' +
         '<div class="t-sec"><h4>The way to the end</h4><div id="g-goal" class="goal-box"></div></div></div>' +
       '<div class="t-view checks"><div class="t-sec"><h4>Locations <span id="n-checks"></span></h4>' +
@@ -175,6 +192,10 @@
     const BOSS_PIC = ['boss0', 'boss1', 'boss2', 'boss3', 'boss4', 'boss5', 'boss6', 'boss7', 'boss8', 'boss9'];
     $('g-dun').innerHTML = Z3_BOSSES.map(([r, b], i) => '<button type="button" class="cell boss" data-k="checks" data-i="' + BOSS_LOC[i] + '"><span class="ico"><img src="../tracker/boss/' + BOSS_PIC[i] + '.png" alt=""></span><b>' + esc(b) + '</b><small>' + esc(r) + '</small><span class="who"></span></button>').join('') +
       '<div class="cell boss" id="c-aga"><span class="ico"><img src="../tracker/items/aga11.png" alt=""></span><b>Agahnim</b><small>Castle Tower</small></div>';
+    $('g-dg').innerHTML = DUNGEONS.map(([k, short, region], d) => '<div class="dg" data-dg="' + d + '" title="' + esc(region) + '"><span class="top"><span class="nm">' + esc(short) + '</span><span class="pz"></span></span>' +
+      '<span class="row"><img class="ic bk" src="../tracker/items/bigkey1.png" alt="big key" title="Big key"><img class="ic mp" src="../tracker/items/map1.png" alt="map" title="Map"><img class="ic cp" src="../tracker/items/compass1.png" alt="compass" title="Compass"><span class="key"></span></span>' +
+      '<span class="row"><span class="n" title="Chests left"></span><span class="boss" title="The boss"></span></span></div>').join('');
+    $('g-dg').addEventListener('click', (e) => { const c = e.target.closest('.dg'); if (!c) return; setView('checks'); const el = root.querySelector('.area[data-r="' + REGIONS.findIndex((r) => r.name === DUNGEONS[+c.dataset.dg][2]) + '"]'); if (el) el.scrollIntoView({ block: 'start' }); });
     const SMB_PIC = ['kraid', 'phantoon', 'draygon', 'ridley'];
     $('g-smb').innerHTML = SM_BOSSES.map(([r, b], i) => '<div class="cell boss" data-smb="' + i + '"><span class="ico">' + smPic(SMB_PIC[i]) + '</span><b>' + esc(b) + '</b><small>' + esc(r.replace('Brinstar ', '').replace('Norfair Lower East', 'Lower Norfair').replace('Maridia Inner', 'Maridia')) + '</small><span class="who"></span></div>').join('');
     if (window.SMZ3Map) SMZ3Map.init($('g-map'), { onToggle: (i) => toggle('checks', i), names: (i) => LOCS[i].name, locs: LOCS });
@@ -235,6 +256,19 @@
     $('c-aga').classList.toggle('have', aga);
     const smb = SM_BOSSES.map((x, i) => !!(live && live.started && live.smBoss[i]));
     root.querySelectorAll('[data-smb]').forEach((el) => { const i = +el.dataset.smb; el.classList.toggle('have', smb[i]); el.querySelector('.who').textContent = smb[i] || reveal ? prizeOf(SM_BOSSES[i][0]) : ''; });
+    root.querySelectorAll('.dg').forEach((el) => {
+      const d = +el.dataset.dg, [k, , region, bk, mp, cp, , nKeys] = DUNGEONS[d], L = live && live.started ? live.dun[d] : null;
+      const locs = DG_LOCS[d], left = locs.filter((i) => !s.checks[i]).length, done = DG_BOSS[d] >= 0 ? !!s.checks[DG_BOSS[d]] : (k === 'ct' ? aga : false);
+      el.classList.toggle('done', done); el.classList.toggle('clear', left === 0);
+      el.querySelector('.n').textContent = left; el.querySelector('.n').classList.toggle('zero', left === 0);
+      el.querySelector('.key').textContent = nKeys ? '🗝' + (L ? L.keys : 0) + '/' + nKeys : '';
+      el.querySelector('.bk').hidden = !bk; el.querySelector('.bk').classList.toggle('off', !(L && L.bk));
+      el.querySelector('.mp').hidden = !mp; el.querySelector('.mp').classList.toggle('off', !(L && L.map));
+      el.querySelector('.cp').hidden = !cp; el.querySelector('.cp').classList.toggle('off', !(L && L.compass));
+      const pz = (k === 'hc' || k === 'ct' || k === 'gt') ? '' : ((done || reveal) ? prizeOf(region) : '?');
+      el.querySelector('.pz').textContent = pz; el.querySelector('.pz').className = 'pz' + (/Crystal/.test(pz) ? ' crystal' : /Pendant/.test(pz) ? ' pendant' : '');
+      el.querySelector('.boss').textContent = DG_BOSS[d] >= 0 ? (done ? '✓ ' : '') + Z3_BOSSES.find(([r]) => r === region)[1] : k === 'ct' ? (done ? '✓ ' : '') + 'Agahnim' : '';
+    });
     $('n-dun').textContent = Z3_BOSSES.filter((_, i) => s.checks[BOSS_LOC[i]]).length + '/10';
     $('n-smb').textContent = smb.filter(Boolean).length + '/4';
     const crystals = live && live.started ? popcount(live.crystals) : 0, pendants = live && live.started ? popcount(live.pendants) : 0;

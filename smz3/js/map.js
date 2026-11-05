@@ -4,9 +4,9 @@
  * positions) and Super Metroid's six areas, drawn from the SM half of the ROM
  * being played the way the game draws its pause map (as ../sm/js/map.js; the
  * combo keeps SM's banks interleaved: bank b at b * $10000 + $8000, banks $40+
- * at (b − $40) * $10000). A pin on every one of the 316 locations (a dungeon's
- * on its map marker, a Metroid item's where it sits, from the SM page's pins
- * by collected bit), Link or Samus where they are, in the hub's shared map
+ * at (b − $40) * $10000). A pin on every overworld location (the dungeons'
+ * are on the tracker's dungeon cards) and every Metroid item (where it sits,
+ * from the SM page's pins by collected bit), Link or Samus where they are, in the hub's shared map
  * viewer (../world-map.js). ⧉ Map puts it in a window of its own.
  *
  *   SMZ3Map.init(el, { onToggle(i), names, locs })   locs: the tracker's LOCS (index = pin i)
@@ -40,7 +40,7 @@
     ['Catfish', 'dw', 90.5, 17.2], ['Pyramid Fairy', 'dw', 47, 48.5], ['Pyramid', 'dw', 58, 43.5], ['Digging Game', 'dw', 5.8, 69.2], ['Stumpy', 'dw', 31, 68.6], ['Hype Cave', 'dw', 60, 77.1], ['Mire Shed', 'dw', 3.4, 79.5],
   ];
   function zeldaPlace(loc) {
-    if (DUN[loc.region] && loc.region !== 'Hyrule Castle') return DUN[loc.region];
+    if (DUN[loc.region] && loc.region !== 'Hyrule Castle') return null;   // a dungeon's checks are on its card, not the map
     const p = PLACES.find(([n]) => loc.name === n || loc.name.indexOf(n + ' - ') === 0);
     return p ? pct(p[1], p[2], p[3]) : DUN[loc.region] || null;
   }

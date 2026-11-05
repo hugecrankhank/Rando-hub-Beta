@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="version" content="1.14.110">
+<meta name="version" content="1.14.111">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>SMZ3 Randomizer - Rando Hub</title>
 <meta name="description" content="Roll SMZ3 (Super Metroid + A Link to the Past combo randomizer) seeds from your own two ROMs, play them right here, and track both games.">
@@ -106,6 +106,14 @@
   .cell .ico { display: block; width: 32px; height: 32px; margin: 0 auto 3px; } .cell .ico svg, .cell .ico img { width: 100%; height: 100%; display: block; object-fit: contain; image-rendering: pixelated; }
   .cell:not(.have) .ico { opacity: .32; filter: grayscale(.6); }
   .map-legend { margin: 6px 0 0; }
+  .grid.dungeons { grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 4px; }
+  .dg { display: flex; flex-direction: column; gap: 3px; background: var(--cell); border: 2px solid var(--cell-line); border-radius: 4px; padding: 5px 6px; cursor: pointer; font-size: 12px; min-width: 0; }
+  .dg .top { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; }
+  .dg.clear { border-color: var(--green); } .dg.done { border-color: var(--gold); background: #2c2a1a; }
+  .dg .nm { font: 400 14px/1 var(--px); color: var(--gold); } .dg .pz { font-size: 11px; color: var(--dim); text-align: right; } .dg .pz.crystal { color: #7fd1ff; } .dg .pz.pendant { color: #ffd166; }
+  .dg .row { display: flex; align-items: center; justify-content: space-between; gap: 4px; min-width: 0; } .dg .ic { width: 16px; height: 16px; image-rendering: pixelated; } .dg .ic.off { opacity: .3; filter: grayscale(1); } .dg .ic[hidden] { display: none; }
+  .dg .key { font-size: 11px; color: var(--dim); } .dg .n { font: 400 13px/1 var(--px); color: var(--text); } .dg .n.zero { color: var(--green); } .dg .boss { font-size: 11px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #tracker.compact .grid.dungeons { grid-template-columns: repeat(2, 1fr); }
   .cell.key b, .cell.char b { font-size: 12px; white-space: normal; text-align: center; line-height: 1.1; }
   .cell.key .where { font-size: 9.5px; color: var(--gold); white-space: normal; text-align: center; line-height: 1.15; }
   .grid.gear { grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); } .cell.gear b { font-size: 12px; white-space: normal; text-align: center; line-height: 1.1; }
