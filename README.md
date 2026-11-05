@@ -528,8 +528,10 @@ inside the hub, with its own emulator, seed generator, tracker and saves.
   ported to run in your browser, from your own Super Metroid and Japanese Link to the Past 1.0
   ROMs: the same seed and settings make the same game as samus.link (checked byte for byte).
   Every setting samus.link has, share codes, spoiler; played on the hub's Snes9x. The tracker
-  reads both games whichever is running: items, bosses with their prizes, and all 316 locations,
-  coloured by SMZ3's own logic. A samus.link seed plays with Play ROM file.
+  reads both games whichever is running: items (with their pictures), bosses with their prizes,
+  all 316 locations coloured by SMZ3's own logic, and a map (the Light and Dark World, Zebes'
+  six areas drawn from the ROM) with a pin on every location; the tracker and the map each pop
+  out into a window of their own. A samus.link seed plays with Play ROM file.
 - **Zelda 1 + Metroid** (`zm/`): Rando Hub's own linked randomizer, nothing of anyone else's.
   Both games run in the hub's NES emulator, one at a time: Hyrule's four "take any road"
   caves are portals to Zebes, and Zebes' elevator rooms lead back (the ⇄ button). One item
@@ -538,7 +540,9 @@ inside the hub, with its own emulator, seed generator, tracker and saves.
   (Ganon and Mother Brain both). A Metroid item in Hyrule looks like five rupees, a Hyrule
   item on Zebes like a missile pack; the hub sees the pickup and hands the real item over
   when you're next in the other world. The tracker follows both games (the one playing and
-  the one waiting), every spot coloured by the seed's logic. From your own Zelda (USA) and
+  the one waiting), every spot coloured by the seed's logic, with item icons and a map of both
+  worlds (Hyrule drawn from your ROM, Zebes from Metroid's own map) that pops out on its own,
+  as the tracker does. From your own Zelda (USA) and
   Metroid (USA) ROMs; both ROMs the generator writes carry the combined title (Zelda's with
   "METROID" carved under the box, Metroid's with "THE LEGEND OF ZELDA" in gold above its
   logo), and every portal plays a transition between the two worlds' frames.

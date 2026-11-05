@@ -27,7 +27,7 @@
   const Z = window.ZM, M = window.M1, G = window.ZMGen;
   const $ = (id) => document.getElementById(id);
   const ZN = Z.SPOTS.length;
-  let cores = { z1: null, m1: null }, game = 'z1', at = null, id = null;
+  let cores = { z1: null, m1: null }, game = 'z1', at = null, id = null, roms = { z1: null, m1: null };
   let states = { z1: null, m1: null }, pending = { z1: [], m1: [] }, taken = new Set(), given = { z1: 0, m1: 0 };
   let armed = { z1: true, m1: true }, fns = [], switching = false, lastSig = '', won = { z1: false, m1: false };
   const toastFn = (t, ms) => (window.ZMToast || ((x) => console.log('[zm]', x)))(t, ms);
@@ -155,7 +155,7 @@
 
   // ── start ────────────────────────────────────────────────────────────────
   function start(o) {
-    at = o.at; id = o.id; game = 'z1';
+    at = o.at; id = o.id; game = 'z1'; roms = { z1: o.z1, m1: o.m1 };
     const p = window.EmuPlayer;
     return (o.resume ? ZMStore.get('link:' + id) : Promise.resolve(null)).then((saved) => {
       if (saved) {
@@ -191,5 +191,6 @@
     get state() { return { game, taken, pending, given, won }; },
     onChange(f) { fns.push(f); },
     get cores() { return cores; },
+    get roms() { return roms; },   // the two ROMs being played (the map draws Hyrule from Zelda's)
   };
 })();

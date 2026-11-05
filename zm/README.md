@@ -31,9 +31,18 @@ of anyone else's randomizer is used; the games come from your own two ROMs.
   played: Link's inventory (`$0657..`), Samus's gear (`$6878`), tanks (`$6877`)
   or missiles (`$6879`/`$687A`). A toast says what was found and what arrived.
 - **Tracker**: Link's and Samus's items (both games read, the one playing and
-  the one waiting), every spot of both worlds ticked as it's taken and coloured
-  by the seed's logic, the portals, what's waiting for whom, and the goal.
-  Reveal shows every spot's item and the spoiler.
+  the one waiting), each with its picture (Link's the hub's Zelda 1 icons,
+  Samus's `js/icons.js`), every spot of both worlds ticked as it's taken and
+  coloured by the seed's logic, the portals, what's waiting for whom, and the
+  goal. Reveal shows every spot's item and the spoiler.
+- **Map** (`js/map.js`): Hyrule's overworld, drawn from the Zelda ROM being
+  played (`../z1r/js/owmap.js`), and Zebes, drawn from Metroid's own 32 x 32
+  map, in the hub's shared viewer (`../world-map.js`): a pin on every spot
+  (a dungeon's on its entrance), the portals ringed in purple, Link and Samus
+  where they are (Follow switches worlds with the portal), pan / pinch /
+  wheel zoom, ⟲ re-centre.
+- **⧉ Tracker** and **⧉ Map** (desktop): each in a window of its own, for a
+  second screen or a stream capture (`../game-popout.js`).
 - **Saves**: both games' states are kept (every 20 s, at every portal, and
   when the app goes to the background; a frozen game isn't saved), so Continue
   picks up both worlds. The Download buttons give the two ROMs for any

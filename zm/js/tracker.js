@@ -14,16 +14,23 @@
   let root = null, sessionId = 'manual', meta = {}, manual = {}, link = 'manual', view = 'items', compact = false, reveal = false;
   const linkFns = [];
 
-  // Link's items: [key, label, read(ram) → level, max]
+  // Link's items: [key, label, read(ram) → level, max, icon (../z1r/js/icons.js), tints per level]
   const Z_ITEMS = [
-    ['sword', 'Sword', (r) => r[0x657], 3], ['boom', 'Boomerang', (r) => r[0x675] ? 2 : r[0x674] ? 1 : 0, 2], ['bow', 'Bow', (r) => r[0x65A]], ['arrows', 'Arrows', (r) => r[0x659], 2],
-    ['candle', 'Candle', (r) => r[0x65B], 2], ['recorder', 'Recorder', (r) => r[0x65C]], ['bait', 'Bait', (r) => r[0x65D]], ['wand', 'Wand', (r) => r[0x65F]], ['raft', 'Raft', (r) => r[0x660]],
-    ['book', 'Book', (r) => r[0x661]], ['ring', 'Ring', (r) => r[0x662], 2], ['ladder', 'Ladder', (r) => r[0x663]], ['mkey', 'Magical Key', (r) => r[0x664]], ['bracelet', 'Bracelet', (r) => r[0x665]],
-    ['letter', 'Letter', (r) => r[0x666] ? 1 : 0], ['hearts', 'Hearts', (r) => (r[0x66F] >> 4) + 1, 16], ['triforce', 'Triforces', (r) => { let n = 0; for (let v = r[0x671]; v; v >>= 1) n += v & 1; return n; }, 8],
+    ['sword', 'Sword', (r) => r[0x657], 3, 'sword', [null, { x: 'N', z: 'T' }, { x: 'W', z: 'G' }, { x: 'C', z: 'B' }]],
+    ['boom', 'Boomerang', (r) => r[0x675] ? 2 : r[0x674] ? 1 : 0, 2, 'boomerang', [null, { x: 'N', z: 'Y' }, { x: 'B', z: 'C' }]],
+    ['bow', 'Bow', (r) => r[0x65A], 0, 'bow'], ['arrows', 'Arrows', (r) => r[0x659], 2, 'arrow', [null, { x: 'Y', z: 'G' }, { x: 'W', z: 'C' }]],
+    ['candle', 'Candle', (r) => r[0x65B], 2, 'candle', [null, { x: 'B', z: 'C' }, { x: 'R', z: 'O' }]], ['recorder', 'Recorder', (r) => r[0x65C], 0, 'recorder'],
+    ['bait', 'Bait', (r) => r[0x65D], 0, 'bait'], ['wand', 'Wand', (r) => r[0x65F], 0, 'wand'], ['raft', 'Raft', (r) => r[0x660], 0, 'raft'],
+    ['book', 'Book', (r) => r[0x661], 0, 'book'], ['ring', 'Ring', (r) => r[0x662], 2, 'ring', [null, { x: 'B', z: 'C' }, { x: 'R', z: 'O' }]], ['ladder', 'Ladder', (r) => r[0x663], 0, 'ladder'],
+    ['mkey', 'Magical Key', (r) => r[0x664], 0, 'key'], ['bracelet', 'Bracelet', (r) => r[0x665], 0, 'bracelet'], ['letter', 'Letter', (r) => r[0x666] ? 1 : 0, 0, 'letter', [null, { x: 'G', z: 'G' }]],
+    ['hearts', 'Hearts', (r) => (r[0x66F] >> 4) + 1, 16, 'heart'], ['triforce', 'Triforces', (r) => { let n = 0; for (let v = r[0x671]; v; v >>= 1) n += v & 1; return n; }, 8, 'triforce'],
   ];
+  // Samus's: [key, label, gear bit, icon (js/icons.js)]
   const S_ITEMS = [
-    ['mm', 'Maru Mari', 4], ['b', 'Bombs', 0], ['hj', 'High Jump', 1], ['lb', 'Long Beam', 2], ['sa', 'Screw Attack', 3], ['va', 'Varia', 5], ['wb', 'Wave Beam', 6], ['ib', 'Ice Beam', 7],
+    ['mm', 'Maru Mari', 4, 'mm'], ['b', 'Bombs', 0, 'b'], ['hj', 'High Jump', 1, 'hj'], ['lb', 'Long Beam', 2, 'lb'], ['sa', 'Screw Attack', 3, 'sa'], ['va', 'Varia', 5, 'va'], ['wb', 'Wave Beam', 6, 'wb'], ['ib', 'Ice Beam', 7, 'ib'],
   ];
+  const zIcon = (c, v) => window.Z1Icons ? Z1Icons.svg(c[4], c[5] && c[5][Math.min(Math.max(v, 1), c[5].length - 1)]) : '';
+  const sIcon = (n) => window.M1Icons ? M1Icons.svg(n) : '';
   function readZelda() {
     const r = K.ram('z1'); if (!r || !K.inPlay('z1')) return null;
     const o = {}; Z_ITEMS.forEach(([k, , f]) => { o[k] = f(r) || 0; }); return o;
@@ -56,7 +63,7 @@
     const regions = []; G.SPOTS.forEach((s) => { let r = regions.find((x) => x.name === s.region); if (!r) regions.push(r = { name: s.name && s.region, locs: [] }); r.locs.push(s.i); });
     root.innerHTML =
       '<div class="t-stats" id="t-stats"></div>' +
-      '<div class="t-tabs" role="tablist"><button type="button" role="tab" data-view="items">Items</button><button type="button" role="tab" data-view="locs">Spots</button><button type="button" role="tab" data-view="seed">Seed</button></div>' +
+      '<div class="t-tabs" role="tablist"><button type="button" role="tab" data-view="items">Items</button><button type="button" role="tab" data-view="map">Map</button><button type="button" role="tab" data-view="locs">Spots</button><button type="button" role="tab" data-view="seed">Seed</button></div>' +
       '<div class="t-view items">' +
         '<div class="t-sec"><h4>Link <span id="n-z"></span></h4><div class="grid gear" id="g-z"></div></div>' +
         '<div class="t-sec"><h4>Samus <span id="n-s"></span></h4><div class="grid gear" id="g-s"></div><div class="mario-line" id="g-sline"></div></div>' +
@@ -66,13 +73,17 @@
         regions.map((r, ri) => '<div class="area" data-r="' + ri + '"><h5><span>' + esc(r.name) + '</span><span class="an"></span></h5><div class="list">' +
           r.locs.map((i) => '<button type="button" class="chk" data-k="locs" data-i="' + i + '"><i></i>' + esc(G.SPOTS[i].name) + '<span class="what"></span></button>').join('') + '</div></div>').join('') +
         '</div></div></div>' +
+      '<div class="t-view map"><div id="g-map"></div><p class="fine legend map-legend"><span class="dot ok"></span> in logic · <span class="dot no"></span> not yet · <span class="portal-dot"></span> a portal · Hyrule is drawn from the Zelda ROM being played; a dungeon’s spots sit on its entrance</p></div>' +
       '<div class="t-view seed"><div class="t-sec" id="g-seed"></div></div>' +
       '<div class="t-foot"><span id="t-link"></span><button type="button" class="linkish" id="t-clear">Clear manual ticks</button></div>';
     root._regions = regions;
     root.querySelectorAll('.t-tabs button').forEach((b) => b.addEventListener('click', () => setView(b.dataset.view)));
     $('t-clear').addEventListener('click', () => { manual = {}; saveManual(); render(); });
-    $('g-z').innerHTML = Z_ITEMS.map(([k, label]) => '<div class="cell gear" data-z="' + k + '"><b>' + esc(label) + '</b><small class="n"></small></div>').join('');
-    $('g-s').innerHTML = S_ITEMS.map(([k, label]) => '<div class="cell gear" data-s="' + k + '"><b>' + esc(label) + '</b></div>').join('');
+    $('g-z').innerHTML = Z_ITEMS.map((c) => '<div class="cell gear" data-z="' + c[0] + '" title="' + esc(c[1]) + '"><span class="ico">' + zIcon(c, 1) + '</span><b>' + esc(c[1]) + '</b><small class="n"></small></div>').join('');
+    $('g-s').innerHTML = S_ITEMS.map((c) => '<div class="cell gear" data-s="' + c[0] + '" title="' + esc(c[1]) + '"><span class="ico">' + sIcon(c[3]) + '</span><b>' + esc(c[1]) + '</b></div>').join('') +
+      '<div class="cell gear wide" data-s="tanks"><span class="ico">' + sIcon('tank') + '</span><b>Tanks</b><small class="n"></small></div><div class="cell gear wide" data-s="missiles"><span class="ico">' + sIcon('missile') + '</span><b>Missiles</b><small class="n"></small></div>' +
+      '<div class="cell gear" data-s="kraid"><span class="ico">' + sIcon('kraid') + '</span><b>Kraid</b></div><div class="cell gear" data-s="ridley"><span class="ico">' + sIcon('ridley') + '</span><b>Ridley</b></div>';
+    if (window.ZMMap) ZMMap.init($('g-map'), { onToggle: (i) => toggle('locs', i), names: (i) => G.SPOTS[i].name });
     root.addEventListener('click', (e) => {
       const b = e.target.closest('[data-k]'); if (b && root.contains(b)) toggle(b.dataset.k, +b.dataset.i);
       if (e.target.id === 't-reveal') { reveal = e.target.checked; render(); }
@@ -82,14 +93,15 @@
   function setView(v) {
     view = v; root.dataset.view = v;
     root.querySelectorAll('.t-tabs button').forEach((b) => b.setAttribute('aria-selected', b.dataset.view === v ? 'true' : 'false'));
+    if (v === 'map' && window.ZMMap) setTimeout(() => ZMMap.redraw(), 0);
     try { localStorage.setItem('zmr:view', v); } catch (e) {}
   }
 
   function render() {
     if (!root) return;
     const z = readZelda(), s = readSamus(), st = K.state, inv = keys(z, s);
-    root.querySelectorAll('[data-z]').forEach((el) => { const c = Z_ITEMS.find((x) => x[0] === el.dataset.z), v = z ? z[c[0]] : 0; el.classList.toggle('have', v > 0); el.querySelector('.n').textContent = c[3] && v ? (c[3] > 3 ? v : v + '/' + c[3]) : ''; });
-    root.querySelectorAll('[data-s]').forEach((el) => { el.classList.toggle('have', !!(s && s[el.dataset.s])); });
+    root.querySelectorAll('[data-z]').forEach((el) => { const c = Z_ITEMS.find((x) => x[0] === el.dataset.z), v = z ? z[c[0]] : 0; el.classList.toggle('have', v > 0); el.querySelector('.n').textContent = c[3] && v ? (c[3] > 3 ? v : v + '/' + c[3]) : ''; if (c[5]) el.querySelector('.ico').innerHTML = zIcon(c, v); });
+    root.querySelectorAll('[data-s]').forEach((el) => { const k = el.dataset.s, v = s ? s[k] : 0; el.classList.toggle('have', !!v); const n = el.querySelector('.n'); if (n) n.textContent = v ? (k === 'tanks' ? v + '/8' : String(v)) : ''; });
     $('n-z').textContent = z ? Z_ITEMS.filter(([k]) => z[k] && k !== 'hearts' && k !== 'triforce').length + ' items · ' + z.hearts + ' hearts · ' + z.triforce + '/8 triforces' : 'not in play yet';
     $('n-s').textContent = s ? S_ITEMS.filter(([k]) => s[k]).length + '/8' : 'not in play yet';
     $('g-sline').innerHTML = s ? '<span>Tanks ' + s.tanks + '/8</span><span>Missiles ' + s.missiles + '</span>' + (s.kraid ? '<span>Kraid ✓</span>' : '') + (s.ridley ? '<span>Ridley ✓</span>' : '') : '';
@@ -107,6 +119,7 @@
     });
     root.querySelectorAll('.area').forEach((el) => { const r = root._regions[+el.dataset.r], d = r.locs.filter((i) => taken.has(i) || (manual.locs && manual.locs[i])).length; el.querySelector('.an').textContent = d + '/' + r.locs.length; el.classList.toggle('done', d === r.locs.length); });
     $('n-locs').textContent = n + '/' + G.SPOTS.length + ' · ' + reach.filter((v, i) => v === 'ok' && !taken.has(i)).length + ' in logic';
+    if (window.ZMMap) ZMMap.update({ have: G.SPOTS.map((sp, i) => taken.has(i) || !!(manual.locs && manual.locs[i])), items: reveal && meta.items ? meta.items.map((it) => G.itemName({ game: it[0], type: it[1] })) : null, liveHave: (i) => taken.has(i), reach: G.SPOTS.map((sp, i) => taken.has(i) ? null : reach[i]) });
     // the way
     const here = st.game === 'z1' ? 'Hyrule' : 'Zebes';
     const waiting = (g) => st.pending[g].length ? ' · ' + st.pending[g].map(G.itemName).join(', ') + ' waiting for ' + (g === 'z1' ? 'Link' : 'Samus') : '';
@@ -131,6 +144,7 @@
     const z = readZelda(), s = readSamus(), st = K.state;
     const sig = JSON.stringify([z, s, Array.from(st.taken), st.pending, st.game, K.atPortal(st.game)]);
     if (sig !== last) { last = sig; render(); }
+    if (window.ZMMap) ZMMap.live();
   }
 
   window.ZMTracker = {

@@ -31,7 +31,15 @@ nothing uploaded: your ROMs stay in your browser.
 - **Tracker**:
   - **Items**: Zelda's (swords, shields, mail, bow and silvers, boomerangs,
     rods, medallions, bottles, gloves…) and Super Metroid's (beams, suits,
-    boots, tanks and ammo), read from the game.
+    boots, tanks and ammo), read from the game, each with its picture: Zelda's
+    are the hub's Zelda 3 tracker's own (`../tracker/items/`), Metroid's the
+    hub's pixel icons (`js/icons.js`).
+  - **Map** (`js/map.js`): the Light and Dark World (the Zelda 3 tracker's map
+    pictures, with its check positions: a dungeon's checks sit on its marker)
+    and Super Metroid's six areas, drawn from the SM half of the ROM being
+    played the way the game draws its pause map; a pin on every one of the
+    316 locations, coloured by the logic, Link or Samus where they are
+    (Follow switches to their world), pan / pinch / wheel zoom, ⟲ re-centre.
   - **Bosses**: the ten dungeons and Agahnim, and Kraid, Phantoon, Draygon and
     Ridley, each with its prize (crystal, pendant or boss token) once it's
     beaten. The prizes, medallions and crystal counts are read from the ROM
@@ -41,6 +49,9 @@ nothing uploaded: your ROMs stay in your browser.
     keys aside).
   - **Seed**: the seed, its settings and share code; Reveal shows every
     location's item and the spoiler.
+  - **⧉ Tracker** and **⧉ Map** (desktop): each in a window of its own, for a
+    second screen or a stream capture (`../game-popout.js`): the live tracker
+    moves there, keeps autotracking, and comes back when the window closes.
 
 ## How the tracker reads the game
 
@@ -65,5 +76,5 @@ MIT), matched by ROM address (`js/data.js`).
   converted by a script, the rest by hand), `gen/texts.js` (its texts, from
   YAML), `gen/zsm.ips` (the combo base patch), the two MIT licences.
 - `js/data.js` — the base ROMs, the location memory table.
-- `js/seed.js` — the New seed dialog; `js/tracker.js` — the tracker.
+- `js/seed.js` — the New seed dialog; `js/tracker.js` — the tracker; `js/map.js` — its map (`../world-map.js`); `js/icons.js` — Metroid's item icons.
 - `js/app.js`, `js/store.js` — the player, saves, autosave (as `../smw/`).

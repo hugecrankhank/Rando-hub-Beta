@@ -432,7 +432,7 @@
         }
 
         CanEnter(items) {
-            return (items.Mirror || items.Hookshot && items.Hammer) && this.World.CanEnter("Light this.World Death Mountain West", items);
+            return (items.Mirror || items.Hookshot && items.Hammer) && this.World.CanEnter("Light World Death Mountain West", items);
         }
 
         CanComplete(items) {
@@ -491,7 +491,7 @@
         }
 
         CanEnter(items) {
-            return items.MoonPearl && this.World.CanEnter("Dark this.World North East", items);
+            return items.MoonPearl && this.World.CanEnter("Dark World North East", items);
         }
 
         CanComplete(items) {
@@ -539,7 +539,7 @@
         }
 
         CanEnter(items) {
-            return items.MoonPearl && items.Mirror && items.Flippers && this.World.CanEnter("Dark this.World South", items);
+            return items.MoonPearl && items.Mirror && items.Flippers && this.World.CanEnter("Dark World South", items);
         }
 
         CanComplete(items) {
@@ -578,7 +578,7 @@
         }
 
         CanEnter(items) {
-            return items.MoonPearl && this.World.CanEnter("Dark this.World North West", items);
+            return items.MoonPearl && this.World.CanEnter("Dark World North West", items);
         }
 
         CanComplete(items) {
@@ -623,7 +623,7 @@
         }
 
         CanEnter(items) {
-            return items.MoonPearl && this.World.CanEnter("Dark this.World North West", items);
+            return items.MoonPearl && this.World.CanEnter("Dark World North West", items);
         }
 
         CanComplete(items) {
@@ -729,7 +729,7 @@
         CanEnter(items) {
             return ((this.Medallion === Medallion.Bombos ? (items.Bombos) : (this.Medallion === Medallion.Ether ? (items.Ether) : (items.Quake)))) && items.Sword &&
                 items.MoonPearl && (items.Boots || items.Hookshot) &&
-                this.World.CanEnter("Dark this.World Mire", items);
+                this.World.CanEnter("Dark World Mire", items);
         }
 
         CanComplete(items) {
@@ -792,7 +792,7 @@
         CanEnter(items) {
             return ((this.Medallion === Medallion.Bombos ? (items.Bombos) : (this.Medallion === Medallion.Ether ? (items.Ether) : (items.Quake)))) && items.Sword &&
                 items.MoonPearl && items.CanLiftHeavy() && items.Hammer && items.Somaria &&
-                this.World.CanEnter("Light this.World Death Mountain East", items);
+                this.World.CanEnter("Light World Death Mountain East", items);
         }
 
         CanComplete(items) {
@@ -942,7 +942,7 @@
         }
 
         CanEnter(items) {
-            return items.MoonPearl && this.World.CanEnter("Dark this.World Death Mountain East", items) &&
+            return items.MoonPearl && this.World.CanEnter("Dark World Death Mountain East", items) &&
                 this.World.CanAcquireAtLeast(this.World.TowerCrystals, items, RewardType.AnyCrystal) &&
                 this.World.CanAcquireAtLeast(Math.trunc((this.World.TourianBossTokens * this.World.TowerCrystals) / 7), items, RewardType.AnyBossToken);
         }
@@ -965,7 +965,7 @@
   // Zelda.LightWorld.DeathMountain.West
   class Zelda_LightWorld_DeathMountain_West extends Z3Region {
 
-        get Name() { return "Light this.World Death Mountain West"; }
+        get Name() { return "Light World Death Mountain West"; }
         get Area() { return "Death Mountain"; }
 
         constructor(world, config) {
@@ -989,7 +989,7 @@
   // Zelda.LightWorld.DeathMountain.East
   class Zelda_LightWorld_DeathMountain_East extends Z3Region {
 
-        get Name() { return "Light this.World Death Mountain East"; }
+        get Name() { return "Light World Death Mountain East"; }
         get Area() { return "Death Mountain"; }
 
         constructor(world, config) {
@@ -1011,7 +1011,7 @@
         }
 
         CanEnter(items) {
-            return this.World.CanEnter("Light this.World Death Mountain West", items) && (
+            return this.World.CanEnter("Light World Death Mountain West", items) && (
                 items.Hammer && items.Mirror ||
                 items.Hookshot
             );
@@ -1021,7 +1021,7 @@
   // Zelda.LightWorld.NorthWest
   class Zelda_LightWorld_NorthWest extends Z3Region {
 
-        get Name() { return "Light this.World North West"; }
+        get Name() { return "Light World North West"; }
         get Area() { return "Light this.World"; }
 
         constructor(world, config) {
@@ -1037,11 +1037,11 @@
                 new Location(this, 256+18, 0x1EB3F, 'Regular', "Pegasus Rocks",
                     items => items.Boots),
                 new Location(this, 256+19, 0x308004, 'Regular', "Graveyard Ledge",
-                    items => items.Mirror && items.MoonPearl && this.World.CanEnter("Dark this.World North West", items)),
+                    items => items.Mirror && items.MoonPearl && this.World.CanEnter("Dark World North West", items)),
                 new Location(this, 256+20, 0x1E97A, 'Regular', "King's Tomb",
                     items => items.Boots && (
                         items.CanLiftHeavy() ||
-                        items.Mirror && items.MoonPearl && this.World.CanEnter("Dark this.World North West", items))),
+                        items.Mirror && items.MoonPearl && this.World.CanEnter("Dark World North West", items))),
                 new Location(this, 256+21, 0x1EA8E, 'Regular', "Kakariko Well - Top").Weighted(sphereOne),
                 new Location(this, 256+22, 0x1EA91, 'Regular', "Kakariko Well - Left").Weighted(sphereOne),
                 new Location(this, 256+23, 0x1EA94, 'Regular', "Kakariko Well - Middle").Weighted(sphereOne),
@@ -1066,7 +1066,7 @@
   // Zelda.LightWorld.NorthEast
   class Zelda_LightWorld_NorthEast extends Z3Region {
 
-        get Name() { return "Light this.World North East"; }
+        get Name() { return "Light World North East"; }
         get Area() { return "Light this.World"; }
 
         constructor(world, config) {
@@ -1095,7 +1095,7 @@
   // Zelda.LightWorld.South
   class Zelda_LightWorld_South extends Z3Region {
 
-        get Name() { return "Light this.World South"; }
+        get Name() { return "Light World South"; }
         get Area() { return "Light this.World"; }
 
         constructor(world, config) {
@@ -1108,7 +1108,7 @@
                 new Location(this, 256+241, 0x30814A, 'Regular', "Flute Spot",
                     items => items.Shovel),
                 new Location(this, 256+242, 0x308003, 'Regular', "South of Grove",
-                    items => items.Mirror && this.World.CanEnter("Dark this.World South", items)),
+                    items => items.Mirror && this.World.CanEnter("Dark World South", items)),
                 new Location(this, 256+243, 0x1E9BC, 'Regular', "Link's House").Weighted(sphereOne),
                 new Location(this, 256+244, 0x1E9F2, 'Regular', "Aginah's Cave").Weighted(sphereOne),
                 new Location(this, 256+51, 0x1EB42, 'Regular', "Mini Moldorm Cave - Far Left").Weighted(sphereOne),
@@ -1124,13 +1124,13 @@
                         items.CanAccessMiseryMirePortal(this.Config)
                     ) && items.CanLiftLight()),
                 new Location(this, 256+58, 0x308017, 'Bombos', "Bombos Tablet",
-                    items => items.Book && items.MasterSword && items.Mirror && this.World.CanEnter("Dark this.World South", items)),
+                    items => items.Book && items.MasterSword && items.Mirror && this.World.CanEnter("Dark World South", items)),
                 new Location(this, 256+59, 0x1E98C, 'Regular', "Floodgate Chest").Weighted(sphereOne),
                 new Location(this, 256+60, 0x308145, 'Regular', "Sunken Treasure").Weighted(sphereOne),
                 new Location(this, 256+61, 0x308144, 'Regular', "Lake Hylia Island",
                     items => items.Flippers && items.MoonPearl && items.Mirror && (
-                        this.World.CanEnter("Dark this.World South", items) ||
-                        this.World.CanEnter("Dark this.World North East", items))),
+                        this.World.CanEnter("Dark World South", items) ||
+                        this.World.CanEnter("Dark World North East", items))),
                 new Location(this, 256+62, 0x6BE7D, 'Regular', "Hobo",
                     items => items.Flippers),
                 new Location(this, 256+63, 0x1EB4E, 'Regular', "Ice Rod Cave").Weighted(sphereOne),
@@ -1175,7 +1175,7 @@
   // Zelda.DarkWorld.DeathMountain.West
   class Zelda_DarkWorld_DeathMountain_West extends Z3Region {
 
-        get Name() { return "Dark this.World Death Mountain West"; }
+        get Name() { return "Dark World Death Mountain West"; }
         get Area() { return "Dark this.World"; }
 
         constructor(world, config) {
@@ -1184,7 +1184,7 @@
                 new Location(this, 256+64, 0x1EA8B, 'Regular', "Spike Cave",
                     items => items.MoonPearl && items.Hammer && items.CanLiftLight() &&
                         (items.CanExtendMagic() && items.Cape || items.Byrna) &&
-                        this.World.CanEnter("Light this.World Death Mountain West", items)),
+                        this.World.CanEnter("Light World Death Mountain West", items)),
             ];
         }
   }
@@ -1192,7 +1192,7 @@
   // Zelda.DarkWorld.DeathMountain.East
   class Zelda_DarkWorld_DeathMountain_East extends Z3Region {
 
-        get Name() { return "Dark this.World Death Mountain East"; }
+        get Name() { return "Dark World Death Mountain East"; }
         get Area() { return "Dark this.World"; }
 
         constructor(world, config) {
@@ -1214,14 +1214,14 @@
         }
 
         CanEnter(items) {
-            return items.CanLiftHeavy() && this.World.CanEnter("Light this.World Death Mountain East", items);
+            return items.CanLiftHeavy() && this.World.CanEnter("Light World Death Mountain East", items);
         }
   }
   Zelda_DarkWorld_DeathMountain_East.prototype.kind = 'East';
   // Zelda.DarkWorld.NorthWest
   class Zelda_DarkWorld_NorthWest extends Z3Region {
 
-        get Name() { return "Dark this.World North West"; }
+        get Name() { return "Dark World North West"; }
         get Area() { return "Dark this.World"; }
 
         constructor(world, config) {
@@ -1255,7 +1255,7 @@
   // Zelda.DarkWorld.NorthEast
   class Zelda_DarkWorld_NorthEast extends Z3Region {
 
-        get Name() { return "Dark this.World North East"; }
+        get Name() { return "Dark World North East"; }
         get Area() { return "Dark this.World"; }
 
         constructor(world, config) {
@@ -1265,10 +1265,10 @@
                     items => items.MoonPearl && items.CanLiftLight()),
                 new Location(this, 256+79, 0x308147, 'Regular', "Pyramid"),
                 new Location(this, 256+80, 0x1E980, 'Regular', "Pyramid Fairy - Left",
-                    items => this.World.CanAcquireAll(items, RewardType.CrystalRed) && items.MoonPearl && this.World.CanEnter("Dark this.World South", items) &&
+                    items => this.World.CanAcquireAll(items, RewardType.CrystalRed) && items.MoonPearl && this.World.CanEnter("Dark World South", items) &&
                         (items.Hammer || items.Mirror && this.World.CanAcquire(items, RewardType.Agahnim))),
                 new Location(this, 256+81, 0x1E983, 'Regular', "Pyramid Fairy - Right",
-                    items => this.World.CanAcquireAll(items, RewardType.CrystalRed) && items.MoonPearl && this.World.CanEnter("Dark this.World South", items) &&
+                    items => this.World.CanAcquireAll(items, RewardType.CrystalRed) && items.MoonPearl && this.World.CanEnter("Dark World South", items) &&
                         (items.Hammer || items.Mirror && this.World.CanAcquire(items, RewardType.Agahnim)))
             ];
         }
@@ -1285,7 +1285,7 @@
   // Zelda.DarkWorld.South
   class Zelda_DarkWorld_South extends Z3Region {
 
-        get Name() { return "Dark this.World South"; }
+        get Name() { return "Dark World South"; }
         get Area() { return "Dark this.World"; }
 
         constructor(world, config) {
@@ -1315,7 +1315,7 @@
   // Zelda.DarkWorld.Mire
   class Zelda_DarkWorld_Mire extends Z3Region {
 
-        get Name() { return "Dark this.World Mire"; }
+        get Name() { return "Dark World Mire"; }
         get Area() { return "Dark this.World"; }
 
         constructor(world, config) {

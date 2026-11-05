@@ -5,6 +5,12 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.110 (2026-11-05)
+
+- **Zelda 1 + Metroid: map and icon tracker, both with their own pop-out.** The tracker's Items show every item's picture (Link's the hub's Zelda 1 icons, Samus's new pixel icons, plus tanks, missiles, Kraid and Ridley). A new Map tab: Hyrule's overworld drawn from the Zelda ROM being played and Zebes from Metroid's own map, a pin on every spot (a dungeon's on its entrance), the portals ringed in purple, Link and Samus where they are (Follow switches worlds with the portal), zoom, ⟲ re-centre. ⧉ Tracker and ⧉ Map each open in a window of their own (a second screen, or a stream capture).
+- **SMZ3: map and icon tracker, both with their own pop-out.** Items with their pictures (Zelda's the hub's Zelda 3 tracker's, Metroid's new icons; the dungeon bosses too). A Map tab: the Light and Dark World with a pin on all 216 Zelda locations (a dungeon's on its marker) and Super Metroid's six areas drawn from the ROM with its 100, coloured by SMZ3's logic, Link or Samus where they are. ⧉ Tracker / ⧉ Map pop-outs.
+- SMZ3: the region names read "Light World" / "Dark World" again (a slip in the port).
+
 ## Beta v1.14.109 (2026-11-05)
 
 - **Zelda 1 + Metroid: the combined title is in the ROMs now.** Both ROMs the generator writes carry it, so it shows in any emulator: Zelda's title gets "METROID" carved under the box among the rocks (the logo's tiles from your Metroid ROM, in the rocks' grays, in the 42 tile slots Zelda's font block leaves empty; PUSH START BUTTON moves to the top, the waterfall starts a row lower), and Metroid's title gets "THE LEGEND OF ZELDA" in gold above its logo (Zelda's logo tiles from your Zelda ROM, loaded from a new PRG bank: that Metroid ROM is 256 KB). The hub-drawn title card is gone; the portal transition stays, and the Metroid logo in it is no longer cut off.
