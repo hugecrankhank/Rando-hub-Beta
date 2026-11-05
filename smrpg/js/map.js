@@ -14,6 +14,8 @@
  */
 (function () {
   'use strict';
+  // the re-center button (as Zelda 3's map): one style for every map
+  function resetCss() { if (document.getElementById('rh-map-reset-css')) return; const s = document.createElement('style'); s.id = 'rh-map-reset-css'; s.textContent = '.rh-map-reset{position:absolute;top:6px;right:6px;z-index:3;width:32px;height:32px;padding:0;border-radius:8px;border:1px solid #3a4556;background:rgba(12,16,26,.85);color:#e6edf3;font-size:18px;line-height:1;cursor:pointer}.rh-map-reset:hover{background:rgba(34,44,62,.95)}'; document.head.appendChild(s); }
   const D = window.SMRPG;
   const VW = 1000, VH = 680;
   // [name as the spots name it, label, x, y, kind]  kind: t town, d dungeon, k keep, w way (no spots)
@@ -102,7 +104,7 @@
   const ptrs = new Map(); let drag = null, pinch = null, lastTap = 0;
   function pos(e) { const r = stage.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; }
   function down(e) {
-    if (e.button > 0 || e.target.closest('.mp-pop')) return;
+    if (e.button > 0 || e.target.closest('.mp-pop, .rh-map-reset')) return;
     stage.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, pos(e));
     if (ptrs.size === 1) drag = { x: e.clientX, y: e.clientY, vx: view.x, vy: view.y, far: false, target: e.target.closest('.mp-place') };
     else if (ptrs.size === 2) { const [a, b] = [...ptrs.values()]; pinch = { d: Math.hypot(a[0] - b[0], a[1] - b[1]), mx: (a[0] + b[0]) / 2, my: (a[1] + b[1]) / 2 }; drag = null; }
@@ -159,10 +161,10 @@
   const SMRPGMap = {
     init(el, opts) {
       host = el; onToggle = opts && opts.onToggle;
-      host.innerHTML = '<div class="mp-bar"><span class="mp-hint">Tap a place for its spots · zoom in for the names</span><button type="button" class="mp-fit" title="Fit the map">⤢</button></div>' +
-        '<div class="mp-stage"><svg class="mp-svg" xmlns="http://www.w3.org/2000/svg"><g class="mp-scenery">' + scenery() + '</g><g class="mp-roads">' + roads() + '</g></svg>' + places() + '<div class="mp-pop" hidden></div></div>';
+      host.innerHTML = '<div class="mp-bar"><span class="mp-hint">Tap a place for its spots · zoom in for the names</span></div>' +
+        '<div class="mp-stage"><button type="button" class="rh-map-reset" title="Re-center and fit the map" aria-label="Re-center and fit the map">\u27F2</button><svg class="mp-svg" xmlns="http://www.w3.org/2000/svg"><g class="mp-scenery">' + scenery() + '</g><g class="mp-roads">' + roads() + '</g></svg>' + places() + '<div class="mp-pop" hidden></div></div>';
       stage = host.querySelector('.mp-stage'); svg = host.querySelector('svg'); pop = host.querySelector('.mp-pop');
-      host.querySelector('.mp-fit').addEventListener('click', fit);
+      resetCss(); host.querySelector('.rh-map-reset').addEventListener('click', fit);
       stage.style.touchAction = 'none';
       stage.addEventListener('pointerdown', down); stage.addEventListener('pointermove', move); stage.addEventListener('pointerup', up); stage.addEventListener('pointercancel', up);
       stage.addEventListener('wheel', (e) => { e.preventDefault(); const [x, y] = pos(e); zoomAt(x, y, Math.exp(-e.deltaY * 0.0022)); }, { passive: false });

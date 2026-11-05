@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.105 (2026-11-05)
+
+- **Re-center button on the maps.** Super Mario World's map now has the ⟲ button in its top-right corner, like Zelda 3's: one tap zooms back out and centers the whole map (or the submap you're on) after you've zoomed in or dragged it around. The other games' maps (FF6 Worlds Collide, FF1, FF4, FF5, Super Metroid, Metroid, Mario RPG) get the same button in the same place, in place of the small ⤢ in their tab bars.
+
 ## Beta v1.14.104 (2026-11-05)
 
 - **Super Mario World: the overworld map.** A Map tab in the tracker (and **⧉ Map** to pop it out): Dinosaur Land and the six submaps (Yoshi's Island, Vanilla Dome, Forest of Illusion, Valley of Bowser, Special Zone, Star World), drawn from the ROM being played the same way the game draws them, nothing shipped. It shows the map as your game has it: paths and levels appear as you open them (a new game shows just the start), castles crumble as you beat them, and the colours change after the Special Zone. A pin on every exit (two for a level with a secret exit), the switch palaces and Bowser's front door, ticked as the tracker ticks them (tap one to mark it by hand); Mario's dot where he is on the overworld (dimmed in a level), with Follow to switch to his submap. Each tab counts its exits done.

@@ -19,6 +19,9 @@
   'use strict';
   if (window.RHWorldMap) return;
 
+  // the re-center button (as Zelda 3's map): one style for every map
+  function resetCss() { if (document.getElementById('rh-map-reset-css')) return; const s = document.createElement('style'); s.id = 'rh-map-reset-css'; s.textContent = '.rh-map-reset{position:absolute;top:6px;right:6px;z-index:3;width:32px;height:32px;padding:0;border-radius:8px;border:1px solid #3a4556;background:rgba(12,16,26,.85);color:#e6edf3;font-size:18px;line-height:1;cursor:pointer}.rh-map-reset:hover{background:rgba(34,44,62,.95)}'; document.head.appendChild(s); }
+
   function create(host, o) {
     const worlds = o.worlds, pins = o.pins;
     let stage, cv, ctx, tabs, label, followBtn;
@@ -163,12 +166,13 @@
 
     try { follow = localStorage.getItem(KEY) !== 'off'; } catch (e) {}
     host.innerHTML = '<div class="m-tabs" role="tablist">' + worlds.map((w, i) => '<button type="button" role="tab" data-area="' + i + '">' + w.name + '<small></small></button>').join('') +
-      '<span class="m-sp"></span><button type="button" class="m-follow" aria-pressed="' + follow + '" title="Switch to the world the party is in and keep them in view">⌖ Follow</button><button type="button" class="m-fit" title="Fit the map">⤢</button></div>' +
-      '<div class="m-stage"><canvas class="m-canvas"></canvas><div class="m-label" hidden><span class="n"></span><button type="button"></button></div></div>';
+      '<span class="m-sp"></span><button type="button" class="m-follow" aria-pressed="' + follow + '" title="Switch to the world the party is in and keep them in view">⌖ Follow</button></div>' +
+      '<div class="m-stage"><canvas class="m-canvas"></canvas><button type="button" class="rh-map-reset" title="Re-center and fit the map" aria-label="Re-center and fit the map">\u27F2</button><div class="m-label" hidden><span class="n"></span><button type="button"></button></div></div>';
     tabs = host.querySelector('.m-tabs'); stage = host.querySelector('.m-stage'); cv = host.querySelector('canvas'); ctx = cv.getContext('2d'); label = host.querySelector('.m-label');
     followBtn = host.querySelector('.m-follow');
     tabs.querySelectorAll('[data-area]').forEach((b) => b.addEventListener('click', () => setWorld(+b.dataset.area, true)));
-    host.querySelector('.m-fit').addEventListener('click', fit);
+    resetCss();
+    host.querySelector('.rh-map-reset').addEventListener('click', fit);
     followBtn.addEventListener('click', () => { follow = !follow; followBtn.setAttribute('aria-pressed', String(follow)); try { localStorage.setItem(KEY, follow ? 'on' : 'off'); } catch (e) {} if (follow && pos) { moved = false; const p = pos; pos = null; setPos(p); } });
     label.querySelector('button').addEventListener('click', () => { if (sel >= 0 && o.onToggle) o.onToggle(pins[sel].i); });
     cv.style.touchAction = 'none';
