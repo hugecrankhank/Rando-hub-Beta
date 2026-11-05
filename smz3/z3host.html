@@ -47,7 +47,7 @@
   // the SMZ3 page: this page's parent (in the column) or its opener (a window of its own)
   function hostPlayer() { try { if (parent !== window && parent.Snes9xPlayer) return parent.Snes9xPlayer; } catch (e) {} try { return (opener && opener.Snes9xPlayer) || null; } catch (e) { return null; } }
   function core() { var P = hostPlayer(); return P && P.ready ? P.core : null; }
-  var z3 = null, z3Of = null, snap = null;
+  var z3 = null, z3Of = null, snap = null, blank = new Uint8Array(WRAM_SIZE);
   function z3Rom() {
     var c = core(); if (!c) return z3;
     var r; try { r = c.rom(); } catch (e) { return z3; }
@@ -65,8 +65,13 @@
     var w = c.wram();
     if (zeldaRunning(c)) { snap = null; return w; }
     // Super Metroid is running: Zelda's last frame, its save block from where the combo keeps it
+    // (only once that block is a real save: hearts between 3 and 20, as the game keeps them; before
+    // Zelda has ever run it's whatever the combo put there, and the trackers would read it as a game)
+    var s = null; try { s = c.sram(); } catch (e) {}
+    var h = s ? s[0x36C] : 0, sane = h >= 0x18 && h <= 0xA0 && (h & 7) === 0 && s[0x36D] <= h && !(h === s[0x3C5] && h === s[0x000] && h === s[0x1FF] && h === s[0x449]);   // (the combo fills a blank save with one byte)
+    if (!sane) return blank;
     if (!snap) { snap = new Uint8Array(WRAM_SIZE); snap[0x10] = 0x09; }   // (never ran Zelda yet: "on the overworld", nothing else)
-    try { var s = c.sram(); snap.set(s.subarray(0, SAVE_LEN), SAVE); } catch (e) {}
+    snap.set(s.subarray(0, SAVE_LEN), SAVE);
     return snap;
   }
   var lastZ = null;
@@ -111,7 +116,25 @@
   var IT = document.getElementById('items-frame'), MP = document.getElementById('map-frame'), EM = document.getElementById('emo-frame');
   if (mode === 'hutch' || mode === 'mudora') { IT.src = '../tracker/itemtracker.html'; MP.src = '../tracker/map.html'; }
   var q = phone ? '?phone=' + encodeURIComponent(phone) : '';
-  baseReady.then(function () {   // (Mudora cuts its pictures as it loads: the plain ROM first)
+  // an earlier version let Mudora cut its pictures from the combo's Zelda half, which never boots:
+  // a set it cached from that is short of the equipment (sword1…), so those sets are dropped
+  function dropShortIconSets() {
+    return new Promise(function (res) {
+      try {
+        var r = indexedDB.open('rhb-mudora', 1);
+        r.onupgradeneeded = function () { r.result.createObjectStore('icons'); };
+        r.onerror = function () { res(); };
+        r.onsuccess = function () {
+          try {
+            var st = r.result.transaction('icons', 'readwrite').objectStore('icons'), q = st.openCursor();
+            q.onsuccess = function () { var c = q.result; if (!c) { res(); return; } var v = c.value; if (v && !(v.sword1 && v.bottle1 && v.gloves1)) c.delete(); c.continue(); };
+            q.onerror = function () { res(); };
+          } catch (e) { res(); }
+        };
+      } catch (e) { res(); }
+    });
+  }
+  baseReady.then(dropShortIconSets).then(function () {   // (Mudora cuts its pictures as it loads: the plain ROM first)
     if (mode === 'mudora2') EM.src = '../mudora2/index.html' + q;
     else if (mode === 'mudora') EM.src = '../mudora/index.html' + q;
   });
@@ -123,5 +146,9 @@
   });
 })();
 </script>
+<!-- the hub's run counters for the trackers (checks, deaths, bonks, the GT big key game, the digging game) and
+     item sounds, read from the Zelda side through the player look-alike above, as on the Zelda 3 page -->
+<script src="../addons/sound-packs.js"></script>
+<script src="../addons/hub-items.js"></script>
 </body>
 </html>

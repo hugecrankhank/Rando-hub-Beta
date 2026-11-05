@@ -65,7 +65,10 @@ nothing uploaded: your ROMs stay in your browser.
     Under it, the Metroid part of Rando Hub's tracker: Samus's items, the
     bosses and Zebes' map, so both games show at once. Mudora's item pictures
     are the game's own, cut from the plain Zelda ROM the seed was rolled from
-    (the combo's Zelda half doesn't boot on its own). On a phone, Items /
+    (the combo's Zelda half doesn't boot on its own), and the hub's run
+    counters (checks, deaths, bonks, the GT big key game, the digging game)
+    and small keys in hand reach them as on the Zelda 3 page
+    (`../addons/hub-items.js`, run in the host). On a phone, Items /
     Light / Dark / Keys / Samus / Zebes above the frame pick what shows.
   - **Four windows for stream** (desktop, with a Zelda 3 tracker chosen):
     **⧉ Zelda items** (Mudora's items and dungeons), **⧉ Zelda maps** (both
