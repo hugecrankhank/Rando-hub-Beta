@@ -79,11 +79,13 @@
       '<div class="t-stats" id="t-stats"></div>' +
       '<div class="t-tabs" role="tablist">' +
         '<button type="button" role="tab" data-view="party">Party</button>' +
+        '<button type="button" role="tab" data-view="map">Map</button>' +
         '<button type="button" role="tab" data-view="checks">Checks</button>' +
         '<button type="button" role="tab" data-view="goals">Objectives</button>' +
       '</div>' +
       '<div class="t-view party"><div class="t-sec"><h4>Characters <span id="n-chars"></span></h4><div class="grid chars" id="g-chars"></div></div>' +
         '<div class="t-sec"><h4>Espers <span id="n-espers"></span></h4><div class="grid espers" id="g-espers"></div></div></div>' +
+      '<div class="t-view map"><div class="t-sec"><h4>Map <span id="n-map"></span></h4><div id="g-map"></div></div></div>' +
       '<div class="t-view checks"><div class="t-sec"><h4>Dragons <span id="n-dragons"></span></h4><div class="grid dragons" id="g-dragons"></div></div>' +
         '<div class="t-sec"><h4>Checks <span id="n-checks"></span></h4><div id="g-checks"></div></div></div>' +
       '<div class="t-view goals"><div class="t-sec" id="g-seed"></div><div class="t-sec"><h4>Objectives</h4><div id="g-goals"></div></div>' +
@@ -104,6 +106,7 @@
       const b = e.target.closest('[data-k]');
       if (b) toggle(b.dataset.k, +b.dataset.i);
     });
+    if (window.FF6Map) FF6Map.init($('g-map'), { onToggle: (i) => toggle('checks', i) });
     setView(view);
   }
 
@@ -112,6 +115,7 @@
     root.dataset.view = v;
     root.querySelectorAll('.t-tabs button').forEach((b) => b.setAttribute('aria-selected', b.dataset.view === v ? 'true' : 'false'));
     try { localStorage.setItem('ff6wc:view', v); } catch (e) {}
+    if (v === 'map' && window.FF6Map) FF6Map.redraw();
   }
 
   function render() {
@@ -129,6 +133,8 @@
     $('n-dragons').textContent = count('dragons') + '/8';
     $('n-checks').textContent = count('checks') + '/' + D.CHECKS.length;
     $('n-bosses').textContent = count('bosses') + '/' + D.BOSSES.length;
+    $('n-map').textContent = count('checks') + '/' + D.CHECKS.length;
+    if (window.FF6Map) FF6Map.update({ have: s.checks, liveHave: (i) => isLive('checks', i) });
     const idx = {}; D.CHECKS.forEach((c, i) => { idx[c[0]] = i; });
     root.querySelectorAll('.an').forEach((el) => {
       const a = D.AREAS.find((x) => x[0] === el.dataset.area);
@@ -168,9 +174,10 @@
   let last = '';
   function poll() {
     const s = readRam();
-    if (!s) { live = null; setLink(window.EJS_emulator ? 'waiting' : 'manual'); if (last !== 'none') { last = 'none'; render(); } return; }
+    if (!s) { live = null; if (window.FF6Map) FF6Map.setParty(null); setLink(window.EJS_emulator ? 'waiting' : 'manual'); if (last !== 'none') { last = 'none'; render(); } return; }
     live = s;
     setLink(s.started ? 'live' : 'waiting');
+    if (window.FF6Map) FF6Map.setParty(s.started ? FF6Tracker.ram() : null);
     const sig = JSON.stringify([s.chars, s.espers, s.checks, s.dragons, s.bosses, s.counts, s.ktOpen, s.ktSkip, s.started]);
     if (sig !== last) { last = sig; render(); }
   }

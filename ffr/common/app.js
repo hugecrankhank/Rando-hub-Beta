@@ -39,6 +39,7 @@
     try { sram = c.sram(); } catch (e) {}
     return wram && wram.length ? { wram, sram: sram && sram.length ? sram : null } : null;
   };
+  if (window.FFMap) FFMap.rom = () => { const p = P(); const c = p && p.core; try { return c && c.rom ? c.rom() : null; } catch (e) { return null; } };
   FFTracker.init($('tracker'));
   FFTracker.onLink((s) => {
     const el = $('link-status');

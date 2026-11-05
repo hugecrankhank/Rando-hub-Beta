@@ -40,6 +40,22 @@ and the tracker reads the running game's memory.
   flag from its `tables/arch_event.csv` (crystals, espers, songs, NPC rewards, and
   the bosses that hand out key items; a few flags clear when done).
 
+## The map
+
+`common/map.js` adds a Map tab to every page: the game's own world maps drawn from the
+ROM being played (nothing of the games is shipped), on the hub's shared
+`../world-map.js` viewer, with the party's dot. Each `game.js` has a `map` block:
+
+- **FF1:** the one world (run-length rows in bank 1, squares, palettes and tiles in banks
+  0 and 2); the towns and dungeons are pinned at the ROM's own entrance squares, so a
+  shuffled FF1R map is pinned right. Party: `$27 + 7`, `$28 + 7` while `$2D` bit 0 is clear.
+- **FF4:** the Overworld, the Underworld and the Moon, with the worlds' entrances as
+  pins. Party: `$1701` (which world), `$1706 / $1707`, while `$0CDD` says it's a world map.
+- **FF5:** Bartz's, Galuf's and the merged world; pins carry the Checks tab's areas and
+  turn green when all their checks are done. Party: `$0AD6` (map 0-2), `$0AD8 / $0AD9`.
+
+Inside towns and dungeons the dot stays, dimmed, where the party went in.
+
 ## Layout
 
 The same rule as FF6: the picture gets exactly its size (8:7, or 4:3 if the player

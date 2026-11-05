@@ -24,8 +24,57 @@
   const flag = (m, a, mask, off) => { const on = !!(m.wram[a] & mask); return off ? !on : on; };
   const byArea = (list) => list.slice().sort((a, b) => a[1] < b[1] ? -1 : a[1] > b[1] ? 1 : 0);
 
+  // ── the world map (common/map.js) ────────────────────────────────────────
+  // From the ROM (HiROM): the worlds' run-length rows (256 rows a world,
+  // pointers at $CF:E000 into $C7:0000 and on; a byte > $BF repeats the next
+  // one, $0C/$1C/$2C expand into three squares), each world's 2 x 2-tile
+  // squares ($CF:F0C0), palette offsets ($CF:F9C0), palette ($CF:FCC0) and
+  // 4bpp tiles ($DB:8000). Bartz's and the merged world share one tileset.
+  // The places are the worlds' entrance squares ($CE:36C0); a pin is done
+  // when all its checks are. The party: $7E:0AD6 the map (0-2 the worlds),
+  // $0AD8 / $0AD9 the square.
+  const hi = (a) => a - 0xC00000;
+  const WORLD5 = [["Bartz's world", 0, 0], ["Galuf's world", 1, 1], ['Merged world', 2, 0]];   // [name, layout, tileset]
+  let rows5 = null, rows5Rom = null;
+  function allRows(r) {
+    if (rows5 && rows5Rom === r) return rows5;
+    let bank = 0, prev = 0;
+    const ptr = (i) => { const p = r[hi(0xCFE000) + i * 2] | r[hi(0xCFE000) + i * 2 + 1] << 8; if (i > 0 && p < prev) bank += 0x10000; prev = p; return hi(0xC70000) + bank + p; };
+    rows5 = FFMapGfx.rows(0x300, ptr, 256, (s, put) => {
+      const b = r[s];
+      if (b > 0xBF) { const n = b - 0xBF, c = r[s + 1]; for (let k = 0; k < n; k++) put(c); return s + 2; }
+      if (b === 0x0C || b === 0x1C || b === 0x2C) { put(b); put(b + 1); put(b + 2); return s + 1; }
+      put(b); return s + 1;
+    });
+    rows5Rom = r;
+    return rows5;
+  }
+  function draw5(r, wi) {
+    const G = FFMapGfx, [, m, t] = WORLD5[wi], rows = allRows(r).slice(m * 256, m * 256 + 256);
+    const ts = G.interlace(G.interlace(r.subarray(hi(0xCFF0C0) + t * 0x300, hi(0xCFF0C0) + t * 0x300 + 0x300), 1, 4, 192), 2, 16, 2);
+    const pa = r.subarray(hi(0xCFF9C0) + t * 0x100, hi(0xCFF9C0) + t * 0x100 + 0x100), pal = G.bgr555(r, hi(0xCFFCC0) + t * 0x100, 128);
+    const gfx = r.subarray(hi(0xDB8000) + t * 0x2000, hi(0xDB8000) + t * 0x2000 + 0x2000);
+    return G.drawWorld(256, rows, (q) => ((q & 0xF0) << 2) | ((q & 0x0F) << 1), ts, G.linear4(gfx), (k, v) => pal[(pa[ts[k]] + v) & 127]);
+  }
+  // [world, x, y, name, the tracker's areas there]
+  const CHECKS_AT = (areas) => areas.map((a) => [['bosses', a], ['events', a]]).flat();
+  const PLACES5 = [
+    [0, 182, 52, 'Wind Shrine', ['Wind Shrine']], [0, 183, 132, 'Tycoon Castle', ['Tycoon Castle']], [0, 165, 115, "Pirate's Cave", ["Pirate's Cave"]], [0, 130, 89, 'Tule', null],
+    [0, 86, 75, 'Karnak', ['Karnak']], [0, 79, 119, 'Library of the Ancients', ['Ancient Library']], [0, 35, 41, 'Istory', ['Istory Falls']], [0, 174, 46, 'Lix', ['Lix']],
+    [0, 214, 114, 'Walse', ['Walse']], [0, 196, 88, 'Tower of Walse', null], [0, 219, 77, 'Carwen', ['Carwen']], [0, 226, 39, 'North Mountain', ['North Mountain']],
+    [0, 216, 201, 'Crescent', ['Crescent Island']], [0, 212, 209, 'Black Chocobo Forest', null], [0, 58, 196, 'Jachol', null], [0, 76, 177, 'Jachol Cave', null],
+    [1, 145, 155, 'Big Bridge', ['Big Bridge']], [1, 84, 175, 'Bal Castle', ['Bal Castle']], [1, 76, 110, 'Surgate Castle', ['Surgate Castle']], [1, 158, 55, 'Regole', null],
+    [1, 22, 114, 'Moore', ['Mua']], [1, 56, 121, 'Great Forest of Moore', ['Mua Forest']], [1, 80, 135, 'Drakenvale', ['Hiryuu Valley']], [1, 149, 82, 'Kuzar, the Sealed Castle', ['Kuzar']],
+    [2, 186, 88, 'Phoenix Tower', ['Phoenix Tower']], [2, 44, 122, 'Pyramid of Moore', ['Pyramid']], [2, 132, 155, 'Island Shrine', ['Solitary Island']],
+  ];
+  const MAP = {
+    worlds: WORLD5.map((w, i) => ({ name: w[0], size: 256, draw: (r) => draw5(r, i) })),
+    places: PLACES5.map((p) => ({ world: p[0], x: p[1], y: p[2], name: p[3], checks: p[4] ? CHECKS_AT(p[4]) : null })),
+    pos(m) { const w = m.wram, map = (w[0x0AD6] | w[0x0AD7] << 8) & 0x3FF; if (map > 2) return null; return { world: map, x: w[0x0AD8], y: w[0x0AD9] }; },
+  };
+
   window.FFGame = {
-    id: 'ff5', short: 'FF5', system: 'snes',
+    id: 'ff5', short: 'FF5', system: 'snes', map: MAP,
     name: 'FF5 Career Day',
     generator: { name: 'Career Day', url: 'https://www.bigbridge.studio/careerday/',
       steps: ['Open the site, choose your settings and your <b>Final Fantasy V</b> ROM (the Japanese SNES ROM or the RPGe English one; it tells you which it got).',

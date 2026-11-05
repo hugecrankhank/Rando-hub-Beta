@@ -59,9 +59,11 @@
   // ── rendering ────────────────────────────────────────────────────────────
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
+  // the world map (common/map.js), a tab of its own after the first
+  const TABS = window.FFMap ? [G.tabs[0], ['map', 'Map']].concat(G.tabs.slice(1)) : G.tabs;
   function build() {
-    const tabs = G.tabs.map(([id, label]) => '<button type="button" role="tab" data-view="' + id + '">' + esc(label) + '</button>').join('');
-    const views = G.tabs.map(([id]) => '<div class="t-view" data-tab="' + id + '">' +
+    const tabs = TABS.map(([id, label]) => '<button type="button" role="tab" data-view="' + id + '">' + esc(label) + '</button>').join('');
+    const views = TABS.map(([id]) => '<div class="t-view' + (id === 'map' ? ' map' : '') + '" data-tab="' + id + '">' + (id === 'map' ? '<div class="t-sec"><h4>Map</h4><div id="g-map"></div></div>' : '') +
       G.sections.filter((s) => s.tab === id).map((s) => sectionHtml(s)).join('') +
       (G.goals && G.goals.tab === id ? '<div class="t-sec" id="g-goals-wrap"><h4>' + esc(G.goals.title) + ' <span id="n-goals"></span></h4><div id="g-goals"></div></div>' : '') +
       '</div>').join('');
@@ -73,6 +75,7 @@
       const b = e.target.closest('[data-k]');
       if (b) toggle(b.dataset.k, +b.dataset.i);
     });
+    if (window.FFMap) FFMap.init($('g-map'));
     setView(view);
   }
   function sectionHtml(s) {
@@ -94,6 +97,7 @@
     root.querySelectorAll('.t-tabs button').forEach((b) => b.setAttribute('aria-selected', b.dataset.view === v ? 'true' : 'false'));
     root.querySelectorAll('.t-view').forEach((el) => el.classList.toggle('on', el.dataset.tab === v));
     try { localStorage.setItem('ffr:' + G.id + ':view', v); } catch (e) {}
+    if (v === 'map' && window.FFMap) FFMap.redraw();
   }
 
   function render() {
@@ -120,6 +124,7 @@
     try { stats = G.stats(live && live.started ? lastMem : null, s) || []; } catch (e) {}
     $('t-stats').innerHTML = stats.map((st) => '<span class="stat ' + (st.cls || '') + '" title="' + esc(st.title || '') + '">' + (st.ico ? '<span class="ico">' + st.ico + '</span>' : '') + esc(st.n) + (st.of ? '<small>/' + st.of + '</small>' : '') + '</span>').join('');
     $('t-link').textContent = link === 'live' ? 'Autotracking' : link === 'waiting' ? 'Waiting for the game' : 'Tap to track by hand';
+    if (window.FFMap) FFMap.update(s);
     if (G.goals) { try { G.goals.render($('g-goals'), live && live.started ? lastMem : null, meta, $('n-goals')); } catch (e) { console.warn('[ffr] goals', e); } }
   }
 
@@ -129,6 +134,7 @@
   function poll() {
     lastMem = FFTracker.mem && FFTracker.mem();
     const s = readMem();
+    if (window.FFMap) FFMap.setParty(s && s.started ? lastMem : null);
     if (!s) { live = null; setLink(window.EJS_emulator ? 'waiting' : 'manual'); if (last !== 'none') { last = 'none'; render(); } return; }
     live = s;
     setLink(s.started ? 'live' : 'waiting');
@@ -143,7 +149,7 @@
     init(el) {
       root = el;
       try { view = localStorage.getItem('ffr:' + G.id + ':view') || view; } catch (e) {}
-      if (!G.tabs.some((t) => t[0] === view)) view = G.tabs[0][0];
+      if (!TABS.some((t) => t[0] === view)) view = G.tabs[0][0];
       build(); loadManual(); render();
       setInterval(poll, 500);
     },

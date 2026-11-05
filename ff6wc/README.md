@@ -38,6 +38,12 @@ Read from the running game's memory every half second (no setup):
 - The counters along the top are the game's own (checks, espers, dragons, bosses).
 - The seed's **objectives** and **hash**, from the spoiler log, on the Objectives tab.
 - Anything the game can't tell us you can tick by hand; manual ticks are kept per seed.
+- **The map**: the World of Balance and the World of Ruin, drawn from your own ROM
+  (`js/map.js`: the worlds' packed layouts, tiles and palettes, as the game draws them;
+  nothing of the game is shipped), a pin on every check (green when done; checks in
+  both worlds have a pin in each), and the party's dot (`$7E:1F60/1F61`, dimmed inside a
+  town). Pan, pinch or wheel to zoom, Follow keeps the party in view. The viewer is the
+  hub's shared `../world-map.js`.
 
 Memory map: Worlds Collide's event bits (`$7E:1E80`, one bit per check, the same bits
 its objectives use) and battle bits (`$7E:1DC9`, bosses), the character bytes at

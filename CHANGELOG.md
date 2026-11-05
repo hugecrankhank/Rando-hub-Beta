@@ -5,6 +5,14 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.100 (2026-11-04)
+
+- **Maps for all the Final Fantasy randomizers.** A new Map tab in FF1 Randomizer, FF4 Free Enterprise, FF5 Career Day and FF6 Worlds Collide: the game's own world maps, drawn from your ROM (nothing of the games is shipped), with pins and the party's dot following the game (dimmed inside towns). Pan, pinch or wheel to zoom; Follow keeps the party in view; tap a pin for its name.
+  - **FF6 Worlds Collide:** World of Balance and World of Ruin, a pin on every check (green when done; a check reachable from both worlds has a pin in each).
+  - **FF5 Career Day:** Bartz's, Galuf's and the merged world; each pin is a place from the Checks tab and turns green when all its checks are done.
+  - **FF4 Free Enterprise:** Overworld, Underworld and Moon, with the towns and dungeons pinned.
+  - **FF1 Randomizer:** the world, with the towns and dungeons pinned where the ROM puts them (right on shuffled maps too).
+
 ## Beta v1.14.99 (2026-11-04)
 
 - **FF6 Worlds Collide: the newest version** (Kallax). New seed now has a "Worlds Collide version" choice: **1.4.4 dev** (the default: the newest, with its latest flags like level cap -lc, require characters -rc, random starting levels -stlr, limited shops -sli, expensive restoratives -seri, no free heals -nfh, fully random commands, "Oops All <Boss>", Max HP objectives, plus its bug fixes), or **1.4.3 stable** (the release the hub had until now) for races and older flag strings. Flag strings from ff6worldscollide.com's current flag builder work again. The choice is remembered.

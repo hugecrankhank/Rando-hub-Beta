@@ -10,6 +10,7 @@
 
   // ── tracker ───────────────────────────────────────────────────────────────
   FF6Tracker.ram = () => { const c = window.Snes9xPlayer && Snes9xPlayer.core; return c ? c.wram() : null; };
+  if (window.FF6Map) FF6Map.rom = () => { const c = window.Snes9xPlayer && Snes9xPlayer.core; try { return c && c.rom ? c.rom() : null; } catch (e) { return null; } };
   FF6Tracker.init($('tracker'));
   FF6Tracker.onLink((s) => {
     const el = $('link-status');

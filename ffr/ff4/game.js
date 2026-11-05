@@ -65,8 +65,39 @@
     return { version: j.version, flags: j.flags, seed: j.seed, groups };
   }
 
+  // ── the world map (common/map.js) ────────────────────────────────────────
+  // From the ROM (LoROM; the same places in Free Enterprise's US base): the
+  // three worlds' run-length rows (pointer tables $16:8000 / $16:8200 /
+  // $16:8400, the overworld's rows also expand $00/$10/$20/$30 into four
+  // squares), each world's 2 x 2-tile squares ($14:8000), palette offsets
+  // ($14:8600), palette ($14:8900) and 4bpp tiles ($1D:8000). The places are
+  // the worlds' entrance squares ($15:8006 in the Japanese ROM).
+  // The party: $7E:0CDD non-zero on a world map, $1701 which one (0 the
+  // overworld, 1 the underworld, 2 the moon), $1706 / $1707 the square.
+  const PLACES = [[0, 101, 156, "Baron Castle"], [0, 100, 157, "Baron Town"], [0, 76, 132, "Mist Cave"], [0, 96, 119, "Mist"], [0, 125, 104, "Kaipo"], [0, 138, 83, "Watery Pass (south)"], [0, 138, 77, "Watery Pass (north)"], [0, 134, 72, "Waterfall"], [0, 118, 58, "Damcyan"], [0, 136, 56, "Antlion's Cave"], [0, 152, 49, "Mt. Hobs (west)"], [0, 160, 49, "Mt. Hobs (east)"], [0, 214, 58, "Fabul"], [0, 154, 199, "Mysidia"], [0, 218, 199, "Mt. Ordeals"], [0, 34, 82, "Troia Castle"], [0, 35, 83, "Troia"], [0, 74, 53, "Cave Magnes"], [0, 45, 235, "Eblan Castle"], [0, 24, 231, "Cave of Eblan"], [0, 104, 215, "Agart"], [0, 210, 130, "Silvera"], [0, 219, 136, "Adamant Grotto"], [0, 228, 47, "Chocobo Forest"], [0, 213, 209, "Chocobo Forest"], [0, 89, 163, "Chocobo Forest"], [0, 34, 101, "Chocobo Forest"], [0, 86, 79, "Chocobo Forest"], [0, 41, 53, "Chocobo Village"], [1, 99, 82, "Dwarf Castle"], [1, 104, 123, "Kokkol's Forge"], [1, 62, 121, "Tomra"], [1, 13, 14, "Sylvan Cave"], [1, 46, 109, "Sealed Cave"], [1, 27, 86, "Feymarch"], [2, 61, 23, "Cave of Bahamut"], [2, 28, 25, "Lunar Subterrane"], [2, 18, 20, "Lunar Path"], [2, 33, 39, "Hummingway's Cave"]];
+  const lo = (a) => ((a & 0xFF0000) >> 1) + (a & 0x7FFF);
+  const WORLD4 = [['Overworld', 256, 0x168000, 0x168480, true], ['Underworld', 256, 0x168200, 0x16C480, false], ['Moon', 64, 0x168400, 0x16E180, false]];
+  function draw4(r, w) {
+    const G = FFMapGfx, [, size, ptab, base, expand] = WORLD4[w];
+    const rows = G.rows(size, (y) => lo(base) + (r[lo(ptab) + y * 2] | r[lo(ptab) + y * 2 + 1] << 8), size, (s, put) => {
+      const b = r[s];
+      if (b & 0x80) { const n = r[s + 1] + 1; for (let k = 0; k < n; k++) put(b & 0x7F); return s + 2; }
+      if (expand && (b & 0x0F) === 0 && b <= 0x30) { const k = (b >> 4) * 3 + 0x70; put(b); put(k); put(k + 1); put(k + 2); return s + 1; }
+      put(b); return s + 1;
+    });
+    const ts = G.interlace(G.interlace(r.subarray(lo(0x148000) + w * 0x200, lo(0x148000) + w * 0x200 + 0x200), 1, 4, 128), 2, 16, 2);
+    const pa = r.subarray(lo(0x148600) + w * 0x100, lo(0x148600) + w * 0x100 + 0x100), pal = G.bgr555(r, lo(0x148900) + w * 0x80, 64);
+    const gfx = r.subarray(lo(0x1D8000) + w * 0x2000, lo(0x1D8000) + w * 0x2000 + 0x2000);
+    return G.drawWorld(size, rows, (t) => t > 0x7F ? 0 : ((t & 0x70) << 2) | ((t & 0x0F) << 1), ts, G.linear4(gfx), (k, v) => pal[(pa[ts[k]] + v) & 63]);
+  }
+  const MAP = {
+    worlds: WORLD4.map((w, i) => ({ name: w[0], size: w[1], draw: (r) => draw4(r, i) })),
+    places: PLACES.map((p) => ({ world: p[0], x: p[1], y: p[2], name: p[3] })),
+    pos(m) { const w = m.wram; if (!w[0x0CDD] || w[0x1701] > 2) return null; return { world: w[0x1701], x: w[0x1706], y: w[0x1707] }; },
+  };
+
   window.FFGame = {
-    id: 'ff4', short: 'FF4', system: 'snes',
+    id: 'ff4', short: 'FF4', system: 'snes', map: MAP,
     name: 'FF4 Free Enterprise',
     generator: { name: 'Free Enterprise', url: 'https://ff4fe.com/',
       steps: ['Open the site, pick a flagset (or a preset) and your <b>Final Fantasy II (USA)</b> ROM (v1.1, 1 MB; it patches in your browser).',
