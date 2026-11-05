@@ -5,6 +5,11 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.104 (2026-11-05)
+
+- **Super Mario World: the overworld map.** A Map tab in the tracker (and **⧉ Map** to pop it out): Dinosaur Land and the six submaps (Yoshi's Island, Vanilla Dome, Forest of Illusion, Valley of Bowser, Special Zone, Star World), drawn from the ROM being played the same way the game draws them, nothing shipped. It shows the map as your game has it: paths and levels appear as you open them (a new game shows just the start), castles crumble as you beat them, and the colours change after the Special Zone. A pin on every exit (two for a level with a secret exit), the switch palaces and Bowser's front door, ticked as the tracker ticks them (tap one to mark it by hand); Mario's dot where he is on the overworld (dimmed in a level), with Follow to switch to his submap. Each tab counts its exits done.
+- Phones: the map has its own tab in the tracker; its tabs are smaller there so more of the map shows.
+
 ## Beta v1.14.103 (2026-11-05)
 
 - **New game: Super Mario World** (`smw/`, in the Games menu and the Game row). Seeds are made by the [SMW Randomizer](https://github.com/authorblues/smwrandomizer) itself (authorblues + kaizoman666, v2.2, run in your browser unchanged) from your own Super Mario World (USA) ROM, then played right here on the hub's Snes9x, or downloaded. Its presets (Gnarly to Outrageous and Funky) and all 42 of its options, grouped as on its site, and share codes (`seed/preset`) to play the same seed as someone else.

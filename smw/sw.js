@@ -5,12 +5,12 @@
  */
 // One name per copy of the app (it shares the site with the hub and the other games)
 const PREFIX = 'smwr-v', SCOPE = ':' + self.registration.scope;
-const CACHE = 'smwr-v2' + SCOPE;
+const CACHE = 'smwr-v3' + SCOPE;
 const EXTERNAL = ['https://fonts.googleapis.com/', 'https://fonts.gstatic.com/'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll([
-    './', './index.html', './manifest.webmanifest', './hub.js', './js/data.js', './js/store.js', './js/tracker.js', './js/seed.js', './js/app.js', '../game-health.js', '../game-popout.js', '../popout-panel.html', '../credits-splash.js', '../fonts/PressStart2P-Regular.ttf',
+    './', './index.html', './manifest.webmanifest', './hub.js', './js/data.js', './js/store.js', './js/owmap.js', './js/map.js', './js/tracker.js', '../world-map.js', './js/seed.js', './js/app.js', '../game-health.js', '../game-popout.js', '../popout-panel.html', '../credits-splash.js', '../fonts/PressStart2P-Regular.ttf',
     './gen/gen.html', './gen/js/vendor/jquery-1.11.2.min.js', './gen/js/vendor/bootstrap.min.js', './gen/js/main.js', './gen/js/randomizer.js', './gen/js/randomizer.base.js', './gen/js/randomizer.lunarmagic.js', './gen/js/randomizer.patch.js', './gen/js/randomizer.preset.js', './gen/js/randomizer.powerup.js', './gen/js/randomizer.bowser.js', './gen/js/randomizer.text.js', './gen/js/randomizer.sound.js', './gen/js/randomizer.ci2.js',
     // the emulator (../emu/) is outside this scope: the hub's offline cache keeps it
   ])).catch(() => {}));

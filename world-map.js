@@ -13,6 +13,7 @@
  *   m.update({ have, items, liveHave, reach, shown })   per check index: taken, Reveal text, live tick, 'ok' | 'back' | 'no', hidden
  *   m.setPos({ world, x, y, dim } | null)              the party, in picture pixels
  *   m.redraw(); m.setWorld(i); m.invalidate()         invalidate: the pictures changed (a new ROM)
+ *   m.repaint()                                       the pictures changed, keep the view (paths opening)
  */
 (function () {
   'use strict';
@@ -185,6 +186,7 @@
       setPos, redraw, fit,
       setWorld(a) { setWorld(a, false); },
       invalidate() { for (const k in pics) delete pics[k]; moved = false; fit(); },
+      repaint() { for (const k in pics) delete pics[k]; redraw(); },   // the pictures changed, the view stays
       get world() { return area; },
     };
   }

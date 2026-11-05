@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="version" content="1.14.103">
+<meta name="version" content="1.14.104">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Super Mario World Randomizer - Rando Hub</title>
 <meta name="description" content="Roll Super Mario World randomizer seeds from your own ROM, play them right here, and track every exit, switch palace and Koopa Kid.">
@@ -85,7 +85,7 @@
     color: var(--dim); cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; }
   .t-tabs button[aria-selected="true"] { color: var(--gold); border-bottom-color: var(--gold); }
   .t-view { display: none; }
-  #tracker[data-view="mario"] .t-view.mario, #tracker[data-view="levels"] .t-view.levels, #tracker[data-view="seed"] .t-view.seed { display: block; }
+  #tracker[data-view="mario"] .t-view.mario, #tracker[data-view="levels"] .t-view.levels, #tracker[data-view="seed"] .t-view.seed, #tracker[data-view="map"] .t-view.map { display: block; }
   /* roomy: Party and Checks side by side, Objectives under */
   #tracker:not(.compact) .t-tabs { display: none; }
   #tracker:not(.compact) .t-view { display: block; }
@@ -155,6 +155,9 @@
   #tracker.compact[data-view="map"] .t-view.map { display: flex; flex-direction: column; overflow: hidden; }
   #tracker.compact .t-view.map .t-sec { display: flex; flex-direction: column; flex: 1 1 0; min-height: 0; margin: 0; }
   #tracker.compact .t-view.map h4 { display: none; }
+  /* seven map tabs: small enough to sit in one row on a phone held sideways */
+  #tracker.compact .m-tabs button { font-size: 11px; padding: 4px 4px; } #tracker.compact .m-tabs button small { font-size: 9px; margin-top: 2px; }
+  #tracker.compact .m-tabs .m-follow, #tracker.compact .m-tabs .m-fit { font-size: 11px; padding: 4px 4px 6px; }
   .seedline { font-size: 13px; color: var(--dim); } .seedline b { color: var(--gold); font-weight: 400; font-family: var(--px); margin-right: 6px; }
   .goal { display: grid; grid-template-columns: 1fr; gap: 1px; padding: 5px 0; border-bottom: 1px solid var(--cell-line); font-size: 13.5px; }
   .goal-r { color: var(--text); } .goal-r .letter { font: 400 14px/1 var(--px); color: var(--gold); margin-right: 4px; }
@@ -354,6 +357,9 @@
 <script src="../emu/player.js"></script>
 <script src="js/data.js"></script>
 <script src="js/store.js"></script>
+<script src="../world-map.js"></script>
+<script src="js/owmap.js"></script>
+<script src="js/map.js"></script>
 <script src="js/tracker.js"></script>
 <script src="js/seed.js"></script>
 <script src="../game-health.js"></script>

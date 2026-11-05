@@ -28,16 +28,34 @@ the game. One page, nothing uploaded: the ROM stays in your browser.
     castles (each castle's exit) and Bowser (by hand, or the ending).
   - the exit count out of 96 (`$1F2E` and the ticks), lives and coins.
   - **Seed**: the seed, the preset, the share code, the ROM's checksum.
+  - **Map**: the overworld, drawn from the ROM being played (`js/owmap.js`,
+    nothing of the game shipped): Dinosaur Land and the six submaps (each the
+    window the game shows of it), as the game has them now, so the paths and
+    levels open as the events do (a new game: just the start). A pin on every
+    exit (two for a level with a secret exit), the switch palaces and Bowser's
+    front door; Mario where he is (dimmed in a level); Follow, zoom, pop-out.
 - **Play ROM file**: a seed from smwrandomizer.com, another randomizer or a hack
   plays too; the exits still tick (the game's own flags).
 - **Autosave** through `../game-health.js` (the game's frame counter `$13/$14`
   tells a crash from a pause), **Continue** the last seed, pop-out tracker for a
   second screen or stream capture, the stream timer (stops when Bowser falls).
 
-## Not here (yet)
+## How the map is drawn
 
-- The overworld map with a pin on every level and Mario on it (drawn from the
-  ROM, like the other games' maps): coming next.
+The same steps the game takes when it loads the overworld (SMWDisX, bank 04):
+layer 2 (the land) from two RLE streams (`$04:A533` tile numbers, `$04:C02B`
+properties), and for every event done its 6 × 6 or 2 × 2 pieces pasted in
+(`$04:E359` ranges, `$04:DD8D` pairs, tiles from `$0C:8000`, properties from
+the RLE at `$0C:8D00`); layer 1 (paths and levels, 16 × 16 tiles at
+`$0C:F7DF`, made of the 8 × 8 tiles at `$05:D000`) with the events' level
+tiles shown (`$04:D85D`, swap table `$04:DA1D`), castles crushed (`$04:E677`)
+and the other event tiles (`$04:E9F1`); GFX files `$1C`, `$1D`, `$08`, `$1E`
+(LC_LZ2, 3bpp made 4bpp as the game uploads them) and the animated tiles from
+GFX `$14`; the colours of each map (`$00:B3D8`, the Special Zone's after it's
+beaten). The levels are numbered by the order of their tiles (`$04:D7F2`), so
+a pin sits on its level's tile in any seed. Checked against the game's own
+picture: the same, but for the moving water and the sprites. A ROM whose
+overworld was rebuilt (a Lunar Magic hack) gets no map.
 
 ## Files
 
@@ -46,4 +64,5 @@ the game. One page, nothing uploaded: the ROM stays in your browser.
 - `js/data.js` — stages, exits, castles, palaces, RAM addresses.
 - `js/seed.js` — the seed dialog (the generator's own options, mirrored).
 - `js/tracker.js` — the tracker.
+- `js/owmap.js` — the overworld drawn from the ROM; `js/map.js` — the map in the tracker (`../world-map.js`).
 - `js/app.js`, `js/store.js` — the player, saves, autosave (as `../sm/`).

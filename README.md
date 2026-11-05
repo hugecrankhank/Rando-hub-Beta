@@ -520,7 +520,9 @@ inside the hub, with its own emulator, seed generator, tracker and saves.
   Outrageous and Funky) and every option one by one, or a share code (`seed/preset`)
   from someone else. The tracker reads the game: every exit (normal and secret) ticks itself
   as the game marks it beaten, the four switch palaces, the seven Koopa Kids' castles, the
-  exit count out of 96, lives and coins.
+  exit count out of 96, lives and coins. The overworld map (Dinosaur Land and the six
+  submaps, drawn from the ROM as the game has them now: paths open as you play), a pin on
+  every exit and Mario on it.
 - **Final Fantasy Randomizer (FF1), FF4 Free Enterprise, FF5 Career Day** (`ffr/`):
   seeds are rolled on each randomizer's own site (FF1R and FE generate in your
   browser there), then played here on the hub's NES or SNES with a tracker that reads

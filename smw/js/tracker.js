@@ -90,11 +90,13 @@
       '<div class="t-tabs" role="tablist">' +
         '<button type="button" role="tab" data-view="levels">Levels</button>' +
         '<button type="button" role="tab" data-view="mario">Bosses</button>' +
+        '<button type="button" role="tab" data-view="map">Map</button>' +
         '<button type="button" role="tab" data-view="seed">Seed</button>' +
       '</div>' +
       '<div class="t-view mario"><div class="t-sec"><h4>Switch palaces <span id="n-palaces"></span></h4><div class="grid palaces" id="g-palaces"></div></div>' +
         '<div class="t-sec"><h4>Koopa Kids <span id="n-castles"></span></h4><div class="grid bosses" id="g-castles"></div></div>' +
         '<div class="t-sec"><h4>Mario</h4><div class="mario-line" id="g-mario"></div></div></div>' +
+      '<div class="t-view map"><div class="t-sec"><h4>Map <span id="n-map"></span></h4><div id="g-map"></div><p class="fine" id="map-note" hidden></p></div></div>' +
       '<div class="t-view levels"><div class="t-sec"><h4>Exits <span id="n-exits"></span></h4><p class="fine">Each spot on the overworld, with its exits: they tick as the game opens their paths. The randomizer can swap a level’s normal and secret exits; “secret” here means the path the secret exit opens on the map.</p><div id="g-levels"></div></div></div>' +
       '<div class="t-view seed"><div class="t-sec" id="g-seed"></div></div>' +
       '<div class="t-foot"><span id="t-link"></span><button type="button" class="linkish" id="t-clear">Clear manual ticks</button></div>';
@@ -110,12 +112,22 @@
       byWorld[w].map((i) => { const x = EXITS[i], st = D.STAGES[x.s]; return '<button type="button" class="chk" data-k="exits" data-i="' + i + '"><i></i>' + esc(st[1]) + (st[3] > 1 ? '<span class="sub"> · ' + (x.secret ? 'secret' : 'normal') + '</span>' : '') + '</button>'; }).join('') +
       '</div></div>').join('');
     root.addEventListener('click', (e) => { const b = e.target.closest('[data-k]'); if (b && root.contains(b)) toggle(b.dataset.k, +b.dataset.i); });
+    // the map's checks: the exits, then the palaces, then Bowser
+    if (window.SMWMap) SMWMap.init($('g-map'), {
+      onToggle: (i) => i < EXITS.length ? toggle('exits', i) : i < EXITS.length + 4 ? toggle('palaces', i - EXITS.length) : toggle('bowser', 0),
+      names: (i) => {
+        if (i < EXITS.length) { const x = EXITS[i], st = D.STAGES[x.s]; return st[1] + (st[3] > 1 ? ' · ' + (x.secret ? 'secret exit' : 'normal exit') : ''); }
+        if (i < EXITS.length + 4) return D.PALACES[i - EXITS.length][0] + ' Switch Palace';
+        return 'Bowser’s Castle (front door)';
+      },
+    });
     setView(view);
   }
   function setView(v) {
     view = v; root.dataset.view = v;
     root.querySelectorAll('.t-tabs button').forEach((b) => b.setAttribute('aria-selected', b.dataset.view === v ? 'true' : 'false'));
     try { localStorage.setItem('smwr:view', v); } catch (e) {}
+    if (v === 'map' && window.SMWMap) SMWMap.redraw();
   }
 
   function render() {
@@ -144,6 +156,11 @@
     $('t-stats').innerHTML = stat('★', l ? Math.max(l.count, exits) : exits, 96, 'Exits found (the game’s own count while it runs)') + stat('⌂', n('palaces'), 4, 'Switch palaces') + stat('♜', n('castles'), 7, 'Koopa Kids beaten') +
       (l ? stat('♥', l.lives, '', 'Lives') + stat('●', l.coins, '', 'Coins') : '');
     $('t-link').textContent = link === 'live' ? 'Autotracking' : link === 'waiting' ? 'Waiting for the game' : 'Tap to track by hand';
+    if (window.SMWMap) {
+      const nE = EXITS.length;
+      SMWMap.update({ have: s.exits.concat(s.palaces, s.bowser), liveHave: (i) => i < nE ? isLive('exits', i) : i < nE + 4 ? isLive('palaces', i - nE) : isLive('bowser', 0) });
+      const mn = $('map-note'); if (mn) { mn.textContent = SMWMap.note; mn.hidden = !SMWMap.note; }
+    }
     renderSeed();
   }
   function renderSeed() {
@@ -159,6 +176,7 @@
   let last = '';
   function poll() {
     const s = readRam();
+    if (window.SMWMap) { let ram = null, rom = null; try { ram = SMWTracker.ram && SMWTracker.ram(); rom = SMWTracker.rom && SMWTracker.rom(); } catch (e) {} SMWMap.live(ram && ram.length >= 0x20000 ? ram : null, rom, !!(s && s.started)); }
     if (!s) { live = null; setLink(window.Snes9xPlayer && Snes9xPlayer.ready ? 'waiting' : 'manual'); if (last !== 'none') { last = 'none'; render(); } return; }
     live = s;
     setLink(s.started ? 'live' : 'waiting');
