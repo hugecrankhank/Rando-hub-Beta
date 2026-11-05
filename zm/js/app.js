@@ -9,6 +9,7 @@
   window.ZMToast = toast;
 
   // ── tracker ───────────────────────────────────────────────────────────────
+  if (window.ZMTitle) ZMTitle.init($('game-wrap'));
   ZMTracker.init($('tracker'));
   ZMTracker.onLink((s) => {
     const el = $('link-status');

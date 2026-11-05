@@ -108,7 +108,8 @@
     const to = game === 'z1' ? 'm1' : 'z1';
     switching = true;
     try {
-      const p = window.EmuPlayer;
+      const p = window.EmuPlayer, T = window.ZMTitle;
+      const fromPic = T ? T.grab(p.core) : null;
       states[game] = p.core.saveState();
       armed[game] = false;   // not again until the player leaves the portal spot
       const old = p.attach(cores[to]);
@@ -116,7 +117,7 @@
       game = to;
       if (states[to]) { try { p.core.loadState(states[to]); } catch (e) { console.warn('[zm] state', e); } }
       lastSig = '';
-      toastFn(to === 'm1' ? 'Through the portal: Zebes.' : 'Through the portal: Hyrule.', 2500);
+      if (T && fromPic) { try { T.transition(fromPic, () => T.grab(p.core), to === 'm1' ? 'Zebes' : 'Hyrule'); } catch (e) {} }
       save();
       emit();
     } finally { switching = false; }
@@ -145,6 +146,7 @@
   function poll() {
     if (!cores[game] || switching) return;
     checkPickups(); deliver(); checkPortal();
+    if (window.ZMTitle) { const z = ram('z1'); ZMTitle.title(game === 'z1' && !!z && z[Z.RAM.MODE] === 0, cores); }
     // the ends: Zelda's mode $13 (Zelda saved), Metroid's main routine 7 (the ending)
     { const z = ram('z1'), m = ram('m1'); if (z && z[Z.RAM.MODE] === 0x13 && !won.z1) { won.z1 = true; save(); } if (m && m[0x1E] === 7 && inPlay('m1') && !won.m1) { won.m1 = true; save(); } }
     const r = ram(game);

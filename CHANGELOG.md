@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.108 (2026-11-05)
+
+- **Zelda 1 + Metroid: the dual screens.** The combined title (Zelda's and Metroid's logos together, "LINKED" between them) shows over Zelda's title screen, and every portal plays a transition: the frame of the world you're leaving and the first frame of the one you enter, side by side, with "To Zebes" / "To Hyrule". Both are drawn by the hub from your own ROMs' frames (nothing shipped, no ROM patch).
+
 ## Beta v1.14.107 (2026-11-05)
 
 - **New game: Zelda 1 + Metroid, linked** (`zm/`, in the Games menu and the Game row). Rando Hub's own combo, nothing of anyone else's randomizer: both games run in the hub's NES emulator, one at a time, from your own Zelda (USA) and Metroid (USA) ROMs. Hyrule's four "take any road" caves are portals to Zebes and Zebes' elevator rooms lead back (the ⇄ button or P); each world goes on where it was left. One item pool across both worlds: Hyrule's 17 item spots (the dungeons' items, the sword and letter caves, the Armos and coast items) and Zebes' 38 power-up spots, any of which can hold either game's item, placed by one logic so every seed can be finished (the goal: Ganon and Mother Brain). A Metroid item in Hyrule looks like five rupees, a Hyrule item on Zebes like a missile pack; the hub sees the pickup and hands the real item over the next time you're in the other world.
