@@ -22,15 +22,16 @@
   var me = document.currentScript, HUB = (me && me.getAttribute('data-hub')) || '../';
 
   var path = location.pathname;
-  var GAME = /\/glr\//.test(path) ? 'glr' : /\/smrpg\//.test(path) ? 'smrpg' : /\/sm\//.test(path) ? 'sm' : /\/metroid\//.test(path) ? 'metroid' :
+  var GAME = /\/glr\//.test(path) ? 'glr' : /\/smrpg\//.test(path) ? 'smrpg' : /\/sm\//.test(path) ? 'sm' : /\/metroid\//.test(path) ? 'metroid' : /\/smw\//.test(path) ? 'smw' :
     /\/ff6wc\//.test(path) ? 'ff6' : /\/ffr\/ff1\//.test(path) ? 'ff1' : /\/ffr\/ff4\//.test(path) ? 'ff4' :
     /\/ffr\/ff5\//.test(path) ? 'ff5' : /\/patched\//.test(path) ? 'patched' : null;
   if (!GAME) return;
-  var NAMES = { glr: 'GLR', sm: 'Super Metroid', metroid: 'Metroid', smrpg: 'Mario RPG', ff6: 'FF6', ff1: 'FF1', ff4: 'FF4', ff5: 'FF5', patched: 'Patched' };
+  var NAMES = { glr: 'GLR', sm: 'Super Metroid', metroid: 'Metroid', smw: 'Super Mario World', smrpg: 'Mario RPG', ff6: 'FF6', ff1: 'FF1', ff4: 'FF4', ff5: 'FF5', patched: 'Patched' };
   var AUTO_TEXT = {
     glr: 'starts when a game is started, stops when corridor 21 is cleared',
     sm: 'starts when a game is started, stops when Samus escapes Zebes',
     metroid: 'starts when a game is started, stops at the ending (Mother Brain beaten, the escape made)',
+    smw: 'starts when a game is started, stops when Bowser falls (the ending starts)',
     ff4: 'starts when a game is started, stops when the game is won',
   };
   var KEY = 'rh-timer-' + GAME;
@@ -60,7 +61,7 @@
   }
   // the trackers say 'live' once a real game is in memory, 'waiting' on the title screen
   var link = null;
-  var TRACKER = { sm: 'SMRTracker', metroid: 'M1Tracker', smrpg: 'SMRPGTracker', ff6: 'FF6Tracker', ff1: 'FFTracker', ff4: 'FFTracker', ff5: 'FFTracker' }[GAME];
+  var TRACKER = { sm: 'SMRTracker', metroid: 'M1Tracker', smw: 'SMWTracker', smrpg: 'SMRPGTracker', ff6: 'FF6Tracker', ff1: 'FFTracker', ff4: 'FFTracker', ff5: 'FFTracker' }[GAME];
   var hooked = false;
   function hook() {
     if (hooked || !TRACKER) return;
@@ -80,6 +81,7 @@
     if (GAME === 'glr') return r.length >= 0x800 && !!(r[0x4AB] & 0x10);         // corridor 21 cleared ($04A9 bit 20)
     if (GAME === 'sm') return r.length > 0x998 && (r[0x998] === 0x26 || r[0x998] === 0x27);   // escaping Zebes / ending
     if (GAME === 'metroid') return r.length >= 0x800 && r[0x1E] === 7 && link === 'live';      // MainRoutine 7: the ending
+    if (GAME === 'smw') return r.length > 0x13C6 && r[0x100] >= 0x18 && r[0x100] <= 0x29 && r[0x13C6] >= 8 && link === 'live';   // the ending: a cutscene ($0100) numbered 8 ($13C6; 1–7 are the castles)
     if (GAME === 'ff4') return r.length > 0x151F && r[0x151F] === 1 && link === 'live';      // FE's victory flag
     return false;
   }

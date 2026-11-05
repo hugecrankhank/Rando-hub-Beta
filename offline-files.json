@@ -1,6 +1,6 @@
 {
  "edition": "full",
- "version": "0a7c1ad6cbcd",
+ "version": "98c6938fc989",
  "cache": "rando-hub-v1",
  "files": [
   "./",
@@ -28,6 +28,9 @@
   "run-timer.html",
   "ios-audio.js",
   "game-health.js",
+  "world-map.js",
+  "popout-panel.html",
+  "game-popout.js",
   "credits-splash.js",
   "cursor-hide.js",
   "halloween.js",

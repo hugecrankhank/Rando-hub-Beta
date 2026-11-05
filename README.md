@@ -475,7 +475,7 @@ inside the hub, with its own emulator, seed generator, tracker and saves.
   seeds made by [ZORA](https://github.com/tetraly/zora) from your own Legend of Zelda
   (USA) ROM. Crowd control works there too: effects both games have keep their names,
   ALTTP-only ones are skipped. **Rerolls can land on** (tick Zelda 3, Zelda 1, Guardian
-  Legend, FF6, SMRPG, Super Metroid, Metroid in the Game row) lets 🎲 Reroll and Crowd Control's random preset / CHAOS
+  Legend, FF6, SMRPG, Super Metroid, Metroid, Super Mario World in the Game row) lets 🎲 Reroll and Crowd Control's random preset / CHAOS
   seeds pick one of the ticked games at random, so you can keep it to the Zelda series,
   or mix in Final Fantasy, as you like (*New seed (same settings)* always stays in the
   game being played). FF1, FF4 and FF5 are rolled on their own sites, so rerolls can't
@@ -513,6 +513,14 @@ inside the hub, with its own emulator, seed generator, tracker and saves.
   missiles, the Kraid and Ridley statues, and every spot by area (the game records each
   item it hands out), coloured by what Samus can reach now; the world map, one area per tab,
   with a pin on every spot and Samus on it.
+- **Super Mario World** (`smw/`):
+  seeds made by the [SMW Randomizer](https://github.com/authorblues/smwrandomizer)
+  (authorblues and kaizoman666's, v2.2, run in your browser unchanged) from your own Super
+  Mario World (USA) ROM, played on the hub's Snes9x. Its presets (Gnarly, the easiest, to
+  Outrageous and Funky) and every option one by one, or a share code (`seed/preset`)
+  from someone else. The tracker reads the game: every exit (normal and secret) ticks itself
+  as the game marks it beaten, the four switch palaces, the seven Koopa Kids' castles, the
+  exit count out of 96, lives and coins.
 - **Final Fantasy Randomizer (FF1), FF4 Free Enterprise, FF5 Career Day** (`ffr/`):
   seeds are rolled on each randomizer's own site (FF1R and FE generate in your
   browser there), then played here on the hub's NES or SNES with a tracker that reads

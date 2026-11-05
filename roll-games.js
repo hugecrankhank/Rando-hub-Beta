@@ -1,6 +1,6 @@
 /*
  * roll-games.js — which games a reroll may land on. Shared by the hub
- * (Zelda 3), Zelda 1, GLR, FF6 Worlds Collide, Super Mario RPG, Super Metroid and Metroid: the games with a seed
+ * (Zelda 3), Zelda 1, GLR, FF6 Worlds Collide, Super Mario RPG, Super Metroid, Metroid and Super Mario World: the games with a seed
  * generator in the page. (FF1, FF4 and FF5 are rolled on their own sites, so
  * a reroll can't go there.)
  *
@@ -29,6 +29,7 @@
     { id: 'smrpg', name: 'Super Mario RPG', url: 'smrpg/' },
     { id: 'sm', name: 'Super Metroid', url: 'sm/' },
     { id: 'metroid', name: 'Metroid', url: 'metroid/' },
+    { id: 'smw', name: 'Super Mario World', url: 'smw/' },
   ];
   // where the hub is from this page (set by the page: '' on the hub, '../' in a game's folder)
   var base = (document.currentScript && document.currentScript.dataset.hub) || '';
@@ -36,7 +37,7 @@
   // "Games shown": which games appear in the Game row, the headers and the
   // reroll list at all (Zelda 3 always). Hidden games still work by address.
   var SHOWN_KEY = 'rando-hub-games-shown';
-  var SHOWABLE = [['z1', 'Zelda 1'], ['glr', 'Guardian Legend'], ['ff1', 'FF1 Randomizer'], ['ff4', 'FF4 Free Enterprise'], ['ff5', 'FF5 Career Day'], ['ff6', 'FF6 Worlds Collide'], ['smrpg', 'Super Mario RPG'], ['sm', 'Super Metroid'], ['metroid', 'Metroid'], ['patched', 'Patched games']];
+  var SHOWABLE = [['z1', 'Zelda 1'], ['glr', 'Guardian Legend'], ['ff1', 'FF1 Randomizer'], ['ff4', 'FF4 Free Enterprise'], ['ff5', 'FF5 Career Day'], ['ff6', 'FF6 Worlds Collide'], ['smrpg', 'Super Mario RPG'], ['sm', 'Super Metroid'], ['metroid', 'Metroid'], ['smw', 'Super Mario World'], ['patched', 'Patched games']];
   // Default: Zelda 3 and Zelda 1 only; the rest are ticked on by the player.
   function shown() {
     var s = null;
@@ -55,7 +56,7 @@
     if (!a || typeof a !== 'object') {
       var either = false;
       try { either = localStorage.getItem(LEGACY) === '1'; } catch (e) {}
-      a = { z3: true, z1: either, glr: false, ff6: false, smrpg: false, sm: false, metroid: false };
+      a = { z3: true, z1: either, glr: false, ff6: false, smrpg: false, sm: false, metroid: false, smw: false };
     }
     return a;
   }
@@ -88,7 +89,7 @@
 
   // All the hub's games, for the header's compact "Games ▾" menu on narrow screens
   var ALL = [['', 'Zelda 3', 'z3'], ['z1r/', 'Zelda 1', 'z1'], ['glr/', 'Guardian Legend', 'glr'], ['ffr/ff1/', 'FF1 Randomizer', 'ff1'], ['ffr/ff4/', 'FF4 Free Enterprise', 'ff4'],
-    ['ffr/ff5/', 'FF5 Career Day', 'ff5'], ['ff6wc/', 'FF6 Worlds Collide', 'ff6'], ['smrpg/', 'Super Mario RPG', 'smrpg'], ['sm/', 'Super Metroid', 'sm'], ['metroid/', 'Metroid', 'metroid'], ['patched/', 'Patched games', 'patched']];
+    ['ffr/ff5/', 'FF5 Career Day', 'ff5'], ['ff6wc/', 'FF6 Worlds Collide', 'ff6'], ['smrpg/', 'Super Mario RPG', 'smrpg'], ['sm/', 'Super Metroid', 'sm'], ['metroid/', 'Metroid', 'metroid'], ['smw/', 'Super Mario World', 'smw'], ['patched/', 'Patched games', 'patched']];
   // Returns a <select> that goes to any other game; the page shows it instead of
   // its row of link buttons when the header is too narrow for them (the ids
   // given are hidden then).
@@ -240,7 +241,7 @@
   // (Zelda 3) holds other things too, so only its ROM keys are cleared.
   var STORES = {
     z3: [{ db: 'rhb-beta-s9x-kara', keys: ['base-jp10', 'resume-state', 'pending-rom'] }, { db: 'alttpr-s9x-kara', keys: ['base-jp10', 'resume-state', 'pending-rom'] }],
-    z1: [{ db: 'z1r-unified' }], glr: [{ db: 'glr' }], ff6: [{ db: 'ff6wc' }], smrpg: [{ db: 'smrpg' }], sm: [{ db: 'smr' }], metroid: [{ db: 'm1r' }],
+    z1: [{ db: 'z1r-unified' }], glr: [{ db: 'glr' }], ff6: [{ db: 'ff6wc' }], smrpg: [{ db: 'smrpg' }], sm: [{ db: 'smr' }], metroid: [{ db: 'm1r' }], smw: [{ db: 'smwr' }],
     ff1: [{ db: 'ffr-ff1' }], ff4: [{ db: 'ffr-ff4' }], ff5: [{ db: 'ffr-ff5' }],
     patched: [{ db: 'rhb-beta-patched', store: 'games' }, { db: 'rhb-beta-patched', store: 'bases' }],
   };
