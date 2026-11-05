@@ -90,15 +90,31 @@
     deviceName: 'Snes9x (built-in, SMZ3)',
     peek: function (a, n) { var x = (a >= 0x7E0000 && a < 0x800000) ? WRAM_BASE + (a - 0x7E0000) : a; return Array.from(read(x, n || 16), function (b) { return b.toString(16).padStart(2, '0'); }).join(' '); },
   };
-  // the player, as Mudora looks for it: core.rom() is the Zelda ROM
-  var fakeCore = { rom: function () { return z3Rom() || new Uint8Array(0); }, wram: function () { return wram() || new Uint8Array(WRAM_SIZE); }, sram: function () { var c = core(); return c ? c.sram() : new Uint8Array(0); }, get loaded() { return !!core(); } };
+  // the player, as Mudora looks for it: core.rom() is the Zelda ROM. For its item pictures Mudora
+  // boots that ROM in a hidden emulator and opens the pause menu: the combo's Zelda half doesn't
+  // boot on its own, so that gets the plain Zelda ROM the seed was rolled from (kept by the New
+  // seed dialog) when there is one.
+  var baseZ3 = null, baseReady = new Promise(function (res) {
+    var t0 = Date.now(), done = false, fin = function () { if (!done) { done = true; res(); } };
+    (function ask() {
+      if (baseZ3 || Date.now() - t0 > 6000) { fin(); return; }
+      var st = null; try { st = (parent !== window && parent.SMZ3Store) || (opener && opener.SMZ3Store); } catch (e) {}
+      if (!st) { setTimeout(ask, 300); return; }
+      var p; try { p = st.get('base-z3'); } catch (e) { p = null; }
+      if (!p || !p.then) { setTimeout(ask, 300); return; }
+      p.then(function (b) { if (b && b.bytes && b.bytes.byteLength >= 0x100000) { baseZ3 = new Uint8Array(b.bytes); fin(); } else setTimeout(ask, 300); }, function () { setTimeout(ask, 300); });
+    })();
+  });
+  var fakeCore = { rom: function () { return baseZ3 || z3Rom() || new Uint8Array(0); }, wram: function () { return wram() || new Uint8Array(WRAM_SIZE); }, sram: function () { var c = core(); return c ? c.sram() : new Uint8Array(0); }, get loaded() { return !!core(); } };
   window.Snes9xPlayer = { get core() { return core() ? fakeCore : null; }, get ready() { return !!core(); }, get gameName() { var P = hostPlayer(); return (P && P.gameName) || ''; }, get romBytes() { return z3Rom(); }, hooks: {}, fx: {}, toast: function () {} };
   // the pages
   var IT = document.getElementById('items-frame'), MP = document.getElementById('map-frame'), EM = document.getElementById('emo-frame');
   if (mode === 'hutch' || mode === 'mudora') { IT.src = '../tracker/itemtracker.html'; MP.src = '../tracker/map.html'; }
   var q = phone ? '?phone=' + encodeURIComponent(phone) : '';
-  if (mode === 'mudora2') EM.src = '../mudora2/index.html' + q;
-  else if (mode === 'mudora') EM.src = '../mudora/index.html' + q;
+  baseReady.then(function () {   // (Mudora cuts its pictures as it loads: the plain ROM first)
+    if (mode === 'mudora2') EM.src = '../mudora2/index.html' + q;
+    else if (mode === 'mudora') EM.src = '../mudora/index.html' + q;
+  });
   if (phone) document.title = (phone === 'maps' ? 'Zelda maps' : 'Zelda items') + ' · SMZ3';
   // phones: the SMZ3 page says which of Mudora's tabs to show
   window.addEventListener('message', function (ev) {

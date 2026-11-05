@@ -28,7 +28,8 @@
       '#sm-part{display:none;flex-direction:column;gap:6px}#sm-part .t-sec{margin:0}#g-smmap{display:flex;flex-direction:column;height:300px;min-height:0;border:2px solid var(--cell-line);border-radius:6px;overflow:hidden}' +
       'body.z3-frame #tracker{display:flex !important;flex-direction:column;grid-template-columns:none}body.z3-frame #tracker>*:not(.rh-pop-bar):not(.t-pick):not(#z3-frame):not(.z3-tabs):not(#sm-part):not(.rh-pop-ph){display:none !important}' +
       'body.z3-frame #z3-frame{display:block}body.z3-frame #sm-part{display:flex}body.z3-frame #tracker:not(.compact) #z3-frame{flex:0 0 auto;height:calc(100vh - 140px);min-height:520px}' +
-      'body.z3-frame #tracker.compact .z3-tabs{display:flex}body.z3-frame #tracker.compact #z3-frame{flex:1 1 0}body.z3-frame #tracker.compact #sm-part{display:none;flex:1 1 0;min-height:0;overflow:auto}body.z3-frame #tracker.compact.ph-sm #sm-part{display:flex}body.z3-frame #tracker.compact.ph-sm #z3-frame{display:none}' +
+      'body.z3-frame #tracker.compact .z3-tabs{display:flex}body.z3-frame #tracker.compact #z3-frame{flex:1 1 0}body.z3-frame #tracker.compact #sm-part{display:none;flex:1 1 0;min-height:0;overflow:auto}body.z3-frame #tracker.compact.ph-sm #sm-part,body.z3-frame #tracker.compact.ph-zebes #sm-part{display:flex}body.z3-frame #tracker.compact.ph-sm #z3-frame,body.z3-frame #tracker.compact.ph-zebes #z3-frame{display:none}' +
+      'body.z3-frame #tracker.compact.ph-sm #g-smmap{display:none}body.z3-frame #tracker.compact.ph-zebes #sm-items{display:none}body.z3-frame #tracker.compact.ph-zebes #g-smmap{flex:1 1 0;height:auto}' +
       '.rh-pop-bar .z3-pop{display:none}body.z3-frame .rh-pop-bar .z3-pop{display:inline-block}body.z3-frame .rh-pop-bar [data-pop]{display:none}' +
       'body.z3-off main{grid-template-columns:minmax(0,1fr) !important}body.z3-off main>aside#tracker{display:none !important}body.z3-off.upright #game-wrap{flex:1 1 auto !important;height:auto !important}';
     document.head.appendChild(s);
@@ -52,9 +53,9 @@
   function setPhone(t) {
     phoneTab = t;
     tabs.querySelectorAll('button').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.t === t ? 'true' : 'false'); });
-    root.classList.toggle('ph-sm', t === 'sm');
-    try { frame.contentWindow.postMessage({ type: 'smz3-phone', tab: t === 'sm' ? 'items' : t }, '*'); } catch (e) {}
-    if (t === 'sm') setTimeout(function () { if (window.SMZ3Map) SMZ3Map.redraw(); }, 50);
+    root.classList.toggle('ph-sm', t === 'sm'); root.classList.toggle('ph-zebes', t === 'zebes');
+    try { frame.contentWindow.postMessage({ type: 'smz3-phone', tab: t === 'sm' || t === 'zebes' ? 'items' : t }, '*'); } catch (e) {}
+    if (t === 'zebes') setTimeout(function () { if (window.SMZ3Map) SMZ3Map.redraw(); }, 50);
   }
 
   // ── the four windows ─────────────────────────────────────────────────────
@@ -109,7 +110,7 @@
     pick.addEventListener('change', function () { set(pick.value); });
     var row = document.createElement('div'); row.className = 't-pick'; row.appendChild(document.createTextNode('Tracker')); row.appendChild(pick);
     tabs = document.createElement('div'); tabs.className = 'z3-tabs';
-    tabs.innerHTML = '<button type="button" data-t="items">Items</button><button type="button" data-t="lw">Light</button><button type="button" data-t="dw">Dark</button><button type="button" data-t="keys">Keys</button><button type="button" data-t="sm">Samus</button>';
+    tabs.innerHTML = '<button type="button" data-t="items">Items</button><button type="button" data-t="lw">Light</button><button type="button" data-t="dw">Dark</button><button type="button" data-t="keys">Keys</button><button type="button" data-t="sm">Samus</button><button type="button" data-t="zebes">Zebes</button>';
     tabs.addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) setPhone(b.dataset.t); });
     frame = document.createElement('iframe'); frame.id = 'z3-frame'; frame.title = 'Zelda tracker';
     frame.addEventListener('load', function () { if (root.classList.contains('compact')) setTimeout(function () { setPhone(phoneTab || 'items'); }, 800); });

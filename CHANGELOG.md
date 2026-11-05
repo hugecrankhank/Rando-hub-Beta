@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.115 (2026-11-05)
+
+- **SMZ3: Mudora's item pictures, and a Zebes tab on phones.** Mudora cuts its item pictures from the game's own pause menu; the combo's Zelda half doesn't boot on its own, so it now gets the plain Zelda ROM the seed was rolled from (as on the Zelda 3 page: the pictures are the game's). On a phone, a Zebes tab shows the Metroid map on its own (Samus shows the items).
+
 ## Beta v1.14.114 (2026-11-05)
 
 - **SMZ3: both games at once, four windows for stream.** With a Zelda 3 tracker chosen (Mudora 2.0 by default), the column shows the Zelda tracker and, under it, the Metroid part of Rando Hub's tracker (Samus's items, the bosses, Zebes' map). The pop-out bar offers four windows: ⧉ Zelda items (Mudora's items and dungeons), ⧉ Zelda maps (both worlds), ⧉ Metroid items, ⧉ Metroid map, each for a separate capture. On a phone a Samus tab joins Items / Light / Dark / Keys.

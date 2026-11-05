@@ -63,8 +63,10 @@ nothing uploaded: your ROMs stay in your browser.
     the combo's save RAM while Super Metroid runs), so they autotrack the
     Zelda side as on the Zelda 3 page, pictures and maps cut from your ROM.
     Under it, the Metroid part of Rando Hub's tracker: Samus's items, the
-    bosses and Zebes' map, so both games show at once. On a phone, Items /
-    Light / Dark / Keys / Samus above the frame pick what shows.
+    bosses and Zebes' map, so both games show at once. Mudora's item pictures
+    are the game's own, cut from the plain Zelda ROM the seed was rolled from
+    (the combo's Zelda half doesn't boot on its own). On a phone, Items /
+    Light / Dark / Keys / Samus / Zebes above the frame pick what shows.
   - **Four windows for stream** (desktop, with a Zelda 3 tracker chosen):
     **⧉ Zelda items** (Mudora's items and dungeons), **⧉ Zelda maps** (both
     worlds), **⧉ Metroid items** and **⧉ Metroid map**, each in a window of
