@@ -847,7 +847,32 @@ var RH_SPLASH = (function () {
     });
   }
 
+  // ── a second game in the same player (zm/: Zelda 1 and Metroid linked) ──
+  // Another core, loaded with another ROM, can be swapped in for the one
+  // running: the picture, sound and controls follow it; each core keeps its own
+  // state and save RAM. newCore(bytes, name) makes one; attach(core) runs it.
+  function newCore(bytes, name) {
+    return EmuCore.create(BASE + 'fceumm.wasm').then(function (c) {
+      c.setOption(0, cfg.overclock); c.setOption(1, cfg.noSpriteLimit);
+      if (!c.load(bytes)) throw new Error('The emulator could not load "' + name + '".');
+      c._name = (name || 'game').replace(/\.[^.]+$/, '');
+      c._bytes = bytes;
+      return kvGet('sram:' + c._name).then(function (saved) { var s = c.sram(); if (saved && saved.length === s.length) s.set(saved); c._lastSram = c.sram().slice(); return c; });
+    });
+  }
+  function attach(c) {
+    if (!running || !c || c === core) return core;
+    flushSram();
+    core._lastSram = lastSram; core._name = gameName; core._bytes = romBytes;
+    var old = core;
+    core = c; gameName = c._name || gameName; romBytes = c._bytes || romBytes; romFile = gameName + '.nes'; lastSram = c._lastSram || c.sram().slice();
+    acc = 0; audioAcc = 0; if (audio) { audio.clear(); audio.setRate(core.sampleRate); }
+    try { video.upload(paintFrame(core.frame())); } catch (e) {}
+    return old;
+  }
+
   window.EmuPlayer = {
+    newCore: newCore, attach: attach,
     saveRom: saveRom, get romBytes() { return romBytes; },
     boot: boot, hooks: hooks, setTouchPlacement: setTouchPlacement,
     get emulator() { return running ? ejs : null; },

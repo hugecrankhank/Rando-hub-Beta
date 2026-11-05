@@ -5,6 +5,12 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.107 (2026-11-05)
+
+- **New game: Zelda 1 + Metroid, linked** (`zm/`, in the Games menu and the Game row). Rando Hub's own combo, nothing of anyone else's randomizer: both games run in the hub's NES emulator, one at a time, from your own Zelda (USA) and Metroid (USA) ROMs. Hyrule's four "take any road" caves are portals to Zebes and Zebes' elevator rooms lead back (the ⇄ button or P); each world goes on where it was left. One item pool across both worlds: Hyrule's 17 item spots (the dungeons' items, the sword and letter caves, the Armos and coast items) and Zebes' 38 power-up spots, any of which can hold either game's item, placed by one logic so every seed can be finished (the goal: Ganon and Mother Brain). A Metroid item in Hyrule looks like five rupees, a Hyrule item on Zebes like a missile pack; the hub sees the pickup and hands the real item over the next time you're in the other world.
+- **Tracker** for both games, the one playing and the one waiting: Link's and Samus's items, every spot of both worlds ticked as it's taken and coloured by the seed's logic, the portals, what's waiting for whom. Reveal shows the spoiler. Both worlds' saves are kept for Continue; crash-proof; the stream timer stops when both ends have fallen. The maps come next.
+- The NES player can now hold a second game and swap it in (for linked games).
+
 ## Beta v1.14.106 (2026-11-05)
 
 - **New game: SMZ3** (`smz3/`, in the Games menu and the Game row): Super Metroid and A Link to the Past in one game, items shuffled across both. Seeds come from the SMZ3 Randomizer itself (v11.3.2, the generator behind samus.link), ported to run in your browser from your own Super Metroid (Japan, USA) and Japanese Link to the Past 1.0 ROMs. The same seed and settings make the same game as samus.link: seed 321661004 built here matches samus.link's ROM byte for byte. Every samus.link setting (Super Metroid logic, goal, Ganon's Tower and Ganon crystals, Tourian bosses, first sword, Morph Ball, keysanity, race), share codes, spoiler, Download ROM.

@@ -44,3 +44,5 @@ Things here were learned the hard way; each line says why.
   synced in with its `sync-effects.py`; use Zelda 3's effect ids where an
   effect means the same thing.
 - Layouts: make the most of the screen on iPad, iPhone and tablets.
+- Two games in one page (zm/: Zelda 1 + Metroid): the NES player's `newCore()` /
+  `attach()` swap a second loaded core in; each keeps its own state and save RAM.

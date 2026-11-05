@@ -28,6 +28,7 @@
   var M1_URL = 'metroid/';  // Metroid (NES): the same
   var SMW_URL = 'smw/';     // Super Mario World: the same
   var SMZ3_URL = 'smz3/';   // SMZ3 (Super Metroid + A Link to the Past): the same
+  var ZM_URL = 'zm/';       // Zelda 1 + Metroid, linked: the same
   var FFR_URLS = { ff1: 'ffr/ff1/', ff4: 'ffr/ff4/', ff5: 'ffr/ff5/' };   // FF1R, Free Enterprise, Career Day: played here, rolled on their own sites
 
   // Which games a reroll may land on: roll-games.js (RandoRoll), ticked in the Game row.
@@ -40,7 +41,7 @@
   function pickZ1() { return pickOther() === 'z1'; }
   function goZ1(by, mode) { goTo('z1', by, mode); }
 
-  window.RandoGames = { either: either, pickOther: pickOther, goTo: goTo, pickZ1: pickZ1, goZ1: goZ1, Z1_URL: Z1_URL, GLR_URL: GLR_URL, FF6_URL: FF6_URL, SMRPG_URL: SMRPG_URL, SM_URL: SM_URL, M1_URL: M1_URL, SMW_URL: SMW_URL, SMZ3_URL: SMZ3_URL, FFR_URLS: FFR_URLS };
+  window.RandoGames = { either: either, pickOther: pickOther, goTo: goTo, pickZ1: pickZ1, goZ1: goZ1, Z1_URL: Z1_URL, GLR_URL: GLR_URL, FF6_URL: FF6_URL, SMRPG_URL: SMRPG_URL, SM_URL: SM_URL, M1_URL: M1_URL, SMW_URL: SMW_URL, SMZ3_URL: SMZ3_URL, ZM_URL: ZM_URL, FFR_URLS: FFR_URLS };
 
   // ── the 🎲 Reroll button: maybe Zelda 1 instead ───────────────────────────
   // Runs before reroll.js's own click handler (capture phase on the document).
@@ -82,6 +83,7 @@
       '<a data-game="metroid" href="' + M1_URL + '" title="Metroid (NES, 1986): Rando Hub’s own item randomizer, with a tracker and the map">Metroid ▸</a>' +
       '<a data-game="smw" href="' + SMW_URL + '" title="Super Mario World: the SMW Randomizer (authorblues), with a tracker of every exit">Super Mario World ▸</a>' +
       '<a data-game="smz3" href="' + SMZ3_URL + '" title="SMZ3: Super Metroid and A Link to the Past combined (samus.link’s randomizer), with a tracker of both games">SMZ3 ▸</a>' +
+      '<a data-game="zm" href="' + ZM_URL + '" title="Zelda 1 and Metroid linked: portals between Hyrule and Zebes, one item pool across both (Rando Hub’s own)">Zelda 1 + Metroid ▸</a>' +
       '<a data-game="ff1" href="' + FFR_URLS.ff1 + '" title="Final Fantasy Randomizer (FF1): roll on its site, play and track here">FF1 ▸</a>' +
       '<a data-game="ff4" href="' + FFR_URLS.ff4 + '" title="FF4 Free Enterprise: roll on its site, play and track here (key items, characters, bosses, objectives)">FF4 ▸</a>' +
       '<a data-game="ff5" href="' + FFR_URLS.ff5 + '" title="FF5 Career Day: roll on its site, play and track here (key items, jobs, checks)">FF5 ▸</a>' +

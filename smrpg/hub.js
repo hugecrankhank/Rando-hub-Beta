@@ -48,10 +48,11 @@
       newSeed.parentNode.insertBefore(link('hub-metroid', HUB + 'metroid/', 'Metroid', 'Metroid (NES): Rando Hub’s own randomizer'), newSeed).dataset.game = 'metroid';
       newSeed.parentNode.insertBefore(link('hub-smw', HUB + 'smw/', 'SMW', 'Super Mario World Randomizer'), newSeed).dataset.game = 'smw';
       newSeed.parentNode.insertBefore(link('hub-smz3', HUB + 'smz3/', 'SMZ3', 'SMZ3: Super Metroid + A Link to the Past'), newSeed).dataset.game = 'smz3';
+      newSeed.parentNode.insertBefore(link('hub-zm', HUB + 'zm/', 'Z1+M1', 'Zelda 1 + Metroid, linked: portals between Hyrule and Zebes'), newSeed).dataset.game = 'zm';
       newSeed.parentNode.insertBefore(link('hub-patched', HUB + 'patched/', 'Patched', 'Patched games: NES and SNES ROM hacks on these emulators'), newSeed).dataset.game = 'patched';
       var R = window.RandoRoll;
       if (R) R.applyShown(newSeed.parentNode);
-      if (R) newSeed.parentNode.insertBefore(R.gamesMenu('smrpg/', ['hub-back', 'hub-z1', 'hub-glr', 'hub-ff', 'hub-sm', 'hub-patched', 'hub-metroid', 'hub-smw', 'hub-smz3']), newSeed);
+      if (R) newSeed.parentNode.insertBefore(R.gamesMenu('smrpg/', ['hub-back', 'hub-z1', 'hub-glr', 'hub-ff', 'hub-sm', 'hub-patched', 'hub-metroid', 'hub-smw', 'hub-smz3', 'hub-zm']), newSeed);
       var rr = document.createElement('button');
       rr.className = 'btn'; rr.id = 'hub-reroll'; rr.type = 'button'; rr.innerHTML = '🎲<span class="hub-short"> Reroll</span>';
       rr.title = 'A new seed with the flags you used last' + (R && R.others('smrpg').length ? ' (or a ' + R.others('smrpg').join(' / ') + ' seed: ticked in the hub’s Game row)' : '');

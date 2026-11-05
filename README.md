@@ -475,7 +475,7 @@ inside the hub, with its own emulator, seed generator, tracker and saves.
   seeds made by [ZORA](https://github.com/tetraly/zora) from your own Legend of Zelda
   (USA) ROM. Crowd control works there too: effects both games have keep their names,
   ALTTP-only ones are skipped. **Rerolls can land on** (tick Zelda 3, Zelda 1, Guardian
-  Legend, FF6, SMRPG, Super Metroid, Metroid, Super Mario World, SMZ3 in the Game row) lets 🎲 Reroll and Crowd Control's random preset / CHAOS
+  Legend, FF6, SMRPG, Super Metroid, Metroid, Super Mario World, SMZ3, Zelda 1 + Metroid in the Game row) lets 🎲 Reroll and Crowd Control's random preset / CHAOS
   seeds pick one of the ticked games at random, so you can keep it to the Zelda series,
   or mix in Final Fantasy, as you like (*New seed (same settings)* always stays in the
   game being played). FF1, FF4 and FF5 are rolled on their own sites, so rerolls can't
@@ -530,6 +530,16 @@ inside the hub, with its own emulator, seed generator, tracker and saves.
   Every setting samus.link has, share codes, spoiler; played on the hub's Snes9x. The tracker
   reads both games whichever is running: items, bosses with their prizes, and all 316 locations,
   coloured by SMZ3's own logic. A samus.link seed plays with Play ROM file.
+- **Zelda 1 + Metroid** (`zm/`): Rando Hub's own linked randomizer, nothing of anyone else's.
+  Both games run in the hub's NES emulator, one at a time: Hyrule's four "take any road"
+  caves are portals to Zebes, and Zebes' elevator rooms lead back (the ⇄ button). One item
+  pool across both worlds: Hyrule's 17 item spots and Zebes' 38 power-up spots, any of
+  which can hold either game's item, placed by one logic so every seed can be finished
+  (Ganon and Mother Brain both). A Metroid item in Hyrule looks like five rupees, a Hyrule
+  item on Zebes like a missile pack; the hub sees the pickup and hands the real item over
+  when you're next in the other world. The tracker follows both games (the one playing and
+  the one waiting), every spot coloured by the seed's logic. From your own Zelda (USA) and
+  Metroid (USA) ROMs.
 - **Final Fantasy Randomizer (FF1), FF4 Free Enterprise, FF5 Career Day** (`ffr/`):
   seeds are rolled on each randomizer's own site (FF1R and FE generate in your
   browser there), then played here on the hub's NES or SNES with a tracker that reads

@@ -1,0 +1,16 @@
+{
+  "name": "Zelda 1 + Metroid - Rando Hub",
+  "short_name": "Zelda+Metroid",
+  "description": "Zelda 1 and Metroid linked into one randomizer, played from your own ROMs.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0c1016",
+  "theme_color": "#0c1016",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
