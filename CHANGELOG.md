@@ -8,7 +8,7 @@ played again later.
 ## Beta v1.14.114 (2026-11-05)
 
 - **SMZ3: both games at once, four windows for stream.** With a Zelda 3 tracker chosen (Mudora 2.0 by default), the column shows the Zelda tracker and, under it, the Metroid part of Rando Hub's tracker (Samus's items, the bosses, Zebes' map). The pop-out bar offers four windows: ⧉ Zelda items (Mudora's items and dungeons), ⧉ Zelda maps (both worlds), ⧉ Metroid items, ⧉ Metroid map, each for a separate capture. On a phone a Samus tab joins Items / Light / Dark / Keys.
-- Mudora: two views for windows of their own, items-and-dungeons and maps-only (, ).
+- Mudora: two views for windows of their own, items-and-dungeons and maps-only (`?phone=side`, `?phone=maps`).
 
 ## Beta v1.14.113 (2026-11-05)
 
