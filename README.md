@@ -539,7 +539,9 @@ inside the hub, with its own emulator, seed generator, tracker and saves.
   item on Zebes like a missile pack; the hub sees the pickup and hands the real item over
   when you're next in the other world. The tracker follows both games (the one playing and
   the one waiting), every spot coloured by the seed's logic. From your own Zelda (USA) and
-  Metroid (USA) ROMs.
+  Metroid (USA) ROMs; both ROMs the generator writes carry the combined title (Zelda's with
+  "METROID" carved under the box, Metroid's with "THE LEGEND OF ZELDA" in gold above its
+  logo), and every portal plays a transition between the two worlds' frames.
 - **Final Fantasy Randomizer (FF1), FF4 Free Enterprise, FF5 Career Day** (`ffr/`):
   seeds are rolled on each randomizer's own site (FF1R and FE generate in your
   browser there), then played here on the hub's NES or SNES with a tracker that reads

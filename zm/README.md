@@ -38,6 +38,16 @@ of anyone else's randomizer is used; the games come from your own two ROMs.
   when the app goes to the background; a frozen game isn't saved), so Continue
   picks up both worlds. The Download buttons give the two ROMs for any
   emulator, but the portals and the hand-over are the hub's.
+- **The combined title** (`js/title-rom.js`) is baked into both ROMs, so it
+  shows in any emulator: Zelda's title gets "METROID" carved under the box
+  (the Metroid logo's tiles from your Metroid ROM, in the rocks' grays, in the
+  42 tile slots Zelda's font block leaves empty; PUSH START moves to the top);
+  Metroid's title gets "THE LEGEND OF ZELDA" in gold above its logo (Zelda's
+  logo tiles from your Zelda ROM, loaded from a new PRG bank: the Metroid ROM
+  the generator writes is 256 KB, banks 8..14 holding only those tiles and 15
+  the fixed bank; its title strings are rewritten tighter to make room for the
+  five rows). The portal transition (`js/title.js`) is the hub's: the frame
+  you leave and the first frame you enter, side by side, with a fade.
 
 ## How the ROMs are changed
 

@@ -146,7 +146,6 @@
   function poll() {
     if (!cores[game] || switching) return;
     checkPickups(); deliver(); checkPortal();
-    if (window.ZMTitle) { const z = ram('z1'); ZMTitle.title(game === 'z1' && !!z && z[Z.RAM.MODE] === 0, cores); }
     // the ends: Zelda's mode $13 (Zelda saved), Metroid's main routine 7 (the ending)
     { const z = ram('z1'), m = ram('m1'); if (z && z[Z.RAM.MODE] === 0x13 && !won.z1) { won.z1 = true; save(); } if (m && m[0x1E] === 7 && inPlay('m1') && !won.m1) { won.m1 = true; save(); } }
     const r = ram(game);

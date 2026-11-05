@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.109 (2026-11-05)
+
+- **Zelda 1 + Metroid: the combined title is in the ROMs now.** Both ROMs the generator writes carry it, so it shows in any emulator: Zelda's title gets "METROID" carved under the box among the rocks (the logo's tiles from your Metroid ROM, in the rocks' grays, in the 42 tile slots Zelda's font block leaves empty; PUSH START BUTTON moves to the top, the waterfall starts a row lower), and Metroid's title gets "THE LEGEND OF ZELDA" in gold above its logo (Zelda's logo tiles from your Zelda ROM, loaded from a new PRG bank: that Metroid ROM is 256 KB). The hub-drawn title card is gone; the portal transition stays, and the Metroid logo in it is no longer cut off.
+
 ## Beta v1.14.108 (2026-11-05)
 
 - **Zelda 1 + Metroid: the dual screens.** The combined title (Zelda's and Metroid's logos together, "LINKED" between them) shows over Zelda's title screen, and every portal plays a transition: the frame of the world you're leaving and the first frame of the one you enter, side by side, with "To Zebes" / "To Hyrule". Both are drawn by the hub from your own ROMs' frames (nothing shipped, no ROM patch).

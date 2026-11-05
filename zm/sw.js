@@ -10,7 +10,7 @@ const EXTERNAL = ['https://fonts.googleapis.com/', 'https://fonts.gstatic.com/']
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll([
-    './', './index.html', './manifest.webmanifest', './hub.js', '../metroid/js/data.js', '../metroid/js/logic.js', './js/data.js', './js/store.js', './js/gen.js', './js/title.js', './js/link.js', './js/tracker.js', './js/seed.js', './js/app.js', '../game-health.js', '../game-popout.js', '../popout-panel.html', '../credits-splash.js', '../fonts/PressStart2P-Regular.ttf',
+    './', './index.html', './manifest.webmanifest', './hub.js', '../metroid/js/data.js', '../metroid/js/logic.js', './js/data.js', './js/store.js', './js/gen.js', './js/title-rom.js', './js/title.js', './js/link.js', './js/tracker.js', './js/seed.js', './js/app.js', '../game-health.js', '../game-popout.js', '../popout-panel.html', '../credits-splash.js', '../fonts/PressStart2P-Regular.ttf',
     // the emulator (../z1r/emu/) is outside this scope: the hub's offline cache keeps it
   ])).catch(() => {}));
   self.skipWaiting();

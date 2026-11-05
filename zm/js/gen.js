@@ -165,7 +165,7 @@
     let at = null;
     for (let tries = 0; tries < 300 && !at; tries++) at = place(r);
     if (!at) throw new Error('No placement worked for this seed; try another.');
-    const res = { seed, at, z1: writeZelda(z1, at), m1: writeMetroid(m1, at) };
+    const res = { seed, at, z1: ZMTitleRom.bakeZelda(writeZelda(z1, at), m1), m1: ZMTitleRom.bakeMetroid(writeMetroid(m1, at), z1) };   // both titles carry both logos (js/title-rom.js)
     res.spoiler = spoilerText(res);
     res.meta = { seed: String(seed), generator: 'Rando Hub Zelda 1 + Metroid', made: Date.now(), items: at.map((it) => [it.game, it.type]), spoiler: res.spoiler };
     return res;
