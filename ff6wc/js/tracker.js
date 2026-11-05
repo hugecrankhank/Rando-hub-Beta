@@ -164,9 +164,23 @@
       (m.hash && m.hash.length ? '<div class="seedline"><b>Hash</b> ' + esc(m.hash.join(', ')) + '</div>' : '') +
       (m.version ? '<div class="seedline fine">Worlds Collide ' + esc(m.version) + '</div>' : '');
     const list = m.objectives || [];
-    if (!list.length) { g.innerHTML = '<p class="empty">' + (m.seed ? 'This seed’s log has no objectives section.' : 'Roll a seed here and its objectives show up in this list (they’re also in the game’s menu).') + '</p>'; return; }
+    const logBtn = m.source === 'file' || m.fromLog ? '<p class="empty"><label class="linkish" style="cursor:pointer">' + (m.fromLog ? 'Load a different spoiler log…' : 'Rolled on ff6worldscollide.com? Load its spoiler log (.txt) for the objectives, seed and hash.') + '<input type="file" accept=".txt,text/plain" hidden data-log></label></p>' : '';
+    if (!list.length) { g.innerHTML = '<p class="empty">' + (m.seed ? 'This seed’s log has no objectives section.' : m.source === 'file' ? 'A ROM made elsewhere: its objectives are in the game’s menu.' : 'Roll a seed here and its objectives show up in this list (they’re also in the game’s menu).') + '</p>' + logBtn; hookLog(g); return; }
     g.innerHTML = list.map((o) => '<div class="goal"><div class="goal-r"><span class="letter">' + esc(o.letter) + '</span> ' + esc(o.result) + '</div>' +
-      '<div class="goal-c">' + o.conditions.map((c) => esc(c)).join('<br>') + (o.required ? '<br><small>' + esc(o.required) + '</small>' : '') + '</div></div>').join('');
+      '<div class="goal-c">' + o.conditions.map((c) => esc(c)).join('<br>') + (o.required ? '<br><small>' + esc(o.required) + '</small>' : '') + '</div></div>').join('') + logBtn;
+    hookLog(g);
+  }
+  // a seed played from a file: its spoiler log fills in the objectives, seed and hash (kept with the ROM for Continue)
+  function hookLog(g) {
+    const inp = g.querySelector('input[data-log]'); if (!inp) return;
+    inp.addEventListener('change', async () => {
+      const f = inp.files && inp.files[0]; if (!f) return;
+      const info = window.FF6Seed && FF6Seed.parseLog(await f.text());
+      if (!info) { alert('“' + f.name + '” isn’t a Worlds Collide spoiler log (the .txt that comes with the seed).'); return; }
+      meta = Object.assign({}, meta, info);
+      if (window.FF6Store) FF6Store.get('current').then((c) => { if (c && c.bytes) { c.meta = Object.assign({}, c.meta || {}, info); return FF6Store.set('current', c); } }).catch(() => {});
+      render();
+    });
   }
 
   // ── polling the game ─────────────────────────────────────────────────────

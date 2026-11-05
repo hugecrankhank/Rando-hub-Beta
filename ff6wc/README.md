@@ -28,6 +28,10 @@ Works on PC, tablets and phones, and installs as an app.
   Seeds are any word; the same seed and flags make the same game, so share both.
 - **The result:** Play now, or download the ROM and the spoiler log (the log Worlds
   Collide writes).
+- **A seed rolled on [ff6worldscollide.com](https://ff6worldscollide.com/):** play its ROM with
+  Play ROM file. The tracker and the map read the game itself (Worlds Collide's own event,
+  character and esper bits), so they follow it exactly as a seed rolled here; its spoiler
+  log (.txt), loaded on the Objectives tab, adds the objectives, seed and hash.
 
 ## The tracker
 

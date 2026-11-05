@@ -185,5 +185,11 @@
     reroll() { $('seed').value = ''; $('seed-dlg').showModal(); return generate().then((r) => { if (r) { $('seed-dlg').close(); onPlay(r, { confirmed: true }); } return r; }); },
     get last() { return last; },
     release() { last = null; },
+    // a spoiler log (a seed rolled elsewhere, ff6worldscollide.com): its seed, flags, hash, version and objectives
+    parseLog(text) {
+      const f = (k) => { const m = text.match(new RegExp('^' + k + ' +(.*)$', 'm')); return m ? m[1].trim() : ''; };
+      if (!/^Version\s/m.test(text) || !/^Hash\s/m.test(text)) return null;
+      return { seed: f('Seed'), flags: f('Flags'), hash: f('Hash').split(/,\s*/).filter(Boolean), version: f('Version'), objectives: parseObjectives(text), generator: 'Worlds Collide', fromLog: true };
+    },
   };
 })();

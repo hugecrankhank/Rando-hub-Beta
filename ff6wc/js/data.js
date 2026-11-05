@@ -63,7 +63,7 @@
     { id: 'ul-open', name: 'Ultros League · Open world', flags: UL.replace(/^-cg\b/, '-open'),
       about: 'The same flags with character gating off: every check is open from the start.' },
     { id: 'custom', name: 'Custom flag string', flags: '',
-      about: 'Paste a flag string from ff6worldscollide.com (its flag page builds one), a race, or a friend.' },
+      about: 'Paste a flag string from ff6worldscollide.com (its flag builder makes one: https://ff6worldscollide.com/), a race, or a friend.' },
   ];
 
   window.FF6 = { CHARACTERS, CHAR_COLORS, ESPERS, CHECKS, AREAS, DRAGONS, BOSSES, MEM, ROM, PRESETS };
