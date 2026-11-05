@@ -5,6 +5,11 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.114 (2026-11-05)
+
+- **SMZ3: both games at once, four windows for stream.** With a Zelda 3 tracker chosen (Mudora 2.0 by default), the column shows the Zelda tracker and, under it, the Metroid part of Rando Hub's tracker (Samus's items, the bosses, Zebes' map). The pop-out bar offers four windows: ⧉ Zelda items (Mudora's items and dungeons), ⧉ Zelda maps (both worlds), ⧉ Metroid items, ⧉ Metroid map, each for a separate capture. On a phone a Samus tab joins Items / Light / Dark / Keys.
+- Mudora: two views for windows of their own, items-and-dungeons and maps-only (, ).
+
 ## Beta v1.14.113 (2026-11-05)
 
 - **SMZ3: the Zelda 3 trackers.** A Tracker menu at the top of the column offers the Zelda side the way the Zelda 3 page does: **Mudora 2.0** (now the default), Mudora, Hutch, Rando Hub's own SMZ3 tracker (both games), or off. They run inside the column and autotrack the Zelda side (pictures and maps cut from your ROM), whichever game is running: while Super Metroid runs they see Zelda's last frame with its save block kept current from the combo's save RAM. On a phone, Items / Light / Dark / Keys pick Mudora's view.

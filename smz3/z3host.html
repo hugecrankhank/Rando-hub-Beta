@@ -13,6 +13,7 @@
   body.hutch #emo-frame { display: none; }
   body.mudora #items-wrap, body.mudora #map-frame { position: absolute; left: -4000px; top: 0; width: 900px; height: 700px; }   /* Hutch's pages run out of sight for their logic */
   body.mudora2 #items-wrap, body.mudora2 #map-frame { display: none; }
+  body.hutch.v-side #map-frame { display: none; } body.hutch.v-side #items-wrap { flex: 1 1 0; min-height: 0; } body.hutch.v-side #items-frame { height: 100%; } body.hutch.v-maps #items-wrap { display: none; }
 </style>
 </head>
 <body>
@@ -39,11 +40,12 @@
 (function () {
   'use strict';
   var WRAM_BASE = 0xF50000, WRAM_SIZE = 0x20000, SRAM_BASE = 0xE00000, Z3_AT = 0x400000, SAVE = 0xF000, SAVE_LEN = 0x500, GAME = 0x33FE;
-  var mode = (new URLSearchParams(location.search).get('t') || 'mudora2');
+  var qs = new URLSearchParams(location.search), mode = qs.get('t') || 'mudora2', phone = qs.get('phone') || '';
   if (['mudora2', 'mudora', 'hutch'].indexOf(mode) < 0) mode = 'mudora2';
-  document.body.className = mode;
+  document.body.className = mode + (phone ? ' v-' + phone : '');
 
-  function hostPlayer() { try { return parent.Snes9xPlayer || null; } catch (e) { return null; } }
+  // the SMZ3 page: this page's parent (in the column) or its opener (a window of its own)
+  function hostPlayer() { try { if (parent !== window && parent.Snes9xPlayer) return parent.Snes9xPlayer; } catch (e) {} try { return (opener && opener.Snes9xPlayer) || null; } catch (e) { return null; } }
   function core() { var P = hostPlayer(); return P && P.ready ? P.core : null; }
   var z3 = null, z3Of = null, snap = null;
   function z3Rom() {
@@ -94,8 +96,10 @@
   // the pages
   var IT = document.getElementById('items-frame'), MP = document.getElementById('map-frame'), EM = document.getElementById('emo-frame');
   if (mode === 'hutch' || mode === 'mudora') { IT.src = '../tracker/itemtracker.html'; MP.src = '../tracker/map.html'; }
-  if (mode === 'mudora2') EM.src = '../mudora2/index.html';
-  else if (mode === 'mudora') EM.src = '../mudora/index.html';
+  var q = phone ? '?phone=' + encodeURIComponent(phone) : '';
+  if (mode === 'mudora2') EM.src = '../mudora2/index.html' + q;
+  else if (mode === 'mudora') EM.src = '../mudora/index.html' + q;
+  if (phone) document.title = (phone === 'maps' ? 'Zelda maps' : 'Zelda items') + ' · SMZ3';
   // phones: the SMZ3 page says which of Mudora's tabs to show
   window.addEventListener('message', function (ev) {
     var d = ev.data || {};

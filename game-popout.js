@@ -51,14 +51,16 @@
     doc.body.style.font = cs.font;
   }
 
-  function pop(kind) {
+  // pop(kind) — the tracker or its map; pop(kind, el, { title, label, width, height, map }) — any element of the page (a game's own parts)
+  function pop(kind, elArg, opts) {
+    opts = opts || {};
     var cur = wins[kind];
     if (cur && cur.w && !cur.w.closed) { cur.w.focus(); return; }
-    var el = kind === 'map' ? mapEl() : tracker();
+    var el = elArg || (kind === 'map' ? mapEl() : tracker());
     if (!el) return;
     if (kind === 'tracker' && wins.map && wins.map.w && !wins.map.w.closed) back('map');   // one window with all of it
-    var r = el.getBoundingClientRect();
-    var W = kind === 'map' ? 640 : Math.max(560, Math.round(r.width) || 560), H = kind === 'map' ? 600 : 800;
+    var r = el.getBoundingClientRect(), isMap = kind === 'map' || !!opts.map;
+    var W = opts.width || (isMap ? 640 : Math.max(560, Math.round(r.width) || 560)), H = opts.height || (isMap ? 600 : 800);
     var w = window.open(HUB + 'popout-panel.html?k=' + kind, 'rh-pop-' + GAME + '-' + kind, 'popup=yes,width=' + W + ',height=' + H + ',resizable=yes');
     if (!w) { alert('The pop-out was blocked: allow pop-ups for this site.'); return; }
     var rec = { w: w, el: el, parent: el.parentNode, next: el.nextSibling, ph: null };
@@ -67,13 +69,13 @@
     (function ready() {
       var d; try { d = w.document; } catch (e) { return; }
       if (!d || d.readyState !== 'complete' || !d.getElementById('slot')) { if (Date.now() - started < 8000 && !w.closed) return setTimeout(ready, 60); return; }
-      d.title = (document.title.split(' - ')[0] || 'Rando Hub') + ' · ' + (kind === 'map' ? 'Map' : 'Tracker');
+      d.title = (document.title.split(' - ')[0] || 'Rando Hub') + ' · ' + (opts.title || (kind === 'map' ? 'Map' : 'Tracker'));
       styles(d);
       // a placeholder where it was
       var ph = document.createElement('div');
       ph.className = 'rh-pop-ph';
       ph.style.cssText = 'padding:14px;margin:8px;border:2px dashed currentColor;border-radius:6px;opacity:.7;text-align:center;font-size:13px';
-      ph.innerHTML = 'The ' + (kind === 'map' ? 'map' : 'tracker') + ' is in its own window. <button type="button" style="margin-left:6px;cursor:pointer">Bring back</button>';
+      ph.innerHTML = 'The ' + (opts.label || (kind === 'map' ? 'map' : 'tracker')) + ' is in its own window. <button type="button" style="margin-left:6px;cursor:pointer">Bring back</button>';
       ph.querySelector('button').addEventListener('click', function () { back(kind); });
       rec.ph = ph;
       if (kind === 'tracker') { document.body.classList.add('rh-tracker-out'); }
@@ -82,7 +84,8 @@
       var slot = d.getElementById('slot');
       slot.appendChild(d.adoptNode(el));
       slot.dataset.kind = kind;
-      if (kind === 'map') { el.style.height = '100%'; el.style.minHeight = '0'; }
+      if (isMap) { el.style.height = '100%'; el.style.minHeight = '0'; }
+      rec.map = isMap;
       layout(kind);
       w.addEventListener('resize', function () { layout(kind); });
       w.addEventListener('pagehide', function () { setTimeout(function () { back(kind); }, 0); });
@@ -112,7 +115,7 @@
     if (rec.obs) rec.obs.disconnect();
     try {
       var el = rec.el;
-      if (kind === 'map') { el.style.height = ''; el.style.minHeight = ''; }
+      if (rec.map) { el.style.height = ''; el.style.minHeight = ''; }
       document.adoptNode(el);
       if (rec.ph && rec.ph.parentNode) rec.ph.parentNode.replaceChild(el, rec.ph);
       else if (rec.parent) rec.parent.insertBefore(el, rec.next && rec.next.parentNode === rec.parent ? rec.next : null);
@@ -132,7 +135,7 @@
       bar = document.createElement('div');
       bar.className = 'rh-pop-bar';
       bar.innerHTML = '<button type="button" data-pop="tracker" title="The tracker in a window of its own (a second screen, or stream capture)">⧉ Tracker</button><button type="button" data-pop="map" title="The map in a window of its own">⧉ Map</button>';
-      bar.addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) { e.stopPropagation(); pop(b.dataset.pop); } });
+      bar.addEventListener('click', function (e) { var b = e.target.closest('button'); if (b && b.dataset.pop) { e.stopPropagation(); pop(b.dataset.pop); } });
       var css = document.createElement('style');
       css.textContent = '.rh-pop-bar{display:flex;justify-content:flex-end;gap:6px;margin:0 0 4px}.rh-pop-bar[hidden]{display:none}' +
         '.rh-pop-bar button{background:none;border:1px solid currentColor;border-radius:4px;color:inherit;opacity:.65;font:12px/1 system-ui,sans-serif;padding:3px 7px;cursor:pointer}.rh-pop-bar button:hover{opacity:1}' +
@@ -153,5 +156,5 @@
     window.addEventListener('pagehide', function () { for (var k in wins) { var r = wins[k]; try { if (r && r.w && !r.w.closed) r.w.close(); } catch (e) {} } });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
-  window.RHPopout = { pop: pop, back: back };
+  window.RHPopout = { pop: pop, back: back, canPop: canPop, out: function (kind) { var c = wins[kind]; return !!(c && c.w && !c.w.closed); }, bar: function () { return bar; } };
 })();

@@ -27,3 +27,5 @@ out: that exit's row), then tells the page. Mudora gives it to Hutch's map: his 
 what's inside (dungeon, shop, item cave and so on), or a connector between the two doors
 of a cave once both are known. His entrance markers are drawn at the real doors, in his
 colours; right click offers his codes and connectors.
+
+Two more views for windows of their own (SMZ3's stream pop-outs): `?phone=side` shows the items and dungeons alone, `?phone=maps` both maps alone (`MudoraPhone.set('side' | 'maps')`).

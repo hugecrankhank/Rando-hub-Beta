@@ -12,6 +12,8 @@
   'use strict';
   const D = window.SMZ3D, G = window.SMZ3Gen, T = G.IT;
   const $ = (id) => document.getElementById(id);
+  // the tracker's parts may sit in windows of their own (js/z3pick.js): look in those too
+  const qa = (sel) => [root].concat(window.SMZ3Parts || []).reduce((out, r) => out.concat(Array.from(r.querySelectorAll(sel))), []);
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   let root = null, sessionId = 'manual', meta = {}, manual = {}, link = 'manual', view = 'items', compact = false, reveal = false;
   const linkFns = [];
@@ -184,7 +186,7 @@
       '<div class="t-view map"><div id="g-map"></div><p class="fine legend map-legend"><span class="dot ok"></span> in logic · <span class="dot no"></span> not yet · a dungeon’s checks sit on its marker; Zebes is drawn from the ROM being played</p></div>' +
       '<div class="t-view seed"><div class="t-sec" id="g-seed"></div></div>' +
       '<div class="t-foot"><span id="t-link"></span><button type="button" class="linkish" id="t-clear">Clear manual ticks</button></div>';
-    root.querySelectorAll('.t-tabs button').forEach((b) => b.addEventListener('click', () => setView(b.dataset.view)));
+    qa('.t-tabs button').forEach((b) => b.addEventListener('click', () => setView(b.dataset.view)));
     $('t-clear').addEventListener('click', () => { manual = {}; saveManual(); render(); });
     const cell = (pic) => ([k, label]) => '<button type="button" class="cell gear" data-k="inv" data-i="' + k + '" title="' + esc(label) + '"><span class="ico">' + pic(k) + '</span><b>' + esc(label) + '</b><small class="n"></small></button>';
     $('g-z3').innerHTML = Z3_ITEMS.map(cell((k) => z3Pic(k, 1))).join('');
@@ -209,7 +211,7 @@
   }
   function setView(v) {
     view = v; root.dataset.view = v;
-    root.querySelectorAll('.t-tabs button').forEach((b) => b.setAttribute('aria-selected', b.dataset.view === v ? 'true' : 'false'));
+    qa('.t-tabs button').forEach((b) => b.setAttribute('aria-selected', b.dataset.view === v ? 'true' : 'false'));
     if (v === 'map' && window.SMZ3Map) setTimeout(() => SMZ3Map.redraw(), 0);
     try { localStorage.setItem('smz3r:view', v); } catch (e) {}
   }
@@ -219,7 +221,7 @@
     const s = state(), lw = logicWorld();
     // items
     const allCells = Z3_ITEMS.concat(SM_ITEMS);
-    root.querySelectorAll('[data-k="inv"]').forEach((b) => {
+    qa('[data-k="inv"]').forEach((b) => {
       const k = b.dataset.i, v = s.inv[k], c = allCells.find((x) => x[0] === k);
       b.classList.toggle('have', v > 0);
       b.classList.toggle('manual', !!(manual.inv && manual.inv[k]) && !(live && live.started && live.inv[k] >= manual.inv[k]));
@@ -233,7 +235,7 @@
     if (lw) { try { prog = G.progression(itemTypes(s.inv), lw.world); } catch (e) { prog = null; } }
     const reach = prog ? lw.world.Locations.map((l) => { try { return l.Available(prog); } catch (e) { return null; } }) : null;
     // checks
-    root.querySelectorAll('[data-k="checks"]').forEach((b) => {
+    qa('[data-k="checks"]').forEach((b) => {
       const i = +b.dataset.i;
       b.classList.toggle('have', s.checks[i]);
       b.classList.toggle('manual', !!(manual.checks && manual.checks[i]) && !isLive('checks', i));
@@ -241,7 +243,7 @@
       b.classList.toggle('r-no', !!reach && !s.checks[i] && reach[i] === false);
       const w = b.querySelector('.what'); if (w) w.textContent = reveal && meta.items && meta.items[i] ? ' · ' + meta.items[i][1] : '';
     });
-    root.querySelectorAll('.area').forEach((el) => {
+    qa('.area').forEach((el) => {
       const r = REGIONS[+el.dataset.r], d = r.locs.filter((i) => s.checks[i]).length;
       el.querySelector('.an').textContent = d + '/' + r.locs.length;
       el.classList.toggle('done', d === r.locs.length);
@@ -255,8 +257,8 @@
     const aga = !!(live && live.started && live.aga) || !!manual.aga;
     $('c-aga').classList.toggle('have', aga);
     const smb = SM_BOSSES.map((x, i) => !!(live && live.started && live.smBoss[i]));
-    root.querySelectorAll('[data-smb]').forEach((el) => { const i = +el.dataset.smb; el.classList.toggle('have', smb[i]); el.querySelector('.who').textContent = smb[i] || reveal ? prizeOf(SM_BOSSES[i][0]) : ''; });
-    root.querySelectorAll('.dg').forEach((el) => {
+    qa('[data-smb]').forEach((el) => { const i = +el.dataset.smb; el.classList.toggle('have', smb[i]); el.querySelector('.who').textContent = smb[i] || reveal ? prizeOf(SM_BOSSES[i][0]) : ''; });
+    qa('.dg').forEach((el) => {
       const d = +el.dataset.dg, [k, , region, bk, mp, cp, , nKeys] = DUNGEONS[d], L = live && live.started ? live.dun[d] : null;
       const locs = DG_LOCS[d], left = locs.filter((i) => !s.checks[i]).length, done = DG_BOSS[d] >= 0 ? !!s.checks[DG_BOSS[d]] : (k === 'ct' ? aga : false);
       el.classList.toggle('done', done); el.classList.toggle('clear', left === 0);

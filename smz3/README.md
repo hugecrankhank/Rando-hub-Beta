@@ -62,8 +62,14 @@ nothing uploaded: your ROMs stay in your browser.
     RAM while Zelda runs, its last frame with the save block refreshed from
     the combo's save RAM while Super Metroid runs), so they autotrack the
     Zelda side as on the Zelda 3 page, pictures and maps cut from your ROM.
-    The Metroid side is Rando Hub's tracker's. On a phone, Items / Light /
-    Dark / Keys above the frame pick Mudora's view.
+    Under it, the Metroid part of Rando Hub's tracker: Samus's items, the
+    bosses and Zebes' map, so both games show at once. On a phone, Items /
+    Light / Dark / Keys / Samus above the frame pick what shows.
+  - **Four windows for stream** (desktop, with a Zelda 3 tracker chosen):
+    **⧉ Zelda items** (Mudora's items and dungeons), **⧉ Zelda maps** (both
+    worlds), **⧉ Metroid items** and **⧉ Metroid map**, each in a window of
+    its own for a separate capture; with Rando Hub's tracker, ⧉ Tracker and
+    ⧉ Map as before.
   - **⧉ Tracker** and **⧉ Map** (desktop): each in a window of its own, for a
     second screen or a stream capture (`../game-popout.js`): the live tracker
     moves there, keeps autotracking, and comes back when the window closes.

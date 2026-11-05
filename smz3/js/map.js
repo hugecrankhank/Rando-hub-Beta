@@ -90,11 +90,11 @@
     return (pics[a] = c);
   }
 
-  let viewer = null, names = null, locs = null, last = null;
+  let viewer = null, smViewer = null, smOnToggle = null, names = null, locs = null, last = null;
   const AREAS = ['Crateria', 'Brinstar', 'Norfair', 'Wrecked Ship', 'Maridia', 'Tourian'];
   const SMZ3Map = {
     init(host, opts) {
-      opts = opts || {}; names = opts.names || ((i) => 'Location ' + i); locs = opts.locs || [];
+      opts = opts || {}; names = opts.names || ((i) => 'Location ' + i); locs = opts.locs || []; smOnToggle = opts.onToggle;
       const pins = [];
       locs.forEach((l, i) => {
         const p = l.z3 ? zeldaPlace(l) : smPin(l.mem);
@@ -110,25 +110,37 @@
       });
       return viewer;
     },
-    update(s) { last = s; if (viewer) viewer.update(s); },
-    redraw() { if (viewer) viewer.redraw(); },
+    // a second viewer with Zebes alone (the Metroid half, when a Zelda 3 tracker shows the Zelda side)
+    initSM(host) {
+      const pins = [];
+      locs.forEach((l, i) => { if (l.z3) return; const p = smPin(l.mem); if (p) pins.push({ world: p.world - 2, x: p.x, y: p.y, i, boss: !!p.boss }); });
+      smViewer = RHWorldMap.create(host, {
+        key: 'smz3r-sm', worlds: AREAS.map((n, a) => ({ name: n, width: MW, height: MH, picture: () => smPicture(a) })),
+        pins, name: (i) => names(i), onToggle: smOnToggle, empty: 'Start a seed: Zebes is drawn from its ROM.',
+      });
+      if (last) smViewer.update(last);
+      return smViewer;
+    },
+    update(s) { last = s; if (viewer) viewer.update(s); if (smViewer) smViewer.update(s); },
+    redraw() { if (viewer) viewer.redraw(); if (smViewer) smViewer.redraw(); },
     // every poll: the ROM (Zebes is drawn from it) and where Link or Samus is
     live(l, r) {
       if (!viewer) return;
-      if (r && r.length >= 0x600000 && r !== rom) { rom = r; pics = {}; viewer.repaint(); }
-      if (!l || !l.started) { viewer.setPos(null); return; }
-      const w = l.wram; if (!w) { viewer.setPos(null); return; }
+      if (r && r.length >= 0x600000 && r !== rom) { rom = r; pics = {}; viewer.repaint(); if (smViewer) smViewer.repaint(); }
+      const w = l && l.started ? l.wram : null;
+      if (!w) { viewer.setPos(null); if (smViewer) smViewer.setPos(null); return; }
       if (l.game === 'z3') {
         const indoors = w[0x1B] !== 0, dark = !!(w[0x8A] & 0x40);
         const x = (w[0x22] | w[0x23] << 8) / 4096 * ZW, y = (w[0x20] | w[0x21] << 8) / 4096 * ZH;
-        viewer.setPos({ world: dark ? 1 : 0, x, y, dim: indoors });
+        viewer.setPos({ world: dark ? 1 : 0, x, y, dim: indoors }); if (smViewer) smViewer.setPos(null);
       } else if (l.game === 'sm' && rom) {
         const room = w[0x79B] | w[0x79C] << 8;
-        if (room < 0x91F8) { viewer.setPos(null); return; }
+        if (room < 0x91F8) { viewer.setPos(null); if (smViewer) smViewer.setPos(null); return; }
         const h = smPc(0x78000 + (room - 0x8000)), a = rom[h + 1];
-        if (a > 5) { viewer.setPos(null); return; }
-        viewer.setPos({ world: 2 + a, x: rom[h + 2] * 8 + (w[0xAF6] | w[0xAF7] << 8) / 32, y: (rom[h + 3] + 1) * 8 + (w[0xAFA] | w[0xAFB] << 8) / 32, dim: false });
-      } else viewer.setPos(null);
+        if (a > 5) { viewer.setPos(null); if (smViewer) smViewer.setPos(null); return; }
+        const pos = { world: 2 + a, x: rom[h + 2] * 8 + (w[0xAF6] | w[0xAF7] << 8) / 32, y: (rom[h + 3] + 1) * 8 + (w[0xAFA] | w[0xAFB] << 8) / 32, dim: false };
+        viewer.setPos(pos); if (smViewer) smViewer.setPos({ world: a, x: pos.x, y: pos.y, dim: false });
+      } else { viewer.setPos(null); if (smViewer) smViewer.setPos(null); }
     },
   };
   window.SMZ3Map = SMZ3Map;

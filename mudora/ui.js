@@ -837,7 +837,7 @@
     var side = $('side'), px;
     if (stackIsz && hosted()) px = stackIsz;
     else if (isize === 'auto') {
-      var W = phoneTab === 'items' ? innerWidth - 24 : document.body.classList.contains('stack') ? Math.min(($('side').clientWidth || 600) * 0.45, 340) : Math.min(innerWidth * 0.32, 340);
+      var W = phoneTab === 'items' || phoneTab === 'side' ? innerWidth - 24 : document.body.classList.contains('stack') ? Math.min(($('side').clientWidth || 600) * 0.45, 340) : Math.min(innerWidth * 0.32, 340);
       px = Math.max(26, Math.min(phoneTab ? 48 : 64, Math.floor((W - 30 - 5 * 4) / 6)));
     } else px = +isize;
     document.documentElement.style.setProperty('--isz', px + 'px');
@@ -954,10 +954,11 @@
   var phoneTab = null;
   window.MudoraPhone = {
     set: function (t) {
-      t = t === 'lw' || t === 'dw' || t === 'items' || t === 'keys' ? t : null;
+      // side: items + dungeons, no maps; maps: both maps, no side (windows of their own, for stream)
+      t = t === 'lw' || t === 'dw' || t === 'items' || t === 'keys' || t === 'side' || t === 'maps' ? t : null;
       phoneTab = t;
       document.body.classList.toggle('phone', !!t);
-      ['items', 'keys', 'lw', 'dw'].forEach(function (x) { document.body.classList.toggle('ph-' + x, t === x); });
+      ['items', 'keys', 'lw', 'dw', 'side', 'maps'].forEach(function (x) { document.body.classList.toggle('ph-' + x, t === x); });
       dgModes(); applySize(); placeLegend(); layoutWorlds();
     },
     zoom: function (dir) {
