@@ -178,7 +178,31 @@
     fitSoon(); setTimeout(fitItems, 800);
     try { var iw = IT.contentWindow, c = iw.document.querySelector('.tracker-container'); if (c && iw.ResizeObserver) new iw.ResizeObserver(fitSoon).observe(c); } catch (e) {}
   });
+  // Hutch's map, made compact like Mudora's: his two-row top bar goes (SMZ3 has no entrance shuffle, so
+  // nothing on it is needed: Layout and zoom are fitted here), ⚙ floats small in the corner, the
+  // footer is one thin row
+  var MAP_CSS = [
+    '#topbar { display: none !important; }',
+    '#settings-wrap.sm-float { position: fixed !important; top: 4px; right: 4px; z-index: 50; margin: 0 !important; }',
+    '#settings-wrap.sm-float #settings-btn { font-size: 13px !important; padding: 3px 7px !important; min-height: 0 !important; height: auto !important; line-height: 1.2 !important; opacity: .9; }',
+    '#settings-panel { max-height: calc(100vh - 40px); overflow-y: auto; -webkit-overflow-scrolling: touch; max-width: calc(100vw - 8px); box-sizing: border-box; }',
+    '#maps-outer { padding: 4px !important; overflow-x: auto !important; }',
+    '#bottombar { min-height: 0 !important; height: auto !important; padding: 3px 6px !important; gap: 6px !important; flex-wrap: nowrap !important; font-size: 11px !important; }',
+    '#bottombar #legend { display: none !important; }',
+    '#bottombar > div { gap: 5px !important; flex-wrap: nowrap !important; }',
+    '#bottombar button, #bottombar .zoom-btn, #bottombar a { font-size: 11px !important; line-height: 1.5 !important; padding: 0 7px !important; min-height: 0 !important; height: auto !important; min-width: 0 !important; width: auto !important; }',
+    '#bottombar #ent-save-btn, #bottombar #ent-load-btn { display: none !important; }',
+    '#conn-status { font-size: 11px !important; white-space: nowrap; }'
+  ].join('\n');
+  function compactMap() {
+    var d; try { d = MP.contentDocument; } catch (e) { return; } if (!d || !d.head) return;
+    if (!d.getElementById('sm-map-css')) { var st = d.createElement('style'); st.id = 'sm-map-css'; st.textContent = MAP_CSS; d.head.appendChild(st); }
+    var wrap = d.getElementById('settings-wrap'), btn = d.getElementById('settings-btn');
+    if (wrap && wrap.parentNode !== d.body) { wrap.classList.add('sm-float'); d.body.appendChild(wrap); }
+    if (btn && !btn.__sm) { btn.__sm = true; btn.textContent = '⚙'; btn.title = 'Map settings'; }
+  }
   MP.addEventListener('load', function () {
+    if (mode === 'hutch') { compactMap(); setTimeout(compactMap, 800); }
     applyWorld(); fitSoon(); setTimeout(function () { applyWorld(); fitMap(); }, 800);
     try { var mw = MP.contentWindow; mw.addEventListener('resize', fitSoon); var bb = mw.document.getElementById('bottombar'); if (bb && mw.ResizeObserver) new mw.ResizeObserver(fitSoon).observe(bb); } catch (e) {}
   });

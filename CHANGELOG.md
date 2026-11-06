@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.119 (2026-11-05)
+
+- **SMZ3: Hutch's map, compact like Mudora's.** His two-row top bar is gone (Layout and zoom are fitted for you, and SMZ3 has no entrance shuffle for the Connectors / Notes / Checks row), Settings is a small ⚙ in the map's corner, and the footer is one thin row (Connected, ↻, OnlyADKD, New Game), so the maps get the room.
+
 ## Beta v1.14.118 (2026-11-05)
 
 - **SMZ3: Hutch fits.** With Hutch chosen, his item grid is scaled to the column (it ran off the side on phones) and his maps sized to the space left, as on the Zelda 3 page; on a phone, Items shows the grid alone and Light / Dark one world.
