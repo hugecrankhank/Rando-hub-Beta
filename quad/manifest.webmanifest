@@ -1,6 +1,6 @@
 {
-  "name": "Quad Randomizer - Rando Hub",
-  "short_name": "Quad Rando",
+  "name": "Rando Cross - Rando Hub",
+  "short_name": "Rando Cross",
   "description": "Zelda 1, Metroid, Super Metroid and A Link to the Past in one seed: roll it from your own ROMs, play it, track all four games.",
   "start_url": "./",
   "scope": "./",

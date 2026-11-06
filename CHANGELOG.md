@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.124 (2026-11-05)
+
+- **Quad is now Rando Cross.** The four-game combo (Zelda 1, Metroid, Super Metroid, A Link to the Past) has its new name everywhere: its page, the Games menu and Game row, every game's header links, the run timer and the spoiler. Its address stays `quad/`, so bookmarks, the installed app, saves and Continue carry on as they were.
+
 ## Beta v1.14.123 (2026-11-05)
 
 - **Sprite & music in every game with Zelda 3 in it.** Patched games now gets the 🎨 Sprite & music button too (beside ◂ Library, while a Link to the Past hack or seed runs): Link's sprite from the Zelda 3 page's library, favourites and files ("Same as Zelda 3" by default; Default Link is the hack's own Link), and an MSU-1 pack on randomizer seeds (a plain hack has no MSU-1 code to follow, so its music stays its own). SMZ3 and Quad keep theirs; the module is now `z3-media.js`, and every new page with Zelda 3 in it gets it (ADDING-A-GAME.md).

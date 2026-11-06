@@ -26,7 +26,7 @@
     /\/ff6wc\//.test(path) ? 'ff6' : /\/ffr\/ff1\//.test(path) ? 'ff1' : /\/ffr\/ff4\//.test(path) ? 'ff4' :
     /\/ffr\/ff5\//.test(path) ? 'ff5' : /\/patched\//.test(path) ? 'patched' : null;
   if (!GAME) return;
-  var NAMES = { glr: 'GLR', sm: 'Super Metroid', metroid: 'Metroid', smw: 'Super Mario World', smz3: 'SMZ3', zm: 'Zelda 1 + Metroid', quad: 'Quad', smrpg: 'Mario RPG', ff6: 'FF6', ff1: 'FF1', ff4: 'FF4', ff5: 'FF5', patched: 'Patched' };
+  var NAMES = { glr: 'GLR', sm: 'Super Metroid', metroid: 'Metroid', smw: 'Super Mario World', smz3: 'SMZ3', zm: 'Zelda 1 + Metroid', quad: 'Rando Cross', smrpg: 'Mario RPG', ff6: 'FF6', ff1: 'FF1', ff4: 'FF4', ff5: 'FF5', patched: 'Patched' };
   var AUTO_TEXT = {
     glr: 'starts when a game is started, stops when corridor 21 is cleared',
     sm: 'starts when a game is started, stops when Samus escapes Zebes',

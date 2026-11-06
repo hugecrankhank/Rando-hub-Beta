@@ -131,7 +131,7 @@
     world.Locations.forEach((l) => { if (l.Id < NES_ID && l.Item.nes !== undefined) sent[l.Id] = { game: l.Item.game, type: l.Item.ntype }; });
     const z1 = ZG.writeZelda(o.z1, at), m1 = ZG.writeMetroid(o.m1, at);
     // the spoiler
-    const S = ['Rando Hub Quad: Zelda 1 · Metroid · Super Metroid · A Link to the Past', 'Seed: ' + seed, 'Goal: ' + GOALS.find((g) => g[0] === goal)[1], '',
+    const S = ['Rando Cross: Zelda 1 · Metroid · Super Metroid · A Link to the Past', 'Seed: ' + seed, 'Goal: ' + GOALS.find((g) => g[0] === goal)[1], '',
       'Portals (ALttP caves):', ...portals.map((p) => '  ' + p.name + ' (' + p.region + ') → ' + (p.to === 'z1' ? 'Zelda 1' : 'Metroid')), '',
       'Back from Zelda 1: any “take any road” cave. Back from Metroid: an elevator room, then ⇄.', ''];
     spheres.forEach((sp, i) => { if (!sp.length) return; S.push(i === spheres.length - 1 ? 'Prizes and medallions:' : 'Sphere ' + (i + 1) + ':'); sp.forEach(([a, b]) => S.push('  ' + a + ': ' + b)); S.push(''); });
@@ -139,7 +139,7 @@
     let reg = '';
     world.Locations.forEach((l) => { const rn = l.Region.Name; if (rn !== reg) { reg = rn; S.push('  ' + rn); } S.push('    ' + l.Name + ': ' + l.Item.Name); });
     const spoiler = S.join('\n');
-    const meta = { seed: String(seed), goal, generator: 'Rando Hub Quad', made: Date.now(), portals, at: at.map((x) => [x.game, x.type]), sent, options: o.options || {},
+    const meta = { seed: String(seed), goal, generator: 'Rando Cross', made: Date.now(), portals, at: at.map((x) => [x.game, x.type]), sent, options: o.options || {},
       towerCrystals: world.TowerCrystals, ganonCrystals: world.GanonCrystals, tourianBosses: world.TourianBossTokens, spoiler };
     return { seed, rom, z1, m1, at, portals, sent, spoiler, meta, world };
   }

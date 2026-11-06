@@ -29,7 +29,7 @@
   var SMW_URL = 'smw/';     // Super Mario World: the same
   var SMZ3_URL = 'smz3/';   // SMZ3 (Super Metroid + A Link to the Past): the same
   var ZM_URL = 'zm/';       // Zelda 1 + Metroid, linked: the same
-  var QUAD_URL = 'quad/';   // Quad: Zelda 1, Metroid, Super Metroid and Zelda 3 in one seed: the same
+  var QUAD_URL = 'quad/';   // Rando Cross: Zelda 1, Metroid, Super Metroid and Zelda 3 in one seed: the same
   var FFR_URLS = { ff1: 'ffr/ff1/', ff4: 'ffr/ff4/', ff5: 'ffr/ff5/' };   // FF1R, Free Enterprise, Career Day: played here, rolled on their own sites
 
   // Which games a reroll may land on: roll-games.js (RandoRoll), ticked in the Game row.
@@ -85,7 +85,7 @@
       '<a data-game="smw" href="' + SMW_URL + '" title="Super Mario World: the SMW Randomizer (authorblues), with a tracker of every exit">Super Mario World ▸</a>' +
       '<a data-game="smz3" href="' + SMZ3_URL + '" title="SMZ3: Super Metroid and A Link to the Past combined (samus.link’s randomizer), with a tracker of both games">SMZ3 ▸</a>' +
       '<a data-game="zm" href="' + ZM_URL + '" title="Zelda 1 and Metroid linked: portals between Hyrule and Zebes, one item pool across both (Rando Hub’s own)">Zelda 1 + Metroid ▸</a>' +
-      '<a data-game="quad" href="' + QUAD_URL + '" title="Quad: Zelda 1, Metroid, Super Metroid and A Link to the Past in one seed, ALttP’s Hyrule the hub with portals to the NES games (Rando Hub’s own)">Quad ▸</a>' +
+      '<a data-game="quad" href="' + QUAD_URL + '" title="Rando Cross: Zelda 1, Metroid, Super Metroid and A Link to the Past in one seed, ALttP’s Hyrule the hub with portals to the NES games (Rando Hub’s own)">Rando Cross ▸</a>' +
       '<a data-game="ff1" href="' + FFR_URLS.ff1 + '" title="Final Fantasy Randomizer (FF1): roll on its site, play and track here">FF1 ▸</a>' +
       '<a data-game="ff4" href="' + FFR_URLS.ff4 + '" title="FF4 Free Enterprise: roll on its site, play and track here (key items, characters, bosses, objectives)">FF4 ▸</a>' +
       '<a data-game="ff5" href="' + FFR_URLS.ff5 + '" title="FF5 Career Day: roll on its site, play and track here (key items, jobs, checks)">FF5 ▸</a>' +

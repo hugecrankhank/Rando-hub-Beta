@@ -38,7 +38,7 @@
     const h = host(), A = h && h.QuadApp; if (!A || !A.meta || A.id === sid) return;
     sid = A.id;
     const m = A.meta;
-    ZMTracker.setSession('quad-' + A.id, 'Seed ' + m.seed, { seed: m.seed, generator: 'Rando Hub Quad (the NES half)', spoiler: m.spoiler, items: m.at });
+    ZMTracker.setSession('quad-' + A.id, 'Seed ' + m.seed, { seed: m.seed, generator: 'Rando Cross (the NES half)', spoiler: m.spoiler, items: m.at });
   }
   function fit() {
     if (view === 'map') { ZMTracker.setCompact(false); return; }

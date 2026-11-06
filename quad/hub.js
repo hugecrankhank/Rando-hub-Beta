@@ -1,5 +1,5 @@
 /*
- * Rando Hub glue for the Quad Randomizer (quad/), loaded by one <script>
+ * Rando Hub glue for the Rando Cross (quad/), loaded by one <script>
  * line in quad/index.html.
  *
  * The way back to the other games, a 🎲 Reroll (same settings, new seed),
@@ -15,7 +15,7 @@
       if (!last || !last.meta || !last.meta.seed) return;
       var l = JSON.parse(localStorage.getItem('rhb-seed-log') || '[]');
       if (!Array.isArray(l)) l = [];
-      l.push({ at: Date.now(), game: 'Quad', what: 'Seed ' + last.meta.seed, generator: last.meta.generator || 'Rando Hub Quad',
+      l.push({ at: Date.now(), game: 'Rando Cross', what: 'Seed ' + last.meta.seed, generator: last.meta.generator || 'Rando Cross',
         preset: last.meta.summary || '', pick: String(last.meta.seed), kind: 'manual' });
       localStorage.setItem('rhb-seed-log', JSON.stringify(l.slice(-500)));
     } catch (e) {}

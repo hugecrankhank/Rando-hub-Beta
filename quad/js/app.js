@@ -89,7 +89,7 @@
     const id = SMZ3Hash(entry.rom);
     QuadApp.meta = entry.meta; QuadApp.id = id;
     SMZ3Tracker.setSession('quad-' + id, 'Seed ' + entry.meta.seed, entry.meta);
-    document.title = 'Seed ' + entry.meta.seed + ' - Quad Randomizer';
+    document.title = 'Seed ' + entry.meta.seed + ' - Rando Cross';
     $('placeholder').remove();
     document.body.classList.add('playing');
     QuadSeed.release();

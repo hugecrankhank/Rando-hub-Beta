@@ -1,6 +1,6 @@
 /*
  * z3-media.js — Link's sprite and MSU-1 music for every game with Zelda 3 in
- * it outside the Zelda 3 page itself: the combos (SMZ3, Quad) and Zelda 3 ROM
+ * it outside the Zelda 3 page itself: the combos (SMZ3, Rando Cross) and Zelda 3 ROM
  * hacks and seeds on Patched games. Set up the way the Zelda 3 page does it,
  * with the same library,
  * favourites, your own sprite files and "My packs" (one browser store:
