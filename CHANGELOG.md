@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.125 (2026-11-05)
+
+- **Rando Cross has its own address: `cross/`.** Every link in the hub goes there now; the old `quad/` address sends bookmarks, links and the installed app on to it by itself. Saves, the seed you were playing (Continue) and your settings come along: they were never tied to the address.
+
 ## Beta v1.14.124 (2026-11-05)
 
 - **Quad is now Rando Cross.** The four-game combo (Zelda 1, Metroid, Super Metroid, A Link to the Past) has its new name everywhere: its page, the Games menu and Game row, every game's header links, the run timer and the spoiler. Its address stays `quad/`, so bookmarks, the installed app, saves and Continue carry on as they were.

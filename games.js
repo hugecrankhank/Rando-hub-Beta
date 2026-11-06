@@ -29,7 +29,7 @@
   var SMW_URL = 'smw/';     // Super Mario World: the same
   var SMZ3_URL = 'smz3/';   // SMZ3 (Super Metroid + A Link to the Past): the same
   var ZM_URL = 'zm/';       // Zelda 1 + Metroid, linked: the same
-  var QUAD_URL = 'quad/';   // Rando Cross: Zelda 1, Metroid, Super Metroid and Zelda 3 in one seed: the same
+  var QUAD_URL = 'cross/';   // Rando Cross: Zelda 1, Metroid, Super Metroid and Zelda 3 in one seed: the same
   var FFR_URLS = { ff1: 'ffr/ff1/', ff4: 'ffr/ff4/', ff5: 'ffr/ff5/' };   // FF1R, Free Enterprise, Career Day: played here, rolled on their own sites
 
   // Which games a reroll may land on: roll-games.js (RandoRoll), ticked in the Game row.

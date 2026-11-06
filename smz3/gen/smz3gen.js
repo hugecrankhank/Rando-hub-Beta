@@ -192,7 +192,7 @@
       FLAGS.forEach((f) => { this[f] = false; });
       this.KeyCT = this.KeyPD = this.KeySW = this.KeyIP = this.KeyMM = this.KeyTR = this.KeyGT = this.ETank = this.ReserveTank = 0;
       this.Sword = this.MasterSword = this.Glove = this.Mitt = this.PowerBomb = this.TwoPowerBombs = false; this.shield = 0;
-      this.nes = new Set();   // the four-game combo (../quad/): the logic keys of the NES games' items
+      this.nes = new Set();   // the four-game combo (../cross/): the logic keys of the NES games' items
       if (items) this.Add(items);
     }
     Add(items) {
@@ -2682,7 +2682,7 @@
   // a blank world (no ROM): the locations and regions, for the tracker's lists
   function blankWorld(options) { return new World(parseConfig(options || {}), 'Player', 0, ''); }
 
-  // for the four-game combo (../quad/js/gen.js): the generator's parts
+  // for the four-game combo (../cross/js/gen.js): the generator's parts
   const internals = { World, Filler, Item, Location, Progression, playthrough, makePatch, parseConfig, hexGuid, available, empty };
   window.SMZ3Gen = { internals, generate, buildRom, mergeRoms, applyIps, OPTIONS, NetRandom, IT, IT_NAME, IT_DESC, REWARD_DESC, RewardType, romWorld, progression, blankWorld, snes, version: '11.3.2' };
 })();

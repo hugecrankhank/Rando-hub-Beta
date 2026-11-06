@@ -45,7 +45,7 @@ Things here were learned the hard way; each line says why.
   effect means the same thing.
 - Layouts: make the most of the screen on iPad, iPhone and tablets.
 - **Zelda 3 in it? Sprite & music.** Any page whose game has A Link to the Past
-  in it (a combo like smz3/ and quad/, a Zelda 3 hack or seed on patched/) loads
+  in it (a combo like smz3/ and cross/, a Zelda 3 hack or seed on patched/) loads
   `<script type="module" src="../z3-media.js">` and boots the ROM through
   `await RHZ3Media.prepare(rom)`: Link's sprite (the Zelda 3 page's library,
   favourites and own files; "Same as Zelda 3" by default) and the MSU-1 pack

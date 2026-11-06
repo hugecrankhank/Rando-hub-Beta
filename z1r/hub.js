@@ -135,7 +135,7 @@
       zm.style.textDecoration = 'none';
       newSeed.parentNode.insertBefore(zm, newSeed);
       var quad = document.createElement('a');
-      quad.className = 'btn'; quad.id = 'hub-quad'; quad.href = HUB + 'quad/'; quad.dataset.game = 'quad';
+      quad.className = 'btn'; quad.id = 'hub-quad'; quad.href = HUB + 'cross/'; quad.dataset.game = 'quad';
       quad.textContent = 'Rando Cross'; quad.title = 'Rando Cross: Zelda 1, Metroid, Super Metroid and A Link to the Past in one seed';
       quad.style.textDecoration = 'none';
       newSeed.parentNode.insertBefore(quad, newSeed);

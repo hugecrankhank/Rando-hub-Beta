@@ -123,7 +123,7 @@
     // the way
     const here = st.game === 'z1' ? 'Hyrule' : 'Zebes';
     const waiting = (g) => st.pending[g].length ? ' · ' + st.pending[g].map(G.itemName).join(', ') + ' waiting for ' + (g === 'z1' ? 'Link' : 'Samus') : '';
-    if (window.ZMWay) $('g-way').innerHTML = window.ZMWay(st, inv);   // the four-game combo's own words (../quad/nes-tracker.html)
+    if (window.ZMWay) $('g-way').innerHTML = window.ZMWay(st, inv);   // the four-game combo's own words (../cross/nes-tracker.html)
     else $('g-way').innerHTML = '<span class="goal-r">Playing: ' + here + (K.atPortal(st.game) ? ' · at a portal' : '') + '</span>' +
       '<span class="goal-c">Portals: Hyrule’s take-any-road caves ($1D, $23, $49, $79) → Zebes; Zebes’ elevator rooms → Hyrule (⇄ / P).' + waiting('z1') + waiting('m1') + '</span>' +
       '<span class="goal-c">Goal: Ganon (' + (inv.has('T8') ? 'the eight triforces are in reach' : 'all eight triforces, then level 9') + ') and Mother Brain (' + (reach.length && M && window.M1Logic.has(M.GOALS[2][1], new Set(inv)) ? 'Tourian is in reach' : 'both statues, Bombs, missiles, Ice Beam') + ').</span>';

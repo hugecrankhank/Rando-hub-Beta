@@ -554,7 +554,7 @@ inside the hub, with its own emulator, seed generator, tracker and saves.
   Metroid (USA) ROMs; both ROMs the generator writes carry the combined title (Zelda's with
   "METROID" carved under the box, Metroid's with "THE LEGEND OF ZELDA" in gold above its
   logo), and every portal plays a transition between the two worlds' frames.
-- **Rando Cross** (`quad/`): Zelda 1, Metroid, Super Metroid and A Link to the Past in one seed,
+- **Rando Cross** (`cross/`): Zelda 1, Metroid, Super Metroid and A Link to the Past in one seed,
   Rando Hub's own. One item pool and one logic across the four: SMZ3's generator (the port
   above) with the NES games' 55 item spots and rules added to its single fill, so any game's
   item can be anywhere and every seed can reach all four final bosses. Hyrule (ALttP) is the

@@ -32,7 +32,7 @@
     { id: 'smw', name: 'Super Mario World', url: 'smw/' },
     { id: 'smz3', name: 'SMZ3', url: 'smz3/' },
     { id: 'zm', name: 'Zelda 1 + Metroid', url: 'zm/' },
-    { id: 'quad', name: 'Rando Cross', url: 'quad/' },
+    { id: 'quad', name: 'Rando Cross', url: 'cross/' },
   ];
   // where the hub is from this page (set by the page: '' on the hub, '../' in a game's folder)
   var base = (document.currentScript && document.currentScript.dataset.hub) || '';
@@ -92,7 +92,7 @@
 
   // All the hub's games, for the header's compact "Games ▾" menu on narrow screens
   var ALL = [['', 'Zelda 3', 'z3'], ['z1r/', 'Zelda 1', 'z1'], ['glr/', 'Guardian Legend', 'glr'], ['ffr/ff1/', 'FF1 Randomizer', 'ff1'], ['ffr/ff4/', 'FF4 Free Enterprise', 'ff4'],
-    ['ffr/ff5/', 'FF5 Career Day', 'ff5'], ['ff6wc/', 'FF6 Worlds Collide', 'ff6'], ['smrpg/', 'Super Mario RPG', 'smrpg'], ['sm/', 'Super Metroid', 'sm'], ['metroid/', 'Metroid', 'metroid'], ['smw/', 'Super Mario World', 'smw'], ['smz3/', 'SMZ3 (Super Metroid + Zelda 3)', 'smz3'], ['zm/', 'Zelda 1 + Metroid', 'zm'], ['quad/', 'Rando Cross (Z1, M1, SM, Zelda 3)', 'quad'], ['patched/', 'Patched games', 'patched']];
+    ['ffr/ff5/', 'FF5 Career Day', 'ff5'], ['ff6wc/', 'FF6 Worlds Collide', 'ff6'], ['smrpg/', 'Super Mario RPG', 'smrpg'], ['sm/', 'Super Metroid', 'sm'], ['metroid/', 'Metroid', 'metroid'], ['smw/', 'Super Mario World', 'smw'], ['smz3/', 'SMZ3 (Super Metroid + Zelda 3)', 'smz3'], ['zm/', 'Zelda 1 + Metroid', 'zm'], ['cross/', 'Rando Cross (Z1, M1, SM, Zelda 3)', 'quad'], ['patched/', 'Patched games', 'patched']];
   // Returns a <select> that goes to any other game; the page shows it instead of
   // its row of link buttons when the header is too narrow for them (the ids
   // given are hidden then).

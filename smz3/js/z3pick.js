@@ -14,7 +14,7 @@
 (function () {
   'use strict';
   var KEY = 'smz3r:z3tracker';
-  var HOST = window.SMZ3_HOST || 'z3host.html';   // the four-game combo (../quad/) uses SMZ3's
+  var HOST = window.SMZ3_HOST || 'z3host.html';   // the four-game combo (../cross/) uses SMZ3's
   var OPTIONS = [['mudora2', 'Mudora 2.0 (Muffins logic)'], ['mudora', 'Mudora (Hutch logic)'], ['hutch', 'Hutch'], ['hub', 'Rando Hub (SMZ3, both games)'], ['off', 'Off (game full screen)']];
   var mode = 'mudora2';
   try { mode = localStorage.getItem(KEY) || 'mudora2'; } catch (e) {}

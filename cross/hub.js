@@ -1,6 +1,6 @@
 /*
- * Rando Hub glue for the Rando Cross (quad/), loaded by one <script>
- * line in quad/index.html.
+ * Rando Hub glue for the Rando Cross (cross/), loaded by one <script>
+ * line in cross/index.html.
  *
  * The way back to the other games, a 🎲 Reroll (same settings, new seed),
  * ?roll=1 from another game's reroll, and the hub's seed history.
@@ -50,7 +50,7 @@
       newSeed.parentNode.insertBefore(link('hub-patched', HUB + 'patched/', 'Patched', 'Patched games: NES and SNES ROM hacks on these emulators'), newSeed).dataset.game = 'patched';
       var R = window.RandoRoll;
       if (R) R.applyShown(newSeed.parentNode);
-      if (R) newSeed.parentNode.insertBefore(R.gamesMenu('quad/', ['hub-back', 'hub-z1', 'hub-glr', 'hub-ff', 'hub-smrpg', 'hub-sm', 'hub-metroid', 'hub-smw', 'hub-smz3', 'hub-zm', 'hub-patched']), newSeed);
+      if (R) newSeed.parentNode.insertBefore(R.gamesMenu('cross/', ['hub-back', 'hub-z1', 'hub-glr', 'hub-ff', 'hub-smrpg', 'hub-sm', 'hub-metroid', 'hub-smw', 'hub-smz3', 'hub-zm', 'hub-patched']), newSeed);
       var rr = document.createElement('button');
       rr.className = 'btn'; rr.id = 'hub-reroll'; rr.type = 'button'; rr.innerHTML = '🎲<span class="hub-short"> Reroll</span>';
       rr.title = 'A new seed with the flags you used last' + (R && R.others('quad').length ? ' (or a ' + R.others('quad').join(' / ') + ' seed: ticked in the hub’s Game row)' : '');
