@@ -51,8 +51,11 @@
     popButtons();
   }
   function set(m) { mode = m; try { localStorage.setItem(KEY, m); } catch (e) {} apply(); }
-  function setPhone(t) {
+  var lastGame = null, userTab = {};
+  var gameOf = function (t) { return t === 'sm' || t === 'zebes' ? 'sm' : 'z3'; };
+  function setPhone(t, auto) {
     phoneTab = t;
+    if (!auto && t) userTab[gameOf(t)] = t;   // a tab picked by hand: that game's choice from now on
     tabs.querySelectorAll('button').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.t === t ? 'true' : 'false'); });
     root.classList.toggle('ph-sm', t === 'sm'); root.classList.toggle('ph-zebes', t === 'zebes');
     try { frame.contentWindow.postMessage({ type: 'smz3-phone', tab: t === 'sm' || t === 'zebes' ? 'items' : t }, '*'); } catch (e) {}
@@ -103,6 +106,26 @@
     }
   }
 
+  // The tracker follows the game being played: into Hyrule, the Zelda tracker (on a phone its Light or
+  // Dark World map, or the tab last picked there); onto Zebes, Super Metroid's part (Zebes' map, or
+  // Samus's items if that was picked). On a wide screen the column scrolls to that part.
+  function follow() {
+    if (!frameOn() || !root) return;
+    var c = window.Snes9xPlayer && Snes9xPlayer.core, s = null, r = null;
+    try { s = c && c.sram(); r = c && c.wram(); } catch (e) {}
+    if (!s || s.length <= 0x33FE) return;
+    var g = s[0x33FE] === 0 ? 'z3' : s[0x33FE] === 0xFF ? 'sm' : null;
+    if (!g || g === lastGame) return;
+    lastGame = g;
+    if (root.classList.contains('compact')) {
+      var t = userTab[g] || (g === 'sm' ? 'zebes' : r && r[0xF3CA] & 0x40 ? 'dw' : 'lw');
+      setPhone(t, true);
+    } else {
+      var el = g === 'sm' ? smPart : frame;
+      try { el.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (e) {}
+      if (g === 'sm' && window.SMZ3Map) setTimeout(function () { SMZ3Map.redraw(); }, 300);
+    }
+  }
   function init() {
     root = document.getElementById('tracker'); if (!root) return;
     css();
@@ -113,8 +136,9 @@
     tabs = document.createElement('div'); tabs.className = 'z3-tabs';
     tabs.innerHTML = '<button type="button" data-t="items">Items</button><button type="button" data-t="lw">Light</button><button type="button" data-t="dw">Dark</button><button type="button" data-t="keys">Keys</button><button type="button" data-t="sm">Samus</button><button type="button" data-t="zebes">Zebes</button>';
     tabs.addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) setPhone(b.dataset.t); });
+    setInterval(follow, 500);
     frame = document.createElement('iframe'); frame.id = 'z3-frame'; frame.title = 'Zelda tracker';
-    frame.addEventListener('load', function () { if (root.classList.contains('compact')) setTimeout(function () { setPhone(phoneTab || 'items'); }, 800); });
+    frame.addEventListener('load', function () { if (root.classList.contains('compact')) setTimeout(function () { setPhone(phoneTab || 'items', true); }, 800); });
     // the Metroid part: Samus's items and the bosses (the tracker's own sections, moved), and Zebes
     smPart = document.createElement('div'); smPart.id = 'sm-part';
     var items = document.createElement('div'); items.id = 'sm-items';
@@ -122,7 +146,7 @@
     smPart.appendChild(items); smPart.appendChild(mapHost);
     root.insertBefore(row, root.firstChild); root.insertBefore(tabs, row.nextSibling); root.insertBefore(frame, tabs.nextSibling); root.insertBefore(smPart, frame.nextSibling);
     new MutationObserver(function () {
-      if (root.classList.contains('compact') && document.body.classList.contains('z3-frame') && !phoneTab) setPhone('items');
+      if (root.classList.contains('compact') && document.body.classList.contains('z3-frame') && !phoneTab) { lastGame = null; setPhone('items', true); }
       if (!root.classList.contains('compact') && phoneTab) setPhone(null);
     }).observe(root, { attributes: true, attributeFilter: ['class'] });
     apply();

@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.128 (2026-11-06)
+
+- **The trackers follow the game you're in** (Rando Cross, SMZ3, Zelda 1 + Metroid). Warp into Hyrule (ALttP) and the Zelda tracker comes up (Mudora / Hutch: on a phone its Light or Dark World map); onto Zebes in Super Metroid, Super Metroid's map; through a portal to Zelda 1, the NES tracker with Zelda 1's Hyrule on its map; to Metroid, Zebes on it. On a wide screen the column scrolls to that game's part. Pick a tab yourself and it holds until the next warp; on a phone each game keeps the tab you last picked for it.
+
 ## Beta v1.14.127 (2026-11-06)
 
 - **Rando Cross: settings for the Zelda 1 + Metroid half.** A new section in the seed dialog (kept with your other settings, in the spoiler and in the NES tracker's "The way"):

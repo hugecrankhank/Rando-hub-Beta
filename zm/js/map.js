@@ -97,6 +97,7 @@
     },
     update(s) { if (viewer) viewer.update(s); },
     redraw() { if (viewer) viewer.redraw(); },
+    setWorld(i) { if (viewer) viewer.setWorld(i); },
     // every poll: draw Hyrule once its ROM is known; Link / Samus where they are
     live() {
       if (!viewer) return;

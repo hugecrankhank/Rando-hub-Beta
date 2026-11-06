@@ -121,7 +121,7 @@
   let lastWhere = 'snes';
   QuadLink.onChange(() => {
     const w = QuadLink.where;
-    if (w !== lastWhere) { lastWhere = w; if (!colPicked) setCol(w === 'snes' ? 'snes' : 'nes'); fit(); }
+    if (w !== lastWhere) { lastWhere = w; colPicked = false; setCol(w === 'snes' ? 'snes' : 'nes'); fit(); }   // a column picked by hand holds until the next portal
   });
 
   // ── layout: the picture gets exactly its size, the tracker the rest ────────

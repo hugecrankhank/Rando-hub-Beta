@@ -146,7 +146,10 @@
     const sig = JSON.stringify([z, s, Array.from(st.taken), st.pending, st.game, K.atPortal(st.game)]);
     if (sig !== last) { last = sig; render(); }
     if (window.ZMMap) ZMMap.live();
+    // the map follows the game being played: Hyrule for Zelda 1, Zebes for Metroid (even before the dot shows)
+    if (st.game !== followGame && window.ZMMap && ZMMap.setWorld) { followGame = st.game; ZMMap.setWorld(st.game === 'm1' ? 1 : 0); }
   }
+  let followGame = null;
 
   window.ZMTracker = {
     init(el) { root = el; try { view = localStorage.getItem('zmr:view') || 'items'; } catch (e) {} build(); loadManual(); render(); setInterval(poll, 500); K.onChange(() => { last = ''; }); },
