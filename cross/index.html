@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="version" content="1.14.131">
+<meta name="version" content="1.14.132">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Rando Cross - Rando Hub</title>
 <meta name="description" content="Zelda 1, Metroid, Super Metroid and A Link to the Past in one seed: one item pool across four games, portals from Hyrule to the NES games, played and tracked right here.">
@@ -296,6 +296,7 @@
   body.q-nes-col #tracker > *:not(.q-col):not(#nes-trk):not(.rh-pop-bar):not(.rh-pop-ph) { display: none !important; }
   /* (beside z3pick's own rule for the column, which counts three ids) */
   #tracker > .q-col:not(#z3-frame):not(#sm-part):not(#nes-trk) { display: flex !important; }
+  #tracker > .q-portal-line:not(#z3-frame):not(#sm-part):not(#nes-trk) { display: block !important; }
   body.q-nes-col #tracker > #nes-trk:not(#z3-frame):not(#sm-part) { display: block !important; flex: 1 1 0; min-height: 420px; }
   body.q-nes-col #tracker.compact #nes-trk { min-height: 0; }
   .q-portal-line { font-size: 12.5px; color: var(--dim); margin: 0 0 6px; } .q-portal-line b { color: var(--gold); font-weight: 400; }

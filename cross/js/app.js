@@ -30,9 +30,21 @@
     bar.innerHTML = '<button type="button" data-c="snes" title="ALttP and Super Metroid: SMZ3’s tracker">SNES · ALttP + SM</button><button type="button" data-c="nes" title="Zelda 1 and Metroid">NES · Zelda 1 + Metroid</button>';
     bar.addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { colPicked = true; setCol(b.dataset.c); } });
     root.insertBefore(bar, root.firstChild);
+    // the way to the NES games, always in sight: this seed's portal caves in Hyrule (ALttP)
+    const line = document.createElement('div'); line.className = 'q-portal-line'; line.id = 'q-portals';
+    root.insertBefore(line, bar.nextSibling); paintPortals();
     nesTrk = document.createElement('iframe'); nesTrk.id = 'nes-trk'; nesTrk.title = 'Zelda 1 and Metroid tracker';
     root.appendChild(nesTrk);
     setCol(col);
+  }
+  const NES_NAME = { z1: 'Zelda 1', m1: 'Metroid' };
+  const portalText = (m) => (m && m.portals || []).map((p) => '<b>' + esc(p.name) + '</b> (' + esc(p.region.replace(/^(Light|Dark) World /, '$1 World: ')) + ') → ' + NES_NAME[p.to]).join(' · ');
+  const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  function paintPortals() {
+    const el = $('q-portals'); if (!el) return;
+    const t = portalText(QuadApp.meta);
+    el.innerHTML = t ? 'To the NES games, walk into: ' + t : '';
+    el.title = 'In Hyrule (A Link to the Past), go into one of these caves and the NES game takes over. Back: ⇄ (or P), or a “take any road” cave in Zelda 1.';
   }
   function setCol(c) {
     col = c;
@@ -98,6 +110,8 @@
     const resume = !!(opts && opts.resume);
     window.EJS_onGameStart = function () {
       startAutosave(id, resume, () => {
+        paintPortals();
+        if (!resume && entry.meta.portals) toast('This seed’s portals to the NES games: ' + entry.meta.portals.map((p) => p.name + ' → ' + NES_NAME[p.to]).join(', ') + '. Walk into one of those caves in Hyrule (ALttP).', 12000);
         QuadLink.start({ meta: entry.meta, z1: entry.z1, m1: entry.m1, id, resume, frame })
           .catch((e) => { console.error('[quad] link', e); toast('The NES side didn’t start: ' + (e && e.message || e), 8000); });
       });

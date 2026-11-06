@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.132 (2026-11-06)
+
+- **Rando Cross: the way to the NES games is always on screen.** The seed's portal caves now sit at the top of the tracker ("To the NES games, walk into: Mini Moldorm Cave (Light World: South) → Zelda 1 · …"), and a new seed opens with a message naming them. They were only in the seed dialog and the spoiler before.
+
 ## Beta v1.14.131 (2026-11-06)
 
 - **Zelda 1 and Metroid ROMs are taken with any header, or none** (Rando Cross, Zelda 1 + Metroid, Metroid). A dump without its 16-byte iNES header, or with a different one (an NES 2.0 header, other flags, a trainer), was turned away because the whole file's checksum was compared; now the game's own 128 KB are checked, and the standard file (the usual header + the game) is what's kept and played. Thanks to Kallax for the two dumps that showed it.
