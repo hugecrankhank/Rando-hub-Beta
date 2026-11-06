@@ -69,6 +69,7 @@
     w = window.open(HOST + '?t=' + mode + '&phone=' + view, 'smz3-z3-' + view, 'popup=yes,resizable=yes,width=' + (view === 'maps' ? 1000 : 560) + ',height=' + (view === 'maps' ? 560 : 800));
     if (!w) { alert('The pop-out was blocked: allow pop-ups for this site.'); return; }
     zWins[view] = w;
+    if (window.RHPopout && RHPopout.opened) RHPopout.opened(w);   // the game gets the page (game-popout.js)
   }
   function popFollow() {   // the stream's one map window (follow.html)
     var w = zWins.follow;
@@ -76,6 +77,7 @@
     w = window.open(HOST.replace(/z3host\.html$/, '') + 'follow.html', 'smz3-follow', 'popup=yes,resizable=yes,width=900,height=560');
     if (!w) { alert('The pop-out was blocked: allow pop-ups for this site.'); return; }
     zWins.follow = w;
+    if (window.RHPopout && RHPopout.opened) RHPopout.opened(w);
   }
   function popButtons() {
     var bar = window.RHPopout && RHPopout.bar && RHPopout.bar(); if (!bar) return;

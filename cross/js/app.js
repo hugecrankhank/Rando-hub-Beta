@@ -63,6 +63,7 @@
     w = window.open('nes-tracker.html?view=' + view, 'quad-nes-' + view, 'popup=yes,resizable=yes,width=' + (view === 'map' ? 900 : 520) + ',height=' + (view === 'map' ? 560 : 720));
     if (!w) { alert('The pop-out was blocked: allow pop-ups for this site.'); return; }
     nesWins[view] = w;
+    if (window.RHPopout && RHPopout.opened) RHPopout.opened(w);   // the game gets the page (game-popout.js)
   }
   function popButtons() {
     const bar = window.RHPopout && RHPopout.bar && RHPopout.bar(); if (!bar || bar.querySelector('.q-pop')) return;

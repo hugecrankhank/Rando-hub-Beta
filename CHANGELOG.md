@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.134 (2026-11-06)
+
+- **Pop the trackers out and the game fills the page** (every game page on a computer; asked for by Kallax). Opening any pop-out (the tracker, a map, Rando Cross's and SMZ3's Zelda, Metroid, NES and "follows" windows) now hides the tracker column so the emulator takes the whole window, ready to capture or resize; when the last pop-out closes, the column comes back. A new header button, ▣ Game only / ▤ Tracker, switches it by hand.
+
 ## Beta v1.14.133 (2026-11-06)
 
 - **Rando Cross: Kakariko Village is the hub** (the new default for "Portals in Hyrule", suggested by Kallax). The village's empty houses are the portals: the Elder's House (either door) to Zelda 1, the Snitch Lady's houses (either one) to Metroid. They're open from the start, so both NES games are in play from the first minute; each house is known by the door Link walks in by. "Random caves: one / two for each NES game" are still there. Saved settings switch to Kakariko once.

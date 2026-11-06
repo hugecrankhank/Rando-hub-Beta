@@ -90,6 +90,7 @@
       w.addEventListener('resize', function () { layout(kind); });
       w.addEventListener('pagehide', function () { setTimeout(function () { back(kind); }, 0); });
       rec.check = setInterval(function () { if (w.closed) back(kind); }, 700);
+      opened(w);
       buttons();
     })();
   }
@@ -139,8 +140,8 @@
       var css = document.createElement('style');
       css.textContent = '.rh-pop-bar{display:flex;justify-content:flex-end;gap:6px;margin:0 0 4px}.rh-pop-bar[hidden]{display:none}' +
         '.rh-pop-bar button{background:none;border:1px solid currentColor;border-radius:4px;color:inherit;opacity:.65;font:12px/1 system-ui,sans-serif;padding:3px 7px;cursor:pointer}.rh-pop-bar button:hover{opacity:1}' +
-        'body.rh-tracker-out main{grid-template-columns:minmax(0,1fr) !important}body.rh-tracker-out main>aside#tracker,body.rh-tracker-out main>.rh-pop-ph{display:none !important}' +
-        'body.rh-tracker-out.upright #game-wrap{flex:1 1 auto !important;height:auto !important}';
+        'body.rh-tracker-out main,body.rh-game-only main{grid-template-columns:minmax(0,1fr) !important}body.rh-tracker-out main>aside#tracker,body.rh-tracker-out main>.rh-pop-ph,body.rh-game-only main>aside#tracker,body.rh-game-only main>.rh-pop-ph{display:none !important}' +
+        'body.rh-tracker-out.upright #game-wrap,body.rh-game-only.upright #game-wrap{flex:1 1 auto !important;height:auto !important}#rh-game-only{white-space:nowrap}';
       document.head.appendChild(css);
       t.insertBefore(bar, t.firstChild);
     }
@@ -149,12 +150,42 @@
     mb.hidden = !mapEl() || !!(wins.map && wins.map.w && !wins.map.w.closed);
     bar.querySelector('[data-pop="tracker"]').hidden = !!(wins.tracker && wins.tracker.w && !wins.tracker.w.closed);
   }
+  // ── game only: with pop-outs open, the game gets the whole page ──────────
+  // Popping anything out (here, or a page's own windows: RHPopout.opened(w)) hides the tracker column
+  // so the emulator fills the window; when the last pop-out closes, the column comes back. The header's
+  // ▣ Game only / ▤ Tracker button switches it by hand too (desktop).
+  var popped = [], gameOnly = false, autoOn = false, gBtn = null;
+  function setGameOnly(on, auto) {
+    gameOnly = !!on; autoOn = gameOnly && !!auto;
+    document.body.classList.toggle('rh-game-only', gameOnly);
+    paintGame();
+    try { window.dispatchEvent(new Event('resize')); } catch (e) {}
+    setTimeout(function () { try { window.dispatchEvent(new Event('resize')); } catch (e) {} }, 120);
+  }
+  function opened(w) { if (w) popped.push(w); if (!gameOnly) setGameOnly(true, true); }
+  function paintGame() {
+    var header = document.querySelector('header');
+    if (!gBtn && header && tracker()) {
+      gBtn = document.createElement('button'); gBtn.type = 'button'; gBtn.className = 'btn'; gBtn.id = 'rh-game-only';
+      gBtn.addEventListener('click', function () { setGameOnly(!gameOnly, false); });
+      var spacer = header.querySelector('.spacer');
+      header.insertBefore(gBtn, spacer ? spacer.nextSibling : null);
+    }
+    if (!gBtn) return;
+    gBtn.hidden = !canPop();
+    gBtn.textContent = gameOnly ? '▤ Tracker' : '▣ Game only';
+    gBtn.title = gameOnly ? 'Bring the tracker column back' : 'The game alone, filling the page (for a stream with the tracker and maps in their own windows)';
+  }
+  setInterval(function () {
+    popped = popped.filter(function (w) { try { return w && !w.closed; } catch (e) { return false; } });
+    if (autoOn && !popped.length) setGameOnly(false);
+  }, 1000);
   function init() {
-    buttons();
+    buttons(); paintGame();
     setInterval(function () { var tr = tracker(); if (bar && tr && tr.firstChild !== bar) tr.insertBefore(bar, tr.firstChild); buttons(); }, 1000);   // a tracker that rebuilds its insides drops the bar: put it back
     window.addEventListener('resize', buttons);
     window.addEventListener('pagehide', function () { for (var k in wins) { var r = wins[k]; try { if (r && r.w && !r.w.closed) r.w.close(); } catch (e) {} } });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
-  window.RHPopout = { pop: pop, back: back, canPop: canPop, out: function (kind) { var c = wins[kind]; return !!(c && c.w && !c.w.closed); }, bar: function () { return bar; } };
+  window.RHPopout = { pop: pop, back: back, canPop: canPop, opened: opened, gameOnly: function (on) { if (on === undefined) return gameOnly; setGameOnly(on, false); }, out: function (kind) { var c = wins[kind]; return !!(c && c.w && !c.w.closed); }, bar: function () { return bar; } };
 })();
