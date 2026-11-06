@@ -565,7 +565,10 @@ inside the hub, with its own emulator, seed generator, tracker and saves.
   support: an NES item in the SNES game shows as a look-alike "sent to ZELDA 1 / METROID" and
   is handed to the NES game; an SNES item on a NES spot is written to the combo's receive
   queue and the ROM gives it ("You received … from ZELDA 1"). The goal is picked per seed
-  (all four, the SNES pair, or the NES pair) and stops the run timer. Tracking: SMZ3's tracker
+  (all four, the SNES pair, or the NES pair) and stops the run timer. The Zelda 1 + Metroid half has its own
+  settings: Zelda 1 and Metroid linked to each other by their own portals (take-any-road caves ⇄
+  elevator rooms) or reached from Hyrule only, one or two portal caves each, ⇄ back to Hyrule anywhere or
+  only at a way out, and the NES items mixed into all four games or kept on the NES. Tracking: SMZ3's tracker
   (with the Zelda 3 tracker choice) for the SNES games and the Zelda 1 + Metroid tracker and
   map for the NES ones, a switch between them that follows the game being played, and every
   part pops out on its own. Four ROMs from you: the two SMZ3 takes and the two Zelda 1 +

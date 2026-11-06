@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="version" content="1.14.126">
+<meta name="version" content="1.14.127">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Rando Cross - Rando Hub</title>
 <meta name="description" content="Zelda 1, Metroid, Super Metroid and A Link to the Past in one seed: one item pool across four games, portals from Hyrule to the NES games, played and tracked right here.">
@@ -305,6 +305,7 @@
 <header>
   <h1 class="brand" aria-label="Rando Cross"><span class="brand-text">Rando Cross</span></h1>
   <button class="btn primary" id="new-seed" type="button">New seed</button>
+  <button class="btn" id="swap-nes" type="button" hidden title="To the other NES game (Zelda 1 ⇄ Metroid)">⇄ Zebes</button>
   <button class="btn" id="swap" type="button" hidden title="Back to Hyrule (A Link to the Past): the P key does it too">⇄ Back to Hyrule</button>
   <span id="where"></span>
   <div class="spacer"></div>
@@ -355,6 +356,12 @@
       <h3>Goal</h3>
       <label class="field">What finishes the run<select id="goal"></select></label>
       <p class="msg">Every seed can reach all four final bosses: the goal only says which count (the timer stops there).</p>
+    </section>
+
+    <section class="step">
+      <h3>Zelda 1 + Metroid</h3>
+      <div id="nes-fields"></div>
+      <p class="msg">How the NES games are reached and left. Linked: walk into a “take any road” cave in Zelda 1 and Zebes is a ⇄ away, an elevator room on Zebes and Hyrule is; the logic counts either game’s portal as a way into both.</p>
     </section>
 
     <section class="step">

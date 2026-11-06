@@ -19,6 +19,9 @@
     return zmName(it);
   };
   const NAME = { z1: 'Zelda 1', m1: 'Metroid' };
+  const way = (n) => (n.link === 'linked' ? 'Zelda 1 ⇄ Zebes: a “take any road” cave ⇄ an elevator room. ' : '') +
+    'Back to Hyrule (ALttP): ' + (n.exits === 'exits' ? 'at a “take any road” cave or an elevator room.' : (n.link === 'linked' ? '⇄ / P anywhere.' : 'a “take any road” cave in Zelda 1, or ⇄ / P anywhere.')) +
+    (n.items === 'apart' ? ' NES items stay on the NES.' : '');
   window.ZMWay = (st) => {
     const h = host(), A = h && h.QuadApp, m = A && A.meta || {}, L = h && h.QuadLink;
     const where = L ? L.where : 'snes';
@@ -28,7 +31,7 @@
     const won = L && L.record ? L.record.won : {};
     const goal = { all: 'all four final bosses', snes: 'Ganon and Mother Brain (SNES)', nes: 'Zelda 1’s Ganon and Metroid’s Mother Brain' }[m.goal || 'all'];
     return '<span class="goal-r">Playing: ' + playing + '</span>' +
-      '<span class="goal-c">Portals (ALttP caves): ' + (portals || '…') + '. Back: a “take any road” cave in Zelda 1, or ⇄ / P anywhere.' + waiting('z1') + waiting('m1') + '</span>' +
+      '<span class="goal-c">Portals (ALttP caves): ' + (portals || '…') + '. ' + way(m.nes || {}) + waiting('z1') + waiting('m1') + '</span>' +
       '<span class="goal-c">Goal: ' + goal + ' · SNES ' + (won.snes ? '✓' : '·') + ' · Zelda 1 ' + (won.z1 ? '✓' : '·') + ' · Metroid ' + (won.m1 ? '✓' : '·') + '</span>';
   };
 

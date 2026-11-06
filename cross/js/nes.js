@@ -32,10 +32,13 @@
     if (g === 'z1') { const m = r[Z.RAM.MODE]; return m === 5 || m === 0x0B || m === 0x0C || m === 0x13; }
     return r[M.MEM.MODE] === 0 && r[M.MEM.MAP_X] < 32 && r[M.MEM.MAP_Y] < 32 && (r[M.MEM.HP_HI] | r[M.MEM.HP_LO]) !== 0;
   }
-  // Zelda 1's way back: the four "take any road" caves
+  // the NES games' portal spots: Zelda 1's four "take any road" caves, Metroid's elevator rooms
+  let opts = { link: 'hub', exits: 'anywhere' };
   function atPortal(g) {
     g = g || game; const r = ram(g); if (!r || !inPlay(g)) return false;
-    return g === 'z1' && r[Z.RAM.MODE] === 0x0B && Z.PORTAL_SCREENS.indexOf(r[Z.RAM.ROOM]) >= 0;
+    if (g === 'z1') return r[Z.RAM.MODE] === 0x0B && Z.PORTAL_SCREENS.indexOf(r[Z.RAM.ROOM]) >= 0;
+    const area = M.AREA_CODE[r[M.MEM.AREA] & 15];
+    return M.ELEVATORS.some((e) => e[0] === area && e[1] === r[M.MEM.MAP_X] && e[2] === r[M.MEM.MAP_Y]);
   }
 
   // ── pickups ──────────────────────────────────────────────────────────────
@@ -109,7 +112,7 @@
     checkPickups(); deliver();
     const here = atPortal(game);
     if (!here) armed = true;
-    else if (armed) { armed = false; on({ type: 'back' }); }
+    else if (armed) { armed = false; if (game === 'z1' && opts.link !== 'linked') on({ type: 'back', auto: true }); }   // (linked: the caves ask, ⇄ Zebes or ⇄ Hyrule)
     const z = ram('z1'), m = ram('m1');
     if (game === 'z1' && z && z[Z.RAM.MODE] === 0x13 && !won.z1) { won.z1 = true; on({ type: 'won', game: 'z1' }); save(); }
     if (game === 'm1' && m && m[0x1E] === 7 && inPlay('m1') && !won.m1) { won.m1 = true; on({ type: 'won', game: 'm1' }); save(); }
@@ -164,7 +167,7 @@
   }
 
   function init(o) {
-    at = o.at; id = o.id; roms = { z1: o.z1, m1: o.m1 }; store = o.store; on = o.on || on;
+    at = o.at; id = o.id; roms = { z1: o.z1, m1: o.m1 }; store = o.store; on = o.on || on; opts = Object.assign(opts, o.options || {});
     return (o.resume && store ? store.get('quad-nes:' + id) : Promise.resolve(null)).then((saved) => {
       if (!saved) return;
       states = { z1: saved.states && saved.states.z1 ? new Uint8Array(saved.states.z1) : null, m1: saved.states && saved.states.m1 ? new Uint8Array(saved.states.m1) : null };

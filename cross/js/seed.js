@@ -52,15 +52,20 @@
     $('goal').innerHTML = Q.GOALS.map((g) => '<option value="' + g[0] + '">' + esc(g[1]) + '</option>').join('');
     $('fields').innerHTML = OPTS.map((o) => '<label class="field">' + esc(o.label) + '<select data-k="' + o.key + '">' +
       o.values.map((v) => '<option value="' + v[0] + '"' + (v[0] === o.def ? ' selected' : '') + '>' + esc(v[1]) + (v[0] === o.def ? ' (default)' : '') + '</option>').join('') + '</select></label>').join('');
-    $('fields').addEventListener('change', saveOptions); $('goal').addEventListener('change', saveOptions);
+    $('nes-fields').innerHTML = Q.NES_OPTIONS.map((o) => '<label class="field">' + esc(o.label) + '<select data-n="' + o.key + '">' +
+      o.values.map((v) => '<option value="' + v[0] + '"' + (v[0] === o.def ? ' selected' : '') + '>' + esc(v[1]) + (v[0] === o.def ? ' (default)' : '') + '</option>').join('') + '</select></label>').join('');
+    $('fields').addEventListener('change', saveOptions); $('goal').addEventListener('change', saveOptions); $('nes-fields').addEventListener('change', saveOptions);
   }
   function options() { const o = {}; $('fields').querySelectorAll('select[data-k]').forEach((s) => { o[s.dataset.k] = s.value; }); return o; }
-  function setOptions(o) { if (!o) return; $('fields').querySelectorAll('select[data-k]').forEach((s) => { if (o[s.dataset.k] !== undefined && Array.from(s.options).some((x) => x.value === o[s.dataset.k])) s.value = o[s.dataset.k]; }); if (o.goal) $('goal').value = o.goal; }
-  function saveOptions() { try { localStorage.setItem('quad:settings', JSON.stringify(Object.assign(options(), { goal: $('goal').value }))); } catch (e) {} }
-  function summary(o) {
+  function nesOpts() { const o = {}; $('nes-fields').querySelectorAll('select[data-n]').forEach((s) => { o[s.dataset.n] = s.value; }); return o; }
+  function setOptions(o) { if (!o) return;
+    if (o.nes) $('nes-fields').querySelectorAll('select[data-n]').forEach((s) => { if (o.nes[s.dataset.n] !== undefined && Array.from(s.options).some((x) => x.value === o.nes[s.dataset.n])) s.value = o.nes[s.dataset.n]; }); $('fields').querySelectorAll('select[data-k]').forEach((s) => { if (o[s.dataset.k] !== undefined && Array.from(s.options).some((x) => x.value === o[s.dataset.k])) s.value = o[s.dataset.k]; }); if (o.goal) $('goal').value = o.goal; }
+  function saveOptions() { try { localStorage.setItem('quad:settings', JSON.stringify(Object.assign(options(), { goal: $('goal').value, nes: nesOpts() }))); } catch (e) {} }
+  function summary(o, n) {
     const parts = [];
+    if (n) Q.NES_OPTIONS.forEach((opt) => { if (n[opt.key] !== opt.def) { const v = opt.values.find((x) => x[0] === n[opt.key]); parts.push(opt.label + ': ' + (v ? v[1].replace(/:.*/, '') : n[opt.key])); } });
     OPTS.forEach((opt) => { if (o[opt.key] !== opt.def) { const v = opt.values.find((x) => x[0] === o[opt.key]); parts.push(opt.label + ': ' + (v ? v[1] : o[opt.key])); } });
-    return parts.length ? parts.join(' · ') : 'SMZ3’s defaults';
+    return parts.length ? parts.join(' · ') : 'the default settings';
   }
 
   // ── generating ───────────────────────────────────────────────────────────
@@ -73,14 +78,14 @@
     try {
       const patch = await ips();
       await new Promise((r) => setTimeout(r, 30));
-      const t0 = performance.now(), o = options(), goal = $('goal').value;
-      const r = Q.generate({ sm: base.sm.bytes, z3: base.z3.bytes, ips: patch, z1: base.z1.bytes, m1: base.m1.bytes, seed: $('seed').value.trim() || randomSeed(), options: o, goal });
+      const t0 = performance.now(), o = options(), goal = $('goal').value, nes = nesOpts();
+      const r = Q.generate({ sm: base.sm.bytes, z3: base.z3.bytes, ips: patch, z1: base.z1.bytes, m1: base.m1.bytes, seed: $('seed').value.trim() || randomSeed(), options: o, goal, nes });
       // the SMZ3 tracker's reveal: its locations' items
       r.meta.items = r.world.Locations.filter((l) => l.Id < Q.NES_ID).map((l) => [l.Id, l.Item.Name]);
-      r.meta.summary = summary(o);
+      r.meta.summary = summary(o, nes);
       last = { rom: r.rom, z1: r.z1, m1: r.m1, name: 'quad-' + r.seed, meta: r.meta };
       setStatus('Ready in ' + ((performance.now() - t0) / 1000).toFixed(2) + ' s.', 'ok');
-      $('result-seed').textContent = 'Seed ' + r.seed + ' · goal: ' + Q.GOALS.find((g) => g[0] === goal)[1] + ' · ' + summary(o);
+      $('result-seed').textContent = 'Seed ' + r.seed + ' · goal: ' + Q.GOALS.find((g) => g[0] === goal)[1] + ' · ' + summary(o, nes);
       $('result-portals').textContent = 'Portals: ' + r.portals.map((p) => p.name + ' → ' + (p.to === 'z1' ? 'Zelda 1' : 'Metroid')).join(', ') + '.';
       $('result').hidden = false;
       $('result').scrollIntoView({ block: 'nearest' });

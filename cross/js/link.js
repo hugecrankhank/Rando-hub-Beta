@@ -94,11 +94,16 @@
     if (e && e.pause) e.pause();
     where = to; document.body.classList.add('on-nes'); frame.hidden = false;
     paint();
-    nes.enter(to).then(() => { switching = false; try { frame.focus(); frame.contentWindow.focus(); } catch (x) {} save(); emit(); paint(); toast('Through the portal: ' + NAME[to] + '. ⇄ or P to come back.', 4000); },
+    nes.enter(to).then(() => { switching = false; try { frame.focus(); frame.contentWindow.focus(); } catch (x) {} save(); emit(); paint(); toast('Through the portal: ' + NAME[to] + '. ' + (opt().exits === 'exits' ? 'The way back: a “take any road” cave or an elevator room.' : '⇄ or P to come back.'), 4000); },
       (err) => { switching = false; console.error('[quad] NES', err); toast('The NES game didn’t start: ' + (err && err.message || err), 8000); back(); });
   }
-  function back() {
-    if (where === 'snes' || !nes) return;
+  const opt = () => Object.assign({ link: 'hub', exits: 'anywhere' }, meta && meta.nes || {});
+  const atSpot = () => where !== 'snes' && !!nes && nes.atPortal(where);
+  // back to Hyrule (ALttP): ⇄ anywhere, or (the seed's choice) only at a way out
+  function canBack() { return where !== 'snes' && (opt().exits !== 'exits' || atSpot()); }
+  function back(force) {
+    if (where === 'snes' || !nes || switching) return;
+    if (!force && !canBack()) { toast('This seed’s way back to Hyrule is a “take any road” cave in Zelda 1 or an elevator room on Zebes.', 5000); return; }
     switching = true;
     nes.leave().finally(() => {
       where = 'snes'; armed = false;
@@ -108,9 +113,21 @@
       switching = false; save(); emit(); paint();
     });
   }
+  // Zelda 1 ⇄ Metroid (linked seeds): at a take-any-road cave or an elevator room, the other NES game
+  function cross() {
+    if (switching || !nes || where === 'snes' || opt().link !== 'linked' || !atSpot()) return;
+    const to = where === 'z1' ? 'm1' : 'z1';
+    switching = true; where = to; paint();
+    nes.enter(to).then(() => { switching = false; try { frame.focus(); frame.contentWindow.focus(); } catch (x) {} save(); emit(); paint(); toast('Through the portal: ' + NAME[to] + '.', 3000); },
+      (err) => { switching = false; console.error('[quad] NES', err); toast('That didn’t work: ' + (err && err.message || err), 6000); });
+  }
+  let lastPaint = '';
   function paint() {
-    const b = document.getElementById('swap'), p = document.getElementById('where');
-    if (b) { b.hidden = where === 'snes'; b.textContent = '⇄ ' + NES_BACK; }
+    const b = document.getElementById('swap'), p = document.getElementById('where'), c = document.getElementById('swap-nes');
+    const sig = where + ':' + canBack() + ':' + (opt().link === 'linked' && atSpot());
+    if (sig === lastPaint) return; lastPaint = sig;
+    if (b) { b.hidden = !canBack(); b.textContent = '⇄ ' + NES_BACK; }
+    if (c) { c.hidden = !(opt().link === 'linked' && atSpot()); c.textContent = where === 'z1' ? '⇄ Zebes' : '⇄ Zelda 1'; c.title = where === 'z1' ? 'Through the cave to Zebes (Metroid)' : 'Up the elevator to Hyrule (Zelda 1)'; }
     if (p) { p.textContent = where === 'snes' ? 'SNES' : 'NES · ' + NAME[where]; p.title = where === 'snes' ? 'Playing the SNES game: A Link to the Past and Super Metroid' : 'Playing ' + NAME[where] + ' (the NES): ⇄ or P back to Hyrule'; }
   }
 
@@ -126,7 +143,7 @@
   function poll() {
     if (!started || switching) return;
     feed(); readSent(); checkGoal();
-    if (where !== 'snes') return;
+    if (where !== 'snes') { paint(); return; }
     const p = portalHere();
     if (!p) { armed = true; return; }
     if (armed) { armed = false; go(p.to); }
@@ -144,7 +161,7 @@
     }).then(() => {
       nes = frame.contentWindow.QuadNES;
       window.QuadNESLink = nes;   // the NES tracker's reads (nes-tracker.html)
-      return nes.init({ z1: o.z1, m1: o.m1, at: meta.at.map((a) => ({ game: a[0], type: a[1] })), id, store: SMZ3Store, resume: !!o.resume, on: onNes });
+      return nes.init({ z1: o.z1, m1: o.m1, at: meta.at.map((a) => ({ game: a[0], type: a[1] })), id, store: SMZ3Store, resume: !!o.resume, on: onNes, options: opt() });
     }).then(() => {
       started = true; armed = false;
       setInterval(poll, 150);
@@ -159,13 +176,13 @@
       rec.toSnes.push([from, it.id !== undefined ? it.id : it.type, ev.spot]);
       toast('Found ' + (it.name || SMZ3Gen.IT_DESC[SMZ3Gen.IT_NAME[it.type]] || 'an SNES item') + ': Link and Samus get it back in Hyrule.', 5000);
       save(); emit(); feed();
-    } else if (ev.type === 'back') back();
+    } else if (ev.type === 'back') back(!!ev.auto);
     else if (ev.type === 'won') { rec.won[ev.game] = true; save(); emit(); checkGoal(); }
     else if (ev.type === 'change') emit();
   }
 
   window.QuadLink = {
-    start, back, go,
+    start, back: () => back(false), go, cross,
     get where() { return where; },
     get done() { return !!(rec && rec.done); },
     get record() { return rec; },

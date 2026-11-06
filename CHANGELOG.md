@@ -5,6 +5,14 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.127 (2026-11-06)
+
+- **Rando Cross: settings for the Zelda 1 + Metroid half.** A new section in the seed dialog (kept with your other settings, in the spoiler and in the NES tracker's "The way"):
+  - **Portals between Zelda 1 and Metroid:** none (each NES game is reached from Hyrule only, as before) or **linked**, as on the Zelda 1 + Metroid page: at one of Zelda 1's "take any road" caves, ⇄ Zebes; in one of Metroid's elevator rooms, ⇄ Zelda 1. The logic counts either game's portal as a way into both.
+  - **ALttP caves that are portals:** one for each NES game, or two (four portal caves in Hyrule).
+  - **Back to Hyrule from the NES:** ⇄ anywhere, or only at the way out (a "take any road" cave or an elevator room).
+  - **NES items:** anywhere in the four games, or kept apart (Zelda 1 and Metroid trade only with each other, the SNES games only with each other; the portals are still the way in).
+
 ## Beta v1.14.126 (2026-11-06)
 
 - **Save states moved to F2 (save) and F4 (load), in every game.** F5 is also the browser's reload: pressed while the page around the game had the focus (the tracker, a pop-out), it reloaded the page and took a streamer's pop-out windows down. F5 and F8 now only say where saving went (and never reload while the game has the focus); the 💾 / 📂 buttons are as they were.

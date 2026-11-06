@@ -116,6 +116,7 @@
 
   // ── going back from the NES games ────────────────────────────────────────
   $('swap').addEventListener('click', () => QuadLink.back());
+  $('swap-nes').addEventListener('click', () => QuadLink.cross());
   document.addEventListener('keydown', (e) => { if ((e.key === 'p' || e.key === 'P') && !e.repeat && QuadLink.where !== 'snes') { e.preventDefault(); QuadLink.back(); } });
   let lastWhere = 'snes';
   QuadLink.onChange(() => {
