@@ -135,6 +135,7 @@
 
   function generate(o) {
     const why = ZG.check(o.z1, o.m1); if (why) throw new Error(why);
+    o = Object.assign({}, o, { z1: ZG.normalize(o.z1).bytes, m1: ZG.normalize(o.m1).bytes });
     let seed;
     if (o.seed === undefined || o.seed === null || o.seed === '') seed = Math.floor(Math.random() * 2147483647);
     else { seed = parseInt(o.seed, 10); if (!(seed >= 0 && seed <= 2147483647)) throw new Error('The seed is a number from 0 to 2147483647.'); }

@@ -25,8 +25,16 @@
   const CRC = (() => { const t = new Uint32Array(256); for (let i = 0; i < 256; i++) { let c = i; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[i] = c >>> 0; } return t; })();
   function crc32(b) { let c = 0xFFFFFFFF; for (let i = 0; i < b.length; i++) c = CRC[(c ^ b[i]) & 0xFF] ^ (c >>> 8); return ((c ^ 0xFFFFFFFF) >>> 0).toString(16).padStart(8, '0'); }
   function isNes(b) { return b.length > 16 && b[0] === 0x4E && b[1] === 0x45 && b[2] === 0x53 && b[3] === 0x1A; }
+  // Metroid (USA) dumped with or without its iNES header, whatever the header says: the standard file
+  const HEADER = [0x4E, 0x45, 0x53, 0x1A, 0x08, 0x00, 0x10, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+  function normalize(bytes) {
+    let body = isNes(bytes) ? bytes.subarray(16 + (bytes[6] & 4 ? 512 : 0)) : bytes;
+    if (body.length !== 131072 || crc32(body) !== '70080810') return bytes;
+    const o = new Uint8Array(16 + body.length); o.set(HEADER); o.set(body, 16); return o;
+  }
   function check(bytes, name) {
     if (bytes[0] === 0x50 && bytes[1] === 0x4B) return { error: 'That is a .zip file. Unzip it and pick the .nes inside.' };
+    bytes = normalize(bytes);
     if (!isNes(bytes)) return { error: '"' + name + '" isn’t a .nes ROM (no iNES header).' };
     const out = new Uint8Array(bytes);
     out[6] |= 0x02;   // battery flag: the emulator then shows the cartridge RAM (Samus's gear and the taken items) to the tracker
@@ -124,5 +132,5 @@
     return lines.join('\n');
   }
 
-  window.M1Rando = { check, isBase, crc32, generate, spoilerText };
+  window.M1Rando = { check, isBase, normalize, crc32, generate, spoilerText };
 })();

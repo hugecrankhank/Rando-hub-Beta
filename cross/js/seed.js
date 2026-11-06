@@ -18,7 +18,7 @@
   function crc32(b) { let c = 0xFFFFFFFF; for (let i = 0; i < b.length; i++) c = CRC[(c ^ b[i]) & 0xFF] ^ (c >>> 8); return ((c ^ 0xFFFFFFFF) >>> 0).toString(16).padStart(8, '0'); }
   function identify(bytes) {
     if (bytes[0] === 0x50 && bytes[1] === 0x4B) throw new Error('that is a .zip file: unzip it and pick the ROM inside');
-    const nes = ZG.whichRom(bytes); if (nes) return [nes, bytes];
+    const nes = ZG.normalize(bytes); if (nes) return [nes.kind, nes.bytes];   // (an NES dump with any header, or none)
     if (bytes.length % 1024 === 512) bytes = bytes.slice(512);
     const c = crc32(bytes);
     for (const k of ['sm', 'z3']) if (bytes.length === D.ROMS[k].size && c === D.ROMS[k].crc32) return [k, bytes];

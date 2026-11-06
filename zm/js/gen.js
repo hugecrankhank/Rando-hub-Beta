@@ -27,13 +27,24 @@
   function crc32(b) { let c = 0xFFFFFFFF; for (let i = 0; i < b.length; i++) c = CRC[(c ^ b[i]) & 0xFF] ^ (c >>> 8); return ((c ^ 0xFFFFFFFF) >>> 0).toString(16).padStart(8, '0'); }
   const isNes = (b) => b && b.length > 16 && b[0] === 0x4E && b[1] === 0x45 && b[2] === 0x53 && b[3] === 0x1A;
 
-  function whichRom(bytes) {
-    if (!isNes(bytes)) return null;
-    if (bytes.length === M.ROM.size && crc32(bytes) === M.ROM.crc32) return 'm1';
-    if (bytes.length === Z.ROM.size && Z.FINGERPRINT.every(([o, v]) => bytes[o] === v)) return 'z1';
+  // Any dump of the two games: with its 16-byte iNES header or without one, whatever that header
+  // says (an NES 2.0 header, other flags, a trainer), the game's 128 KB are what count. Out comes
+  // the standard file (the usual header + the game), which everything here is made for.
+  const HEADERS = { z1: [0x4E, 0x45, 0x53, 0x1A, 0x08, 0x00, 0x12, 0, 0, 0, 0, 0, 0, 0, 0, 0], m1: [0x4E, 0x45, 0x53, 0x1A, 0x08, 0x00, 0x10, 0, 0, 0, 0, 0, 0, 0, 0, 0] };
+  const M_BODY = '70080810';   // Metroid (USA), the 128 KB without a header
+  function normalize(bytes) {
+    if (!bytes || !bytes.length) return null;
+    let body = bytes;
+    if (isNes(bytes)) body = bytes.subarray(16 + (bytes[6] & 4 ? 512 : 0));
+    if (body.length !== 131072) return null;
+    const out = (k) => { const o = new Uint8Array(16 + body.length); o.set(HEADERS[k]); o.set(body, 16); return { kind: k, bytes: o }; };
+    if (crc32(body) === M_BODY) return out('m1');
+    if (Z.FINGERPRINT.every(([o, v]) => body[o - 16] === v)) return out('z1');
     return null;
   }
+  function whichRom(bytes) { const n = normalize(bytes); return n ? n.kind : null; }
   function check(z1, m1) {
+    z1 = z1 && (normalize(z1) || {}).bytes || z1; m1 = m1 && (normalize(m1) || {}).bytes || m1;
     if (!z1) return 'the Zelda ROM is missing';
     if (!m1) return 'the Metroid ROM is missing';
     if (whichRom(z1) !== 'z1') return 'that isn’t The Legend of Zelda (USA)';
@@ -160,6 +171,7 @@
 
   function generate(z1, m1, opts) {
     const why = check(z1, m1); if (why) throw new Error(why);
+    z1 = normalize(z1).bytes; m1 = normalize(m1).bytes;
     const seed = opts && opts.seed ? (opts.seed >>> 0) : (crypto.getRandomValues(new Uint32Array(1))[0] >>> 0);
     const r = rng(seed * 2 + 1);
     let at = null;
@@ -171,5 +183,5 @@
     return res;
   }
 
-  window.ZMGen = { check, whichRom, generate, SPOTS, reach, collect, keyOf, itemName, crc32, GOAL, writeZelda, writeMetroid, place, rng };
+  window.ZMGen = { check, whichRom, normalize, generate, SPOTS, reach, collect, keyOf, itemName, crc32, GOAL, writeZelda, writeMetroid, place, rng };
 })();

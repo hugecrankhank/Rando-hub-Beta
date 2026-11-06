@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.131 (2026-11-06)
+
+- **Zelda 1 and Metroid ROMs are taken with any header, or none** (Rando Cross, Zelda 1 + Metroid, Metroid). A dump without its 16-byte iNES header, or with a different one (an NES 2.0 header, other flags, a trainer), was turned away because the whole file's checksum was compared; now the game's own 128 KB are checked, and the standard file (the usual header + the game) is what's kept and played. Thanks to Kallax for the two dumps that showed it.
+
 ## Beta v1.14.130 (2026-11-06)
 
 - **FF maps: open checks in green, done ones gone** (asked for by Kallax). FF6 Worlds Collide's map now colours each check: green when you can do it now, red while it's locked, and a check leaves the map once it's done. With character gating (-cg) a check opens when its character joins (Worlds Collide's own gating table); Kefka's Tower's when the tower opens; an open-world seed has everything green. A seed played from a ROM file, its flags unknown, is taken as character-gated. FF1, FF4 and FF5's maps: a place leaves the map once all its checks are done.

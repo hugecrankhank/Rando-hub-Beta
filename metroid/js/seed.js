@@ -14,6 +14,7 @@
 
   // ── the base ROM ─────────────────────────────────────────────────────────
   function takeRom(bytes, name, { remember = true } = {}) {
+    bytes = M1Rando.normalize(bytes);   // (with its header or without)
     const c = M1Rando.check(bytes, name);
     if (c.error) throw new Error(c.error);
     if (!M1Rando.isBase(bytes)) throw new Error('That isn’t ' + D.ROM.name + ' (128 KB, CRC32 ' + D.ROM.crc32 + '): seeds are rolled from the plain game. A hack, another region or an already-randomized copy won’t do (it can still be played with Play ROM file).');

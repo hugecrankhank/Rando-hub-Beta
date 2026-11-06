@@ -11,7 +11,8 @@
 
   function takeRom(bytes, name, remember) {
     if (bytes[0] === 0x50 && bytes[1] === 0x4B) throw new Error('That is a .zip file. Unzip it and pick the ROM inside.');
-    const k = G.whichRom(bytes);
+    const n = G.normalize(bytes), k = n && n.kind;   // (with a header or without: the standard file kept)
+    if (n) bytes = n.bytes;
     if (!k) throw new Error('That isn’t The Legend of Zelda (USA) (128 KB) or Metroid (USA) (128 KB; CRC32 ' + M.ROM.crc32 + ').');
     base[k] = { bytes, name };
     if (remember !== false) ZMStore.set('base-' + k, { bytes: bytes.buffer.slice(0), name }).catch(() => {});
