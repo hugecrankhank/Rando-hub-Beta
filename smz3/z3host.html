@@ -13,7 +13,12 @@
   body.hutch #emo-frame { display: none; }
   body.mudora #items-wrap, body.mudora #map-frame { position: absolute; left: -4000px; top: 0; width: 900px; height: 700px; }   /* Hutch's pages run out of sight for their logic */
   body.mudora2 #items-wrap, body.mudora2 #map-frame { display: none; }
-  body.hutch.v-side #map-frame { display: none; } body.hutch.v-side #items-wrap { flex: 1 1 0; min-height: 0; } body.hutch.v-side #items-frame { height: 100%; } body.hutch.v-maps #items-wrap { display: none; }
+  /* Hutch: his item grid scaled to the width (fitItems), the map under it; a view of one of them alone
+     (the phone tabs, the stream windows): v-items / v-keys / v-side the grid, v-lw / v-dw / v-maps the map */
+  body.hutch #items-wrap { overflow: hidden; } body.hutch #items-frame { transform-origin: 0 0; }
+  body.hutch.v-items #map-frame, body.hutch.v-keys #map-frame, body.hutch.v-side #map-frame { display: none; }
+  body.hutch.v-items #items-wrap, body.hutch.v-keys #items-wrap, body.hutch.v-side #items-wrap { flex: 1 1 0; min-height: 0; }
+  body.hutch.v-lw #items-wrap, body.hutch.v-dw #items-wrap, body.hutch.v-maps #items-wrap { display: none; }
 </style>
 </head>
 <body>
@@ -42,6 +47,8 @@
   var WRAM_BASE = 0xF50000, WRAM_SIZE = 0x20000, SRAM_BASE = 0xE00000, Z3_AT = 0x400000, SAVE = 0xF000, SAVE_LEN = 0x500, GAME = 0x33FE;
   var qs = new URLSearchParams(location.search), mode = qs.get('t') || 'mudora2', phone = qs.get('phone') || '';
   if (['mudora2', 'mudora', 'hutch'].indexOf(mode) < 0) mode = 'mudora2';
+  var view = phone;   // '' (both), items, keys, lw, dw (the phone tabs), side, maps (the stream windows)
+  function setView(v) { view = v || ''; document.body.className = mode + (view ? ' v-' + view : ''); applyWorld(); fitSoon(); }
   document.body.className = mode + (phone ? ' v-' + phone : '');
 
   // the SMZ3 page: this page's parent (in the column) or its opener (a window of its own)
@@ -114,7 +121,67 @@
   window.Snes9xPlayer = { get core() { return core() ? fakeCore : null; }, get ready() { return !!core(); }, get gameName() { var P = hostPlayer(); return (P && P.gameName) || ''; }, get romBytes() { return z3Rom(); }, hooks: {}, fx: {}, toast: function () {} };
   // the pages
   var IT = document.getElementById('items-frame'), MP = document.getElementById('map-frame'), EM = document.getElementById('emo-frame');
-  if (mode === 'hutch' || mode === 'mudora') { IT.src = '../tracker/itemtracker.html'; MP.src = '../tracker/map.html'; }
+  if (mode === 'hutch' || mode === 'mudora') { IT.src = '../tracker/itemtracker.html?scale=1&bg=black'; MP.src = '../tracker/map.html?zoom=0.6&logic=nmg&bg=black'; }
+
+  // ── Hutch on screen: his grid scaled to fit, his maps sized to the space (as the Zelda 3 page does) ──
+  var ITEMS_W = 500, ITEMS_H = 400;
+  function itemsNaturalHeight() {
+    try {
+      var d = IT.contentDocument, w = d.defaultView; if (!d || !d.body) return 0;
+      var bottom = 0, pinned = 0;
+      Array.prototype.forEach.call(d.body.children, function (el) {
+        if (el.tagName === 'SCRIPT') return;
+        var fixed = w.getComputedStyle(el).position === 'fixed';
+        if (el.offsetParent === null && !fixed) return;
+        var r = el.getBoundingClientRect(); if (!r.height) return;
+        if (fixed) pinned = Math.max(pinned, r.height); else bottom = Math.max(bottom, r.bottom + w.scrollY);
+      });
+      return Math.ceil(bottom + pinned + (parseFloat(w.getComputedStyle(d.body).marginBottom) || 0));
+    } catch (e) { return 0; }
+  }
+  var itemsOnly = function () { return view === 'items' || view === 'keys' || view === 'side'; };
+  var mapOnly = function () { return view === 'lw' || view === 'dw' || view === 'maps'; };
+  function fitItems() {
+    if (mode !== 'hutch' || mapOnly()) return;
+    var wrap = document.getElementById('items-wrap'), w = wrap.clientWidth; if (!w) return;
+    var natH = itemsNaturalHeight() || ITEMS_H, k = Math.min(1, w / ITEMS_W), h;
+    if (itemsOnly()) { k = Math.min(k, (wrap.clientHeight || natH) / natH); h = wrap.clientHeight; wrap.style.height = ''; }
+    else { k = Math.min(k, (innerHeight * 0.55) / natH); h = Math.ceil(natH * k); wrap.style.height = h + 'px'; }   // both: the grid on top, at most about half
+    IT.style.width = (w / k) + 'px'; IT.style.height = (h / k) + 'px'; IT.style.transform = k < 0.999 ? 'scale(' + k + ')' : '';
+    try { IT.contentDocument.documentElement.style.overflow = 'hidden'; } catch (e) {}
+  }
+  function applyWorld() {   // the Light / Dark tabs: one world in the map
+    var d; try { d = MP.contentDocument; } catch (e) { return; } if (!d) return;
+    var lw = d.getElementById('lw'), dw = d.getElementById('dw'); if (!lw || !dw) return;
+    lw.style.display = view === 'dw' ? 'none' : ''; dw.style.display = view === 'lw' ? 'none' : '';
+  }
+  function fitMap() {
+    if (mode !== 'hutch' || itemsOnly()) return;
+    var d; try { d = MP.contentDocument; } catch (e) { return; } if (!d) return;
+    var outer = d.getElementById('maps-outer'), maps = d.getElementById('maps');
+    if (!outer || !maps || !outer.clientWidth) return;
+    var cs = d.defaultView.getComputedStyle(outer);
+    var w = outer.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight), h = outer.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom), gap = 12;
+    var here = [].filter.call(maps.querySelectorAll('.map-wrap'), function (el) { return el.style.display !== 'none'; });
+    if (!here.length) return;
+    var side = Math.min((w - gap) / 2, h), stack = Math.min(w, (h - gap) / 2);
+    if (here.length === 1) side = stack = Math.min(w, h);
+    var vertical = here.length > 1 && stack > side, size = Math.max(120, Math.floor(vertical ? stack : side));
+    maps.classList.toggle('vertical', vertical);
+    here.forEach(function (el) { el.style.width = size + 'px'; el.style.height = size + 'px'; });
+    outer.style.textAlign = 'center';
+  }
+  var fitT = null;
+  function fitSoon() { clearTimeout(fitT); fitT = setTimeout(function () { fitItems(); fitMap(); }, 60); }
+  window.addEventListener('resize', fitSoon);
+  IT.addEventListener('load', function () {
+    fitSoon(); setTimeout(fitItems, 800);
+    try { var iw = IT.contentWindow, c = iw.document.querySelector('.tracker-container'); if (c && iw.ResizeObserver) new iw.ResizeObserver(fitSoon).observe(c); } catch (e) {}
+  });
+  MP.addEventListener('load', function () {
+    applyWorld(); fitSoon(); setTimeout(function () { applyWorld(); fitMap(); }, 800);
+    try { var mw = MP.contentWindow; mw.addEventListener('resize', fitSoon); var bb = mw.document.getElementById('bottombar'); if (bb && mw.ResizeObserver) new mw.ResizeObserver(fitSoon).observe(bb); } catch (e) {}
+  });
   var q = phone ? '?phone=' + encodeURIComponent(phone) : '';
   // an earlier version let Mudora cut its pictures from the combo's Zelda half, which never boots:
   // a set it cached from that is short of the equipment (sword1…), so those sets are dropped
@@ -143,7 +210,9 @@
   // phones: the SMZ3 page says which of Mudora's tabs to show
   window.addEventListener('message', function (ev) {
     var d = ev.data || {};
-    if (d.type === 'smz3-phone') { try { var P = EM.contentWindow && (EM.contentWindow.MudoraPhone || EM.contentWindow.EmoPhone); if (P) P.set(d.tab || null); } catch (e) {} }
+    if (d.type !== 'smz3-phone') return;
+    if (mode === 'hutch') { if (!phone) setView(d.tab || ''); return; }
+    try { var P = EM.contentWindow && (EM.contentWindow.MudoraPhone || EM.contentWindow.EmoPhone); if (P) P.set(d.tab || null); } catch (e) {}
   });
 })();
 </script>

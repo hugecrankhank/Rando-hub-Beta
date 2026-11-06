@@ -5,6 +5,11 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.118 (2026-11-05)
+
+- **SMZ3: Hutch fits.** With Hutch chosen, his item grid is scaled to the column (it ran off the side on phones) and his maps sized to the space left, as on the Zelda 3 page; on a phone, Items shows the grid alone and Light / Dark one world.
+- **SMZ3 and Zelda 1 + Metroid: a Zelda / Metroid theme.** A ▲ Zelda / ◉ Metroid switch (beside SMZ3's Tracker menu, at the top of Zelda 1 + Metroid's tracker) colours the menus, header, buttons and tracker in Hyrule's greens and gold or Zebes' navy and Samus's orange. One choice for both games, kept in this browser; popped-out tracker windows follow it.
+
 ## Beta v1.14.117 (2026-11-05)
 
 - **SMZ3: the sword, shield, gloves and bottles get their pictures.** The picture set Mudora had cached from the combo's unbootable Zelda half did have those cuts, only empty, so the last version kept it; a cached set whose equipment cuts hold no pixels is now dropped and cut again from the plain ROM.

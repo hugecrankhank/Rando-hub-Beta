@@ -41,6 +41,9 @@ of anyone else's randomizer is used; the games come from your own two ROMs.
   (a dungeon's on its entrance), the portals ringed in purple, Link and Samus
   where they are (Follow switches worlds with the portal), pan / pinch /
   wheel zoom, ⟲ re-centre.
+- **Theme**: the ▲ Zelda / ◉ Metroid switch at the top of the tracker colours
+  the menus, header, buttons and tracker for either world (`../combo-theme.js`,
+  shared with SMZ3).
 - **⧉ Tracker** and **⧉ Map** (desktop): each in a window of its own, for a
   second screen or a stream capture (`../game-popout.js`).
 - **Saves**: both games' states are kept (every 20 s, at every portal, and

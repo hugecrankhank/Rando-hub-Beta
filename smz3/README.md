@@ -70,6 +70,11 @@ nothing uploaded: your ROMs stay in your browser.
     and small keys in hand reach them as on the Zelda 3 page
     (`../addons/hub-items.js`, run in the host). On a phone, Items /
     Light / Dark / Keys / Samus / Zebes above the frame pick what shows.
+  - **Theme** (the ▲ Zelda / ◉ Metroid switch beside the Tracker menu): the
+    menus, header, buttons and tracker in Hyrule's greens and gold or Zebes'
+    navy and Samus's orange (`../combo-theme.js`, shared with Zelda 1 +
+    Metroid). Hutch's grid is scaled to the column (and to the phone tabs:
+    Items the grid, Light / Dark one world), as on the Zelda 3 page.
   - **Four windows for stream** (desktop, with a Zelda 3 tracker chosen):
     **⧉ Zelda items** (Mudora's items and dungeons), **⧉ Zelda maps** (both
     worlds), **⧉ Metroid items** and **⧉ Metroid map**, each in a window of
