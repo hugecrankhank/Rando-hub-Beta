@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.129 (2026-11-06)
+
+- **⧉ Map (follows): one map window for the stream** (SMZ3 and Rando Cross, on the tracker's pop-out bar). It shows the map of the game being played and changes by itself at every warp: Mudora / Hutch's Light and Dark World in Hyrule, Super Metroid's Zebes (with Samus's dot), and on Rando Cross Zelda 1's Hyrule or Metroid's Zebes through the NES portals. One window to capture in OBS instead of four. The per-game pop-outs are still there for layouts that show them all.
+
 ## Beta v1.14.128 (2026-11-06)
 
 - **The trackers follow the game you're in** (Rando Cross, SMZ3, Zelda 1 + Metroid). Warp into Hyrule (ALttP) and the Zelda tracker comes up (Mudora / Hutch: on a phone its Light or Dark World map); onto Zebes in Super Metroid, Super Metroid's map; through a portal to Zelda 1, the NES tracker with Zelda 1's Hyrule on its map; to Metroid, Zebes on it. On a wide screen the column scrolls to that game's part. Pick a tab yourself and it holds until the next warp; on a phone each game keeps the tab you last picked for it.

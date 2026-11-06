@@ -31,7 +31,7 @@
       'body.z3-frame #z3-frame{display:block}body.z3-frame #sm-part{display:flex}body.z3-frame #tracker:not(.compact) #z3-frame{flex:0 0 auto;height:calc(100vh - 140px);min-height:520px}' +
       'body.z3-frame #tracker.compact .z3-tabs{display:flex}body.z3-frame #tracker.compact #z3-frame{flex:1 1 0}body.z3-frame #tracker.compact #sm-part{display:none;flex:1 1 0;min-height:0;overflow:auto}body.z3-frame #tracker.compact.ph-sm #sm-part,body.z3-frame #tracker.compact.ph-zebes #sm-part{display:flex}body.z3-frame #tracker.compact.ph-sm #z3-frame,body.z3-frame #tracker.compact.ph-zebes #z3-frame{display:none}' +
       'body.z3-frame #tracker.compact.ph-sm #g-smmap{display:none}body.z3-frame #tracker.compact.ph-zebes #sm-items{display:none}body.z3-frame #tracker.compact.ph-zebes #g-smmap{flex:1 1 0;height:auto}' +
-      '.rh-pop-bar .z3-pop{display:none}body.z3-frame .rh-pop-bar .z3-pop{display:inline-block}body.z3-frame .rh-pop-bar [data-pop]{display:none}' +
+      '.rh-pop-bar .z3-pop{display:none}body.z3-frame .rh-pop-bar .z3-pop,.rh-pop-bar .z3-pop[data-z=follow]{display:inline-block}body.z3-frame .rh-pop-bar [data-pop]{display:none}' +
       'body.z3-off main{grid-template-columns:minmax(0,1fr) !important}body.z3-off main>aside#tracker{display:none !important}body.z3-off.upright #game-wrap{flex:1 1 auto !important;height:auto !important}';
     document.head.appendChild(s);
   }
@@ -44,7 +44,7 @@
     if (frame.getAttribute('src') !== want) frame.src = want;
     pick.value = mode;
     if (on && !smMap && window.SMZ3Map && window.RHWorldMap) smMap = SMZ3Map.initSM(document.getElementById('g-smmap'));
-    if (!on) Object.keys(zWins).forEach(function (k) { try { zWins[k].close(); } catch (e) {} });
+    if (!on) ['side', 'maps'].forEach(function (k) { try { if (zWins[k]) zWins[k].close(); } catch (e) {} });   // (the follow window stays)
     try { window.dispatchEvent(new Event('resize')); } catch (e) {}
     if (smMap) setTimeout(function () { SMZ3Map.redraw(); }, 50);
     var P = window.Snes9xPlayer; if (P && P.setTouchPlacement) P.setTouchPlacement(mode === 'off' ? 'outside' : 'overlay');
@@ -70,19 +70,28 @@
     if (!w) { alert('The pop-out was blocked: allow pop-ups for this site.'); return; }
     zWins[view] = w;
   }
+  function popFollow() {   // the stream's one map window (follow.html)
+    var w = zWins.follow;
+    if (w && !w.closed) { w.focus(); return; }
+    w = window.open(HOST.replace(/z3host\.html$/, '') + 'follow.html', 'smz3-follow', 'popup=yes,resizable=yes,width=900,height=560');
+    if (!w) { alert('The pop-out was blocked: allow pop-ups for this site.'); return; }
+    zWins.follow = w;
+  }
   function popButtons() {
     var bar = window.RHPopout && RHPopout.bar && RHPopout.bar(); if (!bar) return;
     if (!bar.querySelector('.z3-pop')) {
       var html = '<button type="button" class="z3-pop" data-z="side" title="The Zelda tracker’s items and dungeons in a window of their own (stream capture)">⧉ Zelda items</button>' +
         '<button type="button" class="z3-pop" data-z="maps" title="The Light and Dark World in a window of their own">⧉ Zelda maps</button>' +
         '<button type="button" class="z3-pop" data-z="smitems" title="Samus’s items and the Metroid bosses in a window of their own">⧉ Metroid items</button>' +
-        '<button type="button" class="z3-pop" data-z="smmap" title="Zebes in a window of its own">⧉ Metroid map</button>';
+        '<button type="button" class="z3-pop" data-z="smmap" title="Zebes in a window of its own">⧉ Metroid map</button>' +
+        '<button type="button" class="z3-pop" data-z="follow" title="One map window for the stream: it shows the map of the game being played and changes by itself at every warp">⧉ Map (follows)</button>';
       bar.insertAdjacentHTML('beforeend', html);
       bar.addEventListener('click', function (e) {
         var b = e.target.closest('.z3-pop'); if (!b) return;
         e.stopPropagation();
         var k = b.dataset.z;
         if (k === 'side' || k === 'maps') popZelda(k);
+        else if (k === 'follow') popFollow();
         else if (k === 'smitems') RHPopout.pop('smitems', smPart.querySelector('#sm-items'), { title: 'Metroid items', label: 'Metroid tracker', width: 560, height: 520 });
         else if (k === 'smmap') RHPopout.pop('smmap', document.getElementById('g-smmap'), { title: 'Zebes', label: 'Zebes map', width: 760, height: 460, map: true });
       });

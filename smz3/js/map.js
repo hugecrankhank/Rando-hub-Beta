@@ -90,7 +90,7 @@
     return (pics[a] = c);
   }
 
-  let viewer = null, smViewer = null, smOnToggle = null, names = null, locs = null, last = null;
+  let viewer = null, smViewer = null, smOnToggle = null, names = null, locs = null, last = null, liveArgs = [null, null];
   const AREAS = ['Crateria', 'Brinstar', 'Norfair', 'Wrecked Ship', 'Maridia', 'Tourian'];
   const SMZ3Map = {
     init(host, opts) {
@@ -122,9 +122,14 @@
       return smViewer;
     },
     update(s) { last = s; if (viewer) viewer.update(s); if (smViewer) smViewer.update(s); },
+    // for a window of its own that draws its own copy (follow.html): what this one was set up and fed with
+    get config() { return { names, locs, onToggle: smOnToggle }; },
+    get state() { return last; },
+    get liveArgs() { return liveArgs; },
     redraw() { if (viewer) viewer.redraw(); if (smViewer) smViewer.redraw(); },
     // every poll: the ROM (Zebes is drawn from it) and where Link or Samus is
     live(l, r) {
+      liveArgs = [l, r];
       if (!viewer) return;
       if (r && r.length >= 0x600000 && r !== rom) { rom = r; pics = {}; viewer.repaint(); if (smViewer) smViewer.repaint(); }
       const w = l && l.started ? l.wram : null;

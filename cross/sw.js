@@ -11,7 +11,7 @@ const EXTERNAL = ['https://fonts.googleapis.com/', 'https://fonts.gstatic.com/']
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll([
     './', './index.html', './manifest.webmanifest', './hub.js', './nes.html', './nes-tracker.html', './js/gen.js', './js/seed.js', './js/link.js', './js/nes.js', './js/app.js', './js/nes-tracker.js',
-    '../smz3/gen/texts.js', '../smz3/gen/smz3gen.js', '../smz3/gen/zsm.ips', '../smz3/js/data.js', '../smz3/js/store.js', '../smz3/js/tracker.js', '../smz3/js/z3pick.js', '../smz3/z3host.html', '../smz3/js/icons.js', '../smz3/js/map.js',
+    '../smz3/gen/texts.js', '../smz3/gen/smz3gen.js', '../smz3/gen/zsm.ips', '../smz3/js/data.js', '../smz3/js/store.js', '../smz3/js/tracker.js', '../smz3/js/z3pick.js', '../smz3/z3host.html', '../smz3/follow.html', '../smz3/js/icons.js', '../smz3/js/map.js',
     '../zm/js/store.js', '../zm/js/data.js', '../zm/js/gen.js', '../zm/js/tracker.js', '../zm/js/map.js', '../zm/js/icons.js', '../metroid/js/data.js', '../metroid/js/logic.js', '../z1r/js/icons.js', '../z1r/js/owmap.js',
     '../combo-theme.js', '../world-map.js', '../sm/js/data.js', '../tracker/map/map_lw.png', '../tracker/map/map_dw.png',
     '../game-health.js', '../z3-media.js', '../randomizer/sprite.js', '../randomizer/msu.js', '../randomizer/zip.js', '../randomizer/library.js', '../randomizer/collection.js', '../sprites.json', '../game-popout.js', '../popout-panel.html', '../credits-splash.js', '../fonts/PressStart2P-Regular.ttf',
