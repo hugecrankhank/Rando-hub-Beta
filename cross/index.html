@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="version" content="1.14.135">
+<meta name="version" content="1.14.136">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Rando Cross - Rando Hub</title>
 <meta name="description" content="Zelda 1, Metroid, Super Metroid and A Link to the Past in one seed: one item pool across four games, portals from Hyrule to the NES games, played and tracked right here.">
@@ -59,6 +59,10 @@
   body.upright #game-wrap { flex: 0 0 var(--game-h, 60vh); height: var(--game-h, 60vh); }
   body.upright:not(.playing) #game-wrap { flex: none; height: auto; }
   #game { position: absolute; inset: 0; }
+  /* playing Zelda 1 or Metroid: the SNES game's picture, toolbar and touch controls go away (its touch layer sits
+     above the NES frame, so on a phone it took every tap and the NES game's own controls got none) */
+  body.on-nes #game { visibility: hidden; }
+  body.on-nes #game * { pointer-events: none !important; }
   body:not(.playing) #game { display: none; }
   #placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; gap: 14px; overflow: auto;
     align-items: center; justify-content: center; text-align: center; padding: 24px; }

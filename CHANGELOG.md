@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.136 (2026-11-06)
+
+- **Rando Cross on phones and tablets: the NES games' touch controls work.** Going into Zelda 1 or Metroid left the SNES game's on-screen controller and toolbar on top of the NES game's, so both showed and every tap went to the paused SNES game. Now the SNES layer is hidden while an NES game is played, and it comes back with ⇄ Back to Kakariko.
+
 ## Beta v1.14.135 (2026-11-06)
 
 - **Rando Cross: every portal is in Kakariko** (with Kakariko as the hub, the default; asked for by Kallax). Super Metroid's portal moves from the cave by Link's house into the house up the steps, west of the Elder's House: walk in and Samus is in Crateria's Parlor, and the Parlor's top right door (the one to the Map Station) brings Link back out in front of that house. The portal line, the start message, the seed result and the spoiler list all three houses. Seeds made before keep SMZ3's own portal.
