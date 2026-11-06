@@ -104,8 +104,14 @@
       fit();
     };
     if (Snes9xPlayer.setTouchPlacement) Snes9xPlayer.setTouchPlacement('overlay');
-    Snes9xPlayer.boot('#game', new File([entry.rom], 'quad-' + id + '.sfc')).catch((e) => { console.error('[quad] emulator failed', e); toast('The game didn’t start: ' + (e && e.message || e)); });
+    Snes9xPlayer.boot('#game', new File([await withMedia(entry.rom)], 'quad-' + id + '.sfc')).catch((e) => { console.error('[quad] emulator failed', e); toast('The game didn’t start: ' + (e && e.message || e)); });
     fit();
+  }
+
+  // Link's sprite and the MSU-1 pack (../combo-media.js) go into the ROM that boots
+  async function withMedia(rom) {
+    for (let i = 0; i < 60 && !window.RHComboMedia; i++) await new Promise((r) => setTimeout(r, 50));
+    try { return window.RHComboMedia ? await RHComboMedia.prepare(rom) : rom; } catch (e) { console.warn('[combo] media', e); return rom; }
   }
 
   // ── going back from the NES games ────────────────────────────────────────

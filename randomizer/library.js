@@ -8,7 +8,7 @@
 
 import { parseSprite, drawHead } from './sprite.js';
 
-const LIST_URL = 'sprites.json';
+const LIST_URL = new URL('../sprites.json', import.meta.url).href;   // the hub's copy, from any page (the combo pages too)
 const DIRECT_URL = 'https://alttpr.com/sprites';   // works only where alttpr.com allows it
 
 let list = null;

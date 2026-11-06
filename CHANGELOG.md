@@ -5,6 +5,12 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.121 (2026-11-05)
+
+- **SMZ3 and Quad: Link's sprite and MSU-1 music, as on the Zelda 3 page.** A 🎨 Sprite & music button in the header:
+  - **Sprite:** "Same as Zelda 3" (whatever Link wears there, the default), the game's own Link, or any sprite from the library, your own files, 🎲 or 🎲★, with the Zelda 3 page's library, favourites and files. It goes where samus.link puts it (with the author in the credits), at every boot, and into the running game at once.
+  - **MSU-1:** pick from My packs (shared with the Zelda 3 page) or add one (.zip or .pcm files). An SMZ3 pack plays in both worlds: Zelda's songs 1–61 in Hyrule, Super Metroid's 101–140 on Zebes, where the combo ROM's own MSU-1 code now silences the game's music for each song the pack has (the boss, Kraid, Phantoon, Draygon, Ridley and hyper beam songs included). A Zelda 3 pack plays in Hyrule only.
+
 ## Beta v1.14.120 (2026-11-05)
 
 - **New: Quad, four games in one seed** (`quad/`, in the Game row). Zelda 1, Metroid, Super Metroid and A Link to the Past, Rando Hub's own: SMZ3's generator with the NES games' 55 item spots and rules added to its one fill, so any game's item can be anywhere and every seed can reach all four final bosses.

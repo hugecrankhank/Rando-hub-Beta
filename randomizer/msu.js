@@ -94,6 +94,9 @@ export class MsuPlayer {
     this.loopT = null;
   }
 
+  // songs that end rather than loop (msu.asm's list; the SMZ3 pages add Super Metroid's)
+  playOnce(t) { return PLAY_ONCE.has(t); }
+
   setTracks(map) { this.tracks = map; this.buffers.clear(); this.stop(); }
   get count() { return this.tracks.size; }
 
@@ -259,7 +262,7 @@ export class MsuPlayer {
   // Crowd "music roulette": play a random track of this pack right now. The
   // game's next song change brings the normal music back.
   roulette() {
-    const pool = [...this.tracks.keys()].filter((t) => !PLAY_ONCE.has(t) && t !== this.playing);
+    const pool = [...this.tracks.keys()].filter((t) => !this.playOnce(t) && t !== this.playing);
     if (!pool.length || !this.active()) return 0;
     const t = pool[Math.floor(Math.random() * pool.length)];
     this.target = 1; this.fadingOut = false;
@@ -293,7 +296,7 @@ export class MsuPlayer {
 
     const src = this.ctx.createBufferSource();
     src.buffer = buf.audio;
-    if (!PLAY_ONCE.has(t)) {
+    if (!this.playOnce(t)) {
       src.loop = true;
       src.loopStart = Math.min(buf.loop / RATE, buf.audio.duration);
       src.loopEnd = buf.audio.duration;
@@ -312,7 +315,7 @@ export class MsuPlayer {
     src.onended = () => { if (this.source === src) { this.source = null; } };
     this.source = src;
     this.startedAt = this.ctx.currentTime - offset;
-    this.loopInfo = { loop: buf.loop / RATE, dur: buf.audio.duration, once: PLAY_ONCE.has(t) };
+    this.loopInfo = { loop: buf.loop / RATE, dur: buf.audio.duration, once: this.playOnce(t) };
     src.start(0, offset);
   }
 
@@ -335,7 +338,7 @@ export class MsuPlayer {
     } else {
       this.level = this.target;
     }
-    const once = PLAY_ONCE.has(t);
+    const once = this.playOnce(t);
     this.stream = { el, url, loop: info.loop / RATE, dur: info.frames / RATE, once, held: false };
     this.loopInfo = { loop: info.loop / RATE, dur: info.frames / RATE, once };
     el.src = url;
