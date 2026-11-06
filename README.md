@@ -128,6 +128,10 @@ in the library there; nothing is uploaded and no games or patches come with the 
   library, and beside the game where the trackers usually are). **📸 Use this screen as
   cover** or **🖼 Choose a picture…** to change it.
 - In-game saves, save states (F5 / F8), controllers, filters: as in the rest of the app.
+- **Zelda 3 games get Sprite & music**: with a Link to the Past hack or seed running, 🎨 Sprite &
+  music (beside ◂ Library) changes Link's sprite (the Zelda 3 page's library, favourites and files,
+  "Same as Zelda 3" by default; Default Link is the hack's own) and, on randomizer seeds, plays an
+  MSU-1 pack from My packs. A plain hack has no MSU-1 support to follow, so its music stays its own.
 - **Zelda 3 hacks get a map** (on the Zelda 3 page too, see below). When the game running is a Link to the Past hack (Allhallows
   Eve, Parallel Worlds, anything made with ZScream), a map appears beside it: the hack's
   own world map (the one its pause screen shows), Light and Dark World, drawn from the ROM

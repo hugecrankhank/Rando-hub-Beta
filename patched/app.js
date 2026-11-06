@@ -325,7 +325,13 @@ async function play(id) {
   if (small.addEventListener) small.addEventListener('change', place);
   place();
   // the save file name: unique per game (in-game saves are kept by name)
-  P.boot('#game', new File([g.rom], 'patched-' + g.id + (g.system === 'nes' ? '.nes' : '.sfc')))
+  // a Zelda 3 game (a hack, or a seed): Link's sprite and the MSU-1 pack go into the ROM that boots (../z3-media.js)
+  let rom = g.rom;
+  if (g.system !== 'nes') {
+    for (let i = 0; i < 60 && !window.RHZ3Media; i++) await new Promise((r) => setTimeout(r, 50));
+    try { if (window.RHZ3Media) rom = await RHZ3Media.prepare(new Uint8Array(g.rom)); } catch (e) { console.warn('[patched] z3 media', e); }
+  }
+  P.boot('#game', new File([rom], 'patched-' + g.id + (g.system === 'nes' ? '.nes' : '.sfc')))
     .catch((e) => { console.error('[patched]', e); toast('The game didn’t start: ' + (e && e.message || e), 8000); });
   place();
   // Zelda 3 hacks get a world map (z3map.js): it shows itself once such a ROM runs

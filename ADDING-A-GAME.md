@@ -44,5 +44,14 @@ Things here were learned the hard way; each line says why.
   synced in with its `sync-effects.py`; use Zelda 3's effect ids where an
   effect means the same thing.
 - Layouts: make the most of the screen on iPad, iPhone and tablets.
+- **Zelda 3 in it? Sprite & music.** Any page whose game has A Link to the Past
+  in it (a combo like smz3/ and quad/, a Zelda 3 hack or seed on patched/) loads
+  `<script type="module" src="../z3-media.js">` and boots the ROM through
+  `await RHZ3Media.prepare(rom)`: Link's sprite (the Zelda 3 page's library,
+  favourites and own files; "Same as Zelda 3" by default) and the MSU-1 pack
+  (My packs, shared with the Zelda 3 page) go into the ROM, and the
+  🎨 Sprite & music button appears after New seed / 🎲 Reroll (or before
+  `#lib-btn`). A new kind of Zelda 3 ROM (another combo's layout) gets its
+  addresses in `romKind()` / `writeSprite()` / `writeMusic()` there.
 - Two games in one page (zm/: Zelda 1 + Metroid): the NES player's `newCore()` /
   `attach()` swap a second loaded core in; each keeps its own state and save RAM.

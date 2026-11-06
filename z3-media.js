@@ -1,6 +1,8 @@
 /*
- * combo-media.js — Link's sprite and MSU-1 music on the combo pages (SMZ3,
- * Quad), set up the way the Zelda 3 page does it, with the same library,
+ * z3-media.js — Link's sprite and MSU-1 music for every game with Zelda 3 in
+ * it outside the Zelda 3 page itself: the combos (SMZ3, Quad) and Zelda 3 ROM
+ * hacks and seeds on Patched games. Set up the way the Zelda 3 page does it,
+ * with the same library,
  * favourites, your own sprite files and "My packs" (one browser store:
  * the Zelda 3 page's, so a sprite starred or a pack added on either shows
  * up on both).
@@ -24,10 +26,21 @@
  *       the game's music state and plays it.
  *   A Zelda 3 pack works too: Hyrule gets its songs, Zebes keeps the game's.
  *
- *   window.RHComboMedia.prepare(romBytes) → Promise<the ROM to boot>
+ *   A Zelda 3 ROM on its own (a hack, or a seed played as a patched game):
+ *   the sprite where the Zelda 3 page puts it (sprite.js), "Default Link" being
+ *   the ROM's own (a hack's Link stays the hack's); music when the ROM is a
+ *   randomizer seed (its "music off" flag at 0x18021A, as on the Zelda 3 page);
+ *   a plain hack has no MSU-1 code to follow, so its music stays its own.
+ *
+ *   A new page with Zelda 3 in it: load this as a module and boot the ROM
+ *   through prepare() (ADDING-A-GAME.md). The 🎨 Sprite & music button goes
+ *   after the header's New seed / 🎲 Reroll, or before #lib-btn (Patched
+ *   games, shown only while a Zelda 3 game runs).
+ *
+ *   window.RHZ3Media.prepare(romBytes) → Promise<the ROM to boot>   (any ROM: others come back as they are)
  */
-import { parseSprite, drawHead } from './randomizer/sprite.js';
-import { MsuPlayer, trackNumber } from './randomizer/msu.js';
+import { parseSprite, drawHead, applySprite } from './randomizer/sprite.js';
+import { MsuPlayer, trackNumber, isRandoTitle } from './randomizer/msu.js';
 import { listZip, zipEntryBlob } from './randomizer/zip.js';
 import { openLibrary, labelOf, isPlainLink, loadList } from './randomizer/library.js';
 import { createCollection, keyOf, pickFrom } from './randomizer/collection.js';
@@ -50,7 +63,18 @@ const coll = createCollection({ kvGet, kvSet, kvDel });
 // ── the combo ROM ───────────────────────────────────────────────────────────
 const core = () => { const p = window.Snes9xPlayer; return p && p.core; };
 const game = () => { const c = core(); try { const s = c && c.sram(); return s && s.length > 0x33FE ? s[0x33FE] : null; } catch (e) { return null; } };   // 0 Zelda, $FF Super Metroid
-const isCombo = (rom) => rom && rom.length >= 0x600000 && String.fromCharCode(rom[SN(0x00FFC0)], rom[SN(0x00FFC0) + 1], rom[SN(0x00FFC0) + 2]) === 'ZSM';
+const isCombo = (rom) => !!rom && rom.length >= 0x600000 && rom[0xFFC0] === 0x5A && rom[0xFFC1] === 0x53 && rom[0xFFC2] === 0x4D;   // "ZSM" (ExHiROM header at $00:FFC0)
+// a Zelda 3 ROM on its own (LoROM, title at 0x7FC0): the game, a hack of it, or a randomizer seed (h: a copier header's 512 bytes)
+function z3Kind(rom) {
+  if (!rom || rom.length < 0x100000) return null;
+  const h = rom.length % 1024 === 512 ? 512 : 0;
+  let t = ''; for (let i = 0; i < 21; i++) t += String.fromCharCode(rom[h + 0x7FC0 + i]);
+  if (/^THE LEGEND OF ZELDA|^ZELDANODENSETSU/.test(t)) return { kind: 'z3', h, seed: false };
+  if (/^(VT|GK|DR|ER|OR)/.test(t) && rom.length - h >= 0x200000 && isRandoTitle(rom.subarray(h + 0x7FC0, h + 0x7FC2))) return { kind: 'z3', h, seed: true };
+  return null;
+}
+function romKind(rom) { return isCombo(rom) ? { kind: 'combo', h: 0, seed: true } : z3Kind(rom); }
+let bootKind = null, bootOrig = null;   // the game booted through prepare(): its kind, and its ROM as it came (headerless)
 
 const BIG = {}; ' ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'.split('').forEach((c, i) => {
   if (c === ' ') BIG[c] = [0x7F, 0x7F];
@@ -58,7 +82,13 @@ const BIG = {}; ' ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'.split('').forEach((c, i)
   else if (i <= 26) BIG[c] = [0x40 + i - 17, 0x50 + i - 17];       // Q–Z
   else BIG[c] = [0x60 + i - 27, 0x70 + i - 27];                    // 0–9
 });
-function writeSprite(rom, sp, plain) {
+function writeSprite(rom, sp, plain, k) {
+  if (k && k.kind === 'z3') {   // the Zelda 3 page's own writer, on the ROM without its header
+    const r = rom.subarray(k.h);
+    if (sp) applySprite(r, sp);
+    else if (plain) [[0x80000, 0x7000], [0xDD308, 120], [0xDEDF5, 4]].forEach(([a, n]) => r.set(plain.subarray(a, a + n), a));
+    return;
+  }
   if (sp) {
     const b = sp.bytes, u32 = (i) => (b[i] | b[i + 1] << 8 | b[i + 2] << 16 | b[i + 3] << 24) >>> 0;
     let gfx, pal, gl;
@@ -83,7 +113,8 @@ function writeAuthor(rom, author) {   // samus.link's "sprite by" line in the cr
 }
 // the music switches: Zelda's music off; Super Metroid's MSU-1 code past its check (BEQ → BRA)
 const SM_CHECK = 0x00F947, SM_CHECK_BYTES = [0xAD, 0x02, 0x20, 0xC9, 0x53];
-function writeMusic(rom, on) {
+function writeMusic(rom, on, k) {
+  if (k && k.kind === 'z3') { if (k.seed) rom[k.h + 0x18021A] = on ? 1 : 0; return; }
   rom[0x40021A] = on ? 1 : 0;
   if (SM_CHECK_BYTES.every((v, i) => rom[SM_CHECK + i] === v) && (rom[SM_CHECK + 5] === 0xF0 || rom[SM_CHECK + 5] === 0x80) && rom[SM_CHECK + 6] === 0x03) rom[SM_CHECK + 5] = on ? 0x80 : 0xF0;
 }
@@ -102,26 +133,27 @@ async function plainZelda() {
   if (!b || !b.bytes) return null;
   const u = new Uint8Array(b.bytes); return u.subarray(u.length % 1024 === 512 ? 512 : 0);
 }
-async function spritePatch(rom) {
+async function spritePatch(rom, k) {
   const ch = await spriteChoice();
-  if (ch.rec && ch.rec.bytes) { let sp; try { sp = parseSprite(ch.rec.bytes); } catch (e) { return; } writeSprite(rom, sp); writeAuthor(rom, sp.authorShort || sp.author); return; }
-  if (ch.kind === 'plain') { const p = await plainZelda(); if (p) writeSprite(rom, null, p); }
+  if (ch.rec && ch.rec.bytes) { let sp; try { sp = parseSprite(ch.rec.bytes); } catch (e) { return; } writeSprite(rom, sp, null, k); if (k.kind === 'combo') writeAuthor(rom, sp.authorShort || sp.author); return; }
+  if (ch.kind === 'plain' && k.kind === 'combo') { const p = await plainZelda(); if (p) writeSprite(rom, null, p); }   // (a Zelda 3 ROM's own Link is already there)
   // "Same as Zelda 3" with the game's own Link there: the ROM as it is (a samus.link seed keeps its own sprite)
 }
 // Link's colours in the running game (Hyrule): the palette buffer, uploaded next frame (as the Zelda 3 page does)
-function liveColours(rom) {
-  const c = core(); if (!c || game() !== 0) return;
-  const r = c.wram(), set = r[0x02E0] ? 3 : Math.min(r[0xF35B], 2), base = SN(0x1BD308);
+function liveColours(rom, k) {
+  const c = core(); if (!c || (k.kind === 'combo' && game() !== 0)) return;
+  const r = c.wram(), set = r[0x02E0] ? 3 : Math.min(r[0xF35B], 2), base = k.kind === 'combo' ? SN(0x1BD308) : 0xDD308, gbase = k.kind === 'combo' ? SN(0x1BEDF5) : 0xDEDF5;
   const pal = rom.slice(base + set * 30, base + set * 30 + 30);
-  const gl = r[0xF354]; if (gl === 1 || gl === 2) { const g = SN(0x1BEDF5) + (gl - 1) * 2; pal[24] = rom[g]; pal[25] = rom[g + 1]; }
+  const gl = r[0xF354]; if (gl === 1 || gl === 2) { const g = gbase + (gl - 1) * 2; pal[24] = rom[g]; pal[25] = rom[g + 1]; }
   r.set(pal, 0xC6E2); r.set(pal, 0xC4E2); r[0x15] = 1;
 }
 async function liveSprite() {
-  const c = core(); const rom = c && c.rom && c.rom(); if (!isCombo(rom)) return false;
+  const c = core(); const rom = c && c.rom && c.rom(); const k = romKind(rom); if (!k) return false;
   const ch = await spriteChoice();
-  if (ch.rec && ch.rec.bytes) writeSprite(rom, parseSprite(ch.rec.bytes));
+  if (ch.rec && ch.rec.bytes) writeSprite(rom, parseSprite(ch.rec.bytes), null, k);
+  else if (k.kind === 'z3') { if (!bootOrig) return false; writeSprite(rom, null, bootOrig, k); }   // its own Link, from the ROM as it booted
   else { const p = await plainZelda(); if (!p) return false; writeSprite(rom, null, p); }
-  liveColours(rom);
+  liveColours(rom, k);
   return true;
 }
 
@@ -133,7 +165,7 @@ const SM_ONCE = new Set([101, 102, 129, 130]);
 class ComboMsu extends MsuPlayer {
   constructor() { super(); this.on = false; this.smLast = -1; this.lastGame = null; }
   playOnce(t) { return t > 100 ? SM_ONCE.has(t) : super.playOnce(t); }
-  active() { const c = core(); return this.on && this.tracks.size > 0 && !!c && !!window.Snes9xPlayer.ready; }
+  active() { const c = core(); return this.on && this.tracks.size > 0 && !!c && !!window.Snes9xPlayer.ready && !!bootKind && bootKind.seed; }
   ram(addr, len = 1) { const c = core(); const r = c && c.wram(); return r ? r.subarray(addr, addr + len) : new Uint8Array(len); }
   has(t) { return this.tracks.has(t + 100); }
   smTrack() {
@@ -158,7 +190,7 @@ class ComboMsu extends MsuPlayer {
   }
   tick() {
     if (!this.active()) { if (this.playing) this.stop(); return; }
-    const g = game();
+    const g = bootKind && bootKind.kind === 'z3' ? 0 : game();   // a Zelda 3 seed: always Hyrule
     if (g !== this.lastGame) { this.lastGame = g; this.stopSource(); this.playing = 0; this.lastCmd = 0; this.smLast = -1; }
     if (g === 0) { super.tick(); return; }
     if (g !== 0xFF) return;   // the credits: as it is
@@ -196,7 +228,7 @@ async function startPack(id) {
   msu.on = true; msu.start();
   return true;
 }
-function liveMusic(on) { const c = core(); const rom = c && c.rom && c.rom(); if (isCombo(rom)) { writeMusic(rom, on); return true; } return false; }
+function liveMusic(on) { const c = core(); const rom = c && c.rom && c.rom(); const k = romKind(rom); if (k && k.seed) { writeMusic(rom, on, k); if (msu.restart) msu.restart(); return true; } return false; }
 async function usePack(id) {
   msu.unlock();
   current = id || null;
@@ -244,10 +276,13 @@ const smz3Pack = (p) => p && p.count > 61;   // (packs with Super Metroid's song
 
 // ── boot ────────────────────────────────────────────────────────────────────
 async function prepare(bytes) {
-  if (!isCombo(bytes)) return bytes;
+  const k = romKind(bytes);
+  if (!k) { bootKind = null; showButton(); return bytes; }
+  bootKind = k; bootOrig = k.kind === 'z3' ? bytes.slice(k.h) : null;
+  showButton();
   const rom = bytes.slice();
-  try { await spritePatch(rom); } catch (e) { console.warn('[combo] sprite skipped', e); }
-  try { await loadPacks(); if (current && await startPack(current)) writeMusic(rom, true); } catch (e) { console.warn('[combo] music skipped', e); }
+  try { await spritePatch(rom, k); } catch (e) { console.warn('[z3 media] sprite skipped', e); }
+  try { await loadPacks(); if (k.seed && current && await startPack(current)) writeMusic(rom, true, k); } catch (e) { console.warn('[z3 media] music skipped', e); }
   return rom;
 }
 
@@ -310,6 +345,7 @@ const HTML = `
     <h3>MSU-1 music</h3>
     <div class="cm-row"><select id="cm-pack" aria-label="MSU-1 pack"></select>
       <label class="btn" for="cm-pack-in" title="An MSU-1 pack: its .zip, or all its .pcm files">Add pack…</label><input type="file" id="cm-pack-in" multiple accept=".zip,.pcm" hidden></div>
+    <p class="cm-note" id="cm-nomusic" hidden>This game is a Zelda 3 hack without the randomizer's MSU-1 support, so its music stays its own (a pack plays on randomizer seeds and the combos).</p>
     <p class="cm-note">An SMZ3 pack has Zelda's songs as 1–61 and Super Metroid's as 101–140 and plays in both worlds; a Zelda 3 pack plays in Hyrule only. My packs are shared with the Zelda 3 page. Super Metroid's songs come in at the next song change.</p>
   </section>
   <section><p class="cm-msg" id="cm-msg"></p></section>
@@ -385,12 +421,13 @@ function build() {
   if ($('cm-dlg')) return;
   const st = document.createElement('style'); st.textContent = CSS; document.head.appendChild(st);
   const wrap = document.createElement('div'); wrap.innerHTML = HTML; while (wrap.firstChild) document.body.appendChild(wrap.firstChild);
-  // the header button, after New seed
-  const ns = $('new-seed');
-  if (ns && !$('cm-media-btn')) {
+  // the header button: after New seed / 🎲 Reroll (the combos), or before ◂ Library (Patched games, while a Zelda 3 game runs)
+  const ns = $('new-seed'), lib = $('lib-btn');
+  if ((ns || lib) && !$('cm-media-btn')) {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'btn'; b.id = 'cm-media-btn'; b.innerHTML = '🎨<span class="hub-short"> Sprite &amp; music</span>';
     b.addEventListener('click', open);
-    const after = $('hub-reroll') || ns; after.parentNode.insertBefore(b, after.nextSibling);
+    if (ns) { const after = $('hub-reroll') || ns; after.parentNode.insertBefore(b, after.nextSibling); }
+    else { b.hidden = true; lib.parentNode.insertBefore(b, lib); }
   }
   $('cm-lib').addEventListener('click', () => openLibrary($, useLibrary, coll));
   $('cm-rand').addEventListener('click', () => randomSprite(false));
@@ -405,7 +442,14 @@ function build() {
     try { const n = await addPack(files); await paintPacks(); say('Music: ' + n + ', kept in My packs.'); paintSprite(); } catch (er) { say(String(er.message || er), true); }
   });
 }
-async function open() { build(); msu.unlock(); say(''); await paintSprite(); await paintPacks(); $('cm-dlg').showModal(); }
+function showButton() { const b = $('cm-media-btn'); if (b && !$('new-seed')) b.hidden = !bootKind; }
+async function open() {
+  build(); msu.unlock(); say(''); await paintSprite(); await paintPacks();
+  const noMusic = bootKind && !bootKind.seed;
+  $('cm-pack').disabled = !!noMusic;
+  $('cm-nomusic').hidden = !noMusic;
+  $('cm-dlg').showModal();
+}
 
 function init() { build(); loadPacks().then(paintSprite).catch(() => {}); }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else setTimeout(init, 0);
@@ -413,4 +457,4 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
 document.addEventListener('pointerdown', () => { if (msu.on) msu.unlock(); }, { capture: true });
 document.addEventListener('keydown', () => { if (msu.on) msu.unlock(); }, { capture: true });
 
-window.RHComboMedia = { prepare, open, get msu() { return msu; } };
+window.RHZ3Media = window.RHComboMedia = { prepare, open, romKind, get msu() { return msu; } };
