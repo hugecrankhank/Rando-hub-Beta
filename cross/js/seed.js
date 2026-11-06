@@ -58,9 +58,10 @@
   }
   function options() { const o = {}; $('fields').querySelectorAll('select[data-k]').forEach((s) => { o[s.dataset.k] = s.value; }); return o; }
   function nesOpts() { const o = {}; $('nes-fields').querySelectorAll('select[data-n]').forEach((s) => { o[s.dataset.n] = s.value; }); return o; }
+  const NES_V = 2;   // settings saved before Kakariko became the default portals: their portal choice is set back to it once
   function setOptions(o) { if (!o) return;
-    if (o.nes) $('nes-fields').querySelectorAll('select[data-n]').forEach((s) => { if (o.nes[s.dataset.n] !== undefined && Array.from(s.options).some((x) => x.value === o.nes[s.dataset.n])) s.value = o.nes[s.dataset.n]; }); $('fields').querySelectorAll('select[data-k]').forEach((s) => { if (o[s.dataset.k] !== undefined && Array.from(s.options).some((x) => x.value === o[s.dataset.k])) s.value = o[s.dataset.k]; }); if (o.goal) $('goal').value = o.goal; }
-  function saveOptions() { try { localStorage.setItem('quad:settings', JSON.stringify(Object.assign(options(), { goal: $('goal').value, nes: nesOpts() }))); } catch (e) {} }
+    if (o.nes) $('nes-fields').querySelectorAll('select[data-n]').forEach((s) => { if (s.dataset.n === 'portals' && o.nesV !== NES_V) return; if (o.nes[s.dataset.n] !== undefined && Array.from(s.options).some((x) => x.value === o.nes[s.dataset.n])) s.value = o.nes[s.dataset.n]; }); $('fields').querySelectorAll('select[data-k]').forEach((s) => { if (o[s.dataset.k] !== undefined && Array.from(s.options).some((x) => x.value === o[s.dataset.k])) s.value = o[s.dataset.k]; }); if (o.goal) $('goal').value = o.goal; }
+  function saveOptions() { try { localStorage.setItem('quad:settings', JSON.stringify(Object.assign(options(), { goal: $('goal').value, nes: nesOpts(), nesV: NES_V }))); } catch (e) {} }
   function summary(o, n) {
     const parts = [];
     if (n) Q.NES_OPTIONS.forEach((opt) => { if (n[opt.key] !== opt.def) { const v = opt.values.find((x) => x[0] === n[opt.key]); parts.push(opt.label + ': ' + (v ? v[1].replace(/:.*/, '') : n[opt.key])); } });
@@ -86,7 +87,7 @@
       last = { rom: r.rom, z1: r.z1, m1: r.m1, name: 'quad-' + r.seed, meta: r.meta };
       setStatus('Ready in ' + ((performance.now() - t0) / 1000).toFixed(2) + ' s.', 'ok');
       $('result-seed').textContent = 'Seed ' + r.seed + ' · goal: ' + Q.GOALS.find((g) => g[0] === goal)[1] + ' · ' + summary(o, nes);
-      $('result-portals').textContent = 'Portals: ' + r.portals.map((p) => p.name + ' → ' + (p.to === 'z1' ? 'Zelda 1' : 'Metroid')).join(', ') + '.';
+      $('result-portals').textContent = 'Portals: ' + r.portals.filter((p, i, a) => !p.group || a.findIndex((q) => q.group === p.group) === i).map((p) => (p.group || p.name) + ' → ' + (p.to === 'z1' ? 'Zelda 1' : 'Metroid')).join(', ') + '.';
       $('result').hidden = false;
       $('result').scrollIntoView({ block: 'nearest' });
       return last;

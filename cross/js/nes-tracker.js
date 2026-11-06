@@ -27,11 +27,11 @@
     const where = L ? L.where : 'snes';
     const playing = where === 'snes' ? 'the SNES game (ALttP / Super Metroid)' : NAME[where];
     const waiting = (g) => st.pending[g] && st.pending[g].length ? ' · ' + st.pending[g].map(ZMGen.itemName).join(', ') + ' waiting for ' + (g === 'z1' ? 'Link' : 'Samus') : '';
-    const portals = (m.portals || []).map((p) => '<b>' + p.name + '</b> → ' + NAME[p.to]).join(' · ');
+    const portals = (m.portals || []).filter((p, i, a) => !p.group || a.findIndex((q) => q.group === p.group) === i).map((p) => '<b>' + (p.group || p.name) + '</b> → ' + NAME[p.to]).join(' · ');
     const won = L && L.record ? L.record.won : {};
     const goal = { all: 'all four final bosses', snes: 'Ganon and Mother Brain (SNES)', nes: 'Zelda 1’s Ganon and Metroid’s Mother Brain' }[m.goal || 'all'];
     return '<span class="goal-r">Playing: ' + playing + '</span>' +
-      '<span class="goal-c">Portals (ALttP caves): ' + (portals || '…') + '. ' + way(m.nes || {}) + waiting('z1') + waiting('m1') + '</span>' +
+      '<span class="goal-c">Portals (Hyrule, ALttP): ' + (portals || '…') + '. ' + way(m.nes || {}) + waiting('z1') + waiting('m1') + '</span>' +
       '<span class="goal-c">Goal: ' + goal + ' · SNES ' + (won.snes ? '✓' : '·') + ' · Zelda 1 ' + (won.z1 ? '✓' : '·') + ' · Metroid ' + (won.m1 ? '✓' : '·') + '</span>';
   };
 

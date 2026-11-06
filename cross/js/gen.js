@@ -26,7 +26,7 @@
  *   QuadGen.generate({ sm, z3, ips, z1, m1, seed, options, goal }) →
  *     { seed, rom, z1, m1, at, portals, sent, spoiler, meta }
  *   at[i]: what's on NES spot i (ZMGen.SPOTS): { game: 'z1' | 'm1', type } or { game: 'snes', type, id, name }
- *   portals: [{ to: 'z1' | 'm1', name, room, loc }]   room: the ALttP room id ($A0)
+ *   portals: [{ to: 'z1' | 'm1', name, room, loc } | { to, name, entrance }]   room: the ALttP room id ($A0); entrance: the door ($010E), Kakariko's
  *   sent: { [SMZ3 location id]: { game, type } }      the NES items in the SNES game
  */
 (function () {
@@ -38,10 +38,17 @@
   // the NES half's settings (the seed dialog's "Zelda 1 + Metroid" section)
   const NES_OPTIONS = [
     { key: 'link', label: 'Portals between Zelda 1 and Metroid', def: 'hub', values: [['hub', 'None: each NES game is reached from Hyrule (ALttP) only'], ['linked', 'Linked: Zelda 1’s “take any road” caves ⇄ Metroid’s elevator rooms']] },
-    { key: 'portals', label: 'ALttP caves that are portals', def: '1', values: [['1', 'One for each NES game'], ['2', 'Two for each NES game']] },
+    { key: 'portals', label: 'Portals in Hyrule (ALttP)', def: 'kakariko', values: [['kakariko', 'Kakariko Village is the hub: its empty houses'], ['1', 'Random caves: one for each NES game'], ['2', 'Random caves: two for each NES game']] },
     { key: 'exits', label: 'Back to Hyrule (ALttP) from the NES', def: 'anywhere', values: [['anywhere', '⇄ anywhere'], ['exits', 'Only at the way out: a “take any road” cave or an elevator room']] },
     { key: 'items', label: 'NES items', def: 'mixed', values: [['mixed', 'Anywhere in the four games'], ['apart', 'On the NES only (and the SNES games’ on the SNES)']] },
   ];
+  // Kakariko Village's houses with nothing in them (no chest, no one with an item), as portals: found by
+  // the door Link came in by ($7E:010E, the entrance; the room alone is shared by houses here)
+  const KAKARIKO = {
+    z1: [{ name: 'Elder’s House (west door)', group: 'the Elder’s House (either door)', entrance: 0x0D }, { name: 'Elder’s House (east door)', group: 'the Elder’s House (either door)', entrance: 0x0E }],
+    m1: [{ name: 'Snitch Lady’s House (west)', group: 'the Snitch Lady’s houses (either one)', entrance: 0x3F }, { name: 'Snitch Lady’s House (east)', group: 'the Snitch Lady’s houses (either one)', entrance: 0x3E }],
+  };
+  const kak = (d) => ({ kak: d, Name: d.name, Region: { Name: 'Light World Kakariko' }, Available: () => true });
   function nesOptions(n) { const o = {}; NES_OPTIONS.forEach((d) => { o[d.key] = n && d.values.some((v) => v[0] === n[d.key]) ? n[d.key] : d.def; }); return o; }
 
   // ── the look-alikes: what an NES item shows as in the SNES game ─────────
@@ -83,10 +90,12 @@
     const rnd = new G.NetRandom(seed), r = rng(seed * 2 + 1);
     const world = new I.World(config, 'Player', 0, I.hexGuid());
     const N = nesOptions(o.nes);
-    // the portals: one or two caves for each NES game
+    // the portals: Kakariko's empty houses (the default: the village is the hub, open from the start),
+    // or one or two random caves with a chest for each NES game
     const caves = portalCaves(world), pick = () => caves.splice(Math.floor(r() * caves.length), 1)[0];
-    const per = N.portals === '2' ? 2 : 1, PZ = [], PM = [];
-    for (let k = 0; k < per; k++) { PZ.push(pick()); PM.push(pick()); }
+    const PZ = [], PM = [];
+    if (N.portals === 'kakariko') { PZ.push(...KAKARIKO.z1.map(kak)); PM.push(...KAKARIKO.m1.map(kak)); }
+    else { const per = N.portals === '2' ? 2 : 1; for (let k = 0; k < per; k++) { PZ.push(pick()); PM.push(pick()); } }
     const portals = PZ.map((l) => [l, 'z1']).concat(PM.map((l) => [l, 'm1']));
     // with the NES games linked, either game's portal is a way into both
     const into = (mine, theirs) => (items) => mine.some((l) => l.Available(items)) || (N.link === 'linked' && theirs.some((l) => l.Available(items)));
@@ -147,7 +156,10 @@
     // the SNES ROM
     const patches = I.makePatch(world, [world], I.hexGuid(), seed, new G.NetRandom(rnd.Next()), config);
     const rom = G.buildRom(o.sm, o.z3, o.ips, { patches });
-    const portals = res.portals.map(([l, to]) => { const a = G.snes(l.Address); return { to, name: l.Name.replace(/ - .*$/, ''), loc: l.Id, region: l.Region.Name, room: (rom[a - 2] | rom[a - 1] << 8) & 0x7FFF }; });
+    const portals = res.portals.map(([l, to]) => {
+      if (l.kak) return { to, name: l.kak.name, group: l.kak.group, region: 'Light World Kakariko', entrance: l.kak.entrance };
+      const a = G.snes(l.Address); return { to, name: l.Name.replace(/ - .*$/, ''), loc: l.Id, region: l.Region.Name, room: (rom[a - 2] | rom[a - 1] << 8) & 0x7FFF };
+    });
     // the NES spots and the NES items in the SNES game
     const at = nesLocs ? nesLocs.map((l) => { const it = l.Item; return it.nes !== undefined ? { game: it.game, type: it.ntype } : { game: 'snes', type: it.Type, id: it.Type, name: it.Name }; }) : res.at;
     const sent = {};
@@ -155,7 +167,7 @@
     const z1 = ZG.writeZelda(o.z1, at), m1 = ZG.writeMetroid(o.m1, at);
     // the spoiler
     const S = ['Rando Cross: Zelda 1 · Metroid · Super Metroid · A Link to the Past', 'Seed: ' + seed, 'Goal: ' + GOALS.find((g) => g[0] === goal)[1], '',
-      'Portals (ALttP caves):', ...portals.map((p) => '  ' + p.name + ' (' + p.region + ') → ' + (p.to === 'z1' ? 'Zelda 1' : 'Metroid')), '',
+      'Portals (Hyrule, ALttP):', ...portals.map((p) => '  ' + p.name + ' (' + p.region + ') → ' + (p.to === 'z1' ? 'Zelda 1' : 'Metroid')), '',
       'Zelda 1 ⇄ Metroid: ' + (N.link === 'linked' ? 'linked (a “take any road” cave ⇄ an elevator room)' : 'only through Hyrule (ALttP)'),
       'Back to Hyrule (ALttP): ' + (N.exits === 'exits' ? 'at a “take any road” cave or an elevator room' : '⇄ anywhere') + (N.link === 'linked' ? '' : N.exits === 'exits' ? '' : ' (Zelda 1’s “take any road” caves take you by themselves)'),
       'NES items: ' + (N.items === 'apart' ? 'on the NES only' : 'anywhere in the four games'), ''];

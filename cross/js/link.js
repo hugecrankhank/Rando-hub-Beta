@@ -83,8 +83,8 @@
   function portalHere() {
     const s = snesSram(), r = snesRam(); if (!s || !r || s[SR.GAME] !== 0) return null;
     if (r[0x10] !== 0x07 || !r[0x1B]) return null;
-    const room = r[0xA0] | r[0xA1] << 8;
-    return (meta.portals || []).find((p) => p.room === room) || null;
+    const room = r[0xA0] | r[0xA1] << 8, door = r[0x10E];
+    return (meta.portals || []).find((p) => (p.entrance !== undefined ? p.entrance === door : p.room === room)) || null;
   }
   function go(to) {
     if (switching || !nes) return;
