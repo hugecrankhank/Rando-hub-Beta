@@ -118,6 +118,20 @@
     if (v === 'map' && window.FF6Map) FF6Map.redraw();
   }
 
+  // Which checks are open now (the map's green pins): with character gating (-cg, Worlds Collide's
+  // constants/gates.py) a check needs its character recruited; Kefka's Tower's need the tower open.
+  // A seed from elsewhere (its flags unknown) is taken as gated, Worlds Collide's usual.
+  function reach(s) {
+    const flags = Array.isArray(meta.flags) ? meta.flags.join(' ') : String(meta.flags || '');
+    const gating = !flags || /(^|\s)-cg\b/.test(flags);   // (no -cg: open world, Worlds Collide's default)
+    const kt = !!(live && (live.ktOpen || live.ktSkip));
+    return D.CHECKS.map((c, i) => {
+      if (s.checks[i]) return null;
+      if (/^Kefka's Tower/.test(c[0])) return kt ? 'ok' : 'no';
+      const g = D.GATE[c[0]];
+      return !gating || g === undefined || s.chars[g] ? 'ok' : 'no';
+    });
+  }
   function render() {
     if (!root) return;
     const s = state();
@@ -134,7 +148,7 @@
     $('n-checks').textContent = count('checks') + '/' + D.CHECKS.length;
     $('n-bosses').textContent = count('bosses') + '/' + D.BOSSES.length;
     $('n-map').textContent = count('checks') + '/' + D.CHECKS.length;
-    if (window.FF6Map) FF6Map.update({ have: s.checks, liveHave: (i) => isLive('checks', i) });
+    if (window.FF6Map) FF6Map.update({ have: s.checks, liveHave: (i) => isLive('checks', i), reach: reach(s), shown: s.checks.map((h) => !h) });   // what's open: green; done: off the map
     const idx = {}; D.CHECKS.forEach((c, i) => { idx[c[0]] = i; });
     root.querySelectorAll('.an').forEach((el) => {
       const a = D.AREAS.find((x) => x[0] === el.dataset.area);

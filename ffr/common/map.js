@@ -103,7 +103,7 @@
         p.checks.forEach(([sid, area]) => { const sec = G.sections.find((x) => x.id === sid); if (!sec) return; sec.items.forEach((it, i) => { if (it.sub === area) { n++; if (s[sid] && s[sid][i]) done++; } }); });
         return n > 0 && done === n;
       });
-      viewer.update({ have, liveHave: () => true });
+      viewer.update({ have, liveHave: () => true, shown: have.map((h) => !h) });   // a place whose checks are all done leaves the map
     },
     setParty(mem) {
       if (!viewer) return;

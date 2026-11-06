@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.130 (2026-11-06)
+
+- **FF maps: open checks in green, done ones gone** (asked for by Kallax). FF6 Worlds Collide's map now colours each check: green when you can do it now, red while it's locked, and a check leaves the map once it's done. With character gating (-cg) a check opens when its character joins (Worlds Collide's own gating table); Kefka's Tower's when the tower opens; an open-world seed has everything green. A seed played from a ROM file, its flags unknown, is taken as character-gated. FF1, FF4 and FF5's maps: a place leaves the map once all its checks are done.
+
 ## Beta v1.14.129 (2026-11-06)
 
 - **⧉ Map (follows): one map window for the stream** (SMZ3 and Rando Cross, on the tracker's pop-out bar). It shows the map of the game being played and changes by itself at every warp: Mudora / Hutch's Light and Dark World in Hyrule, Super Metroid's Zebes (with Samus's dot), and on Rando Cross Zelda 1's Hyrule or Metroid's Zebes through the NES portals. One window to capture in OBS instead of four. The per-game pop-outs are still there for layouts that show them all.
