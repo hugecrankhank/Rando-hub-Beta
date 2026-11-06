@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.122 (2026-11-05)
+
+- **Rewind, and fast-forward on a controller, in every game.** Both emulators (the SNES one: Zelda 3, SMZ3, Super Metroid, SMRPG, FF4–6, SMW, patched games; the NES one: Zelda 1, Metroid, Zelda 1 + Metroid, Quad, GLR, FF1) now keep the last stretch of play: hold ⏪ on the game's bar, R on the keyboard, or the controller's left stick (L3) and the game runs backwards (about four times as fast on the SNES, twice on the NES); let go and it plays on from there. Fast-forward was already ⏩ and the ` key; it's now also the controller's right stick (R3), held. Only the changes between moments are kept, so it fits in 32 MB (SNES) or 16 MB (NES); Rewind can be turned off in the ⋯ menu. A key you've mapped to a button stays that button.
+
 ## Beta v1.14.121 (2026-11-05)
 
 - **SMZ3 and Quad: Link's sprite and MSU-1 music, as on the Zelda 3 page.** A 🎨 Sprite & music button in the header:

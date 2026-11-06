@@ -34,6 +34,7 @@ var RH_SPLASH = (function () {
     volume: 0.5, muted: false,
     touch: 'auto', opacity: 0.45, size: 1, haptics: true, slot: 1,
     keymap: null, padmap: null,
+    rewind: true,          // ⏪: hold to run the game backwards (below)
     palette: 'fceumm',     // colours (emu/palettes.js): the core's own, Mesen's, FBX's…
     overclock: true,       // twice the NES's CPU time a frame: no slowdown on crowded screens
     noSpriteLimit: false,  // more than 8 sprites in a row without flicker
@@ -221,7 +222,8 @@ var RH_SPLASH = (function () {
     toastEl = el('div', 's9x-toast');
     pill = el('div', 's9x-pill',
       '<button type="button" data-a="pause" title="Pause">❚❚</button>' +
-      '<button type="button" data-a="ff" title="Fast-forward (hold `)">⏩</button>' +
+      '<button type="button" data-a="rew" title="Rewind (hold; R, or the controller’s left stick)">⏪</button>' +
+      '<button type="button" data-a="ff" title="Fast-forward (hold `, or the controller’s right stick)">⏩</button>' +
       '<span class="sep"></span>' +
       '<button type="button" data-a="save" title="Save state (F5)">💾</button>' +
       '<button type="button" data-a="load" title="Load state (F8)">📂</button>' +
@@ -240,6 +242,9 @@ var RH_SPLASH = (function () {
     if (getComputedStyle(container).position === 'static') container.style.position = 'relative';
     container.appendChild(root);
 
+    var rewBtn = pill.querySelector('[data-a=rew]');
+    rewBtn.addEventListener('pointerdown', function (e) { e.preventDefault(); try { rewBtn.setPointerCapture(e.pointerId); } catch (x) {} setRewind('btn', true); });
+    ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(function (t) { rewBtn.addEventListener(t, function () { setRewind('btn', false); }); });
     pill.addEventListener('click', function (e) {
       var b = e.target.closest('button'); if (!b) return;
       var a = b.dataset.a;
@@ -395,7 +400,7 @@ var RH_SPLASH = (function () {
         '<button type="button" data-a="restart">Restart</button>' +
         '<button type="button" data-a="saverom" title="Save the ROM being played (a seed or a patched game) as a file">💾 Save ROM file</button>' +
         (root.requestFullscreen ? '<button type="button" data-a="fs">Full screen</button>' : '') +
-      '</div><p class="hint">Save and load states from the bar on the game screen (💾 / 📂, S1–S9 picks the slot, or use the list below). In-game saves are kept automatically for each seed. Keys: F5 save state, F8 load state, hold ` to fast-forward.</p>' +
+      '</div><p class="hint">Save and load states from the bar on the game screen (💾 / 📂, S1–S9 picks the slot, or use the list below). In-game saves are kept automatically for each seed. Keys: F5 save state, F8 load state, hold ` to fast-forward, hold R to rewind (a controller: hold the right stick in to fast-forward, the left stick to rewind).</p>' +
       slotsHtml() + (hooks.practice ? hooks.practice.html() : '') +
       '<h4>Sound</h4><div class="row"><span>Volume</span><input type="range" min="0" max="1" step="0.05" data-s="volume" value="' + cfg.volume + '"></div>' +
       '<div class="row"><span>Mute</span><input type="checkbox" data-s="muted"' + (cfg.muted ? ' checked' : '') + '></div>' +
@@ -411,6 +416,8 @@ var RH_SPLASH = (function () {
       '<p class="hint">The NES shows at most 8 sprites in a row and flickers the rest. On, they all show.</p>' +
       '<div class="row"><span>Run-ahead (less input lag)</span><input type="checkbox" data-s="runAhead"' + (runAheadOn() ? ' checked' : '') + '></div>' +
       '<p class="hint">Shows each frame one frame early, like RetroArch\u2019s run-ahead: a press shows up about 16 ms sooner. The game runs twice per frame (cheap for the NES), so it\u2019s on by default with a keyboard or controller and off on touch screens.</p>' +
+      '<div class="row"><span>Rewind (hold ⏪, R or the left stick)</span><input type="checkbox" data-s="rewind"' + (rewindOn() ? ' checked' : '') + '></div>' +
+      '<p class="hint">Keeps the last stretch of play (in up to 16 MB) so you can run the game backwards. Off saves a little work each frame.</p>' +
       '<h4>On-screen controller</h4>' +
       '<div class="row"><span>Show</span><select data-s="touch">' + opts([['auto', 'Auto (touch screens)'], ['on', 'Always'], ['off', 'Never']], cfg.touch) + '</select></div>' +
       '<div class="row"><span>Opacity</span><input type="range" min="0.1" max="1" step="0.05" data-s="opacity" value="' + cfg.opacity + '"></div>' +
@@ -589,6 +596,73 @@ var RH_SPLASH = (function () {
     if (paused) { flushSram(); audio.clear(); }
     wake(!paused);
   }
+
+  // ── rewind ──────────────────────────────────────────────────────────────
+  // The last stretch of play, kept as a full copy of the newest moment and,
+  // behind it, each older one as only the bytes that changed (XOR, unchanged
+  // runs skipped), so a good while fits in a few MB. Hold ⏪ on the bar, R on
+  // the keyboard or the controller's left stick (L3) and the game runs
+  // backwards; let go and it plays on from there. (R3, the right stick, holds
+  // fast-forward.) Off in the menu.
+  var RW_EVERY = 4, RW_BUDGET = 16 * 1048576, RW_STEP = 2;
+  var rw = { full: null, deltas: [], bytes: 0, count: 0, t: 0, key: false, btn: false, pad: false, padFF: false };
+  function rewindOn() { return cfg.rewind !== false; }
+  function rwReset() { rw.full = null; rw.deltas = []; rw.bytes = 0; rw.count = 0; }
+  function rwEnc(a, b) {   // where a and b differ: [unchanged count, changed count, a^b...] repeated (counts as varints)
+    var n = a.length, out = new Uint8Array(4096), o = 0, i = 0;
+    function room(k) { if (o + k > out.length) { var m = new Uint8Array(Math.max(out.length * 2, o + k + 1024)); m.set(out.subarray(0, o)); out = m; } }
+    function put(v) { room(5); while (v >= 128) { out[o++] = (v & 127) | 128; v = Math.floor(v / 128); } out[o++] = v; }
+    while (i < n) {
+      var s = i; while (i < n && a[i] === b[i]) i++;
+      if (i >= n) break;
+      var j = i, eq = 0;
+      while (j < n) { if (a[j] === b[j]) { if (++eq === 8) { j -= 7; break; } } else eq = 0; j++; }
+      put(i - s); put(j - i); room(j - i);
+      for (var k = i; k < j; k++) out[o++] = a[k] ^ b[k];
+      i = j;
+    }
+    return out.slice(0, o);
+  }
+  function rwApply(full, d) {
+    var s = full.slice(), p = 0, pos = 0;
+    function get() { var v = 0, m = 1, c; do { c = d[p++]; v += (c & 127) * m; m *= 128; } while (c & 128); return v; }
+    while (p < d.length) { pos += get(); var len = get(); for (var k = 0; k < len; k++) s[pos++] ^= d[p++]; }
+    return s;
+  }
+  function rwPush() {
+    if (!rewindOn() || ++rw.count < RW_EVERY) return;
+    rw.count = 0;
+    var s = null; try { s = core.saveState(); } catch (e) {}
+    if (!s) return;
+    if (rw.full && rw.full.length === s.length) { var d = rwEnc(s, rw.full); rw.deltas.push(d); rw.bytes += d.length; }
+    else { rw.deltas = []; rw.bytes = 0; }
+    rw.full = s;
+    while (rw.bytes > RW_BUDGET && rw.deltas.length) rw.bytes -= rw.deltas.shift().length;
+  }
+  // one step back: the next older moment (the oldest one stays)
+  function rwStep() {
+    if (!rw.full) return false;
+    if (rw.deltas.length) { var d = rw.deltas.pop(); rw.bytes -= d.length; rw.full = rwApply(rw.full, d); }
+    else if (rw.atEnd) return false;
+    rw.atEnd = !rw.deltas.length;
+    if (!core.loadState(rw.full)) return false;
+    rw.count = 0;
+    return true;
+  }
+  function rwHeld() { return rewindOn() && (rw.key || rw.btn || rw.pad); }
+  function setRewind(which, on) {
+    rw[which] = !!on;
+    var b = pill && pill.querySelector('[data-a=rew]'); if (b) b.classList.toggle('on', rwHeld());
+    if (!on && !rwHeld()) { rw.atEnd = false; if (audio) audio.clear(); }
+  }
+  // the controller's stick clicks (unless they're mapped to a button)
+  function stickKeys() {
+    if (input.capture) return;
+    var l = false, r = false;
+    try { Array.prototype.forEach.call(navigator.getGamepads ? navigator.getGamepads() : [], function (g) { if (!g) return; if (g.buttons[10] && g.buttons[10].pressed && input.padmap[10] == null) l = true; if (g.buttons[11] && g.buttons[11].pressed && input.padmap[11] == null) r = true; }); } catch (e) {}
+    if (l !== rw.pad) setRewind('pad', l);
+    if (r !== rw.padFF) { rw.padFF = r; setFF(r); }
+  }
   function setFF(on) { ff = !!on; pill.querySelector('[data-a=ff]').classList.toggle('on', ff); if (!ff) audio.clear(); }
 
   // keep the screen on while playing
@@ -632,6 +706,16 @@ var RH_SPLASH = (function () {
     var dt = last ? Math.min(now - last, 100) : 16.7; last = now;
     ema = ema ? ema * 0.95 + dt * 0.05 : dt;
     if (!running || paused) { try { video.draw(); } catch (e) {} return; }
+    stickKeys();
+    if (rwHeld()) {   // rewinding: a step back every other refresh, the picture of that moment, no sound
+      if (++rw.t >= RW_STEP) {
+        rw.t = 0;
+        try { if (rwStep()) { core.runFrame(0, 0); core.audio(); video.upload(paintFrame(core.frame())); } }
+        catch (e) { stopWithError('Rewind', e); return; }
+      }
+      try { video.draw(); } catch (e) {}
+      return;
+    }
     var frameMs = 1000 / core.fps, pad = input.read(), n = 0;
     if (hooks.input) { try { pad = hooks.input(pad) | 0; } catch (e) { console.warn('[emu] input hook', e); } }
     if (dt > frameMs * 1.5) stats.missed++;
@@ -666,6 +750,7 @@ var RH_SPLASH = (function () {
       // then go back. What's on screen is a frame ahead of the game, so a
       // press shows up a frame sooner. The tracker and crowd effects only see
       // the real state (the frame hook isn't called for the frame ahead).
+      rwPush();
       if (ahead) {
         var t0 = performance.now();
         if (core.snapshot()) {
@@ -808,6 +893,7 @@ var RH_SPLASH = (function () {
       F5: function (d) { if (d) saveState(); },
       F8: function (d) { if (d) loadState(); },
       Backquote: function (d) { setFF(d); },
+      KeyR: function (d) { setRewind('key', d); },
     };
     // Touching the screen again brings the on-screen controller back.
     root.addEventListener('pointerdown', function (e) { if (e.pointerType === 'touch' && padUsed) { padUsed = false; applyTouch(); } }, true);
@@ -865,6 +951,7 @@ var RH_SPLASH = (function () {
     flushSram();
     core._lastSram = lastSram; core._name = gameName; core._bytes = romBytes;
     var old = core;
+    rwReset();   // the other game's moments aren't this one's
     core = c; gameName = c._name || gameName; romBytes = c._bytes || romBytes; romFile = gameName + '.nes'; lastSram = c._lastSram || c.sram().slice();
     acc = 0; audioAcc = 0; if (audio) { audio.clear(); audio.setRate(core.sampleRate); }
     try { video.upload(paintFrame(core.frame())); } catch (e) {}

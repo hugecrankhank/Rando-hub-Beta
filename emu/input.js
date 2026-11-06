@@ -44,7 +44,7 @@
         e.preventDefault(); e.stopPropagation(); return;
       }
       if (isTyping(e) || !self.enabled()) return;
-      if (self.hotkeys[e.code]) { e.preventDefault(); if (!e.repeat) self.hotkeys[e.code](true); return; }
+      if (self.hotkeys[e.code] && !self.keymap[e.code]) { e.preventDefault(); if (!e.repeat) self.hotkeys[e.code](true); return; }   // (a key mapped to a button stays the button)
       var b = self.keymap[e.code];
       if (!b) return;
       e.preventDefault();
@@ -52,7 +52,7 @@
       if (self.onActivity) self.onActivity();
     }, true);
     window.addEventListener('keyup', function (e) {
-      if (self.hotkeys[e.code]) { self.hotkeys[e.code](false); return; }
+      if (self.hotkeys[e.code] && !self.keymap[e.code]) { self.hotkeys[e.code](false); return; }
       var b = self.keymap[e.code];
       if (b) self.keys &= ~bit(b);
     }, true);
