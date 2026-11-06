@@ -66,7 +66,7 @@
       if (!entry.auto && !confirm('Switch to ' + describe(entry) + '? The current game closes; its save stays in this browser.')) return;
       await GLRStore.set('current', { bytes: entry.rom.buffer.slice(0), name: entry.name, meta: entry.meta }).catch(() => {});
       sessionStorage.setItem('glr:autoplay', '1');
-      location.reload();
+      window.RHLeaving = true; location.reload();
       return;
     }
     booted = true;

@@ -64,7 +64,7 @@ trackers (phones, an iPad sideways) show one tab at a time.
 
 ## Saves
 
-In-game saves are kept by the player (the cartridge's save RAM, per seed). F5 / F8 save
+In-game saves are kept by the player (the cartridge's save RAM, per seed). F2 / F4 save
 and load a state; the ⋯ menu on the game has the controls, filters and volume. A
 snapshot every 20 s lets **Continue** pick up where you were if the app was closed.
 

@@ -219,8 +219,8 @@ var RH_SPLASH = (function () {
       '<button type="button" data-a="rew" title="Rewind (hold; R, or the controller’s left stick)">⏪</button>' +
       '<button type="button" data-a="ff" title="Fast-forward (hold `, or the controller’s right stick)">⏩</button>' +
       '<span class="sep"></span>' +
-      '<button type="button" data-a="save" title="Save state (F5)">💾</button>' +
-      '<button type="button" data-a="load" title="Load state (F8)">📂</button>' +
+      '<button type="button" data-a="save" title="Save state (F2)">💾</button>' +
+      '<button type="button" data-a="load" title="Load state (F4)">📂</button>' +
       '<button type="button" data-a="slot" title="Save-state slot (tap to change)"></button>' +
       '<span class="sep"></span>' +
       '<button type="button" data-a="menu" title="Emulator settings">⋯</button>');
@@ -393,7 +393,7 @@ var RH_SPLASH = (function () {
         '<button type="button" data-a="restart">Restart</button>' +
         '<button type="button" data-a="saverom" title="Save the ROM being played (a seed or a patched game) as a file">💾 Save ROM file</button>' +
         (root.requestFullscreen ? '<button type="button" data-a="fs">Full screen</button>' : '') +
-      '</div><p class="hint">Save and load states from the bar on the game screen (💾 / 📂, S1–S4 picks the slot). In-game saves are kept automatically for each seed. Keys: F5 save state, F8 load state, hold ` to fast-forward, hold R to rewind (a controller: hold the right stick in to fast-forward, the left stick to rewind).</p>' +
+      '</div><p class="hint">Save and load states from the bar on the game screen (💾 / 📂, S1–S4 picks the slot). In-game saves are kept automatically for each seed. Keys: F2 save state, F4 load state, hold ` to fast-forward, hold R to rewind (a controller: hold the right stick in to fast-forward, the left stick to rewind).</p>' +
       '<h4>Sound</h4><div class="row"><span>Volume</span><input type="range" min="0" max="1" step="0.05" data-s="volume" value="' + cfg.volume + '"></div>' +
       '<div class="row"><span>Mute</span><input type="checkbox" data-s="muted"' + (cfg.muted ? ' checked' : '') + '></div>' +
       '<h4>Graphics</h4>' +
@@ -610,6 +610,24 @@ var RH_SPLASH = (function () {
     if (l !== rw.pad) setRewind('pad', l);
     if (r !== rw.padFF) { rw.padFF = r; setFF(r); }
   }
+
+  // ── leaving the page with pop-outs open (a stream's windows) ─────────────
+  // Every window the page opens (the tracker and map pop-outs, the stream and
+  // timer windows) is noted; while one is open and a game is running, a reload
+  // or closing the tab (F5, Ctrl+R, a click elsewhere) asks first, so a stray
+  // key doesn't take a streamer's windows down. The hub's own reloads (a new
+  // seed, an update) set window.RHLeaving and go straight through.
+  if (!window.RHOpenWins) {
+    window.RHOpenWins = [];
+    var openWin = window.open;
+    window.open = function () { var w = openWin.apply(window, arguments); if (w) window.RHOpenWins.push(w); return w; };
+    window.addEventListener('beforeunload', function (e) {
+      if (window.RHLeaving) return;
+      var open = window.RHOpenWins.filter(function (w) { try { return w && !w.closed; } catch (x) { return false; } });
+      if (!open.length || !(window.EJS_emulator || window.Snes9xPlayer || window.EmuPlayer)) return;
+      e.preventDefault(); e.returnValue = ''; return '';
+    });
+  }
   function setFF(on) { ff = !!on; pill.querySelector('[data-a=ff]').classList.toggle('on', ff); if (!ff) audio.clear(); }
 
   // keep the screen on while playing
@@ -643,7 +661,7 @@ var RH_SPLASH = (function () {
     m.innerHTML = '<b style="color:#e5534b">The emulator stopped</b><span></span>' +
       '<button type="button" style="all:unset;cursor:pointer;padding:6px 14px;border-radius:6px;background:#1f6f3a;color:#fff">Reload</button>';
     m.querySelector('span').textContent = stats.error;
-    m.querySelector('button').onclick = function () { location.reload(); };
+    m.querySelector('button').onclick = function () { window.RHLeaving = true; location.reload(); };
     root.appendChild(m);
   }
   function tick(now) {
@@ -837,8 +855,11 @@ var RH_SPLASH = (function () {
     input.onActivity = function () { audio.unlock(); };
     input.onPadPress = function () { if (!padUsed) { padUsed = true; applyTouch(); } };
     input.hotkeys = {
-      F5: function (d) { if (d) saveState(); },
-      F8: function (d) { if (d) loadState(); },
+      F2: function (d) { if (d) saveState(); },
+      F4: function (d) { if (d) loadState(); },
+      // the old keys: F5 is also the browser's reload (it took streamers' pop-outs down), so it only says where saving went
+      F5: function (d) { if (d) toast('Save state is F2 now (load: F4)'); },
+      F8: function (d) { if (d) toast('Load state is F4 now (save: F2)'); },
       Backquote: function (d) { setFF(d); },
       KeyR: function (d) { setRewind('key', d); },
     };

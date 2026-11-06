@@ -51,7 +51,7 @@
       if (!(opts && opts.confirmed) && !confirm('Switch to ' + describe(entry) + '? The current game closes; its saves stay in this browser.')) return;
       await remember(entry);
       sessionStorage.setItem('zmr:autoplay', '1');
-      location.reload();
+      window.RHLeaving = true; location.reload();
       return;
     }
     booted = true;

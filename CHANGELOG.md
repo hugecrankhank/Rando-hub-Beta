@@ -5,6 +5,11 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.126 (2026-11-06)
+
+- **Save states moved to F2 (save) and F4 (load), in every game.** F5 is also the browser's reload: pressed while the page around the game had the focus (the tracker, a pop-out), it reloaded the page and took a streamer's pop-out windows down. F5 and F8 now only say where saving went (and never reload while the game has the focus); the 💾 / 📂 buttons are as they were.
+- **A reload asks first while pop-outs are open.** With a game running and any of its windows open (tracker, maps, stream, timer pop-outs), a reload or closing the tab (F5, Ctrl+R) brings up the browser's "Leave site?" so a stray key can't close them. The hub's own reloads (a new seed, an update) go straight through.
+
 ## Beta v1.14.125 (2026-11-05)
 
 - **Rando Cross has its own address: `cross/`.** Every link in the hub goes there now; the old `quad/` address sends bookmarks, links and the installed app on to it by itself. Saves, the seed you were playing (Continue) and your settings come along: they were never tied to the address.

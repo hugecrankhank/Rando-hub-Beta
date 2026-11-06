@@ -67,7 +67,7 @@
     if (navigator.serviceWorker && navigator.serviceWorker.getRegistration) {
       p = navigator.serviceWorker.getRegistration().then(function (r) { return r && r.update(); }).catch(function () {});
     }
-    p.then(function () { location.reload(); });
+    p.then(function () { window.RHLeaving = true; location.reload(); });
   }
 
   function build() {

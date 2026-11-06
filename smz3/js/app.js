@@ -60,7 +60,7 @@
       if (!(opts && opts.confirmed) && !confirm('Switch to ' + describe(entry) + '? The current game closes; its saves stay in this browser.')) return;
       await SMZ3Store.set('current', { bytes: entry.rom.buffer.slice(0), name: entry.name, meta: entry.meta }).catch(() => {});
       sessionStorage.setItem('smz3r:autoplay', '1');
-      location.reload();
+      window.RHLeaving = true; location.reload();
       return;
     }
     booted = true;

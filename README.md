@@ -127,7 +127,7 @@ in the library there; nothing is uploaded and no games or patches come with the 
 - The title screen becomes the game's cover by itself the first time you play (in the
   library, and beside the game where the trackers usually are). **📸 Use this screen as
   cover** or **🖼 Choose a picture…** to change it.
-- In-game saves, save states (F5 / F8), controllers, filters: as in the rest of the app.
+- In-game saves, save states (F2 / F4), controllers, filters: as in the rest of the app.
 - **Zelda 3 games get Sprite & music**: with a Link to the Past hack or seed running, 🎨 Sprite &
   music (beside ◂ Library) changes Link's sprite (the Zelda 3 page's library, favourites and files,
   "Same as Zelda 3" by default; Default Link is the hack's own) and, on randomizer seeds, plays an
@@ -184,7 +184,7 @@ TikTok gifts ─► crowd bridge ─► crowd/effects.js ───────�
   sprite, music and other options go on last.
 - **Playing.** The ROM goes straight into Snes9x. In-game saves are kept per seed;
   the **⋯** menu on the game has save states, filters, volume and controls.
-  Keyboard: F5 save state, F8 load state, hold <kbd>`</kbd> to fast-forward.
+  Keyboard: F2 save state, F4 load state, hold <kbd>`</kbd> to fast-forward.
 - **Tracking.** The Snes9x core shares its memory with the page, so the tracker
   reads items, keys, dungeon progress and location checks directly as you play.
   Hutch's tracker thinks it's talking to a real SNES over SNI; a small shim in

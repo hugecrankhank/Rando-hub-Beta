@@ -48,7 +48,7 @@ Light `K1I1B0`, Vanilla `K0I0B0` (nothing moved, password still off).
 
 **Passwords are off.** The title screen's PASSWORD CONTINUE line is replaced by
 the seed's code (`GLR XXXXXX`) and the cursor can't reach it. Progress is kept
-with save states (four slots, F5 / F8) and an autosave every 20 s, so
+with save states (four slots, F2 / F4) and an autosave every 20 s, so
 **Continue** resumes where you were.
 
 ### Logic

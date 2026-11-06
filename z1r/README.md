@@ -53,7 +53,7 @@ about a quarter of the memory, and the core reports where it keeps the NES's
 RAM, so the tracker reads live memory directly. The player (`emu/player.js`,
 `video.js`, `audio.js`, `input.js`, shaders) comes from ALTTPR Snes9x, adapted
 for the NES's two buttons: on-screen controller under the picture on phones,
-a top bar with pause, fast-forward and four save-state slots (F5 / F8), and a
+a top bar with pause, fast-forward and four save-state slots (F2 / F4), and a
 menu (⋯) for volume, filter, aspect ratio, controller size and remapping.
 In-game saves are kept per ROM; the running game is also snapshotted every
 20 s so **Continue** resumes where you were if the app is closed.
