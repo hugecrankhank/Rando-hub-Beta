@@ -475,7 +475,7 @@ inside the hub, with its own emulator, seed generator, tracker and saves.
   seeds made by [ZORA](https://github.com/tetraly/zora) from your own Legend of Zelda
   (USA) ROM. Crowd control works there too: effects both games have keep their names,
   ALTTP-only ones are skipped. **Rerolls can land on** (tick Zelda 3, Zelda 1, Guardian
-  Legend, FF6, SMRPG, Super Metroid, Metroid, Super Mario World, SMZ3, Zelda 1 + Metroid in the Game row) lets 🎲 Reroll and Crowd Control's random preset / CHAOS
+  Legend, FF6, SMRPG, Super Metroid, Metroid, Super Mario World, SMZ3, Zelda 1 + Metroid, Quad in the Game row) lets 🎲 Reroll and Crowd Control's random preset / CHAOS
   seeds pick one of the ticked games at random, so you can keep it to the Zelda series,
   or mix in Final Fantasy, as you like (*New seed (same settings)* always stays in the
   game being played). FF1, FF4 and FF5 are rolled on their own sites, so rerolls can't
@@ -548,6 +548,22 @@ inside the hub, with its own emulator, seed generator, tracker and saves.
   Metroid (USA) ROMs; both ROMs the generator writes carry the combined title (Zelda's with
   "METROID" carved under the box, Metroid's with "THE LEGEND OF ZELDA" in gold above its
   logo), and every portal plays a transition between the two worlds' frames.
+- **Quad** (`quad/`): Zelda 1, Metroid, Super Metroid and A Link to the Past in one seed,
+  Rando Hub's own. One item pool and one logic across the four: SMZ3's generator (the port
+  above) with the NES games' 55 item spots and rules added to its single fill, so any game's
+  item can be anywhere and every seed can reach all four final bosses. Hyrule (ALttP) is the
+  hub: two of its caves, picked at random each seed from the caves with a chest, are portals,
+  one to Zelda 1 and one to Metroid (walk in and the NES game takes over, where you left it);
+  back from Zelda 1 by a "take any road" cave, or ⇄ / P anywhere. Super Metroid and ALttP stay
+  linked by SMZ3's own portals. Items cross between the systems through SMZ3's multiworld
+  support: an NES item in the SNES game shows as a look-alike "sent to ZELDA 1 / METROID" and
+  is handed to the NES game; an SNES item on a NES spot is written to the combo's receive
+  queue and the ROM gives it ("You received … from ZELDA 1"). The goal is picked per seed
+  (all four, the SNES pair, or the NES pair) and stops the run timer. Tracking: SMZ3's tracker
+  (with the Zelda 3 tracker choice) for the SNES games and the Zelda 1 + Metroid tracker and
+  map for the NES ones, a switch between them that follows the game being played, and every
+  part pops out on its own. Four ROMs from you: the two SMZ3 takes and the two Zelda 1 +
+  Metroid takes (already in the browser if you've used those pages).
 - **Final Fantasy Randomizer (FF1), FF4 Free Enterprise, FF5 Career Day** (`ffr/`):
   seeds are rolled on each randomizer's own site (FF1R and FE generate in your
   browser there), then played here on the hub's NES or SNES with a tracker that reads

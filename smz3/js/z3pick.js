@@ -14,6 +14,7 @@
 (function () {
   'use strict';
   var KEY = 'smz3r:z3tracker';
+  var HOST = window.SMZ3_HOST || 'z3host.html';   // the four-game combo (../quad/) uses SMZ3's
   var OPTIONS = [['mudora2', 'Mudora 2.0 (Muffins logic)'], ['mudora', 'Mudora (Hutch logic)'], ['hutch', 'Hutch'], ['hub', 'Rando Hub (SMZ3, both games)'], ['off', 'Off (game full screen)']];
   var mode = 'mudora2';
   try { mode = localStorage.getItem(KEY) || 'mudora2'; } catch (e) {}
@@ -39,7 +40,7 @@
     placeSections(on);
     document.body.classList.toggle('z3-frame', on);
     document.body.classList.toggle('z3-off', mode === 'off');
-    var want = on ? 'z3host.html?t=' + mode : 'about:blank';
+    var want = on ? HOST + '?t=' + mode : 'about:blank';
     if (frame.getAttribute('src') !== want) frame.src = want;
     pick.value = mode;
     if (on && !smMap && window.SMZ3Map && window.RHWorldMap) smMap = SMZ3Map.initSM(document.getElementById('g-smmap'));
@@ -62,7 +63,7 @@
   function popZelda(view) {   // Mudora / Hutch in a window of its own: its items and dungeons, or both maps
     var w = zWins[view];
     if (w && !w.closed) { w.focus(); return; }
-    w = window.open('z3host.html?t=' + mode + '&phone=' + view, 'smz3-z3-' + view, 'popup=yes,resizable=yes,width=' + (view === 'maps' ? 1000 : 560) + ',height=' + (view === 'maps' ? 560 : 800));
+    w = window.open(HOST + '?t=' + mode + '&phone=' + view, 'smz3-z3-' + view, 'popup=yes,resizable=yes,width=' + (view === 'maps' ? 1000 : 560) + ',height=' + (view === 'maps' ? 560 : 800));
     if (!w) { alert('The pop-out was blocked: allow pop-ups for this site.'); return; }
     zWins[view] = w;
   }

@@ -22,11 +22,11 @@
   var me = document.currentScript, HUB = (me && me.getAttribute('data-hub')) || '../';
 
   var path = location.pathname;
-  var GAME = /\/glr\//.test(path) ? 'glr' : /\/smrpg\//.test(path) ? 'smrpg' : /\/sm\//.test(path) ? 'sm' : /\/metroid\//.test(path) ? 'metroid' : /\/smw\//.test(path) ? 'smw' : /\/smz3\//.test(path) ? 'smz3' : /\/zm\//.test(path) ? 'zm' :
+  var GAME = /\/glr\//.test(path) ? 'glr' : /\/smrpg\//.test(path) ? 'smrpg' : /\/sm\//.test(path) ? 'sm' : /\/metroid\//.test(path) ? 'metroid' : /\/smw\//.test(path) ? 'smw' : /\/smz3\//.test(path) ? 'smz3' : /\/zm\//.test(path) ? 'zm' : /\/quad\//.test(path) ? 'quad' :
     /\/ff6wc\//.test(path) ? 'ff6' : /\/ffr\/ff1\//.test(path) ? 'ff1' : /\/ffr\/ff4\//.test(path) ? 'ff4' :
     /\/ffr\/ff5\//.test(path) ? 'ff5' : /\/patched\//.test(path) ? 'patched' : null;
   if (!GAME) return;
-  var NAMES = { glr: 'GLR', sm: 'Super Metroid', metroid: 'Metroid', smw: 'Super Mario World', smz3: 'SMZ3', zm: 'Zelda 1 + Metroid', smrpg: 'Mario RPG', ff6: 'FF6', ff1: 'FF1', ff4: 'FF4', ff5: 'FF5', patched: 'Patched' };
+  var NAMES = { glr: 'GLR', sm: 'Super Metroid', metroid: 'Metroid', smw: 'Super Mario World', smz3: 'SMZ3', zm: 'Zelda 1 + Metroid', quad: 'Quad', smrpg: 'Mario RPG', ff6: 'FF6', ff1: 'FF1', ff4: 'FF4', ff5: 'FF5', patched: 'Patched' };
   var AUTO_TEXT = {
     glr: 'starts when a game is started, stops when corridor 21 is cleared',
     sm: 'starts when a game is started, stops when Samus escapes Zebes',
@@ -34,6 +34,7 @@
     smw: 'starts when a game is started, stops when Bowser falls (the ending starts)',
     smz3: 'starts when a game is started, stops when the credits roll (Ganon and Mother Brain beaten)',
     zm: 'starts when a game is started, stops when both Ganon and Mother Brain have fallen',
+    quad: 'starts when a game is started, stops when the seed’s goal is met (its final bosses beaten)',
     ff4: 'starts when a game is started, stops when the game is won',
   };
   var KEY = 'rh-timer-' + GAME;
@@ -63,7 +64,7 @@
   }
   // the trackers say 'live' once a real game is in memory, 'waiting' on the title screen
   var link = null;
-  var TRACKER = { sm: 'SMRTracker', metroid: 'M1Tracker', smw: 'SMWTracker', smz3: 'SMZ3Tracker', zm: 'ZMTracker', smrpg: 'SMRPGTracker', ff6: 'FF6Tracker', ff1: 'FFTracker', ff4: 'FFTracker', ff5: 'FFTracker' }[GAME];
+  var TRACKER = { sm: 'SMRTracker', metroid: 'M1Tracker', smw: 'SMWTracker', smz3: 'SMZ3Tracker', zm: 'ZMTracker', quad: 'SMZ3Tracker', smrpg: 'SMRPGTracker', ff6: 'FF6Tracker', ff1: 'FFTracker', ff4: 'FFTracker', ff5: 'FFTracker' }[GAME];
   var hooked = false;
   function hook() {
     if (hooked || !TRACKER) return;
@@ -86,6 +87,7 @@
     if (GAME === 'smw') return r.length > 0x13C6 && r[0x100] >= 0x18 && r[0x100] <= 0x29 && r[0x13C6] >= 8 && link === 'live';   // the ending: a cutscene ($0100) numbered 8 ($13C6; 1–7 are the castles)
     if (GAME === 'smz3') { var t3 = window.SMZ3Tracker; return !!(t3 && t3.live && t3.live.game === 'credits') && link === 'live'; }   // the combo's credits ($A1:73FE neither game)
     if (GAME === 'zm') { var zl = window.ZMLink; return !!(zl && zl.state.won.z1 && zl.state.won.m1); }
+    if (GAME === 'quad') { var ql = window.QuadLink; return !!(ql && ql.done); }   // the seed's goal (quad/js/link.js)
     if (GAME === 'ff4') return r.length > 0x151F && r[0x151F] === 1 && link === 'live';      // FE's victory flag
     return false;
   }

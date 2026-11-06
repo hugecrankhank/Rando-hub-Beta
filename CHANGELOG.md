@@ -5,6 +5,15 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.120 (2026-11-05)
+
+- **New: Quad, four games in one seed** (`quad/`, in the Game row). Zelda 1, Metroid, Super Metroid and A Link to the Past, Rando Hub's own: SMZ3's generator with the NES games' 55 item spots and rules added to its one fill, so any game's item can be anywhere and every seed can reach all four final bosses.
+  - **Hyrule is the hub.** Two of ALttP's caves, picked at random each seed from the caves with a chest, are portals: walk into one and Zelda 1 (or Metroid) takes over where you left it. Back from Zelda 1 through a "take any road" cave, or ⇄ / P from anywhere. The portals are named in the seed dialog, the spoiler and the NES tracker.
+  - **Items cross systems** through SMZ3's own multiworld support: an NES item in the SNES game shows a look-alike and says "sent to ZELDA 1" (or METROID), and the NES game gets it; an SNES item on a NES spot arrives in Hyrule or on Zebes with "You received … from ZELDA 1". Zelda 1 and Metroid trade items as on the Zelda 1 + Metroid page.
+  - **A goal per seed:** all four final bosses, the SNES pair, or the NES pair; the run timer stops there.
+  - **Tracking:** SMZ3's tracker (with Mudora 2.0, Mudora or Hutch for Zelda) for the SNES games, the Zelda 1 + Metroid tracker and map for the NES ones, a SNES / NES switch that follows the game being played, and pop-outs for every part (NES items and NES map besides SMZ3's four).
+  - Four ROMs from you (the two SMZ3 takes, the two Zelda 1 + Metroid takes: already here if you've used those pages); saves, autosave snapshots and Continue cover both systems.
+
 ## Beta v1.14.119 (2026-11-05)
 
 - **SMZ3: Hutch's map, compact like Mudora's.** His two-row top bar is gone (Layout and zoom are fitted for you, and SMZ3 has no entrance shuffle for the Connectors / Notes / Checks row), Settings is a small ⚙ in the map's corner, and the footer is one thin row (Connected, ↻, OnlyADKD, New Game), so the maps get the room.

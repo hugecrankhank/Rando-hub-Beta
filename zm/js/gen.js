@@ -171,5 +171,5 @@
     return res;
   }
 
-  window.ZMGen = { check, whichRom, generate, SPOTS, reach, collect, keyOf, itemName, crc32, GOAL };
+  window.ZMGen = { check, whichRom, generate, SPOTS, reach, collect, keyOf, itemName, crc32, GOAL, writeZelda, writeMetroid };
 })();

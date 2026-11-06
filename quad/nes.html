@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="version" content="1.14.120">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Quad: the NES games</title>
+<!-- the NES half of the four-game combo (index.html puts it over the game picture): Zelda 1 and Metroid in the hub's NES player -->
+<style>
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; color: #eee; font: 14px system-ui, sans-serif; }
+  #game { position: absolute; inset: 0; }
+</style>
+</head>
+<body>
+<div id="game"></div>
+<script>window.EMU_BASE = '../z1r/emu/';</script>
+<script src="../z1r/emu/core.js"></script>
+<script src="../z1r/emu/palettes.js"></script>
+<script src="../z1r/emu/xbrz.js"></script>
+<script src="../z1r/emu/video.js"></script>
+<script src="../z1r/emu/audio.js"></script>
+<script src="../z1r/emu/input.js"></script>
+<script src="../z1r/emu/player.js"></script>
+<script src="../metroid/js/data.js"></script>
+<script src="../metroid/js/logic.js"></script>
+<script src="../zm/js/data.js"></script>
+<script src="../zm/js/gen.js"></script>
+<script src="../game-health.js"></script>
+<script src="js/nes.js"></script>
+<script>try { parent.postMessage({ type: 'quad-nes-ready' }, '*'); } catch (e) {}</script>
+</body>
+</html>

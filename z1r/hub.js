@@ -134,6 +134,11 @@
       zm.textContent = 'Z1+M1'; zm.title = 'Zelda 1 + Metroid, linked: portals between Hyrule and Zebes';
       zm.style.textDecoration = 'none';
       newSeed.parentNode.insertBefore(zm, newSeed);
+      var quad = document.createElement('a');
+      quad.className = 'btn'; quad.id = 'hub-quad'; quad.href = HUB + 'quad/'; quad.dataset.game = 'quad';
+      quad.textContent = 'Quad'; quad.title = 'Quad: Zelda 1, Metroid, Super Metroid and A Link to the Past in one seed';
+      quad.style.textDecoration = 'none';
+      newSeed.parentNode.insertBefore(quad, newSeed);
       var pt = document.createElement('a');
       pt.className = 'btn'; pt.id = 'hub-patched'; pt.href = HUB + 'patched/';
       pt.textContent = 'Patched'; pt.title = 'Patched games: NES and SNES ROM hacks on these emulators';
@@ -141,7 +146,7 @@
       newSeed.parentNode.insertBefore(pt, newSeed);
       if (R) R.applyShown(newSeed.parentNode);
       // phones: one "Games ▾" menu instead of the row of links, so New seed stays on screen
-      if (R) newSeed.parentNode.insertBefore(R.gamesMenu('z1r/', ['hub-back', 'hub-glr', 'hub-ff', 'hub-smrpg', 'hub-sm', 'hub-metroid', 'hub-smw', 'hub-smz3', 'hub-zm', 'hub-patched'], [{ id: 'hub-reroll', label: '🎲 Reroll' }, { id: 'z1t-btn', label: '🎯 Training' }]), newSeed);
+      if (R) newSeed.parentNode.insertBefore(R.gamesMenu('z1r/', ['hub-back', 'hub-glr', 'hub-ff', 'hub-smrpg', 'hub-sm', 'hub-metroid', 'hub-smw', 'hub-smz3', 'hub-zm', 'hub-quad', 'hub-patched'], [{ id: 'hub-reroll', label: '🎲 Reroll' }, { id: 'z1t-btn', label: '🎯 Training' }]), newSeed);
       var rr = document.createElement('button');
       rr.className = 'btn'; rr.id = 'hub-reroll'; rr.type = 'button';
       rr.innerHTML = '🎲<span class="hub-short"> Reroll</span>';

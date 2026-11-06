@@ -1,0 +1,16 @@
+{
+  "name": "Quad Randomizer - Rando Hub",
+  "short_name": "Quad Rando",
+  "description": "Zelda 1, Metroid, Super Metroid and A Link to the Past in one seed: roll it from your own ROMs, play it, track all four games.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#110c1e",
+  "theme_color": "#110c1e",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

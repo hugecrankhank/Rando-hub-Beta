@@ -192,10 +192,12 @@
       FLAGS.forEach((f) => { this[f] = false; });
       this.KeyCT = this.KeyPD = this.KeySW = this.KeyIP = this.KeyMM = this.KeyTR = this.KeyGT = this.ETank = this.ReserveTank = 0;
       this.Sword = this.MasterSword = this.Glove = this.Mitt = this.PowerBomb = this.TwoPowerBombs = false; this.shield = 0;
+      this.nes = new Set();   // the four-game combo (../quad/): the logic keys of the NES games' items
       if (items) this.Add(items);
     }
     Add(items) {
       for (const item of items) {
+        if (item.nes !== undefined) { if (item.nes) this.nes.add(item.nes); continue; }
         const t = item.Type, f = FLAG_OF[t];
         if (f) { this[f] = true; continue; }
         const c = COUNT_OF[t];
@@ -2164,9 +2166,10 @@
         progressionItems.push(...dungeon);
         progressionItems.push(...progression);
       }
+      if (this.Extra) progressionItems.push(...this.Extra.progression);   // the quad: the NES games' way-openers
       progressionItems = shuffle(progressionItems, rnd);
       const niceItems = shuffle([].concat(...this.Worlds.map((w) => Item.CreateNicePool(w))), rnd);
-      const junkItems = shuffle([].concat(...this.Worlds.map((w) => Item.CreateJunkPool(w))), rnd);
+      const junkItems = shuffle([].concat(...this.Worlds.map((w) => Item.CreateJunkPool(w)), this.Extra ? this.Extra.other : []), rnd);
       let locations = shuffle(empty([].concat(...this.Worlds.map((w) => w.Locations))), rnd);
       // ApplyLocationWeighting: a stable order by (index - weight)
       locations = locations.map((x, i) => ({ x, i: i - x.Weight })).sort((a, b) => a.i - b.i).map((o) => o.x);
@@ -2348,6 +2351,7 @@
   const G = () => TX.general;
   function itemTextbox(item) {
     const n = IT_NAME[item.Type];
+    if (item.nes !== undefined) return G().Items['default'];
     const name = item.IsMap ? 'Map' : item.IsCompass ? 'Compass' : item.IsSmMap ? 'SmMap' : n === 'BottleWithGoldBee' ? 'BottleWithBee' : n === 'HeartContainerRefill' ? 'HeartContainer' :
       (n === 'OneRupee' || n === 'FiveRupees') ? 'PocketRupees' : (n === 'TwentyRupees' || n === 'TwentyRupees2' || n === 'FiftyRupees') ? 'CouchRupees' :
       (n === 'BombUpgrade5' || n === 'BombUpgrade10') ? 'BombUpgrade' : (n === 'ArrowUpgrade5' || n === 'ArrowUpgrade10') ? 'ArrowUpgrade' : n;
@@ -2452,7 +2456,14 @@
     ['ganon_phase_3', 'ganon_phase_3_no_silvers', 'ganon_phase_3_no_silvers_alt'].forEach((n) => st.set(n, third));
     st.set('end_triforce', '{NOBORDER}\n' + randomLine(rnd, TX.triforceRoom));
     // the items: Super Metroid's PLMs, Zelda's item ids
-    world.Regions.filter((r) => r.isSM).forEach((r) => r.Locations.forEach((l) => {
+    const multi = !!config.MultiWorld;
+    // multiworld (the quad): every location's item in the ROM's item table (type 0 its own, 1 another game's, the item id, the owner)
+    const table = (l) => { const it = l.Item, other = it.nes !== undefined || it.World !== world; add(0x386000 + l.Id * 8, [].concat(u16(other ? 1 : 0), u16(z3ItemId(l, world)), u16(it.owner !== undefined ? it.owner : it.World.Id), u16(0))); };
+    if (multi) world.Regions.filter((r) => r.isSM).forEach((r) => r.Locations.forEach((l) => {
+      add(snes(l.Address), u16(0xEFE0 + (l.Type === 'Chozo' ? 4 : l.Type === 'Hidden' ? 8 : 0)));
+      table(l);
+    }));
+    else world.Regions.filter((r) => r.isSM).forEach((r) => r.Locations.forEach((l) => {
       let plm = SM_PLM[IT_NAME[l.Item.Type]] || 0xEFE0;
       plm += plm === 0xEFE0 ? (l.Type === 'Chozo' ? 4 : l.Type === 'Hidden' ? 8 : 0) : (l.Type === 'Chozo' ? 0x54 : l.Type === 'Hidden' ? 0xA8 : 0);
       add(snes(l.Address), u16(plm));
@@ -2463,7 +2474,8 @@
       else if (l.Type === 'Pedestal') st.set('mastersword_pedestal_translated', itemTextbox(l.Item));
       else if (l.Type === 'Ether') st.set('tablet_ether_book', itemTextbox(l.Item));
       else if (l.Type === 'Bombos') st.set('tablet_bombos_book', itemTextbox(l.Item));
-      add(snes(l.Address), [z3ItemId(l, world)]);
+      if (multi) { add(snes(l.Address), [l.Id - 256]); table(l); }
+      else add(snes(l.Address), [z3ItemId(l, world)]);
     }));
     add(snes(0x1C8000), st.padded());
     // keycard doors (keysanity), the Tourian plaque
@@ -2473,7 +2485,9 @@
     let name = world.Player.length > 12 ? world.Player.slice(0, 12).trimEnd() : world.Player;
     const pad = Math.trunc((12 - name.length) / 2); name = (' '.repeat(pad) + name).padEnd(12);
     add(0x385000 + world.Id * 16, ascii(name).concat(u32(0)));
-    const f1 = ((config.Race ? 1 : 0) << 15) | ((config.Keysanity ? 1 : 0) << 13) | (0 << 12) | (0 << 10) | (config.SMLogic << 8) | (11 << 4) | 3;
+    (config.OtherPlayers || []).forEach(([id, n]) => { n = n.slice(0, 12); const p2 = Math.trunc((12 - n.length) / 2); add(0x385000 + id * 16, ascii((' '.repeat(p2) + n).padEnd(12)).concat(u32(0))); });
+    if (multi) add(snes(0xF47000), u16(1));
+    const f1 = ((config.Race ? 1 : 0) << 15) | ((config.Keysanity ? 1 : 0) << 13) | ((multi ? 1 : 0) << 12) | (0 << 10) | (config.SMLogic << 8) | (11 << 4) | 3;
     const f2 = (config.SwordLocation << 14) | (config.MorphLocation << 12) | (config.Goal << 8);
     add(snes(0x80FF50), u16(world.Id)); add(snes(0x80FF52), u16(f1)); add(snes(0x80FF54), u32(seed)); add(snes(0x80FF58), u16(f2));
     add(snes(0x80FF5A), [0, 0, 0, 0, 0, 0]); add(snes(0x80FF60), ascii(seedGuid)); add(snes(0x80FF80), ascii(world.Guid));
@@ -2485,6 +2499,7 @@
   }
   function z3ItemId(l, world) {
     const it = l.Item;
+    if (it.nes !== undefined) return it.standIn;   // another game's item: a look-alike for the picture and the "sent to" box
     if (l.Type === 'NotInDungeon' || !(it.IsDungeonItem && l.Region.IsRegionItem(it) && it.World === world)) return it.Type;
     return it.IsKey ? IT.Key : it.IsBigKey ? IT.BigKey : it.IsMap ? IT.Map : IT.Compass;
   }
@@ -2667,5 +2682,7 @@
   // a blank world (no ROM): the locations and regions, for the tracker's lists
   function blankWorld(options) { return new World(parseConfig(options || {}), 'Player', 0, ''); }
 
-  window.SMZ3Gen = { generate, buildRom, mergeRoms, applyIps, OPTIONS, NetRandom, IT, IT_NAME, IT_DESC, REWARD_DESC, RewardType, romWorld, progression, blankWorld, snes, version: '11.3.2' };
+  // for the four-game combo (../quad/js/gen.js): the generator's parts
+  const internals = { World, Filler, Item, Location, Progression, playthrough, makePatch, parseConfig, hexGuid, available, empty };
+  window.SMZ3Gen = { internals, generate, buildRom, mergeRoms, applyIps, OPTIONS, NetRandom, IT, IT_NAME, IT_DESC, REWARD_DESC, RewardType, romWorld, progression, blankWorld, snes, version: '11.3.2' };
 })();
