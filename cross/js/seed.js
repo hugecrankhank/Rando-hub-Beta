@@ -87,7 +87,7 @@
       last = { rom: r.rom, z1: r.z1, m1: r.m1, name: 'quad-' + r.seed, meta: r.meta };
       setStatus('Ready in ' + ((performance.now() - t0) / 1000).toFixed(2) + ' s.', 'ok');
       $('result-seed').textContent = 'Seed ' + r.seed + ' · goal: ' + Q.GOALS.find((g) => g[0] === goal)[1] + ' · ' + summary(o, nes);
-      $('result-portals').textContent = 'Portals: ' + r.portals.filter((p, i, a) => !p.group || a.findIndex((q) => q.group === p.group) === i).map((p) => (p.group || p.name) + ' → ' + (p.to === 'z1' ? 'Zelda 1' : 'Metroid')).join(', ') + '.';
+      $('result-portals').textContent = 'Portals: ' + r.portals.filter((p, i, a) => !p.group || a.findIndex((q) => q.group === p.group) === i).map((p) => (p.group || p.name) + ' → ' + (p.to === 'z1' ? 'Zelda 1' : 'Metroid')).concat(r.meta && r.meta.smPortal ? [r.meta.smPortal.name + ' → Super Metroid'] : []).join(', ') + '.';
       $('result').hidden = false;
       $('result').scrollIntoView({ block: 'nearest' });
       return last;

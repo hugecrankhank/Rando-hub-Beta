@@ -10,6 +10,10 @@
  *            NES → ALttP: a "take any road" cave in Zelda 1, or ⇄ (the P key)
  *            anywhere. Link is back in the cave he went in by; its portal
  *            waits until he has left the room.
+ *   the sign "this way to Kakariko" (#kak-sign), over the game where the way
+ *            back is: Super Metroid's Parlor and the rooms around it (its
+ *            top right door is the SM portal, to Kakariko when it's the hub), Zelda 1's
+ *            screens with a "take any road" cave, Metroid's elevator rooms.
  *   items    an SNES item on a NES spot: written to SMZ3's multiworld receive
  *            queue (SRAM $A2:6000, 4 bytes an item: the sender, 1 Zelda 1 / 2
  *            Metroid, then the item; the write pointer $A2:6602), and the ROM
@@ -25,7 +29,6 @@
  */
 (function () {
   'use strict';
-  const NES_BACK = 'Back to Hyrule';
   const SR = { RECV: 0x4000, RPTR: 0x4600, WPTR: 0x4602, SENT_W: 0x4682, SENT: 0x4700, SEED: 0x46A0, GAME: 0x33FE };
   let meta = null, id = null, frame = null, nes = null, where = 'snes', rec = null, armed = false, fns = [], started = false, switching = false;
   const toast = (t, ms) => (window.QuadToast || console.log)(t, ms);
@@ -126,9 +129,48 @@
     const b = document.getElementById('swap'), p = document.getElementById('where'), c = document.getElementById('swap-nes');
     const sig = where + ':' + canBack() + ':' + (opt().link === 'linked' && atSpot());
     if (sig === lastPaint) return; lastPaint = sig;
-    if (b) { b.hidden = !canBack(); b.textContent = '⇄ ' + NES_BACK; }
+    if (b) { b.hidden = !canBack(); b.textContent = '⇄ Back to ' + hubName(); b.title = 'Back to ' + (hubName() === 'Kakariko' ? 'Kakariko (Hyrule, A Link to the Past)' : 'Hyrule (A Link to the Past)') + ': the P key does it too'; }
     if (c) { c.hidden = !(opt().link === 'linked' && atSpot()); c.textContent = where === 'z1' ? '⇄ Zebes' : '⇄ Zelda 1'; c.title = where === 'z1' ? 'Through the cave to Zebes (Metroid)' : 'Up the elevator to Hyrule (Zelda 1)'; }
     if (p) { p.textContent = where === 'snes' ? 'SNES' : 'NES · ' + NAME[where]; p.title = where === 'snes' ? 'Playing the SNES game: A Link to the Past and Super Metroid' : 'Playing ' + NAME[where] + ' (the NES): ⇄ or P back to Hyrule'; }
+  }
+
+  // ── the signpost: "this way to Kakariko", over the game, where the way back is ──
+  const hubName = () => (opt().portals === 'kakariko' ? 'Kakariko' : 'Hyrule');
+  // Super Metroid: the portal (SMZ3's) is the Parlor's top right door, the one to the Map Station; the rooms around point to it
+  const SM_SIGN = {
+    0x92FD: ['➡ This way to Kakariko: the top right door', 'The Parlor’s door to the Map Station takes you to Hyrule'],
+    0x91F8: ['⬅ This way to Kakariko', 'West into the Parlor, then its top right door'],
+    0x9879: ['⬅ This way to Kakariko', 'Back west into the Parlor, then its top right door'],
+    0x96BA: ['⬆ This way to Kakariko', 'Up into the Parlor, then its top right door'],
+    0x93D5: ['➡ This way to Kakariko', 'East into the Parlor, then its top right door'],
+    0x990D: ['➡ This way to Kakariko', 'East into the Parlor, then its top right door'],
+  };
+  function signFor() {
+    if (!meta) return null;
+    if (where === 'snes') {
+      const s = snesSram(), r = snesRam(); if (!s || !r || s[SR.GAME] !== 0xFF || !meta.smPortal) return null;
+      return SM_SIGN[w16(r, 0x79B)] || null;
+    }
+    if (!nes || switching) return null;
+    const hub = hubName(), o = opt(), linked = o.link === 'linked';
+    if (where === 'z1') {
+      const r = nes.ram('z1'); if (!r || !nes.inPlay('z1')) return null;
+      if (r[ZM.RAM.LEVEL] === 0 && r[ZM.RAM.MODE] === 5 && ZM.PORTAL_SCREENS.indexOf(r[ZM.RAM.ROOM]) >= 0)
+        return ['This way to ' + hub + ': the cave on this screen', linked ? 'In it: ⇄ Back to ' + hub + ', or ⇄ Zebes' : 'Walk in and it takes you back'];
+      if (linked && atSpot()) return ['⇄ Back to ' + hub + ' from here', 'Or ⇄ Zebes: the buttons up top (P: ' + hub + ')'];
+      return null;
+    }
+    if (where === 'm1' && atSpot() && (linked || o.exits === 'exits')) return ['⇄ This elevator room: back to ' + hub, linked ? 'Or ⇄ Zelda 1: the buttons up top (P: ' + hub + ')' : 'The button up top, or P'];
+    return null;
+  }
+  let lastSign = '';
+  function paintSign() {
+    const el = document.getElementById('kak-sign'); if (!el) return;
+    const t = signFor(), sig = t ? t.join('|') : '';
+    if (sig === lastSign) return; lastSign = sig;
+    if (!t) { el.hidden = true; return; }
+    el.innerHTML = '<b>' + t[0] + '</b>' + (t[1] ? '<small>' + t[1] + '</small>' : '');
+    el.hidden = false;
   }
 
   // ── the goal ─────────────────────────────────────────────────────────────
@@ -141,7 +183,9 @@
   }
 
   function poll() {
-    if (!started || switching) return;
+    if (!started) return;
+    paintSign();
+    if (switching) return;
     feed(); readSent(); checkGoal();
     if (where !== 'snes') { paint(); return; }
     const p = portalHere();

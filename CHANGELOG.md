@@ -5,6 +5,11 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.135 (2026-11-06)
+
+- **Rando Cross: every portal is in Kakariko** (with Kakariko as the hub, the default; asked for by Kallax). Super Metroid's portal moves from the cave by Link's house into the house up the steps, west of the Elder's House: walk in and Samus is in Crateria's Parlor, and the Parlor's top right door (the one to the Map Station) brings Link back out in front of that house. The portal line, the start message, the seed result and the spoiler list all three houses. Seeds made before keep SMZ3's own portal.
+- **Rando Cross: "this way to Kakariko" signs.** A sign over the game shows the way back: in Super Metroid in the Parlor ("the top right door") and the rooms around it (the landing site, the Flyway, the Climb, the save room, the Terminator room), in Zelda 1 on any screen with a "take any road" cave, and in Metroid's elevator rooms when they are the way back. The ⇄ button reads "Back to Kakariko".
+
 ## Beta v1.14.134 (2026-11-06)
 
 - **Pop the trackers out and the game fills the page** (every game page on a computer; asked for by Kallax). Opening any pop-out (the tracker, a map, Rando Cross's and SMZ3's Zelda, Metroid, NES and "follows" windows) now hides the tracker column so the emulator takes the whole window, ready to capture or resize; when the last pop-out closes, the column comes back. A new header button, ▣ Game only / ▤ Tracker, switches it by hand.

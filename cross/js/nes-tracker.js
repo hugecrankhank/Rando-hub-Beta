@@ -20,14 +20,14 @@
   };
   const NAME = { z1: 'Zelda 1', m1: 'Metroid' };
   const way = (n) => (n.link === 'linked' ? 'Zelda 1 ⇄ Zebes: a “take any road” cave ⇄ an elevator room. ' : '') +
-    'Back to Hyrule (ALttP): ' + (n.exits === 'exits' ? 'at a “take any road” cave or an elevator room.' : (n.link === 'linked' ? '⇄ / P anywhere.' : 'a “take any road” cave in Zelda 1, or ⇄ / P anywhere.')) +
+    'Back to ' + (n.portals === 'kakariko' ? 'Kakariko' : 'Hyrule (ALttP)') + ': ' + (n.exits === 'exits' ? 'at a “take any road” cave or an elevator room.' : (n.link === 'linked' ? '⇄ / P anywhere.' : 'a “take any road” cave in Zelda 1, or ⇄ / P anywhere.')) +
     (n.items === 'apart' ? ' NES items stay on the NES.' : '');
   window.ZMWay = (st) => {
     const h = host(), A = h && h.QuadApp, m = A && A.meta || {}, L = h && h.QuadLink;
     const where = L ? L.where : 'snes';
     const playing = where === 'snes' ? 'the SNES game (ALttP / Super Metroid)' : NAME[where];
     const waiting = (g) => st.pending[g] && st.pending[g].length ? ' · ' + st.pending[g].map(ZMGen.itemName).join(', ') + ' waiting for ' + (g === 'z1' ? 'Link' : 'Samus') : '';
-    const portals = (m.portals || []).filter((p, i, a) => !p.group || a.findIndex((q) => q.group === p.group) === i).map((p) => '<b>' + (p.group || p.name) + '</b> → ' + NAME[p.to]).join(' · ');
+    const portals = (m.portals || []).filter((p, i, a) => !p.group || a.findIndex((q) => q.group === p.group) === i).map((p) => '<b>' + (p.group || p.name) + '</b> → ' + NAME[p.to]).concat(m.smPortal ? ['<b>' + m.smPortal.name + '</b> → Super Metroid'] : []).join(' · ');
     const won = L && L.record ? L.record.won : {};
     const goal = { all: 'all four final bosses', snes: 'Ganon and Mother Brain (SNES)', nes: 'Zelda 1’s Ganon and Metroid’s Mother Brain' }[m.goal || 'all'];
     return '<span class="goal-r">Playing: ' + playing + '</span>' +
