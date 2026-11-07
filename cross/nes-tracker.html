@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="version" content="1.14.138">
+<meta name="version" content="1.14.139">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Rando Cross: Zelda 1 + Metroid tracker</title>
 <!-- the four-game combo's NES tracker: the Zelda 1 + Metroid page's (../zm/js/tracker.js, its map), reading the NES games through
@@ -279,7 +279,14 @@
 <script>
   // the NES games: the quad page's link to them (js/nes.js in nes.html)
   (function () {
-    function src() { try { if (parent !== window && parent.QuadNESLink) return parent.QuadNESLink; } catch (e) {} try { return (opener && opener.QuadNESLink) || null; } catch (e) { return null; } }
+    // ?only=z1: Zelda 1 alone (the Z1Z3 page, ../z1z3/): no Samus, no Zebes
+    if (new URLSearchParams(location.search).get('only') === 'z1') window.ZM_ONLY = 'z1';
+    function src() {
+      try { if (parent !== window && parent.QuadNESLink) return parent.QuadNESLink; } catch (e) {}
+      try { if (opener && opener.QuadNESLink) return opener.QuadNESLink; } catch (e) {}
+      try { if (parent !== window && parent.opener && parent.opener.QuadNESLink) return parent.opener.QuadNESLink; } catch (e) {}   // (moved into a pop-out window)
+      return null;
+    }
     var none = { game: 'z1', taken: new Set(), pending: { z1: [], m1: [] }, won: {}, given: {} };
     window.ZMLink = {
       ram: function (g) { var s = src(); return s ? s.ram(g) : null; },

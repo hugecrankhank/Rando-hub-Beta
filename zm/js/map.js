@@ -78,9 +78,8 @@
       key: 'zmr',
       worlds: [
         { name: 'Hyrule', width: HW, height: HH, picture: () => hyrule || (hyrule = drawHyrule()) },
-        { name: 'Zebes', width: ZW, height: ZH, picture: () => zebes || (zebes = drawZebes()) },
-      ],
-      pins: hyrulePins().concat(zebesPins()),
+      ].concat(window.ZM_ONLY === 'z1' ? [] : [{ name: 'Zebes', width: ZW, height: ZH, picture: () => zebes || (zebes = drawZebes()) }]),   // (Zelda 1 alone: Z1Z3)
+      pins: window.ZM_ONLY === 'z1' ? hyrulePins() : hyrulePins().concat(zebesPins()),
       name: (i) => names(i),
       onToggle: opts.onToggle,
       empty: 'Start a seed: Hyrule is drawn from its ROM.',

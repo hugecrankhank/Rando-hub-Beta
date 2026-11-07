@@ -1,0 +1,16 @@
+{
+  "name": "Z1Z3 - Rando Hub",
+  "short_name": "Z1Z3",
+  "description": "A Link to the Past and Zelda 1 in one seed: roll it from your own ROMs, play both Hyrules, track both.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0b1410",
+  "theme_color": "#0b1410",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -65,10 +65,11 @@
       newSeed.parentNode.insertBefore(link('hub-smz3', HUB + 'smz3/', 'SMZ3', 'SMZ3: Super Metroid + A Link to the Past'), newSeed).dataset.game = 'smz3';
       newSeed.parentNode.insertBefore(link('hub-zm', HUB + 'zm/', 'Z1+M1', 'Zelda 1 + Metroid, linked: portals between Hyrule and Zebes'), newSeed).dataset.game = 'zm';
       newSeed.parentNode.insertBefore(link('hub-quad', HUB + 'cross/', 'Rando Cross', 'Rando Cross: Zelda 1, Metroid, Super Metroid and A Link to the Past in one seed'), newSeed).dataset.game = 'quad';
+      newSeed.parentNode.insertBefore(link('hub-z1z3', HUB + 'z1z3/', 'Z1Z3', 'Z1Z3: A Link to the Past + Zelda 1, one item pool across both Hyrules'), newSeed).dataset.game = 'z1z3';
       newSeed.parentNode.insertBefore(link('hub-patched', HUB + 'patched/', 'Patched', 'Patched games: NES and SNES ROM hacks on these emulators'), newSeed).dataset.game = 'patched';
       var R = window.RandoRoll;
       if (R) R.applyShown(newSeed.parentNode);
-      if (R) newSeed.parentNode.insertBefore(R.gamesMenu('glr/', ['hub-back', 'hub-z1', 'hub-ff', 'hub-smrpg', 'hub-sm', 'hub-patched', 'hub-metroid', 'hub-smw', 'hub-smz3', 'hub-zm', 'hub-quad'], [{ id: 'hub-reroll', label: '🎲 Reroll' }]), newSeed);
+      if (R) newSeed.parentNode.insertBefore(R.gamesMenu('glr/', ['hub-back', 'hub-z1', 'hub-ff', 'hub-smrpg', 'hub-sm', 'hub-patched', 'hub-metroid', 'hub-smw', 'hub-smz3', 'hub-zm', 'hub-quad', 'hub-z1z3'], [{ id: 'hub-reroll', label: '🎲 Reroll' }]), newSeed);
       // 🎲 Reroll: a new seed with the flags you used last, or another game if the
       // hub's "Rerolls can land on" says so
       var rr = document.createElement('button');

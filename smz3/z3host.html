@@ -35,6 +35,10 @@
     the player    a Snes9xPlayer look-alike whose core.rom() is that Zelda ROM
                   (Mudora cuts its item pictures and maps from it)
   ?t=mudora2 (the default) | mudora (Hutch's pages run hidden for its logic) | hutch
+  ?plain=1   a plain Zelda 3 ROM in the player (Z1Z3, ../z1z3/): its ROM, work RAM and
+             save RAM as they are
+  The host page: this page's parent, or its opener (a window of its own), or the opener of
+  the window this page's frame was moved into (the pages' ⧉ Tracker, ../game-popout.js).
 -->
 <div id="wrap">
   <div id="items-wrap"><iframe id="items-frame" title="Item tracker"></iframe></div>
@@ -45,18 +49,24 @@
 (function () {
   'use strict';
   var WRAM_BASE = 0xF50000, WRAM_SIZE = 0x20000, SRAM_BASE = 0xE00000, Z3_AT = 0x400000, SAVE = 0xF000, SAVE_LEN = 0x500, GAME = 0x33FE;
-  var qs = new URLSearchParams(location.search), mode = qs.get('t') || 'mudora2', phone = qs.get('phone') || '';
+  var qs = new URLSearchParams(location.search), mode = qs.get('t') || 'mudora2', phone = qs.get('phone') || '', PLAIN = qs.get('plain') === '1';
   if (['mudora2', 'mudora', 'hutch'].indexOf(mode) < 0) mode = 'mudora2';
   var view = phone;   // '' (both), items, keys, lw, dw (the phone tabs), side, maps (the stream windows)
   function setView(v) { view = v || ''; document.body.className = mode + (view ? ' v-' + view : ''); applyWorld(); fitSoon(); }
   document.body.className = mode + (phone ? ' v-' + phone : '');
 
   // the SMZ3 page: this page's parent (in the column) or its opener (a window of its own)
-  function hostPlayer() { try { if (parent !== window && parent.Snes9xPlayer) return parent.Snes9xPlayer; } catch (e) {} try { return (opener && opener.Snes9xPlayer) || null; } catch (e) { return null; } }
+  function hostPlayer() {
+    try { if (parent !== window && parent.Snes9xPlayer) return parent.Snes9xPlayer; } catch (e) {}
+    try { if (opener && opener.Snes9xPlayer) return opener.Snes9xPlayer; } catch (e) {}
+    try { if (parent !== window && parent.opener && parent.opener.Snes9xPlayer) return parent.opener.Snes9xPlayer; } catch (e) {}   // (moved into a pop-out window)
+    return null;
+  }
   function core() { var P = hostPlayer(); return P && P.ready ? P.core : null; }
   var z3 = null, z3Of = null, snap = null, blank = new Uint8Array(WRAM_SIZE);
   function z3Rom() {
     var c = core(); if (!c) return z3;
+    if (PLAIN) { try { var pr = c.rom(); return pr && pr.length >= 0x100000 ? pr : z3; } catch (e) { return z3; } }
     var r; try { r = c.rom(); } catch (e) { return z3; }
     if (!r || r.length < 0x600000) return z3;
     if (z3 && z3Of === r.length + ':' + r[Z3_AT + 0x8000] + ':' + r[Z3_AT + 0xFFC0]) return z3;
@@ -65,7 +75,7 @@
     z3Of = r.length + ':' + r[Z3_AT + 0x8000] + ':' + r[Z3_AT + 0xFFC0];
     return z3;
   }
-  function zeldaRunning(c) { try { var s = c.sram(); return s && s.length > GAME && s[GAME] === 0; } catch (e) { return false; } }
+  function zeldaRunning(c) { if (PLAIN) return true; try { var s = c.sram(); return s && s.length > GAME && s[GAME] === 0; } catch (e) { return false; } }
   // Zelda's work RAM as the trackers expect it
   function wram() {
     var c = core(); if (!c) return null;
@@ -99,7 +109,7 @@
     writeWram: function (addr, bytes) { var c = core(); if (!c || !zeldaRunning(c)) return false; var off = addr - WRAM_BASE; if (off < 0 || off + bytes.length > WRAM_SIZE) return false; c.wram().set(bytes, off); return true; },
     status: function () { var c = core(); return { romLoaded: !!z3Rom(), running: !!c, mode: c ? 'live' : 'idle', ptr: -1, romName: (hostPlayer() || {}).gameName || '' }; },
     onStatus: function (fn) { listeners.push(fn); return function () { listeners = listeners.filter(function (f) { return f !== fn; }); }; },
-    deviceName: 'Snes9x (built-in, SMZ3)',
+    deviceName: PLAIN ? 'Snes9x (built-in)' : 'Snes9x (built-in, SMZ3)',
     peek: function (a, n) { var x = (a >= 0x7E0000 && a < 0x800000) ? WRAM_BASE + (a - 0x7E0000) : a; return Array.from(read(x, n || 16), function (b) { return b.toString(16).padStart(2, '0'); }).join(' '); },
   };
   // the player, as Mudora looks for it: core.rom() is the Zelda ROM. For its item pictures Mudora
@@ -110,6 +120,7 @@
     var t0 = Date.now(), done = false, fin = function () { if (!done) { done = true; res(); } };
     (function ask() {
       if (baseZ3 || Date.now() - t0 > 6000) { fin(); return; }
+      if (PLAIN) { fin(); return; }   // (the plain ROM boots: Mudora cuts its pictures from it)
       var st = null; try { st = (parent !== window && parent.SMZ3Store) || (opener && opener.SMZ3Store); } catch (e) {}
       if (!st) { setTimeout(ask, 300); return; }
       var p; try { p = st.get('base-z3'); } catch (e) { p = null; }

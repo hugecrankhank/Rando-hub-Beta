@@ -6,7 +6,7 @@
  * and when to stop; this side tells it what was picked up and when Link walks
  * into a "take any road" cave (the way back to Hyrule, ALttP's).
  *
- *   QuadNES.init({ z1, m1, at, id, store, on(event) })   events:
+ *   QuadNES.init({ z1, m1, at, id, store, on(event) })   (m1 may be null: Z1Z3, ../z1z3/, plays Zelda 1 alone)   events:
  *     { type: 'snes', spot, item }    an SNES item picked up on a NES spot (js/link.js hands it over)
  *     { type: 'back' }                Link in a take-any-road cave: back to Hyrule
  *     { type: 'won', game }           Zelda 1's Ganon / Metroid's Mother Brain beaten
@@ -125,7 +125,7 @@
   function boot(first) {
     if (booting) return booting;
     const p = P();
-    booting = p.newCore(roms.m1, 'quad-' + id + '-metroid').then((m1core) => {
+    booting = (roms.m1 ? p.newCore(roms.m1, 'quad-' + id + '-metroid') : Promise.resolve(null)).then((m1core) => {   // (no Metroid: Z1Z3, Zelda 1 alone)
       cores.m1 = m1core;
       return new Promise((resolve, reject) => {
         window.EJS_onGameStart = function () {

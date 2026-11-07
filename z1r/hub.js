@@ -139,6 +139,11 @@
       quad.textContent = 'Rando Cross'; quad.title = 'Rando Cross: Zelda 1, Metroid, Super Metroid and A Link to the Past in one seed';
       quad.style.textDecoration = 'none';
       newSeed.parentNode.insertBefore(quad, newSeed);
+      var z1z3 = document.createElement('a');
+      z1z3.className = 'btn'; z1z3.id = 'hub-z1z3'; z1z3.href = HUB + 'z1z3/'; z1z3.dataset.game = 'z1z3';
+      z1z3.textContent = 'Z1Z3'; z1z3.title = 'Z1Z3: A Link to the Past + Zelda 1, one item pool across both Hyrules';
+      z1z3.style.textDecoration = 'none';
+      newSeed.parentNode.insertBefore(z1z3, newSeed);
       var pt = document.createElement('a');
       pt.className = 'btn'; pt.id = 'hub-patched'; pt.href = HUB + 'patched/';
       pt.textContent = 'Patched'; pt.title = 'Patched games: NES and SNES ROM hacks on these emulators';
@@ -146,7 +151,7 @@
       newSeed.parentNode.insertBefore(pt, newSeed);
       if (R) R.applyShown(newSeed.parentNode);
       // phones: one "Games ▾" menu instead of the row of links, so New seed stays on screen
-      if (R) newSeed.parentNode.insertBefore(R.gamesMenu('z1r/', ['hub-back', 'hub-glr', 'hub-ff', 'hub-smrpg', 'hub-sm', 'hub-metroid', 'hub-smw', 'hub-smz3', 'hub-zm', 'hub-quad', 'hub-patched'], [{ id: 'hub-reroll', label: '🎲 Reroll' }, { id: 'z1t-btn', label: '🎯 Training' }]), newSeed);
+      if (R) newSeed.parentNode.insertBefore(R.gamesMenu('z1r/', ['hub-back', 'hub-glr', 'hub-ff', 'hub-smrpg', 'hub-sm', 'hub-metroid', 'hub-smw', 'hub-smz3', 'hub-zm', 'hub-quad', 'hub-z1z3', 'hub-patched'], [{ id: 'hub-reroll', label: '🎲 Reroll' }, { id: 'z1t-btn', label: '🎯 Training' }]), newSeed);
       var rr = document.createElement('button');
       rr.className = 'btn'; rr.id = 'hub-reroll'; rr.type = 'button';
       rr.innerHTML = '🎲<span class="hub-short"> Reroll</span>';

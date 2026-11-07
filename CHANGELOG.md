@@ -5,6 +5,14 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.139 (2026-11-06)
+
+- **New game: Z1Z3** (`z1z3/`): A Link to the Past and Zelda 1 in one seed, with one item pool across both Hyrules. It's Rando Hub's own, built on the Zelda 3 page's randomizer with Zelda 1's 17 item spots and rules added to its fill, so every seed is beatable across both games.
+  - Kakariko is the hub: walk into the **Elder's House** (either door) and Zelda 1 takes over where you left it. Come back with ⇄ / P, or (a setting) only by a "take any road" cave. Small "this way to Kakariko" signs show on Zelda 1's cave screens and can be turned off.
+  - A Zelda 1 item in Hyrule (ALttP) is in a chest, as a few rupees, bombs or arrows. Open it and Link in Zelda 1 gets the real item. An ALttP item on a Zelda 1 spot is a rupee there; pick it up and it goes into Link's ALttP save (counted there, so a loaded state never gives it twice). Dungeon keys, maps and compasses stay in their ALttP dungeons.
+  - Settings: goal (both Ganons, ALttP's or Zelda 1's), world state, crystals, swords, dungeon items, the way back. Tracker: Mudora 2.0 / Mudora / Hutch for ALttP and the Zelda 1 tracker and map, switching with the game, each in its own window on a desktop. Sprite & MSU-1 as on Zelda 3, autosave, Continue.
+  - Two ROMs: the Japanese 1.0 A Link to the Past and The Legend of Zelda (USA). Tick Z1Z3 in **Games shown** to see it in the menus.
+
 ## Beta v1.14.138 (2026-11-06)
 
 - **Rando Cross: smaller direction signs, and an off switch.** The "this way to Kakariko" sign is now a small one-line note in the top left corner of the game, the same size as Crowd Control's effect notes, so the whole picture stays visible. A **Direction signs** box at the end of the portal line (under the game) turns the signs on or off. It's remembered, and on to start.

@@ -8,13 +8,19 @@
 (function () {
   'use strict';
   const $ = (id) => document.getElementById(id);
-  const host = () => { try { if (parent !== window && parent.QuadApp) return parent; } catch (e) {} try { return opener && opener.QuadApp ? opener : null; } catch (e) { return null; } };
+  const host = () => {
+    try { if (parent !== window && parent.QuadApp) return parent; } catch (e) {}
+    try { if (opener && opener.QuadApp) return opener; } catch (e) {}
+    try { if (parent !== window && parent.opener && parent.opener.QuadApp) return parent.opener; } catch (e) {}   // (moved into a pop-out window)
+    return null;
+  };
   const view = new URLSearchParams(location.search).get('view');
   if (view === 'map' || view === 'items') document.body.classList.add('pop-' + view);
 
   // an SNES item on a NES spot: its SMZ3 name
   const zmName = ZMGen.itemName;
   ZMGen.itemName = (it) => {
+    if (it && it.game === 'snes' && (it.nice || typeof it.type === 'string')) return (it.nice || it.type) + ' (ALttP)';   // (Z1Z3: an A Link to the Past item)
     if (it && it.game === 'snes') { const h = host(), G = h && h.SMZ3Gen; return G ? (G.IT_DESC[G.IT_NAME[it.type]] || 'SNES item') + ' (SNES)' : 'SNES item'; }
     return zmName(it);
   };
@@ -22,8 +28,18 @@
   const way = (n) => (n.link === 'linked' ? 'Zelda 1 ⇄ Zebes: a “take any road” cave ⇄ an elevator room. ' : '') +
     'Back to ' + (n.portals === 'kakariko' ? 'Kakariko' : 'Hyrule (ALttP)') + ': ' + (n.exits === 'exits' ? 'at a “take any road” cave or an elevator room.' : (n.link === 'linked' ? '⇄ / P anywhere.' : 'a “take any road” cave in Zelda 1, or ⇄ / P anywhere.')) +
     (n.items === 'apart' ? ' NES items stay on the NES.' : '');
+  // Z1Z3 (../z1z3/): one way in (Kakariko's Elder's House), A Link to the Past's items on some spots
+  const z1z3Way = (st, m, L) => {
+    const where = L ? L.where : 'snes', won = L && L.record ? L.record.won : {}, o = m.options || {};
+    const waiting = st.pending.z1 && st.pending.z1.length ? ' · ' + st.pending.z1.map(ZMGen.itemName).join(', ') + ' waiting for Link' : '';
+    const goal = { both: 'both Ganons', z3: 'A Link to the Past’s Ganon', z1: 'Zelda 1’s Ganon' }[o.goal || 'both'];
+    return '<span class="goal-r">Playing: ' + (where === 'snes' ? 'A Link to the Past' : 'Zelda 1') + '</span>' +
+      '<span class="goal-c">The way in: <b>' + ((m.portal && m.portal.name) || 'the Elder’s House') + '</b> in Kakariko. Back to Kakariko: ' + (o.exits === 'exits' ? 'a “take any road” cave.' : 'a “take any road” cave, or ⇄ / P anywhere.') + waiting + '</span>' +
+      '<span class="goal-c">Goal: ' + goal + ' · ALttP ' + (won.snes ? '✓' : '·') + ' · Zelda 1 ' + (won.z1 ? '✓' : '·') + '</span>';
+  };
   window.ZMWay = (st) => {
     const h = host(), A = h && h.QuadApp, m = A && A.meta || {}, L = h && h.QuadLink;
+    if (m.generator === 'Z1Z3') return z1z3Way(st, m, L);
     const where = L ? L.where : 'snes';
     const playing = where === 'snes' ? 'the SNES game (ALttP / Super Metroid)' : NAME[where];
     const waiting = (g) => st.pending[g] && st.pending[g].length ? ' · ' + st.pending[g].map(ZMGen.itemName).join(', ') + ' waiting for ' + (g === 'z1' ? 'Link' : 'Samus') : '';
@@ -41,6 +57,7 @@
     const h = host(), A = h && h.QuadApp; if (!A || !A.meta || A.id === sid) return;
     sid = A.id;
     const m = A.meta;
+    if (m.generator === 'Z1Z3') { ZMTracker.setSession('z1z3-' + A.id, 'Seed ' + m.seed, { seed: m.seed, generator: 'Z1Z3 (Zelda 1’s half)', spoiler: m.spoiler, items: (m.at || []).map((a) => (a.game === 'z1' ? ['z1', a.type] : ['snes', a.nice || a.name])) }); return; }
     ZMTracker.setSession('quad-' + A.id, 'Seed ' + m.seed, { seed: m.seed, generator: 'Rando Cross (the NES half)', spoiler: m.spoiler, items: m.at });
   }
   function fit() {
