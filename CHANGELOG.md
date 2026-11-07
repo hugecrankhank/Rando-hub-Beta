@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.138 (2026-11-06)
+
+- **Rando Cross: smaller direction signs, and an off switch.** The "this way to Kakariko" sign is now a small one-line note in the top left corner of the game, the same size as Crowd Control's effect notes, so the whole picture stays visible. A **Direction signs** box at the end of the portal line (under the game) turns the signs on or off. It's remembered, and on to start.
+
 ## Beta v1.14.137 (2026-11-06)
 
 - **Rerolls stay in the game you're playing unless you choose otherwise.** Zelda 3 was always in every reroll's list, so about half the 🎲 Rerolls in Super Metroid (and the other games) jumped to Zelda 3. It's now ticked like the other games in *Rerolls can land on* (on the Zelda 3 page), and it starts unticked for everyone. Tick it again to mix it back in.

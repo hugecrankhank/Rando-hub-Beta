@@ -46,7 +46,9 @@
   function paintPortals() {
     const el = $('q-portals'); if (!el) return;
     const t = portalText(QuadApp.meta);
-    el.innerHTML = t ? (QuadApp.meta.smPortal ? 'Kakariko is the hub: walk into ' : 'To the NES games, walk into: ') + t : '';   // (Kakariko's: the houses' names say which)
+    el.innerHTML = t ? (QuadApp.meta.smPortal ? 'Kakariko is the hub: walk into ' : 'To the NES games, walk into: ') + t +   // (Kakariko's: the houses' names say which)
+      ' <label class="q-sign-opt" title="The small “this way to Kakariko” note over the game, where the way back is"><input type="checkbox" id="q-signs"' + (QuadLink.signs ? ' checked' : '') + '>Direction signs</label>' : '';
+    const cb = $('q-signs'); if (cb) cb.addEventListener('change', () => { QuadLink.signs = cb.checked; });
     el.title = 'In Hyrule (A Link to the Past), go into one of these caves and the NES game takes over. Back: ⇄ (or P), or a “take any road” cave in Zelda 1.';
   }
   function setCol(c) {

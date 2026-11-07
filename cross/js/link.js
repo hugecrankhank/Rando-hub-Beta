@@ -163,13 +163,17 @@
     if (where === 'm1' && atSpot() && (linked || o.exits === 'exits')) return ['⇄ This elevator room: back to ' + hub, linked ? 'Or ⇄ Zelda 1: the buttons up top (P: ' + hub + ')' : 'The button up top, or P'];
     return null;
   }
+  // on or off: the "Direction signs" box by the portal line (js/app.js); on to start
+  let signsOn = true;
+  try { signsOn = localStorage.getItem('quad:signs') !== '0'; } catch (e) {}
   let lastSign = '';
   function paintSign() {
     const el = document.getElementById('kak-sign'); if (!el) return;
-    const t = signFor(), sig = t ? t.join('|') : '';
+    const t = signsOn ? signFor() : null, sig = t ? t.join('|') : '';
     if (sig === lastSign) return; lastSign = sig;
     if (!t) { el.hidden = true; return; }
-    el.innerHTML = '<b>' + t[0] + '</b>' + (t[1] ? '<small>' + t[1] + '</small>' : '');
+    el.innerHTML = '<b>' + t[0] + '</b>' + (t[1] ? ' <small>· ' + t[1] + '</small>' : '');
+    el.title = t[0] + (t[1] ? ' · ' + t[1] : '');
     el.hidden = false;
   }
 
@@ -231,6 +235,8 @@
     get done() { return !!(rec && rec.done); },
     get record() { return rec; },
     get nes() { return nes; },
+    get signs() { return signsOn; },
+    set signs(v) { signsOn = !!v; try { localStorage.setItem('quad:signs', signsOn ? '1' : '0'); } catch (e) {} lastSign = '-'; paintSign(); },
     onChange(f) { fns.push(f); },
   };
 })();
