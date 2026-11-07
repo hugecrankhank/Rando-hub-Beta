@@ -21,7 +21,7 @@
     root.innerHTML = '<div class="q-col"><button type="button" data-c="z3" title="A Link to the Past: the Zelda 3 page’s trackers">A Link to the Past</button><button type="button" data-c="z1" title="Zelda 1: its items, spots and map">Zelda 1</button></div>' +
       '<div class="q-portal-line" id="q-portals"></div>' +
       '<div class="q-pops"><select id="z3-kind" title="Which Zelda 3 tracker"><option value="mudora2">Mudora 2.0</option><option value="mudora">Mudora</option><option value="hutch">Hutch</option></select>' +
-      '<button type="button" data-p="z3" title="A Link to the Past’s tracker in a window of its own">⧉ ALttP tracker</button><button type="button" data-p="z1items" title="Zelda 1’s items in a window of its own">⧉ Zelda 1 items</button><button type="button" data-p="z1map" title="Zelda 1’s map in a window of its own">⧉ Zelda 1 map</button></div>' +
+      '<button type="button" data-p="z3" title="A Link to the Past’s tracker in a window of its own">⧉ ALttP tracker</button><button type="button" data-p="z1items" title="Zelda 1’s items in a window of its own">⧉ Zelda 1 items</button><button type="button" data-p="z1map" title="Zelda 1’s map in a window of its own">⧉ Zelda 1 map</button><button type="button" data-p="maps" title="One map window for stream capture: A Link to the Past’s maps or Zelda 1’s, switching with the game being played (it keeps its size)">⧉ Map (follows the game)</button></div>' +
       '<div class="z3-tabs" id="z3-tabs"><button type="button" data-t="items">Items</button><button type="button" data-t="lw">Light</button><button type="button" data-t="dw">Dark</button><button type="button" data-t="keys">Keys</button></div>' +
       '<iframe id="z3-trk" title="A Link to the Past tracker"></iframe><iframe id="nes-trk" title="Zelda 1 tracker"></iframe>';
     z3Trk = $('z3-trk'); nesTrk = $('nes-trk');
@@ -65,8 +65,8 @@
   function popOut(k) {
     let w = wins[k];
     if (w && !w.closed) { w.focus(); return; }
-    const url = k === 'z3' ? z3Src() : z1Src(k === 'z1map' ? 'map' : 'items');
-    w = window.open(url, 'z1z3-' + k, 'popup=yes,resizable=yes,width=' + (k === 'z1map' ? 900 : k === 'z3' ? 760 : 520) + ',height=' + (k === 'z1map' ? 560 : 720));
+    const url = k === 'maps' ? 'map-follow.html' : k === 'z3' ? z3Src() : z1Src(k === 'z1map' ? 'map' : 'items');
+    w = window.open(url, 'z1z3-' + k, 'popup=yes,resizable=yes,width=' + (k === 'z1map' || k === 'maps' ? 900 : k === 'z3' ? 760 : 520) + ',height=' + (k === 'z1map' || k === 'maps' ? 560 : 720));
     if (!w) { alert('The pop-out was blocked: allow pop-ups for this site.'); return; }
     wins[k] = w;
     if (window.RHPopout && RHPopout.opened) RHPopout.opened(w);   // the game gets the page (../game-popout.js)

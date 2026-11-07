@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.153 (2026-11-07)
+
+- **Z1Z3: one map window for stream capture.** **⧉ Map (follows the game)** in the tracker column opens a single window that shows A Link to the Past's maps (both worlds, from the Zelda 3 tracker you picked) while you're in ALttP and Zelda 1's map while you're in Zelda 1, switching as you go through the portal. It's the same window the whole time, so it keeps the size and place you give it (one capture source in OBS). With Zelda 1 by ZORA it shows the Z1R tracker.
+
 ## Beta v1.14.152 (2026-11-07)
 
 - **Combo pages: the ☠️ buttons can be seen on phones and iPads.** The header there is one line, and they were added at its far end, past the edge of the screen. Now they sit right after ⇄ (on narrow screens ⇄ alone, its words in its tooltip), and they're really hidden while A Link to the Past or Metroid is played (the page's button style had kept them showing).

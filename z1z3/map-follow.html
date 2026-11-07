@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Z1Z3 map</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+  iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #000; visibility: hidden; }
+  iframe.on { visibility: visible; }
+  #wait { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #8b95a3; font: 14px system-ui, sans-serif; text-align: center; padding: 20px; }
+</style>
+</head>
+<body>
+<!--
+  map-follow.html — Z1Z3's one map window, for stream capture: A Link to the Past's maps (the Zelda 3
+  tracker chosen in the column, both worlds: ../smz3/z3host.html?plain=1&phone=maps) and Zelda 1's
+  (its tracker's map: ../cross/nes-tracker.html?only=z1&view=map, or with Zelda 1 by ZORA the Z1R
+  page's tracker), one over the other, the one shown following the game being played. One window
+  the whole time, so it keeps the size and place it was given.
+-->
+<div id="wait">Waiting for the Z1Z3 page…</div>
+<iframe id="z3" title="A Link to the Past's maps"></iframe>
+<iframe id="z1" title="Zelda 1's map"></iframe>
+<script>
+(function () {
+  'use strict';
+  const z3 = document.getElementById('z3'), z1 = document.getElementById('z1');
+  const page = () => { try { const o = window.opener; return o && o.Z1Z3Link && o.QuadApp ? o : null; } catch (e) { return null; } };
+  let id = null, shown = '';
+  function tick() {
+    const o = page(); if (!o || !o.QuadApp.meta) return;
+    if (id !== o.QuadApp.id) {   // the seed (a new one reloads the page; this window follows it)
+      id = o.QuadApp.id;
+      let kind = 'mudora2'; try { kind = o.localStorage.getItem('z1z3:z3trk') || 'mudora2'; } catch (e) {}
+      z3.src = '../smz3/z3host.html?plain=1&t=' + encodeURIComponent(kind) + '&phone=maps';
+      z1.src = o.QuadApp.meta.zora ? 'z1r-tracker.html' : '../cross/nes-tracker.html?only=z1&view=map';
+      document.getElementById('wait').remove && document.getElementById('wait').remove();
+    }
+    const w = o.Z1Z3Link.where === 'z1' ? 'z1' : 'z3';
+    if (w === shown) return;
+    shown = w;
+    z3.classList.toggle('on', w === 'z3'); z1.classList.toggle('on', w === 'z1');
+    document.title = (w === 'z1' ? 'Zelda 1' : 'A Link to the Past') + ' map · Z1Z3';
+    try { (w === 'z1' ? z1 : z3).contentWindow.dispatchEvent(new Event('resize')); } catch (e) {}
+  }
+  setInterval(tick, 300); tick();
+})();
+</script>
+</body>
+</html>

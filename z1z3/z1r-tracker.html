@@ -31,6 +31,7 @@
     const c = [];
     try { if (parent !== window) c.push(parent); } catch (e) {}
     try { if (window.opener) c.push(window.opener); } catch (e) {}
+    try { if (parent !== window && parent.opener) c.push(parent.opener); } catch (e) {}   // (inside a pop-out window: map-follow.html)
     for (const w of c) { try { if (w.QuadApp && w.QuadNESLink) return w; } catch (e) {} }
     return null;
   }
@@ -60,6 +61,7 @@
     const c = [];
     try { if (parent !== window) c.push(parent); } catch (e) {}
     try { if (window.opener) c.push(window.opener); } catch (e) {}
+    try { if (parent !== window && parent.opener) c.push(parent.opener); } catch (e) {}   // (inside a pop-out window: map-follow.html)
     for (const w of c) { try { if (w.QuadApp && w.QuadNESLink) return w; } catch (e) {} }
     return null;
   }
