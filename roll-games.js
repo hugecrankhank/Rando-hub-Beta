@@ -204,7 +204,7 @@
     var hide = linkIds.map(function (i) { return '#' + i; }).concat(acts.map(function (a) { return a.hide; }));
     css.textContent = '#new-seed .ns-caret { display: none; font-size: .8em; margin-left: 4px; }' +
       '@media ' + PHONE_MQ + ' { ' + (hide.length ? hide.join(', ') + ' { display: none !important; } ' : '') + '#hub-games { display: inline-flex !important; } .hub-short { display: none; } #new-seed .ns-caret { display: inline; } }' +
-      '#ns-menu { position: fixed; z-index: 1000; min-width: 190px; background: #111; border: 2px solid #3a6df0; border-radius: 6px; padding: 4px; box-shadow: 0 8px 24px rgba(0,0,0,.6); display: flex; flex-direction: column; }' +
+      '#ns-menu { position: fixed; z-index: 1000; min-width: 190px; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; -webkit-overflow-scrolling: touch; background: #111; border: 2px solid #3a6df0; border-radius: 6px; padding: 4px; box-shadow: 0 8px 24px rgba(0,0,0,.6); display: flex; flex-direction: column; }' +
       '#ns-menu button { all: unset; display: block; padding: 11px 14px; font: inherit; font-size: 16px; color: #fff; cursor: pointer; border-radius: 4px; white-space: nowrap; }' +
       '#ns-menu button:active, #ns-menu button:hover { background: #24304f; }';
     document.head.appendChild(css);
@@ -230,9 +230,19 @@
       document.body.appendChild(menu);
       var r = ns.getBoundingClientRect();
       menu.style.top = Math.round(r.bottom + 6) + 'px';
+      fitMenu(menu, r.bottom + 6);
       menu.style.left = Math.round(Math.max(6, Math.min(r.left, window.innerWidth - menu.offsetWidth - 6))) + 'px';
       setTimeout(function () { document.addEventListener('pointerdown', outside, true); }, 0);
     }, true);
+  }
+
+  // A menu taller than the screen scrolls inside itself: its height is what's left
+  // below its button in the visible screen (iPhones' 100vh counts the part under
+  // the toolbars, so CSS alone lets the bottom of the list fall off the screen)
+  function fitMenu(menu, top) {
+    var vv = window.visualViewport, h = vv ? vv.height + vv.offsetTop : window.innerHeight;
+    menu.style.maxHeight = Math.max(160, Math.floor(h - top - 10)) + 'px';
+    menu.style.overflowY = 'auto';
   }
 
   // The same menu as a button and a list of buttons: what the hub uses, since
@@ -248,7 +258,7 @@
     label(); if (phone.addEventListener) phone.addEventListener('change', label);
     if (!document.getElementById('hub-games-css')) {
       var st = document.createElement('style'); st.id = 'hub-games-css';
-      st.textContent = '#hg-menu { position: fixed; z-index: 1000; min-width: 220px; max-height: calc(100vh - 80px); overflow-y: auto; background: #111; border: 2px solid #3a6df0; border-radius: 8px; padding: 4px; box-shadow: 0 8px 24px rgba(0,0,0,.6); display: flex; flex-direction: column; -webkit-overflow-scrolling: touch; }' +
+      st.textContent = '#hg-menu { position: fixed; z-index: 1000; min-width: 220px; max-height: calc(100vh - 80px); overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; background: #111; border: 2px solid #3a6df0; border-radius: 8px; padding: 4px; box-shadow: 0 8px 24px rgba(0,0,0,.6); display: flex; flex-direction: column; -webkit-overflow-scrolling: touch; }' +
         '#hg-menu .h { padding: 8px 14px 4px; font: 600 12px system-ui, sans-serif; color: #8b95a3; text-transform: uppercase; letter-spacing: .04em; }' +
         '#hg-menu button, #hg-menu label { all: unset; box-sizing: border-box; display: block; padding: 11px 14px; font: 16px system-ui, sans-serif; color: #fff; cursor: pointer; border-radius: 4px; white-space: nowrap; }' +
         '#hg-menu button:active, #hg-menu button:hover, #hg-menu label:active, #hg-menu label:hover { background: #24304f; }' +
@@ -285,6 +295,7 @@
       document.body.appendChild(menu);
       var r = btn.getBoundingClientRect();
       menu.style.top = Math.round(r.bottom + 6) + 'px';
+      fitMenu(menu, r.bottom + 6);
       menu.style.left = Math.round(Math.max(6, Math.min(r.left, window.innerWidth - menu.offsetWidth - 6))) + 'px';
       setTimeout(function () { document.addEventListener('pointerdown', outside, true); }, 0);
     });

@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.142 (2026-11-06)
+
+- **The 🎮 games menu scrolls on phones.** With many games it ran past the bottom of an iPhone's screen (the bottom of the list, Manage games included, out of reach). It now ends at the bottom of the visible screen and scrolls inside itself, without scrolling the page behind it.
+
 ## Beta v1.14.141 (2026-11-06)
 
 - **Z1Z3: seeds with Assured swords generate again.** With "Assured (start with one)" (most often with Standard) the seed failed with "nothing fits Link's Uncle". The fill now only checks Zelda 1's spots for which items they can take, as alttpr.com's own fill does for ALttP's. Checked across every setting.
