@@ -15,3 +15,4 @@ build-win/
 # Kept privately, never in this public repo (a local copy stays out of commits)
 crowd-plus/
 jinxcast/
+__pycache__/
