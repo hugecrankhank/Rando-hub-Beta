@@ -75,6 +75,15 @@
     const r = ram('z1'), g = Z.GIVE[it.type]; if (!r || !g) return;
     if (g[0] === 'hc') { const h = r[Z.RAM.HEARTS]; const c = Math.min(15, (h >> 4) + 1); r[Z.RAM.HEARTS] = (c << 4) | 0x0F; r[0x670] = 0xFF; return; }
     if (g[1] === 'max') r[g[0]] = Math.max(r[g[0]], g[2]); else r[g[0]] = g[1];
+    if (g[0] === 0x662 && Z.tunic) Z.tunic(r, sram('z1'));   // a ring: the tunic's colour too
+  }
+  // a ring handed over before Link's tunic followed it (or a save from then): put the colour right
+  let tunicT = 0;
+  function fixTunic() {
+    const now = Date.now(); if (now - tunicT < 1000) return; tunicT = now;
+    const r = ram('z1'), s = sram('z1'); if (!r || !s || !Z.tunic || !r[0x662]) return;
+    const want = [0x29, 0x32, 0x16][Math.min(2, r[0x662])];
+    if (s[0x804 + Math.min(2, r[0x16]) * 4] !== want) Z.tunic(r, s);
   }
   function giveMetroid(it) {
     const s = sram('m1'), r = ram('m1'); if (!s || !r) return;
@@ -110,6 +119,7 @@
   function poll() {
     if (!active || !cores[game]) return;
     checkPickups(); deliver();
+    if (game === 'z1' && inPlay('z1')) fixTunic();
     const here = atPortal(game);
     if (!here) armed = true;
     else if (armed) { armed = false; if (game === 'z1' && opts.link !== 'linked') on({ type: 'back', auto: true }); }   // (linked: the caves ask, ⇄ Zebes or ⇄ Hyrule)

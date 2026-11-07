@@ -35,7 +35,16 @@
     0x10: 'Wand', 0x11: 'Book of Magic', 0x13: 'Red Ring', 0x14: 'Power Bracelet', 0x15: 'Letter', 0x1A: 'Heart Container', 0x1D: 'Boomerang', 0x1E: 'Magical Boomerang', 0x0F: 'Five Rupees' };
   // what each item gives Link (RAM): [address, value or 'max' (keep the higher) or '+1']
   const GIVE = { 0x01: [0x657, 'max', 1], 0x02: [0x657, 'max', 2], 0x05: [0x65C, 1], 0x07: [0x65B, 2], 0x09: [0x659, 2], 0x0A: [0x65A, 1], 0x0B: [0x664, 1], 0x0C: [0x660, 1], 0x0D: [0x663, 1],
-    0x10: [0x65F, 1], 0x11: [0x661, 1], 0x13: [0x662, 2], 0x14: [0x665, 1], 0x15: [0x666, 'max', 1], 0x1A: ['hc'], 0x1D: [0x674, 1], 0x1E: [0x675, 1] };
+    0x10: [0x65F, 1], 0x11: [0x661, 1], 0x12: [0x662, 'max', 1], 0x13: [0x662, 'max', 2], 0x14: [0x665, 1], 0x15: [0x666, 'max', 1], 0x1A: ['hc'], 0x1D: [0x674, 1], 0x1E: [0x675, 1] };
+  // A ring given from outside the game: Link's tunic takes its colour as the game's own pickup does
+  // (the colour into the save slot's palette, $6804 + slot × 4, and into the level's, $6B92, then
+  // the palette sent to the PPU: $14 = $18). r: work RAM, s: cartridge RAM ($6000-$7FFF)
+  const TUNIC = [0x29, 0x32, 0x16];   // green, blue, red
+  function tunic(r, s) {
+    if (!r || !s) return;
+    const c = TUNIC[Math.min(2, r[0x662])], slot = Math.min(2, r[0x16]);
+    s[0x804 + slot * 4] = c; s[0xB92] = c; r[0x14] = 0x18;
+  }
   // the logic key an item gives
   const KEY = { 0x01: 'SW', 0x02: 'SW', 0x0A: 'BOW', 0x0C: 'RAFT', 0x0D: 'LAD', 0x05: 'REC' };
   const PLACEHOLDER = IT.FIVE_RUPEES;   // a Metroid item in Hyrule looks like a rupee; the hub hands the real item over
@@ -69,6 +78,6 @@
   const PORTAL_SCREENS = [0x1D, 0x23, 0x49, 0x79];
   const RAM = { LEVEL: 0x10, MODE: 0x12, ROOM: 0xEB, HEARTS: 0x66F, TRIFORCE: 0x671, WORLD: 0x67F, RUPEES: 0x66D, LINK_X: 0x70, LINK_Y: 0x84 };
 
-  window.ZM = { ROM, FINGERPRINT, IT, NAMES, GIVE, KEY, PLACEHOLDER, TRIFORCE, SPOTS, CAVE_SCREEN, ARMOS_SCREEN, COAST_SCREEN, PORTAL_SCREENS, RAM,
+  window.ZM = { ROM, FINGERPRINT, IT, NAMES, GIVE, tunic, KEY, PLACEHOLDER, TRIFORCE, SPOTS, CAVE_SCREEN, ARMOS_SCREEN, COAST_SCREEN, PORTAL_SCREENS, RAM,
     OFF: { GRID: [0x18710, 0x18A10], CAVES: 0x18610, ARMOS: 0x10D05, COAST: 0x1789A } };
 })();

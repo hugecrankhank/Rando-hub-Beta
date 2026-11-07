@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.144 (2026-11-06)
+
+- **Zelda 1: a ring from the other game changes Link's tunic.** In Z1Z3, Rando Cross and Zelda 1 + Metroid, a Blue or Red Ring found in the other game cut Link's damage but left him in green. Now he turns blue or red as with a ring picked up in Zelda 1, and a save that already has its ring (from before this fix) is put right as soon as it's played. The Blue Ring can now be handed over too, and a Blue Ring after a Red one no longer takes the red away.
+
 ## Beta v1.14.143 (2026-11-06)
 
 - **Z1Z3 on phones and iPads: the Zelda 3 tracker gets the room.** Mudora (2.0 or not) and Hutch showed their whole desktop layout squeezed under the game, the map a sliver. Now they follow the same sizing as Rando Cross and SMZ3: one panel at a time, picked by a row of tabs (Items, Light, Dark, Keys), each filling the column, the options behind Mudora's ⚙. The lines over the tracker are tighter too. Computers keep the whole tracker.
