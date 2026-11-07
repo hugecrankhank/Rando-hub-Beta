@@ -98,6 +98,9 @@
   const remember = (e) => SMZ3Store.set('z1z3-current', { rom: e.rom.buffer.slice(0), z1: e.z1.buffer.slice(0), name: e.name, meta: e.meta }).catch(() => {});
 
   let booted = false;
+  // a new seed: Mudora 2.0 starts a new game set to match it, as on the Zelda 3 page (../mudora2/mudora2.js
+  // reads this when it opens, or as it changes); without it, it reopened the last seed's game and checks
+  function newTrackerGame(name, flags) { try { localStorage.setItem('rhb-seed-tracker', JSON.stringify({ at: Date.now(), name, flags })); } catch (e) {} }
   async function play(entry, opts) {
     if (booted) {
       if (!(opts && opts.confirmed) && !confirm('Switch to seed ' + entry.meta.seed + '? The current game closes; its saves stay in this browser.')) return;
@@ -107,7 +110,12 @@
       return;
     }
     booted = true;
-    if (!(opts && opts.resume)) await remember(entry);
+    if (!(opts && opts.resume)) {
+      await remember(entry);
+      const o = entry.meta.options || {}, c = o.crystals || '7';
+      newTrackerGame('z1z3-' + entry.meta.seed, { gamemode: o.mode || 'open', seed: { goal: 'ganon', ganon: c, gt: c, logic: 'noglitches', swords: o.weapons || 'randomized' },
+        dungeonitems: { mc: 'mapcompass', mcs: 'mapcompasskeys', full: 'keysanity' }[o.dungeon_items] || 'standard' });
+    }
     const id = SMZ3Hash(entry.rom);
     QuadApp.meta = entry.meta; QuadApp.id = id;
     document.title = 'Seed ' + entry.meta.seed + ' - Z1Z3';

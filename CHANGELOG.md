@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.148 (2026-11-07)
+
+- **Z1Z3, SMZ3 and Rando Cross: Mudora 2.0 starts fresh for each new seed.** It kept its own saved game and only started a new one when the Zelda 3 page said a seed was new, so on these pages it reopened the last seed's game, checks and all. Now each new seed starts a new Mudora game set to match it (world state, crystals, swords, dungeon items), as on the Zelda 3 page. Continue keeps the game in progress.
+
 ## Beta v1.14.147 (2026-11-07)
 
 - **Zelda 1 + Metroid: item notes at the top too.** "Link received … from Zebes" and "Found …: it's waiting for …" now show over the top of the game picture for 9 seconds, as on Rando Cross, Z1Z3 and M1SM. The note no longer fades in, so a busy phone can't leave it invisible.
