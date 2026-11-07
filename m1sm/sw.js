@@ -14,7 +14,7 @@ self.addEventListener('install', (e) => {
     '../cross/nes.html', '../cross/js/nes.js', '../cross/nes-tracker.html', '../cross/js/nes-tracker.js', '../smz3/js/store.js',
     '../zm/js/store.js', '../zm/js/data.js', '../zm/js/gen.js', '../zm/js/tracker.js', '../zm/js/map.js', '../zm/js/icons.js', '../metroid/js/data.js', '../metroid/js/logic.js', '../z1r/js/icons.js', '../z1r/js/owmap.js',
     '../sm/js/data.js', '../sm/js/store.js', '../sm/js/logic.js', '../sm/js/map.js', '../sm/js/tracker.js', '../sm/gen/dash-core.js', '../sm/gen/seed-worker.js',
-    '../combo-theme.js', '../world-map.js', '../game-health.js', '../game-popout.js', '../popout-panel.html', '../credits-splash.js', '../fonts/PressStart2P-Regular.ttf',
+    '../combo-theme.js', '../world-map.js', '../game-health.js', '../combo-toast.js', '../game-popout.js', '../popout-panel.html', '../credits-splash.js', '../fonts/PressStart2P-Regular.ttf',
     // the emulators (../emu/, ../z1r/emu/), the randomizer's core and the trackers are outside this scope: the hub's offline cache keeps them
   ])).catch(() => {}));
   self.skipWaiting();

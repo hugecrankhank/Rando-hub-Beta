@@ -182,7 +182,8 @@
       }), 600);
     });
   }
-  function toast(text, ms) {
+  function toast(text, ms, kind) {
+    if (kind === 'item' && window.RHItemToast) { RHItemToast(text, ms); return; }   // an item crossing games: over the picture's top (../combo-toast.js)
     const t = document.createElement('div');
     t.className = 'toast'; t.textContent = text; t.setAttribute('role', 'status');
     document.body.append(t);

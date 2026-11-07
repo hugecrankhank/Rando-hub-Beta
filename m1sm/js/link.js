@@ -29,7 +29,7 @@
   const GIVEN = 0xD8AE;   // $7E:D8AE: Super Metroid items given so far (a word past the item bits)
   const MAP_STATION = 0x9994;
   let meta = null, id = null, frame = null, nes = null, where = 'sm', rec = null, armed = false, fns = [], started = false, switching = false;
-  const toast = (t, ms) => (window.M1SMToast || console.log)(t, ms);
+  const toast = (t, ms, kind) => (window.M1SMToast || console.log)(t, ms, kind);
   const S = () => window.Snes9xPlayer;
   const snesRam = () => { const c = S() && S().core; try { return c ? c.wram() : null; } catch (e) { return null; } };
   const w16 = (s, o) => s[o] | s[o + 1] << 8;
@@ -53,7 +53,7 @@
     const given = [];
     while (g < rec.toSm.length) { const it = rec.toSm[g]; if (M1SMGive.give(r, it.type)) given.push(it.name || M1SMGive.smName(it.type)); g++; }
     r[GIVEN] = g & 0xFF; r[GIVEN + 1] = g >> 8;
-    if (given.length && where === 'sm') toast('Samus (Super Metroid) received ' + given.join(', ') + '.', 5000);
+    if (given.length && where === 'sm') toast('Samus (Super Metroid) received ' + given.join(', ') + '.', 5000, 'item');
   }
 
   // ── Metroid items found in Super Metroid: to Samus in Metroid ────────────
@@ -64,7 +64,7 @@
       if (!(r[0xD870 + (s.bit >> 3)] & (1 << (s.bit & 7)))) return;
       rec.sentDone.push(s.bit);
       if (nes) nes.give({ game: 'm1', type: s.type });
-      toast('That’s Metroid’s ' + s.name + ': Samus gets it on the other Zebes.', 6000);
+      toast('That’s Metroid’s ' + s.name + ': Samus gets it on the other Zebes.', 6000, 'item');
       save(); emit();
     });
   }
@@ -181,7 +181,7 @@
     if (ev.type === 'snes') {
       const it = ev.item;
       rec.toSm.push({ type: it.type, name: it.name, spot: ev.spot });
-      toast('Found ' + (it.name || 'a Super Metroid item') + ' (Super Metroid): Samus has it back in Crateria.', 5000);
+      toast('Found ' + (it.name || 'a Super Metroid item') + ' (Super Metroid): Samus has it back in Crateria.', 5000, 'item');
       save(); emit(); feed();
     } else if (ev.type === 'back') back(!!ev.auto);
     else if (ev.type === 'won') { if (ev.game === 'm1') { rec.won.m1 = true; save(); emit(); checkGoal(); } }

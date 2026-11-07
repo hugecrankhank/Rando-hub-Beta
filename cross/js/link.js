@@ -31,7 +31,7 @@
   'use strict';
   const SR = { RECV: 0x4000, RPTR: 0x4600, WPTR: 0x4602, SENT_W: 0x4682, SENT: 0x4700, SEED: 0x46A0, GAME: 0x33FE };
   let meta = null, id = null, frame = null, nes = null, where = 'snes', rec = null, armed = false, fns = [], started = false, switching = false;
-  const toast = (t, ms) => (window.QuadToast || console.log)(t, ms);
+  const toast = (t, ms, kind) => (window.QuadToast || console.log)(t, ms, kind);
   const S = () => window.Snes9xPlayer;
   const snesRam = () => { const c = S() && S().core; try { return c ? c.wram() : null; } catch (e) { return null; } };
   const snesSram = () => { const c = S() && S().core; try { return c ? c.sram() : null; } catch (e) { return null; } };
@@ -77,7 +77,7 @@
       if (!it || rec.sentDone.indexOf(loc) >= 0) continue;
       rec.sentDone.push(loc);
       if (nes) nes.give(it);
-      toast('Sent ' + ZMGen.itemName(it) + ' to ' + (it.game === 'z1' ? 'Link in Zelda 1' : 'Samus on Zebes') + '.', 5000);
+      toast('Sent ' + ZMGen.itemName(it) + ' to ' + (it.game === 'z1' ? 'Link in Zelda 1' : 'Samus on Zebes') + '.', 5000, 'item');
       save(); emit();
     }
   }
@@ -222,7 +222,7 @@
     if (ev.type === 'snes') {
       const it = ev.item, from = ev.spot < ZM.SPOTS.length ? 1 : 2;
       rec.toSnes.push([from, it.id !== undefined ? it.id : it.type, ev.spot]);
-      toast('Found ' + (it.name || SMZ3Gen.IT_DESC[SMZ3Gen.IT_NAME[it.type]] || 'an SNES item') + ': Link and Samus get it back in Hyrule.', 5000);
+      toast('Found ' + (it.name || SMZ3Gen.IT_DESC[SMZ3Gen.IT_NAME[it.type]] || 'an SNES item') + ': Link and Samus get it back in Hyrule.', 5000, 'item');
       save(); emit(); feed();
     } else if (ev.type === 'back') back(!!ev.auto);
     else if (ev.type === 'won') { rec.won[ev.game] = true; save(); emit(); checkGoal(); }

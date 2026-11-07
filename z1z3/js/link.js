@@ -27,7 +27,7 @@
   'use strict';
   const GIVEN = 0xF49E;   // $7E:F49E: ALttP items given so far (a word in the save's unused block)
   let meta = null, id = null, frame = null, nes = null, where = 'z3', rec = null, armed = false, fns = [], started = false, switching = false, lastCount = -1;
-  const toast = (t, ms) => (window.Z1Z3Toast || console.log)(t, ms);
+  const toast = (t, ms, kind) => (window.Z1Z3Toast || console.log)(t, ms, kind);
   const S = () => window.Snes9xPlayer;
   const snesRam = () => { const c = S() && S().core; try { return c ? c.wram() : null; } catch (e) { return null; } };
   const w16 = (s, o) => s[o] | s[o + 1] << 8;
@@ -54,7 +54,7 @@
     const given = [];
     while (g < rec.toZ3.length) { const it = rec.toZ3[g]; if (Z1Z3Give.give(r, it.name)) given.push(it.nice || it.name); g++; }
     r[GIVEN] = g & 0xFF; r[GIVEN + 1] = g >> 8;
-    if (given.length && where === 'z3') toast('Link (ALttP) received ' + given.join(', ') + '.', 5000);
+    if (given.length && where === 'z3') toast('Link (ALttP) received ' + given.join(', ') + '.', 5000, 'item');
   }
 
   // ── Zelda 1 items found in ALttP's chests: to Link in Zelda 1 ────────────
@@ -70,7 +70,7 @@
     if (!c) return;
     rec.chestDone.push(c.loc);
     if (nes) nes.give({ game: 'z1', type: c.type, name: c.name });
-    toast('That’s Zelda 1’s ' + c.name + ': Link gets it in the other Hyrule.', 6000);
+    toast('That’s Zelda 1’s ' + c.name + ': Link gets it in the other Hyrule.', 6000, 'item');
     save(); emit();
   }
 
@@ -182,7 +182,7 @@
     if (ev.type === 'snes') {
       const it = ev.item;
       rec.toZ3.push({ name: it.name, nice: it.nice, spot: ev.spot });
-      toast('Found ' + (it.nice || it.name) + ' (A Link to the Past): Link has it back in Kakariko.', 5000);
+      toast('Found ' + (it.nice || it.name) + ' (A Link to the Past): Link has it back in Kakariko.', 5000, 'item');
       save(); emit(); feed();
     } else if (ev.type === 'back') back(!!ev.auto);
     else if (ev.type === 'won') { rec.won.z1 = true; save(); emit(); checkGoal(); }

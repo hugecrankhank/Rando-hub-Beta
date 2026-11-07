@@ -139,7 +139,7 @@
     toast((game === 'z1' ? 'Link' : 'Samus') + ' received ' + list.map(G.itemName).join(', ') + '.');
     save();
   }
-  function toast(t) { try { parent.QuadToast && parent.QuadToast(t, 5000); } catch (e) {} }
+  function toast(t) { try { parent.QuadToast && parent.QuadToast(t, 5000, 'item'); } catch (e) {} }   // (every note from here is an item crossing games)
 
   // ── keeping it ───────────────────────────────────────────────────────────
   const P = () => window.EmuPlayer;

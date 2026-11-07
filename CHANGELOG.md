@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.146 (2026-11-06)
+
+- **Combo pages: the note for an item crossing games moved to the top of the picture.** In Rando Cross, Z1Z3 and M1SM, "That's Zelda 1's Raft…", "Link received…" and the like now sit over the middle of the game's HUD, where A Link to the Past shows its rupees, bombs and arrows, instead of at the bottom of the screen. They stay up for 9 seconds (was 5 to 6), and a second one joins the first rather than piling up. Other notes stay where they were.
+
 ## Beta v1.14.145 (2026-11-06)
 
 - **Z1Z3: Zelda 1 by ZORA, with every Z1R option.** The seed dialog has a new **Zelda 1** choice: Rando Hub's own (as before: 17 item spots shared, the rest as in the game) or **ZORA**, the Z1R page's randomizer, with its presets, your own flags (or **Use my Z1R page flags**) and **Every option** in tabs as on the Z1R page: dungeon shapes, overworld, cave shuffle, shops, monsters, start items, ZORA's extras and the rest.
