@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.149 (2026-11-07)
+
+- **Z1Z3: more A Link to the Past settings, as on the Zelda 3 page.** New in the seed dialog: **Boots** (in the pool, **Casboots**: start with the Pegasus Boots, or Pseudoboots: dash without them), **ALttP's goal** (Defeat Ganon, Fast Ganon, All Dungeons), **Open tower** and **Ganon vulnerable** as two settings (0 to 7 crystals or random), **Item placement** (advanced, basic), **Accessibility** (100% inventory, 100% locations, beatable only), **Item pool** and **Item functionality** (normal, easy, hard, expert) and **Hints** on or off. They work with both Zelda 1 choices (Rando Hub's and ZORA), and Mudora 2.0's new game is set to match. A seed made before keeps its settings.
+
 ## Beta v1.14.148 (2026-11-07)
 
 - **Z1Z3, SMZ3 and Rando Cross: Mudora 2.0 starts fresh for each new seed.** It kept its own saved game and only started a new one when the Zelda 3 page said a seed was new, so on these pages it reopened the last seed's game, checks and all. Now each new seed starts a new Mudora game set to match it (world state, crystals, swords, dungeon items), as on the Zelda 3 page. Continue keeps the game in progress.

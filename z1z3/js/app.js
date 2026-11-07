@@ -112,9 +112,10 @@
     booted = true;
     if (!(opts && opts.resume)) {
       await remember(entry);
-      const o = entry.meta.options || {}, c = o.crystals || '7';
-      newTrackerGame('z1z3-' + entry.meta.seed, { gamemode: o.mode || 'open', seed: { goal: 'ganon', ganon: c, gt: c, logic: 'noglitches', swords: o.weapons || 'randomized' },
-        dungeonitems: { mc: 'mapcompass', mcs: 'mapcompasskeys', full: 'keysanity' }[o.dungeon_items] || 'standard' });
+      const o = entry.meta.options || {};
+      newTrackerGame('z1z3-' + entry.meta.seed, { gamemode: o.mode || 'open',
+        seed: { goal: o.z3goal === 'fast_ganon' ? 'fastganon' : o.z3goal || 'ganon', ganon: o.ganon || o.crystals || '7', gt: o.tower || o.crystals || '7', logic: 'noglitches', swords: o.weapons || 'randomized' },
+        dungeonitems: { mc: 'mapcompass', mcs: 'mapcompasskeys', full: 'keysanity' }[o.dungeon_items] || 'standard', more: { pseudoboots: o.boots === 'pseudo' ? 'yes' : 'no' } });
     }
     const id = SMZ3Hash(entry.rom);
     QuadApp.meta = entry.meta; QuadApp.id = id;

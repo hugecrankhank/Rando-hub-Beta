@@ -55,15 +55,30 @@ const JP10_MD5 = '03a63945398191337e896e5771f77173';
 const ROM_SIZE = 0x200000;
 
 // ── the settings (the seed dialog) ─────────────────────────────────────────
+const CRYSTALS = [['7', '7 crystals'], ['6', '6'], ['5', '5'], ['4', '4'], ['3', '3'], ['2', '2'], ['1', '1'], ['0', '0'], ['random', 'Random']];
+const LEVELS = [['normal', 'Normal'], ['easy', 'Easy'], ['hard', 'Hard'], ['expert', 'Expert']];
 export const OPTIONS = [
   { key: 'mode', label: 'World state', def: 'open', values: [['open', 'Open'], ['standard', 'Standard (the escape first)']] },
   { key: 'goal', label: 'Goal', def: 'both', values: [['both', 'Both Ganons (A Link to the Past’s and Zelda 1’s)'], ['z3', 'A Link to the Past’s Ganon'], ['z1', 'Zelda 1’s Ganon (and ALttP’s Ganon still ends it)']] },
-  { key: 'crystals', label: 'Crystals for Ganon’s Tower and Ganon', def: '7', values: [['7', '7 and 7'], ['6', '6 and 6'], ['5', '5 and 5'], ['4', '4 and 4'], ['random', 'Random']] },
+  { key: 'z3goal', label: 'ALttP’s goal', def: 'ganon', values: [['ganon', 'Defeat Ganon'], ['fast_ganon', 'Fast Ganon (the pyramid hole open)'], ['dungeons', 'All Dungeons (then Ganon)']] },
+  { key: 'tower', label: 'Open tower (Ganon’s Tower)', def: '7', values: CRYSTALS },
+  { key: 'ganon', label: 'Ganon vulnerable', def: '7', values: CRYSTALS },
   { key: 'weapons', label: 'Swords (ALttP)', def: 'randomized', values: [['randomized', 'Randomized'], ['assured', 'Assured (start with one)'], ['vanilla', 'Vanilla spots'], ['swordless', 'Swordless']] },
+  { key: 'boots', label: 'Boots (ALttP)', def: 'off', values: [['off', 'In the item pool'], ['casboots', 'Casboots: start with the Pegasus Boots'], ['pseudo', 'Pseudoboots: dash without them (the boots still in the pool)']] },
   { key: 'dungeon_items', label: 'ALttP dungeon items', def: 'standard', values: [['standard', 'In their own dungeons'], ['mc', 'Maps and compasses anywhere'], ['mcs', 'Maps, compasses and small keys anywhere'], ['full', 'Keysanity (all anywhere)']] },
+  { key: 'placement', label: 'Item placement', def: 'advanced', values: [['advanced', 'Advanced'], ['basic', 'Basic']] },
+  { key: 'accessibility', label: 'Accessibility', def: 'items', values: [['items', '100% Inventory'], ['locations', '100% Locations'], ['none', 'Beatable only']] },
+  { key: 'pool', label: 'Item pool', def: 'normal', values: LEVELS },
+  { key: 'func', label: 'Item functionality', def: 'normal', values: LEVELS },
+  { key: 'hints', label: 'Hints (ALttP)', def: 'on', values: [['on', 'On'], ['off', 'Off']] },
   { key: 'exits', label: 'Back to Kakariko from Zelda 1', def: 'anywhere', values: [['anywhere', '⇄ anywhere (or P)'], ['exits', 'Only in a “take any road” cave']] },
 ];
-export function options(o) { const out = {}; OPTIONS.forEach((d) => { out[d.key] = o && d.values.some((v) => v[0] === o[d.key]) ? o[d.key] : d.def; }); return out; }
+export function options(o) {
+  o = Object.assign({}, o || {});
+  if (o.crystals && o.tower === undefined) o.tower = o.crystals;   // (one "crystals" setting for both, before)
+  if (o.crystals && o.ganon === undefined) o.ganon = o.crystals;
+  const out = {}; OPTIONS.forEach((d) => { out[d.key] = d.values.some((v) => v[0] === o[d.key]) ? o[d.key] : d.def; }); return out;
+}
 
 export function checkJp(bytes) {
   let b = bytes && bytes.length % 1024 === 512 ? bytes.subarray(512) : bytes;
@@ -211,15 +226,23 @@ const LOOK = ['TwentyRupees', 'FiftyRupees', 'FiveRupees', 'OneHundredRupees', '
 
 function attempt(o, seed, B) {
   Item.clearCache(); Boss.clearCache(); World.max_world = 1; seedRng(seed);
-  const crystals = o.crystals === 'random' ? String(getRandomInt(0, 7)) : o.crystals;
+  const cr = (v) => (v === 'random' ? String(getRandomInt(0, 7)) : v);
+  const tower = cr(o.tower), ganonCr = cr(o.ganon);
   const di = o.dungeon_items;
   const world = World.factory(o.mode, {
-    itemPlacement: 'advanced', dungeonItems: di, accessibility: 'items', goal: 'ganon',
-    'crystals.ganon': crystals, 'crystals.tower': crystals, entrances: 'none', 'mode.weapons': o.weapons,
-    tournament: false, spoilers: 'on', allow_quickswap: true, override_start_screen: false, pseudoboots: false,
-    'spoil.Hints': 'on', logic: 'NoGlitches', 'item.pool': 'normal', 'item.functionality': 'normal',
+    itemPlacement: o.placement, dungeonItems: di, accessibility: o.accessibility, goal: o.z3goal,
+    'crystals.ganon': ganonCr, 'crystals.tower': tower, entrances: 'none', 'mode.weapons': o.weapons,
+    tournament: false, spoilers: 'on', allow_quickswap: true, override_start_screen: false, pseudoboots: o.boots === 'pseudo',
+    'spoil.Hints': o.hints, logic: 'NoGlitches', 'item.pool': o.pool, 'item.functionality': o.func,
     'enemizer.bossShuffle': 'none', 'enemizer.enemyShuffle': 'none', 'enemizer.enemyDamage': 'default', 'enemizer.enemyHealth': 'default', 'enemizer.potShuffle': 'off',
   });
+  if (o.boots === 'casboots') {
+    // Casboots: Link starts with the Pegasus Boots (the pool's pair becomes twenty rupees)
+    world.addPreCollectedItem(Item.get('PegasusBoots', world));
+    const advB = world.getAdvancementItems.bind(world), junkB = world.getItemPool.bind(world);
+    world.getAdvancementItems = () => { const a = advB(), k = a.findIndex((it) => it.getRawName() === 'PegasusBoots'); if (k >= 0) a.splice(k, 1); return a; };
+    world.getItemPool = () => junkB().concat([Item.get('TwentyRupees', world)]);
+  }
   const R = B ? addZora(world, o, B) : addZelda1(world, o);
   const rom = new Rom();
   const rand = new Z1Z3Randomizer([world]);
