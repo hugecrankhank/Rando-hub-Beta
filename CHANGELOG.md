@@ -5,6 +5,13 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.151 (2026-11-07)
+
+- **Z1Z3: Inverted and Retro.** The world state can now be Inverted or Retro too, with both Zelda 1 choices (Rando Hub's and ZORA).
+  - **Inverted:** Link's home is the Dark World, so the way into Zelda 1 is a house there: the **C-Shaped House** in the Village of Outcasts (Kakariko's Dark World twin). Its chest is still there to open when you come back. The column, the start note, the ⇄ button and the signs name it.
+  - **Retro:** rupee bow, universal keys and take-any caves, as on the Zelda 3 page; the Elder's House in Kakariko stays the way in.
+  - Mudora 2.0's new game is set to the world state too.
+
 ## Beta v1.14.150 (2026-11-07)
 
 - **Z1Z3, Rando Cross and Zelda 1 + Metroid: the Z1R page's ☠️ buttons.** While Zelda 1 is the game being played, the header has ☠️ (knock Link out, for a room you're stuck in: he dies as if he'd lost his last heart; with the item screen open it's 💾 Save & quit) and ☠️P2 (Save & quit in one tap, the original's Up + A on controller 2: Continue / Save / Retry without dying). They hide while the other games are played.

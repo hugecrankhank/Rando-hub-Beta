@@ -84,7 +84,7 @@
       r.meta.spoiler = r.spoiler; r.meta.at = r.at; r.meta.chests = r.chests;
       last = { rom: r.rom, z1: r.z1, name: 'z1z3-' + r.seed, meta: r.meta };
       setStatus('Ready in ' + ((performance.now() - t0) / 1000).toFixed(2) + ' s.', 'ok');
-      $('result-seed').textContent = 'Seed ' + r.seed + ' (' + r.hash + ') · ' + r.meta.summary + '. The way into Zelda 1: ' + G.PORTAL.name + ' in Kakariko.';
+      $('result-seed').textContent = 'Seed ' + r.seed + ' (' + r.hash + ') · ' + r.meta.summary + '. The way into Zelda 1: ' + r.meta.portal.name + ' (' + r.meta.portal.region + ').';
       $('result').hidden = false;
       $('result').scrollIntoView({ block: 'nearest' });
       return last;

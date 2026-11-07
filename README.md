@@ -586,7 +586,7 @@ inside the hub, with its own emulator, seed generator, tracker and saves.
   arrows; when that chest is opened the page hands Link in Zelda 1 the real item. An ALttP item
   on a Zelda 1 spot is a rupee there; picked up, it goes straight into Link's ALttP save, and the
   save keeps count so a loaded state never gives one twice. Goal: both Ganons (the default),
-  ALttP's or Zelda 1's; settings for world state, ALttP's goal, crystals (tower and Ganon), swords, boots (Casboots, pseudoboots), dungeon items, item placement, accessibility, item pool and functionality, and hints. Tracking:
+  ALttP's or Zelda 1's; settings for world state (Open, Standard, Inverted: the portal is then the C-Shaped House in the Village of Outcasts, or Retro), ALttP's goal, crystals (tower and Ganon), swords, boots (Casboots, pseudoboots), dungeon items, item placement, accessibility, item pool and functionality, and hints. Tracking:
   the Zelda 3 trackers (Mudora 2.0, Mudora or Hutch) and the Zelda 1 tracker and map, a switch
   that follows the game being played, each in a window of its own on a desktop; sprite & MSU-1
   as on the Zelda 3 page. Two ROMs: the Japanese 1.0 A Link to the Past and The Legend of Zelda

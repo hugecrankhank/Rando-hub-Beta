@@ -58,7 +58,7 @@ const ROM_SIZE = 0x200000;
 const CRYSTALS = [['7', '7 crystals'], ['6', '6'], ['5', '5'], ['4', '4'], ['3', '3'], ['2', '2'], ['1', '1'], ['0', '0'], ['random', 'Random']];
 const LEVELS = [['normal', 'Normal'], ['easy', 'Easy'], ['hard', 'Hard'], ['expert', 'Expert']];
 export const OPTIONS = [
-  { key: 'mode', label: 'World state', def: 'open', values: [['open', 'Open'], ['standard', 'Standard (the escape first)']] },
+  { key: 'mode', label: 'World state', def: 'open', values: [['open', 'Open'], ['standard', 'Standard (the escape first)'], ['inverted', 'Inverted (the Zelda 1 portal: the C-Shaped House, Village of Outcasts)'], ['retro', 'Retro (rupee bow, universal keys, take-any caves)']] },
   { key: 'goal', label: 'Goal', def: 'both', values: [['both', 'Both Ganons (A Link to the Past’s and Zelda 1’s)'], ['z3', 'A Link to the Past’s Ganon'], ['z1', 'Zelda 1’s Ganon (and ALttP’s Ganon still ends it)']] },
   { key: 'z3goal', label: 'ALttP’s goal', def: 'ganon', values: [['ganon', 'Defeat Ganon'], ['fast_ganon', 'Fast Ganon (the pyramid hole open)'], ['dungeons', 'All Dungeons (then Ganon)']] },
   { key: 'tower', label: 'Open tower (Ganon’s Tower)', def: '7', values: CRYSTALS },
@@ -71,7 +71,7 @@ export const OPTIONS = [
   { key: 'pool', label: 'Item pool', def: 'normal', values: LEVELS },
   { key: 'func', label: 'Item functionality', def: 'normal', values: LEVELS },
   { key: 'hints', label: 'Hints (ALttP)', def: 'on', values: [['on', 'On'], ['off', 'Off']] },
-  { key: 'exits', label: 'Back to Kakariko from Zelda 1', def: 'anywhere', values: [['anywhere', '⇄ anywhere (or P)'], ['exits', 'Only in a “take any road” cave']] },
+  { key: 'exits', label: 'Back to ALttP from Zelda 1', def: 'anywhere', values: [['anywhere', '⇄ anywhere (or P)'], ['exits', 'Only in a “take any road” cave']] },
 ];
 export function options(o) {
   o = Object.assign({}, o || {});
@@ -89,7 +89,18 @@ export function checkJp(bytes) {
 
 // ── the Kakariko portal and Zelda 1's region ───────────────────────────────
 // The Elder's House (either door): found by the door Link came in by ($7E:010E), as Rando Cross does
-export const PORTAL = { name: 'the Elder’s House (either door)', region: 'Light World: Kakariko', entrances: [0x0D, 0x0E] };
+export const PORTAL = { name: 'the Elder’s House (either door)', region: 'Light World: Kakariko', hub: 'Kakariko', entrances: [0x0D, 0x0E] };
+// Inverted: Link's home is the Dark World, so the portal is a house there: the C-Shaped House in the
+// Village of Outcasts (Kakariko's Dark World twin): entrance $54, as the game's own overworld entrance
+// table has it (area $58), and Kara's door table (../randomizer/kara/.../EntranceShuffle2.py)
+export const PORTAL_INVERTED = { name: 'the C-Shaped House', region: 'Dark World: Village of Outcasts', hub: 'the Village of Outcasts', entrances: [0x54] };
+export const portalFor = (mode) => (mode === 'inverted' ? PORTAL_INVERTED : PORTAL);
+// when the portal's house can be reached: Kakariko once Link is free (Standard: after the escape);
+// Inverted: the Village of Outcasts' own region
+function portalOpen(world, opts) {
+  if (opts.mode === 'inverted') return (locations, items) => world.getRegion('North West Dark World').canEnter(locations, items);
+  return (locations, items) => items.has('RescueZelda');
+}
 
 const zName = (t) => 'Z1_' + t.toString(16).toUpperCase().padStart(2, '0');
 const zType = (name) => parseInt(String(name).replace(/^Z1_/, '').replace(/:.*$/, ''), 16);
@@ -124,7 +135,7 @@ function addZelda1(world, opts) {
   const R = new Region(world);
   R.name = 'Zelda 1';
   // in through the Elder's House: Kakariko, once Link is free to walk there
-  R.can_enter = (locations, items) => items.has('RescueZelda');
+  R.can_enter = portalOpen(world, opts);
   const base = R.canFill.bind(R);
   R.canFill = (item) => item instanceof Z1Item || (base(item) && !(item instanceof Item.Key) && !(item instanceof Item.BigKey) && !(item instanceof Item.Map)
     && !(item instanceof Item.Compass) && GIVEABLE.has(item.getTarget().getRawName()));
@@ -284,7 +295,7 @@ function zoraLogic(B) {
 function addZora(world, opts, B) {
   const R = new Region(world);
   R.name = 'Zelda 1';
-  R.can_enter = (locations, items) => items.has('RescueZelda');
+  R.can_enter = portalOpen(world, opts);
   const base = R.canFill.bind(R);
   R.canFill = (item) => item instanceof Z1Item || (base(item) && !(item instanceof Item.Key) && !(item instanceof Item.BigKey) && !(item instanceof Item.Map)
     && !(item instanceof Item.Compass) && GIVEABLE.has(item.getTarget().getRawName()));
@@ -414,14 +425,14 @@ export async function generate({ jp, z1, seed, options: opt, zora: zo, stage }) 
   }
 
   const spoiler = spoilerText(world, s, hash, o, at, chests, B);
-  const meta = { seed: String(s), hash, options: o, generator: 'Z1Z3', made: Date.now(), portal: PORTAL, zora: zoraMeta };
+  const meta = { seed: String(s), hash, options: o, generator: 'Z1Z3', made: Date.now(), portal: portalFor(o.mode), zora: zoraMeta };
   return { seed: s, hash, rom: z3, z1: z1rom, at, chests, spoiler, meta };
 }
 
 function spoilerText(world, seed, hash, o, at, chests, B) {
   const out = ['Z1Z3 (Rando Hub): A Link to the Past + Zelda 1', 'Seed ' + seed + '  ' + hash, '',
     'Settings: ' + OPTIONS.map((d) => d.label + ': ' + (d.values.find((v) => v[0] === o[d.key]) || [])[1]).join(' · '), '',
-    'Portal to Zelda 1: ' + PORTAL.name + ' (Kakariko). Back: ' + (o.exits === 'exits' ? 'a “take any road” cave' : '⇄ anywhere (or P)') + '.', ''];
+    'Portal to Zelda 1: ' + portalFor(o.mode).name + ' (' + portalFor(o.mode).region + '). Back: ' + (o.exits === 'exits' ? 'a “take any road” cave' : '⇄ anywhere (or P)') + '.', ''];
   if (B) {
     out.push('Zelda 1: ZORA ' + B.flags + (B.zoraFlags ? ' ' + B.zoraFlags : '') + ', its seed ' + B.seed, '', 'Zelda 1 (its places):');
     at.forEach((it) => out.push('  ' + it.place + ': ' + (it.game === 'z1' ? it.name : it.nice + ' (ALttP)')));
@@ -444,4 +455,4 @@ function spoilerText(world, seed, hash, o, at, chests, B) {
   return out.join('\n');
 }
 
-window.Z1Z3Gen = { generate, OPTIONS, options, checkJp, checksum, PORTAL, GIVEABLE };
+window.Z1Z3Gen = { generate, OPTIONS, options, checkJp, checksum, PORTAL, portalFor, GIVEABLE };

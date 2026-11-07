@@ -31,6 +31,7 @@
   const S = () => window.Snes9xPlayer;
   const snesRam = () => { const c = S() && S().core; try { return c ? c.wram() : null; } catch (e) { return null; } };
   const w16 = (s, o) => s[o] | s[o + 1] << 8;
+  const HUB = () => ((meta && meta.portal && meta.portal.hub) || 'Kakariko');
   const PORTAL = () => (meta && meta.portal) || { entrances: [0x0D, 0x0E], name: 'the Elder’s House' };
 
   // ── keeping it ───────────────────────────────────────────────────────────
@@ -90,12 +91,12 @@
     if (e && e.pause) e.pause();
     where = 'z1'; document.body.classList.add('on-nes'); frame.hidden = false;
     paint();
-    nes.enter('z1').then(() => { switching = false; try { frame.focus(); frame.contentWindow.focus(); } catch (x) {} save(); emit(); paint(); toast('Through the Elder’s House: Zelda 1’s Hyrule. ' + (opt().exits === 'exits' ? 'The way back: a “take any road” cave.' : '⇄ or P to come back to Kakariko.'), 4500); },
+    nes.enter('z1').then(() => { switching = false; try { frame.focus(); frame.contentWindow.focus(); } catch (x) {} save(); emit(); paint(); toast('Through ' + PORTAL().name.replace(/ \(either door\)/, '') + ': Zelda 1’s Hyrule. ' + (opt().exits === 'exits' ? 'The way back: a “take any road” cave.' : '⇄ or P to come back to Kakariko.'), 4500); },
       (err) => { switching = false; console.error('[z1z3] NES', err); toast('Zelda 1 didn’t start: ' + (err && err.message || err), 8000); back(true); });
   }
   function back(force) {
     if (where === 'z3' || !nes || switching) return;
-    if (!force && !canBack()) { toast('This seed’s way back to Kakariko is a “take any road” cave in Zelda 1.', 5000); return; }
+    if (!force && !canBack()) { toast('This seed’s way back to ' + HUB() + ' is a “take any road” cave in Zelda 1.', 5000); return; }
     switching = true;
     nes.leave().finally(() => {
       where = 'z3'; armed = false;
@@ -111,7 +112,7 @@
     const sig = where + ':' + canBack();
     if (sig === lastPaint) return; lastPaint = sig;
     if (b) b.hidden = !canBack();
-    if (p) { p.textContent = where === 'z3' ? 'ALttP' : 'Zelda 1'; p.title = where === 'z3' ? 'Playing A Link to the Past' : 'Playing Zelda 1: ⇄ or P back to Kakariko'; }
+    if (p) { p.textContent = where === 'z3' ? 'ALttP' : 'Zelda 1'; p.title = where === 'z3' ? 'Playing A Link to the Past' : 'Playing Zelda 1: ⇄ or P back to ' + HUB(); }
   }
 
   // ── the sign: "this way to Kakariko" over Zelda 1, where the way back is ──
@@ -121,7 +122,7 @@
     if (where !== 'z1' || !nes || switching) return null;
     const r = nes.ram('z1'); if (!r || !nes.inPlay('z1')) return null;
     if (!meta.zora && r[ZM.RAM.LEVEL] === 0 && r[ZM.RAM.MODE] === 5 && ZM.PORTAL_SCREENS.indexOf(r[ZM.RAM.ROOM]) >= 0)
-      return ['This way to Kakariko: the cave on this screen', opt().exits === 'exits' ? 'Walk in and it takes you back' : 'Walk in, or ⇄ / P anywhere'];
+      return ['This way to ' + HUB() + ': the cave on this screen', opt().exits === 'exits' ? 'Walk in and it takes you back' : 'Walk in, or ⇄ / P anywhere'];
     return null;
   }
   let lastSign = '';
@@ -182,7 +183,7 @@
     if (ev.type === 'snes') {
       const it = ev.item;
       rec.toZ3.push({ name: it.name, nice: it.nice, spot: ev.spot });
-      toast('Found ' + (it.nice || it.name) + ' (A Link to the Past): Link has it back in Kakariko.', 5000, 'item');
+      toast('Found ' + (it.nice || it.name) + ' (A Link to the Past): Link has it back in ' + HUB() + '.', 5000, 'item');
       save(); emit(); feed();
     } else if (ev.type === 'back') back(!!ev.auto);
     else if (ev.type === 'won') { rec.won.z1 = true; save(); emit(); checkGoal(); }

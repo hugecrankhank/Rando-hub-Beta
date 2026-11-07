@@ -74,8 +74,9 @@
   window.addEventListener('pagehide', () => Object.keys(wins).forEach((k) => { try { wins[k].close(); } catch (e) {} }));
   function paintPortals() {
     const el = $('q-portals'), m = QuadApp.meta; if (!el || !m) return;
-    el.innerHTML = 'Kakariko is the hub: walk into <b>' + ((m.portal && m.portal.name) || 'the Elder’s House') + '</b> for Zelda 1’s Hyrule' + (m.zora ? ' (by ZORA)' : '') + '. Back: ' + (m.zora ? '⇄ / P.' : (m.options || {}).exits === 'exits' ? 'a “take any road” cave.' : '⇄ / P, or a “take any road” cave.') +
-      ' <label class="q-sign-opt" title="The small “this way to Kakariko” note over Zelda 1, at a way back"><input type="checkbox" id="q-signs"' + (Z1Z3Link.signs ? ' checked' : '') + '>Direction signs</label>';
+    el.innerHTML = (m.portal && m.portal.hub ? m.portal.hub.replace(/^t/, 'T') : 'Kakariko') + ' is the hub: walk into <b>' + ((m.portal && m.portal.name) || 'the Elder’s House') + '</b> for Zelda 1’s Hyrule' + (m.zora ? ' (by ZORA)' : '') + '. Back: ' + (m.zora ? '⇄ / P.' : (m.options || {}).exits === 'exits' ? 'a “take any road” cave.' : '⇄ / P, or a “take any road” cave.') +
+      ' <label class="q-sign-opt" title="The small “this way back” note over Zelda 1, at a way back"><input type="checkbox" id="q-signs"' + (Z1Z3Link.signs ? ' checked' : '') + '>Direction signs</label>';
+    const sw = $('swap'); if (sw) { const k = !m.portal || !m.portal.hub || m.portal.hub === 'Kakariko'; sw.textContent = k ? '⇄ Back to Kakariko' : '⇄ Back to ALttP'; sw.title = 'Back to ' + ((m.portal && m.portal.hub) || 'Kakariko') + ' (A Link to the Past): the P key does it too'; }
     const cb = $('q-signs'); if (cb) cb.addEventListener('change', () => { Z1Z3Link.signs = cb.checked; });
   }
   buildColumn();
@@ -114,7 +115,7 @@
       await remember(entry);
       const o = entry.meta.options || {};
       newTrackerGame('z1z3-' + entry.meta.seed, { gamemode: o.mode || 'open',
-        seed: { goal: o.z3goal === 'fast_ganon' ? 'fastganon' : o.z3goal || 'ganon', ganon: o.ganon || o.crystals || '7', gt: o.tower || o.crystals || '7', logic: 'noglitches', swords: o.weapons || 'randomized' },
+        seed: { goal: o.z3goal === 'fast_ganon' ? 'fastganon' : o.z3goal || 'ganon', ganon: o.ganon || o.crystals || '7', gt: o.tower || o.crystals || '7', logic: 'noglitches', swords: o.weapons || 'randomized', inverted: 1 },
         dungeonitems: { mc: 'mapcompass', mcs: 'mapcompasskeys', full: 'keysanity' }[o.dungeon_items] || 'standard', more: { pseudoboots: o.boots === 'pseudo' ? 'yes' : 'no' } });
     }
     const id = SMZ3Hash(entry.rom);
@@ -128,7 +129,7 @@
     window.EJS_onGameStart = function () {
       startAutosave(id, resume, () => {
         paintPortals();
-        if (!resume) toast('Kakariko is the hub: walk into the Elder’s House (either door) for Zelda 1’s Hyrule.', 9000);
+        if (!resume) { const P = entry.meta.portal || {}; toast((P.hub || 'Kakariko').replace(/^t/, 'T') + ' is the hub: walk into ' + (P.name || 'the Elder’s House (either door)') + ' for Zelda 1’s Hyrule.', 9000); }
         Z1Z3Link.start({ meta: entry.meta, z1: entry.z1, id, resume, frame: $('nes-frame') })
           .catch((e) => { console.error('[z1z3] link', e); toast('Zelda 1 didn’t start: ' + (e && e.message || e), 8000); });
       });
