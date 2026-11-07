@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.150 (2026-11-07)
+
+- **Z1Z3, Rando Cross and Zelda 1 + Metroid: the Z1R page's ☠️ buttons.** While Zelda 1 is the game being played, the header has ☠️ (knock Link out, for a room you're stuck in: he dies as if he'd lost his last heart; with the item screen open it's 💾 Save & quit) and ☠️P2 (Save & quit in one tap, the original's Up + A on controller 2: Continue / Save / Retry without dying). They hide while the other games are played.
+
 ## Beta v1.14.149 (2026-11-07)
 
 - **Z1Z3: more A Link to the Past settings, as on the Zelda 3 page.** New in the seed dialog: **Boots** (in the pool, **Casboots**: start with the Pegasus Boots, or Pseudoboots: dash without them), **ALttP's goal** (Defeat Ganon, Fast Ganon, All Dungeons), **Open tower** and **Ganon vulnerable** as two settings (0 to 7 crystals or random), **Item placement** (advanced, basic), **Accessibility** (100% inventory, 100% locations, beatable only), **Item pool** and **Item functionality** (normal, easy, hard, expert) and **Hints** on or off. They work with both Zelda 1 choices (Rando Hub's and ZORA), and Mudora 2.0's new game is set to match. A seed made before keeps its settings.

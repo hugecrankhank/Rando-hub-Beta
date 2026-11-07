@@ -15,7 +15,7 @@ self.addEventListener('install', (e) => {
     '../cross/nes.html', '../cross/js/nes.js', '../cross/nes-tracker.html', '../cross/js/nes-tracker.js', '../smz3/z3host.html', '../smz3/js/store.js',
     '../zm/js/store.js', '../zm/js/data.js', '../zm/js/gen.js', '../zm/js/tracker.js', '../zm/js/map.js', '../zm/js/icons.js', '../metroid/js/data.js', '../metroid/js/logic.js', '../z1r/js/icons.js', '../z1r/js/owmap.js',
     '../randomizer/generate.js', '../randomizer/md5.js', '../randomizer/data/base-patch.bin', '../randomizer/data/lang-en.js', '../randomizer/data/config.js',
-    '../combo-theme.js', '../world-map.js', '../game-health.js', '../combo-toast.js', '../z3-media.js', '../randomizer/sprite.js', '../randomizer/msu.js', '../randomizer/zip.js', '../randomizer/library.js', '../randomizer/collection.js', '../sprites.json', '../game-popout.js', '../popout-panel.html', '../credits-splash.js', '../fonts/PressStart2P-Regular.ttf',
+    '../combo-theme.js', '../world-map.js', '../game-health.js', '../z1r/js/die.js', '../combo-toast.js', '../z3-media.js', '../randomizer/sprite.js', '../randomizer/msu.js', '../randomizer/zip.js', '../randomizer/library.js', '../randomizer/collection.js', '../sprites.json', '../game-popout.js', '../popout-panel.html', '../credits-splash.js', '../fonts/PressStart2P-Regular.ttf',
     // the emulators (../emu/, ../z1r/emu/), the randomizer's core and the trackers are outside this scope: the hub's offline cache keeps them
   ])).catch(() => {}));
   self.skipWaiting();

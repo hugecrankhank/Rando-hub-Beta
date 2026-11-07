@@ -11,13 +11,22 @@
  *
  * ☠️P2 next to it does it in one tap, item screen open or not (Hank, Oct 2026).
  * Both put the game straight where Up + A on controller 2 would (quitNow).
+ *
+ * The combo pages with Zelda 1 (Z1Z3, Rando Cross, Zelda 1 + Metroid) load it too, with
+ * window.Z1DieRam saying where Zelda 1's RAM is (the buttons show only while it's played).
  */
 (function () {
   'use strict';
   var $ = function (id) { return document.getElementById(id); };
   var MENU = 0xE1;   // MenuState: the item screen (Start) is open or opening
   var MODE = 0x12, SUBMODE = 0x13, UPDATING = 0x11, HEARTS = 0x66F, PARTIAL = 0x670, STATE = 0xAC, DIR = 0x98;
-  function ram() { var p = window.EmuPlayer, c = p && p.core; return c && c.wram ? c.wram() : null; }
+  // Zelda 1's work RAM: the page's own player (the Z1R page), or what a combo page says is Zelda 1
+  // now (window.Z1DieRam: Z1Z3 and Rando Cross, Zelda 1 in a frame; Zelda 1 + Metroid, when Link's
+  // world is the one playing); null while Zelda 1 isn't the game being played
+  function ram() {
+    if (window.Z1DieRam) { try { return window.Z1DieRam(); } catch (e) { return null; } }
+    var p = window.EmuPlayer, c = p && p.core; return c && c.wram ? c.wram() : null;
+  }
   // a file is being played (Zelda 1's "save slot in use" marks), out in the world, a dungeon or a cave
   function canDie(r) {
     if (!r || r.length < 0x800 || r[0xF5] !== 0x5A || r[0x528] !== 0x5A || r[0x16] > 2) return false;

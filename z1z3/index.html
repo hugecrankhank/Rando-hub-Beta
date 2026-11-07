@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="version" content="1.14.149">
+<meta name="version" content="1.14.150">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Z1Z3 - Rando Hub</title>
 <meta name="description" content="A Link to the Past and Zelda 1 in one seed: one item pool across both Hyrules, Kakariko's Elder's House the portal between them, played and tracked right here.">
@@ -462,6 +462,10 @@
 <script src="../game-health.js"></script>
 <script src="../combo-toast.js"></script>
 <script src="js/app.js"></script>
+<script>   // ☠️ and ☠️P2 (../z1r/js/die.js): Zelda 1 in the NES frame, while it's the game being played
+  window.Z1DieRam = function () { const f = document.getElementById('nes-frame'), n = f && !f.hidden && f.contentWindow && f.contentWindow.QuadNES; return n && n.active && n.game === 'z1' ? n.ram('z1') : null; };
+</script>
+<script src="../z1r/js/die.js"></script>
 <script type="module" src="../z3-media.js"></script>
 <script src="../game-popout.js" data-hub="../"></script><script src="../game-header.js" data-hub="../"></script><script src="../run-timer.js" data-hub="../"></script><script src="../cursor-hide.js"></script><script src="../web-update.js" data-hub="../"></script> <!-- rando-hub -->
 </body>

@@ -14,7 +14,7 @@ self.addEventListener('install', (e) => {
     '../smz3/gen/texts.js', '../smz3/gen/smz3gen.js', '../smz3/gen/zsm.ips', '../smz3/js/data.js', '../smz3/js/store.js', '../smz3/js/tracker.js', '../smz3/js/z3pick.js', '../smz3/z3host.html', '../smz3/follow.html', '../smz3/js/icons.js', '../smz3/js/map.js',
     '../zm/js/store.js', '../zm/js/data.js', '../zm/js/gen.js', '../zm/js/tracker.js', '../zm/js/map.js', '../zm/js/icons.js', '../metroid/js/data.js', '../metroid/js/logic.js', '../z1r/js/icons.js', '../z1r/js/owmap.js',
     '../combo-theme.js', '../world-map.js', '../sm/js/data.js', '../tracker/map/map_lw.png', '../tracker/map/map_dw.png',
-    '../game-health.js', '../combo-toast.js', '../z3-media.js', '../randomizer/sprite.js', '../randomizer/msu.js', '../randomizer/zip.js', '../randomizer/library.js', '../randomizer/collection.js', '../sprites.json', '../game-popout.js', '../popout-panel.html', '../credits-splash.js', '../fonts/PressStart2P-Regular.ttf',
+    '../game-health.js', '../z1r/js/die.js', '../combo-toast.js', '../z3-media.js', '../randomizer/sprite.js', '../randomizer/msu.js', '../randomizer/zip.js', '../randomizer/library.js', '../randomizer/collection.js', '../sprites.json', '../game-popout.js', '../popout-panel.html', '../credits-splash.js', '../fonts/PressStart2P-Regular.ttf',
     // the emulator (../emu/) is outside this scope: the hub's offline cache keeps it
   ])).catch(() => {}));
   self.skipWaiting();
