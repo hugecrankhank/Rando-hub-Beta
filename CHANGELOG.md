@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.147 (2026-11-07)
+
+- **Zelda 1 + Metroid: item notes at the top too.** "Link received … from Zebes" and "Found …: it's waiting for …" now show over the top of the game picture for 9 seconds, as on Rando Cross, Z1Z3 and M1SM. The note no longer fades in, so a busy phone can't leave it invisible.
+
 ## Beta v1.14.146 (2026-11-06)
 
 - **Combo pages: the note for an item crossing games moved to the top of the picture.** In Rando Cross, Z1Z3 and M1SM, "That's Zelda 1's Raft…", "Link received…" and the like now sit over the middle of the game's HUD, where A Link to the Past shows its rupees, bombs and arrows, instead of at the bottom of the screen. They stay up for 9 seconds (was 5 to 6), and a second one joins the first rather than piling up. Other notes stay where they were.

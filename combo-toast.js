@@ -49,7 +49,7 @@
       ' box-shadow: 0 2px 10px rgba(0,0,0,.5); display: flex; flex-direction: column; justify-content: center; animation: rh-itoast-in .2s ease-out; }' +
       '.rh-itoast div + div { margin-top: 3px; padding-top: 3px; border-top: 1px solid rgba(255,255,255,.15); }' +
       '.rh-itoast.rh-itoast-plain { left: 50%; top: calc(8px + env(safe-area-inset-top)); transform: translateX(-50%); width: min(90vw, 420px); font-size: 14px; }' +
-      '@keyframes rh-itoast-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }' +
+      '@keyframes rh-itoast-in { from { transform: translateY(-6px); } to { transform: none; } }' +
       '@media (prefers-reduced-motion: reduce) { .rh-itoast { animation: none; } }';
     document.head.appendChild(s);
   }

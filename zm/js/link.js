@@ -30,7 +30,7 @@
   let cores = { z1: null, m1: null }, game = 'z1', at = null, id = null, roms = { z1: null, m1: null };
   let states = { z1: null, m1: null }, pending = { z1: [], m1: [] }, taken = new Set(), given = { z1: 0, m1: 0 };
   let armed = { z1: true, m1: true }, fns = [], switching = false, lastSig = '', won = { z1: false, m1: false };
-  const toastFn = (t, ms) => (window.ZMToast || ((x) => console.log('[zm]', x)))(t, ms);
+  const toastFn = (t, ms, kind) => (window.ZMToast || ((x) => console.log('[zm]', x)))(t, ms, kind);
 
   function ram(g) { const c = cores[g || game]; try { return c ? c.wram() : null; } catch (e) { return null; } }
   function sram(g) { const c = cores[g || game]; try { return c ? c.sram() : null; } catch (e) { return null; } }
@@ -69,7 +69,7 @@
       const it = at && at[i]; if (!it) return;
       if (it.game !== game) {
         pending[it.game].push(it);
-        toastFn('Found ' + G.itemName(it) + ' — it’s waiting for ' + (it.game === 'z1' ? 'Link in Hyrule' : 'Samus on Zebes') + '.', 5000);
+        toastFn('Found ' + G.itemName(it) + ' — it’s waiting for ' + (it.game === 'z1' ? 'Link in Hyrule' : 'Samus on Zebes') + '.', 5000, 'item');
       }
       save();
     });
@@ -101,7 +101,7 @@
     if (!pending[game].length || !inPlay(game)) return;
     const list = pending[game]; pending[game] = [];
     list.forEach((it) => { if (game === 'z1') giveZelda(it); else giveMetroid(it); given[game]++; });
-    toastFn((game === 'z1' ? 'Link' : 'Samus') + ' received ' + list.map(G.itemName).join(', ') + ' from ' + (game === 'z1' ? 'Zebes' : 'Hyrule') + '.', 5000);
+    toastFn((game === 'z1' ? 'Link' : 'Samus') + ' received ' + list.map(G.itemName).join(', ') + ' from ' + (game === 'z1' ? 'Zebes' : 'Hyrule') + '.', 5000, 'item');
     save();
   }
 
