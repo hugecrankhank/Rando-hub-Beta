@@ -16,7 +16,7 @@
   map-follow.html — Z1Z3's one map window, for stream capture: A Link to the Past's maps (the Zelda 3
   tracker chosen in the column, both worlds: ../smz3/z3host.html?plain=1&phone=maps) and Zelda 1's
   (its tracker's map: ../cross/nes-tracker.html?only=z1&view=map, or with Zelda 1 by ZORA the Z1R
-  page's tracker), one over the other, the one shown following the game being played. One window
+  page's tracker's overworld map: z1r-tracker.html?view=map), one over the other, the one shown following the game being played. One window
   the whole time, so it keeps the size and place it was given.
 -->
 <div id="wait">Waiting for the Z1Z3 page…</div>
@@ -34,7 +34,7 @@
       id = o.QuadApp.id;
       let kind = 'mudora2'; try { kind = o.localStorage.getItem('z1z3:z3trk') || 'mudora2'; } catch (e) {}
       z3.src = '../smz3/z3host.html?plain=1&t=' + encodeURIComponent(kind) + '&phone=maps';
-      z1.src = o.QuadApp.meta.zora ? 'z1r-tracker.html' : '../cross/nes-tracker.html?only=z1&view=map';
+      z1.src = o.QuadApp.meta.zora ? 'z1r-tracker.html?view=map' : '../cross/nes-tracker.html?only=z1&view=map';
       document.getElementById('wait').remove && document.getElementById('wait').remove();
     }
     const w = o.Z1Z3Link.where === 'z1' ? 'z1' : 'z3';

@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.154 (2026-11-07)
+
+- **Z1Z3 with Zelda 1 by ZORA: the Z1R map in the shared map window.** **⧉ Map (follows the game)** now shows the Z1R tracker's overworld map on its own for ZORA seeds: the seed's real overworld, every check pinned, Link's dot, tracked live from the Zelda 1 being played in Z1Z3. It fills the window and fits itself again when the window is resized, and it swaps with Mudora 2.0's (or the other Zelda 3 tracker's) maps as you go through the portal.
+
 ## Beta v1.14.153 (2026-11-07)
 
 - **Z1Z3: one map window for stream capture.** **⧉ Map (follows the game)** in the tracker column opens a single window that shows A Link to the Past's maps (both worlds, from the Zelda 3 tracker you picked) while you're in ALttP and Zelda 1's map while you're in Zelda 1, switching as you go through the portal. It's the same window the whole time, so it keeps the size and place you give it (one capture source in OBS). With Zelda 1 by ZORA it shows the Z1R tracker.

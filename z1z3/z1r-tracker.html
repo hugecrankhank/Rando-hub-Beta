@@ -12,7 +12,14 @@
   html, body { height: 100%; margin: 0; }
   body { display: block !important; background: #000; }
   aside#tracker { border: 0 !important; height: 100%; overflow-y: auto; padding: 8px 10px calc(10px + env(safe-area-inset-bottom)); }
+  /* ?view=map: the overworld map alone, filling the window (the shared map window, map-follow.html) */
+  html.map-only aside#tracker { padding: 0 !important; overflow: hidden; }
+  html.map-only aside#tracker > *:not(.t-view.ow) { display: none !important; }
+  html.map-only .t-view.ow { display: flex !important; flex-direction: column; height: 100%; margin: 0 !important; }
+  html.map-only .ow-map { width: 100vw !important; height: auto !important; flex: 1 1 0; min-height: 0; margin: 0 !important; }
+  html.map-only .ow-bar { flex: none; padding: 2px 8px; font-size: 12px; }
 </style>
+<script>if (new URLSearchParams(location.search).get('view') === 'map') document.documentElement.classList.add('map-only');</script>
 </head>
 <body>
 <!--
@@ -66,6 +73,14 @@
     return null;
   }
   Z1Tracker.init(document.getElementById('tracker'));
+  // the map alone: its tab chosen (the tracker draws only the view shown), and the whole map fitted to the window as it changes size
+  if (document.documentElement.classList.contains('map-only')) {
+    const pick = () => { const t = document.querySelector('#tracker .tab-ow'); if (t && t.getAttribute('aria-selected') !== 'true') t.click(); };
+    pick(); setInterval(pick, 1000);
+    let fitT = null;
+    window.addEventListener('resize', () => { clearTimeout(fitT); fitT = setTimeout(() => { const r = document.querySelector('.ow-reset'); if (r) r.click(); }, 150); });
+    setTimeout(() => { const r = document.querySelector('.ow-reset'); if (r) r.click(); }, 1500);
+  }
   let session = null;
   function follow() {
     const h = host(); if (!h) return;
