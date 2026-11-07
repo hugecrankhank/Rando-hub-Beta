@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="version" content="1.14.151">
+<meta name="version" content="1.14.152">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Z1Z3 - Rando Hub</title>
 <meta name="description" content="A Link to the Past and Zelda 1 in one seed: one item pool across both Hyrules, Kakariko's Elder's House the portal between them, played and tracked right here.">
@@ -267,6 +267,7 @@
       padding-left: max(8px, env(safe-area-inset-left)); padding-right: max(8px, env(safe-area-inset-right)); overflow-x: auto; }
     .brand { font-size: 17px; margin: 0; }
     .brand-text { display: none; }
+    #swap .sw-l { display: none; }   /* ⇄ alone: room for the rest (the ☠️ buttons) */
     .btn { padding: 4px 8px; font-size: 14px; min-height: 30px; }
     .pill span { display: none; }
     #pad-status { gap: 0; } /* the dot only: controller connected or not */
@@ -346,7 +347,7 @@
 <header>
   <h1 class="brand" aria-label="Z1Z3"><span class="brand-text">Z1Z3</span></h1>
   <button class="btn primary" id="new-seed" type="button">New seed</button>
-  <button class="btn" id="swap" type="button" hidden title="Back to Kakariko (A Link to the Past): the P key does it too">⇄ Back to Kakariko</button>
+  <button class="btn" id="swap" type="button" hidden title="Back to Kakariko (A Link to the Past): the P key does it too">⇄<span class="sw-l"> Back to Kakariko</span></button>
   <span id="where"></span>
   <div class="spacer"></div>
   <button class="btn" id="install-btn" type="button" hidden>Install app</button>
@@ -462,6 +463,8 @@
 <script src="../game-health.js"></script>
 <script src="../combo-toast.js"></script>
 <script src="js/app.js"></script>
+<script>   window.Z1DieAfter = 'swap';
+</script>
 <script>   // ☠️ and ☠️P2 (../z1r/js/die.js): Zelda 1 in the NES frame, while it's the game being played
   window.Z1DieRam = function () { const f = document.getElementById('nes-frame'), n = f && !f.hidden && f.contentWindow && f.contentWindow.QuadNES; return n && n.active && n.game === 'z1' ? n.ram('z1') : null; };
 </script>

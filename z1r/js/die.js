@@ -81,8 +81,10 @@
     btn.style.cssText = 'font-size: 18px; padding-left: 8px; padding-right: 8px;';
     btn.hidden = true;
     btn.addEventListener('click', click);
+    var after = window.Z1DieAfter && $(window.Z1DieAfter);   // a combo page: right after this (its ⇄, where a one-line phone header still shows it)
     var anchor = $('game-settings') || $('pad-status') || $('link-status');
-    if (anchor && anchor.parentNode === header) header.insertBefore(btn, anchor); else header.appendChild(btn);
+    if (after && after.parentNode === header) header.insertBefore(btn, after.nextSibling);
+    else if (anchor && anchor.parentNode === header) header.insertBefore(btn, anchor); else header.appendChild(btn);
     btn2 = document.createElement('button');
     btn2.type = 'button'; btn2.id = 'z1-p2'; btn2.className = 'btn';
     btn2.innerHTML = '☠️<small style="font-size:11px;margin-left:2px">P2</small>';
@@ -93,7 +95,7 @@
     btn2.addEventListener('click', p2Quit);
     header.insertBefore(btn2, btn.nextSibling);
     var st = document.createElement('style');
-    st.textContent = '@media (max-width: 440px) { #z1-die, #z1-p2 { font-size: 15px !important; padding-left: 5px !important; padding-right: 5px !important; } }';
+    st.textContent = '#z1-die[hidden], #z1-p2[hidden] { display: none !important; } @media (max-width: 440px) { #z1-die, #z1-p2 { font-size: 15px !important; padding-left: 5px !important; padding-right: 5px !important; } }';
     document.head.appendChild(st);
   }
   setInterval(function () {

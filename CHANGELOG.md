@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.152 (2026-11-07)
+
+- **Combo pages: the ☠️ buttons can be seen on phones and iPads.** The header there is one line, and they were added at its far end, past the edge of the screen. Now they sit right after ⇄ (on narrow screens ⇄ alone, its words in its tooltip), and they're really hidden while A Link to the Past or Metroid is played (the page's button style had kept them showing).
+
 ## Beta v1.14.151 (2026-11-07)
 
 - **Z1Z3: Inverted and Retro.** The world state can now be Inverted or Retro too, with both Zelda 1 choices (Rando Hub's and ZORA).

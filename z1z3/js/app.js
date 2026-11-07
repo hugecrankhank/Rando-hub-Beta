@@ -76,7 +76,7 @@
     const el = $('q-portals'), m = QuadApp.meta; if (!el || !m) return;
     el.innerHTML = (m.portal && m.portal.hub ? m.portal.hub.replace(/^t/, 'T') : 'Kakariko') + ' is the hub: walk into <b>' + ((m.portal && m.portal.name) || 'the Elder’s House') + '</b> for Zelda 1’s Hyrule' + (m.zora ? ' (by ZORA)' : '') + '. Back: ' + (m.zora ? '⇄ / P.' : (m.options || {}).exits === 'exits' ? 'a “take any road” cave.' : '⇄ / P, or a “take any road” cave.') +
       ' <label class="q-sign-opt" title="The small “this way back” note over Zelda 1, at a way back"><input type="checkbox" id="q-signs"' + (Z1Z3Link.signs ? ' checked' : '') + '>Direction signs</label>';
-    const sw = $('swap'); if (sw) { const k = !m.portal || !m.portal.hub || m.portal.hub === 'Kakariko'; sw.textContent = k ? '⇄ Back to Kakariko' : '⇄ Back to ALttP'; sw.title = 'Back to ' + ((m.portal && m.portal.hub) || 'Kakariko') + ' (A Link to the Past): the P key does it too'; }
+    const sw = $('swap'); if (sw) { const k = !m.portal || !m.portal.hub || m.portal.hub === 'Kakariko'; sw.innerHTML = '⇄<span class="sw-l"> Back to ' + (k ? 'Kakariko' : 'ALttP') + '</span>'; sw.title = 'Back to ' + ((m.portal && m.portal.hub) || 'Kakariko') + ' (A Link to the Past): the P key does it too'; }
     const cb = $('q-signs'); if (cb) cb.addEventListener('change', () => { Z1Z3Link.signs = cb.checked; });
   }
   buildColumn();
