@@ -36,7 +36,9 @@
       if (base[k]) { el.textContent = '✓ ' + LABEL[k].replace(/:.*/, '') + ' · ' + base[k].name; el.className = 'msg ok'; }
       else { el.textContent = LABEL[k] + ' (still needed)'; el.className = 'msg'; }
     });
-    $('generate').disabled = !(base.jp && base.z1) || busy;
+    const zp = window.Z1Z3ZoraForm ? Z1Z3ZoraForm.problem : '';
+    $('generate').disabled = !(base.jp && base.z1) || busy || !!zp;
+    if (zp && !busy) setStatus(zp, 'warn'); else if (!busy && /Zelda 1 flags|ZORA is still/.test($('gen-status').textContent)) setStatus('');
   }
 
   // ── settings ─────────────────────────────────────────────────────────────
@@ -55,6 +57,8 @@
   function summary(o) {
     const parts = [];
     OPTS.forEach((opt) => { if (o[opt.key] !== opt.def) { const v = opt.values.find((x) => x[0] === o[opt.key]); parts.push(opt.label + ': ' + (v ? v[1] : o[opt.key])); } });
+    const zs = window.Z1Z3ZoraForm && o.zora ? Z1Z3ZoraForm.summary : '';
+    if (zs) parts.push(zs);
     return parts.length ? parts.join(' · ') : 'the default settings';
   }
 
@@ -70,9 +74,13 @@
     try {
       const G = await gen();
       await new Promise((r) => setTimeout(r, 30));
-      const t0 = performance.now(), o = options();
-      const r = await G.generate({ jp: base.jp.bytes, z1: base.z1.bytes, seed: typed ? +typed : 0, options: o });
-      r.meta.summary = summary(r.meta.options);
+      if (window.Z1Z3ZoraForm && Z1Z3ZoraForm.mode === 'zora') {
+        setStatus('Starting ZORA…', 'busy'); await Z1Z3ZoraForm.ready();
+        if (Z1Z3ZoraForm.problem) throw new Error(Z1Z3ZoraForm.problem);
+      }
+      const t0 = performance.now(), o = options(), zo = window.Z1Z3ZoraForm ? Z1Z3ZoraForm.value : null;
+      const r = await G.generate({ jp: base.jp.bytes, z1: base.z1.bytes, seed: typed ? +typed : 0, options: o, zora: zo, stage: (t) => setStatus(t, 'busy') });
+      r.meta.summary = summary(Object.assign({ zora: !!zo }, r.meta.options));
       r.meta.spoiler = r.spoiler; r.meta.at = r.at; r.meta.chests = r.chests;
       last = { rom: r.rom, z1: r.z1, name: 'z1z3-' + r.seed, meta: r.meta };
       setStatus('Ready in ' + ((performance.now() - t0) / 1000).toFixed(2) + ' s.', 'ok');
@@ -98,6 +106,7 @@
     onPlay = (opts && opts.onPlay) || onPlay;
     const dlg = $('seed-dlg');
     buildOptions();
+    if (window.Z1Z3ZoraForm) Z1Z3ZoraForm.init(paintBase);
     $('dice').addEventListener('click', () => { $('seed').value = randomSeed(); });
     $('base-input').addEventListener('change', async (ev) => {
       const files = Array.from(ev.target.files || []); ev.target.value = '';

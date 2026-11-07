@@ -591,6 +591,12 @@ inside the hub, with its own emulator, seed generator, tracker and saves.
   that follows the game being played, each in a window of its own on a desktop; sprite & MSU-1
   as on the Zelda 3 page. Two ROMs: the Japanese 1.0 A Link to the Past and The Legend of Zelda
   (USA) (already in the browser if you've used SMZ3, Rando Cross or Zelda 1 + Metroid).
+  Zelda 1 can also be rolled by ZORA (the Z1R page's randomizer, through its own multiworld
+  support), with every Z1R option: dungeon shapes, overworld, caves, shops, monsters, start items
+  and the rest, by preset, flag strings, the Z1R page's last flags or every option in tabs. ZORA's
+  places and access rules join A Link to the Past's in the one fill; Zelda 1's pickups are read
+  with ZORA's own checks and items are handed over as its multiworld client does (counted in the
+  save); the Zelda 1 tracker is then the Z1R page's own. The way back is ⇄ / P.
 - **M1SM** (`m1sm/`): Metroid and Super Metroid in one seed, Rando Hub's own. Super Metroid is
   rolled by the Super Metroid page's DASH randomizer (its presets), Metroid by Rando Hub's own
   Metroid fill, and then items trade games: a Super Metroid item can sit on a Metroid spot and a

@@ -10,7 +10,8 @@ const EXTERNAL = ['https://fonts.googleapis.com/', 'https://fonts.gstatic.com/']
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll([
-    './', './index.html', './manifest.webmanifest', './hub.js', './js/gen.js', './js/give.js', './js/seed.js', './js/link.js', './js/app.js',
+    './', './index.html', './manifest.webmanifest', './hub.js', './js/gen.js', './js/give.js', './js/seed.js', './js/link.js', './js/app.js', './js/zora.js', './js/zora-form.js', './zora/worker.js', './zora/glue.py', './z1r-tracker.html',
+    '../z1r/zora/wheel.json', '../z1r/zora/flag-tabs.json', '../z1r/js/icons.js', '../z1r/js/store.js', '../z1r/js/tracker.js',
     '../cross/nes.html', '../cross/js/nes.js', '../cross/nes-tracker.html', '../cross/js/nes-tracker.js', '../smz3/z3host.html', '../smz3/js/store.js',
     '../zm/js/store.js', '../zm/js/data.js', '../zm/js/gen.js', '../zm/js/tracker.js', '../zm/js/map.js', '../zm/js/icons.js', '../metroid/js/data.js', '../metroid/js/logic.js', '../z1r/js/icons.js', '../z1r/js/owmap.js',
     '../randomizer/generate.js', '../randomizer/md5.js', '../randomizer/data/base-patch.bin', '../randomizer/data/lang-en.js', '../randomizer/data/config.js',

@@ -35,6 +35,8 @@
     setCol('z3');
   }
   const z3Src = () => '../smz3/z3host.html?plain=1&t=' + Z3_KIND();
+  // Zelda 1's tracker: with Zelda 1 by ZORA, the Z1R page's own (its real overworld and levels); else the Zelda 1 + Metroid one
+  const z1Src = (view) => (QuadApp.meta && QuadApp.meta.zora ? 'z1r-tracker.html' : '../cross/nes-tracker.html?only=z1' + (view ? '&view=' + view : ''));
   // phones (as on Rando Cross and SMZ3): the Zelda 3 tracker one panel at a time, picked by a row
   // of tabs (items, Light World, Dark World, keys); bigger screens: the whole tracker
   let compact = false, phoneTab = 'items';
@@ -53,14 +55,17 @@
     document.querySelectorAll('.q-col button').forEach((b) => b.setAttribute('aria-pressed', b.dataset.c === c ? 'true' : 'false'));
     if (QuadApp.meta) {
       if (c === 'z3' && !z3Trk.getAttribute('src')) z3Trk.src = z3Src();
-      if (c === 'z1' && !nesTrk.getAttribute('src')) nesTrk.src = '../cross/nes-tracker.html?only=z1';
+      const z1src = z1Src(), zm = !!QuadApp.meta.zora, pm = document.querySelector('.q-pops [data-p=z1map]'), pi = document.querySelector('.q-pops [data-p=z1items]');
+      if (pm) pm.hidden = zm;   // (the Z1R tracker is one page: items, levels and the map)
+      if (pi) pi.textContent = zm ? '⧉ Zelda 1 tracker' : '⧉ Zelda 1 items';
+      if (c === 'z1' && nesTrk.getAttribute('src') !== z1src) nesTrk.src = z1src;
     }
   }
   const wins = {};
   function popOut(k) {
     let w = wins[k];
     if (w && !w.closed) { w.focus(); return; }
-    const url = k === 'z3' ? z3Src() : '../cross/nes-tracker.html?only=z1&view=' + (k === 'z1map' ? 'map' : 'items');
+    const url = k === 'z3' ? z3Src() : z1Src(k === 'z1map' ? 'map' : 'items');
     w = window.open(url, 'z1z3-' + k, 'popup=yes,resizable=yes,width=' + (k === 'z1map' ? 900 : k === 'z3' ? 760 : 520) + ',height=' + (k === 'z1map' ? 560 : 720));
     if (!w) { alert('The pop-out was blocked: allow pop-ups for this site.'); return; }
     wins[k] = w;
@@ -69,7 +74,7 @@
   window.addEventListener('pagehide', () => Object.keys(wins).forEach((k) => { try { wins[k].close(); } catch (e) {} }));
   function paintPortals() {
     const el = $('q-portals'), m = QuadApp.meta; if (!el || !m) return;
-    el.innerHTML = 'Kakariko is the hub: walk into <b>' + ((m.portal && m.portal.name) || 'the Elder’s House') + '</b> for Zelda 1’s Hyrule. Back: ' + ((m.options || {}).exits === 'exits' ? 'a “take any road” cave.' : '⇄ / P, or a “take any road” cave.') +
+    el.innerHTML = 'Kakariko is the hub: walk into <b>' + ((m.portal && m.portal.name) || 'the Elder’s House') + '</b> for Zelda 1’s Hyrule' + (m.zora ? ' (by ZORA)' : '') + '. Back: ' + (m.zora ? '⇄ / P.' : (m.options || {}).exits === 'exits' ? 'a “take any road” cave.' : '⇄ / P, or a “take any road” cave.') +
       ' <label class="q-sign-opt" title="The small “this way to Kakariko” note over Zelda 1, at a way back"><input type="checkbox" id="q-signs"' + (Z1Z3Link.signs ? ' checked' : '') + '>Direction signs</label>';
     const cb = $('q-signs'); if (cb) cb.addEventListener('change', () => { Z1Z3Link.signs = cb.checked; });
   }

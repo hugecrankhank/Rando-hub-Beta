@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Zelda 1 tracker · Z1Z3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Pixelify+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style id="z1r-css"></style>
+<style>
+  html, body { height: 100%; margin: 0; }
+  body { display: block !important; background: #000; }
+  aside#tracker { border: 0 !important; height: 100%; overflow-y: auto; padding: 8px 10px calc(10px + env(safe-area-inset-bottom)); }
+</style>
+</head>
+<body>
+<!--
+  z1r-tracker.html — Z1Z3 with Zelda 1 by ZORA: the Z1R page's own tracker (../z1r/js/tracker.js:
+  items, levels, the seed's real overworld drawn from its ROM, every check pinned), reading Zelda 1
+  as it runs in the Z1Z3 page (its NES frame, ../cross/nes.html) instead of the Z1R page's player.
+  Its styles are the Z1R page's, taken from that page so the two never drift apart. Opened in the
+  tracker column, or in a window of its own (window.opener).
+-->
+<aside id="tracker" aria-label="Zelda 1 tracker"></aside>
+<script>
+(function () {
+  'use strict';
+  // the Z1Z3 page: this frame's parent, the opener of a pop-out, or a pop-out's opener's frame
+  function host() {
+    const c = [];
+    try { if (parent !== window) c.push(parent); } catch (e) {}
+    try { if (window.opener) c.push(window.opener); } catch (e) {}
+    for (const w of c) { try { if (w.QuadApp && w.QuadNESLink) return w; } catch (e) {} }
+    return null;
+  }
+  const nes = () => { const h = host(); return h && h.QuadNESLink; };
+  // the tracker's view of the NES (as the Z1R page's js/nes-bridge.js), from the Z1Z3 page's Zelda 1
+  window.NesBridge = {
+    ram() { const n = nes(); try { const r = n && n.cores && n.cores.z1 ? n.ram('z1') : null; return r && r.length >= 0x800 ? r : null; } catch (e) { return null; } },
+    sram() { const n = nes(); try { const r = n && n.cores && n.cores.z1 ? n.sram('z1') : null; return r && r.length >= 0x2000 ? r : null; } catch (e) { return null; } },
+    status() { const live = !!this.ram(); return { running: live, mode: live ? 'live' : 'idle', direct: live }; },
+    invalidate() {}, onStatus() {}, peek() { return ''; },
+  };
+  window.EJS_emulator = { core: { loaded: true } };   // (the tracker says "waiting" rather than "off" until Zelda 1 runs)
+})();
+</script>
+<script src="../z1r/js/icons.js"></script>
+<script src="../z1r/js/store.js"></script>
+<script src="../z1r/js/owmap.js"></script>
+<script src="../z1r/js/tracker.js"></script>
+<script>
+(function () {
+  'use strict';
+  fetch('../z1r/index.html').then((r) => r.text()).then((t) => {
+    const m = t.match(/<style>([\s\S]*?)<\/style>/);
+    if (m) document.getElementById('z1r-css').textContent = m[1];
+  }).catch(() => {});
+  function host() {
+    const c = [];
+    try { if (parent !== window) c.push(parent); } catch (e) {}
+    try { if (window.opener) c.push(window.opener); } catch (e) {}
+    for (const w of c) { try { if (w.QuadApp && w.QuadNESLink) return w; } catch (e) {} }
+    return null;
+  }
+  Z1Tracker.init(document.getElementById('tracker'));
+  let session = null;
+  function follow() {
+    const h = host(); if (!h) return;
+    const app = h.QuadApp, n = h.QuadNESLink;
+    if (!app || !app.id || !n || !n.roms || !n.roms.z1) return;
+    if (session === app.id) return;
+    session = app.id;
+    Z1Tracker.setSession('z1z3-' + app.id, 'Z1Z3 seed ' + ((app.meta && app.meta.seed) || ''));
+    Z1Tracker.setRom(n.roms.z1);
+  }
+  follow(); setInterval(follow, 1000);
+})();
+</script>
+</body>
+</html>

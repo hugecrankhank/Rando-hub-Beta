@@ -36,7 +36,7 @@
   let opts = { link: 'hub', exits: 'anywhere' };
   function atPortal(g) {
     g = g || game; const r = ram(g); if (!r || !inPlay(g)) return false;
-    if (g === 'z1') return r[Z.RAM.MODE] === 0x0B && Z.PORTAL_SCREENS.indexOf(r[Z.RAM.ROOM]) >= 0;
+    if (g === 'z1') return !zora && r[Z.RAM.MODE] === 0x0B && Z.PORTAL_SCREENS.indexOf(r[Z.RAM.ROOM]) >= 0;   // (ZORA moves the caves: ⇄ / P only)
     const area = M.AREA_CODE[r[M.MEM.AREA] & 15];
     return M.ELEVATORS.some((e) => e[0] === area && e[1] === r[M.MEM.MAP_X] && e[2] === r[M.MEM.MAP_Y]);
   }
@@ -44,7 +44,9 @@
   // ── pickups ──────────────────────────────────────────────────────────────
   function takenNow(g) {
     const out = new Set(), r = ram(g), s = sram(g); if (!r) return out;
-    if (g === 'z1') {
+    if (g === 'z1' && zora) {   // ZORA's places: each one's pickup flag, once the flags hold the loaded file
+      if (checksReadable(r)) at.forEach((it, i) => { if (it && it.check && (r[it.check[0]] & it.check[1])) out.add(i); });
+    } else if (g === 'z1') {
       Z.SPOTS.forEach((sp, i) => {
         let f = 0;
         if (sp[2] === 'room') f = r[Z.RAM.WORLD + 0x80 * (sp[3][0] + 1) + sp[3][1]];
@@ -71,6 +73,43 @@
       save();
     });
   }
+  // ── ZORA mode (Z1Z3 with Zelda 1 by ZORA) ─────────────────────────────────
+  // Its places are told by ZORA's own pickup checks; Link gets the other game's finds as ZORA's
+  // Archipelago client gives them: one at a time, only in normal play (mayReceive), each the way
+  // the game's TakeItem gives it (zoraGive, a port of zora/rom/inventory.py's give), counted in the
+  // save file ($067B), so a loaded state or an older save never misses one or gets one twice.
+  let zora = null, got = [];
+  const LOADED = (m) => (m >= 2 && m <= 0x0C) || (m >= 0x10 && m <= 0x13);
+  function checksReadable(r) { return LOADED(r[0x12]) && r[0x11] <= 1 && r[0x16] < 3 && r[0xF5] === 0x5A && r[0x528] === 0x5A; }
+  function mayReceive(r) { return r[0x12] === 5 && r[0x13] === 0 && r[0x11] === 1 && r[0xE0] === 0 && r[0xE1] === 0 && r[0x506] === 0 && (r[0xAC] & 0xC0) !== 0x40; }
+  function zoraGive(code, r) {
+    const T = zora, slots = T.slots, desc = T.descriptors, rules = T.give || {}, ITEMS = 0x657;
+    if (slots[code] === 0 && r[ITEMS] > 3) return true;   // (a fourth sword: the line's top)
+    if (rules.progressive && code < 0x1F) {
+      if (code === 0x1D || code === 0x1E) code = 0x1D + r[ITEMS + 0x1D];
+      else if ((desc[code] & 0xF0) === 0x20) { const sl = slots[code], f = code - (desc[code] & 0x0F) + r[ITEMS + sl] + 1; code = slots[f] === sl ? f : f - 1; }
+    }
+    const slot = slots[code], d = desc[code];
+    if ([0x10, 0x11, 0x1A, 0x1B, 0x16, 0x1C, 0x14, 0x19].indexOf(slot) >= 0) return false;
+    const a = ITEMS + slot, v = d & 0x0F, cur = r[a], kind = d & 0xF0;
+    let nv;
+    if (kind === 0x00) nv = v;
+    else if (kind === 0x20) { nv = Math.max(cur, v); if (rules.l4 && slot === 0 && cur === v && v === 3) nv = 4; }
+    else if (kind === 0x10 && slot === 0x18) nv = cur >= 0xF0 ? cur : cur + 0x11;
+    else if (kind === 0x10) { nv = Math.min(cur + v, 0xFF); if (slot === 7) nv = Math.min(nv, rules.fourPotions ? 4 : 2); if (slot === 1) nv = Math.min(nv, r[0x67C]); }
+    else nv = 0xFF;
+    r[a] = nv;
+    if (a === 0x662 && Z.tunic) Z.tunic(r, sram('z1'));   // a ring: the tunic's colour too
+    return true;
+  }
+  function deliverZora() {
+    const r = ram('z1'); if (!r || !mayReceive(r)) return;
+    const c = r[0x67B]; if (c >= got.length) return;
+    const it = got[c];
+    zoraGive(it.type, r); r[0x67B] = c + 1;
+    toast('Link received ' + (it.name || G.itemName(it)) + '.');
+    emit();
+  }
   function giveZelda(it) {
     const r = ram('z1'), g = Z.GIVE[it.type]; if (!r || !g) return;
     if (g[0] === 'hc') { const h = r[Z.RAM.HEARTS]; const c = Math.min(15, (h >> 4) + 1); r[Z.RAM.HEARTS] = (c << 4) | 0x0F; r[0x670] = 0xFF; return; }
@@ -93,6 +132,7 @@
     else { s[M.MEM.MAX_MISSILES] = Math.min(255, s[M.MEM.MAX_MISSILES] + 5); s[M.MEM.MISSILES] = Math.min(255, s[M.MEM.MISSILES] + 5); }
   }
   function deliver() {
+    if (zora && game === 'z1') deliverZora();
     if (!game || !pending[game].length || !inPlay(game)) return;
     const list = pending[game]; pending[game] = [];
     list.forEach((it) => { if (game === 'z1') giveZelda(it); else giveMetroid(it); });
@@ -107,7 +147,7 @@
     const p = P();
     try { if (active && p && p.core && cores[game] === p.core && (!window.QuadNESHealth || QuadNESHealth.alive())) states[game] = p.core.saveState(); } catch (e) {}
   }
-  function record() { return { states: { z1: states.z1 ? states.z1.buffer.slice(0) : null, m1: states.m1 ? states.m1.buffer.slice(0) : null }, pending, taken: Array.from(taken), won, game, t: Date.now() }; }
+  function record() { return { states: { z1: states.z1 ? states.z1.buffer.slice(0) : null, m1: states.m1 ? states.m1.buffer.slice(0) : null }, pending, got, taken: Array.from(taken), won, game, t: Date.now() }; }
   let saveT = null;
   function save() {
     clearTimeout(saveT);
@@ -127,7 +167,7 @@
     if (game === 'z1' && z && z[Z.RAM.MODE] === 0x13 && !won.z1) { won.z1 = true; on({ type: 'won', game: 'z1' }); save(); }
     if (game === 'm1' && m && m[0x1E] === 7 && inPlay('m1') && !won.m1) { won.m1 = true; on({ type: 'won', game: 'm1' }); save(); }
     const r = ram(game);
-    const sig = game + ':' + (r ? (inPlay(game) ? 1 : 0) : 'x') + ':' + taken.size + ':' + pending.z1.length + ':' + pending.m1.length + ':' + (here ? 1 : 0);
+    const sig = game + ':' + (r ? (inPlay(game) ? 1 : 0) : 'x') + ':' + taken.size + ':' + pending.z1.length + ':' + pending.m1.length + ':' + got.length + ':' + (here ? 1 : 0);
     if (sig !== lastSig) { lastSig = sig; emit(); }
   }
 
@@ -179,22 +219,23 @@
   }
 
   function init(o) {
-    at = o.at; id = o.id; roms = { z1: o.z1, m1: o.m1 }; store = o.store; on = o.on || on; opts = Object.assign(opts, o.options || {});
+    at = o.at; id = o.id; roms = { z1: o.z1, m1: o.m1 }; store = o.store; on = o.on || on; opts = Object.assign(opts, o.options || {}); zora = o.zora || null;
     return (o.resume && store ? store.get('quad-nes:' + id) : Promise.resolve(null)).then((saved) => {
       if (!saved) return;
       states = { z1: saved.states && saved.states.z1 ? new Uint8Array(saved.states.z1) : null, m1: saved.states && saved.states.m1 ? new Uint8Array(saved.states.m1) : null };
-      pending = saved.pending || { z1: [], m1: [] }; taken = new Set(saved.taken || []); won = saved.won || { z1: false, m1: false };
+      pending = saved.pending || { z1: [], m1: [] }; got = saved.got || []; taken = new Set(saved.taken || []); won = saved.won || { z1: false, m1: false };
       game = saved.game || null;
     });
   }
 
   window.QuadNES = {
     init, enter, leave, ram, sram, inPlay, atPortal, save,
-    give(it) { if (!it || (it.game !== 'z1' && it.game !== 'm1')) return; pending[it.game].push(it); save(); emit(); },
+    give(it) { if (!it || (it.game !== 'z1' && it.game !== 'm1')) return; if (zora && it.game === 'z1') got.push(it); else pending[it.game].push(it); save(); emit(); },
     get game() { return game || (roms.z1 ? 'z1' : 'm1'); },
     get active() { return active; },
     get booted() { return !!(cores.z1 || (!roms.z1 && cores.m1)); },
-    get state() { return { game: game || (roms.z1 ? 'z1' : 'm1'), taken, pending, won, given: { z1: 0, m1: 0 } }; },
+    get state() { return { game: game || (roms.z1 ? 'z1' : 'm1'), taken, pending, won, got, given: { z1: 0, m1: 0 } }; },
+    get zora() { return zora; },
     get cores() { return cores; },
     get roms() { return roms; },
     onChange(f) { fns.push(f); },

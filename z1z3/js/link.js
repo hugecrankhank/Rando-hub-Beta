@@ -69,7 +69,7 @@
     const c = (meta.chests || []).find((x) => x.room === room && x.id === got && rec.chestDone.indexOf(x.loc) < 0);
     if (!c) return;
     rec.chestDone.push(c.loc);
-    if (nes) nes.give({ game: 'z1', type: c.type });
+    if (nes) nes.give({ game: 'z1', type: c.type, name: c.name });
     toast('That’s Zelda 1’s ' + c.name + ': Link gets it in the other Hyrule.', 6000);
     save(); emit();
   }
@@ -79,7 +79,7 @@
     const r = snesRam(); if (!r || r[0x10] !== 0x07 || !r[0x1B]) return false;
     return PORTAL().entrances.indexOf(r[0x10E]) >= 0;
   }
-  const opt = () => Object.assign({ exits: 'anywhere' }, meta && meta.options || {});
+  const opt = () => Object.assign({ exits: 'anywhere' }, meta && meta.options || {}, meta && meta.zora ? { exits: 'anywhere' } : {});   // (ZORA moves the caves: ⇄ / P)
   const atSpot = () => where === 'z1' && !!nes && nes.atPortal('z1');
   function canBack() { return where === 'z1' && (opt().exits !== 'exits' || atSpot()); }
   function go() {
@@ -120,7 +120,7 @@
   function signFor() {
     if (where !== 'z1' || !nes || switching) return null;
     const r = nes.ram('z1'); if (!r || !nes.inPlay('z1')) return null;
-    if (r[ZM.RAM.LEVEL] === 0 && r[ZM.RAM.MODE] === 5 && ZM.PORTAL_SCREENS.indexOf(r[ZM.RAM.ROOM]) >= 0)
+    if (!meta.zora && r[ZM.RAM.LEVEL] === 0 && r[ZM.RAM.MODE] === 5 && ZM.PORTAL_SCREENS.indexOf(r[ZM.RAM.ROOM]) >= 0)
       return ['This way to Kakariko: the cave on this screen', opt().exits === 'exits' ? 'Walk in and it takes you back' : 'Walk in, or ⇄ / P anywhere'];
     return null;
   }
@@ -168,8 +168,8 @@
       nes = frame.contentWindow.QuadNES;
       window.QuadNESLink = nes;   // the Zelda 1 tracker's reads (../cross/nes-tracker.html)
       // Zelda 1's spots: its own items, or an ALttP item ('snes': nes.js hands it back here)
-      const at = meta.at.map((a) => (a.game === 'z1' ? { game: 'z1', type: a.type } : { game: 'snes', name: a.name, nice: a.nice }));
-      return nes.init({ z1: o.z1, m1: null, at, id: 'z1z3-' + id, store: SMZ3Store, resume: !!o.resume, on: onNes, options: { link: 'hub', exits: opt().exits } });
+      const at = meta.at.map((a) => Object.assign(a.game === 'z1' ? { game: 'z1', type: a.type, name: a.name } : { game: 'snes', name: a.name, nice: a.nice }, a.check ? { check: a.check, place: a.place } : {}));
+      return nes.init({ z1: o.z1, m1: null, at, id: 'z1z3-' + id, store: SMZ3Store, resume: !!o.resume, on: onNes, options: { link: 'hub', exits: opt().exits }, zora: meta.zora || null });
     }).then(() => {
       started = true; armed = false;
       setInterval(poll, 150);

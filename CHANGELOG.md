@@ -5,6 +5,14 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.145 (2026-11-06)
+
+- **Z1Z3: Zelda 1 by ZORA, with every Z1R option.** The seed dialog has a new **Zelda 1** choice: Rando Hub's own (as before: 17 item spots shared, the rest as in the game) or **ZORA**, the Z1R page's randomizer, with its presets, your own flags (or **Use my Z1R page flags**) and **Every option** in tabs as on the Z1R page: dungeon shapes, overworld, cave shuffle, shops, monsters, start items, ZORA's extras and the rest.
+  - ZORA builds Zelda 1 and says where its items can go and what each place needs; those rules join A Link to the Past's in one fill, so the seed is beatable across both games, and ZORA's own check confirms its side. Items trade both ways: about 20 Zelda 1 items end up in ALttP chests and as many ALttP items in Zelda 1's places.
+  - In play, Zelda 1's pickups are read with ZORA's own pickup checks, and items from ALttP are handed to Link the way ZORA's multiworld client does it: one at a time, only in normal play, counted in the save file, so loading a state or an older save never loses one or gives one twice.
+  - The Zelda 1 tracker for these seeds is the Z1R page's own: the seed's real overworld, its levels, every check.
+  - Shared seeds always shuffle items fully, and a few options ZORA doesn't offer for multiworld yet are named in the dialog (Generate waits until they're changed). The way back to Kakariko is ⇄ / P (ZORA moves the caves). ZORA loads the first time you pick it (a few seconds), then seeds take about 2 seconds.
+
 ## Beta v1.14.144 (2026-11-06)
 
 - **Zelda 1: a ring from the other game changes Link's tunic.** In Z1Z3, Rando Cross and Zelda 1 + Metroid, a Blue or Red Ring found in the other game cut Link's damage but left him in green. Now he turns blue or red as with a ring picked up in Zelda 1, and a save that already has its ring (from before this fix) is put right as soon as it's played. The Blue Ring can now be handed over too, and a Blue Ring after a Red one no longer takes the red away.
