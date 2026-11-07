@@ -74,17 +74,18 @@
     if (q.get('roll') === '1') {
       var mode = q.get('mode') || '';
       try { history.replaceState(null, '', location.pathname); } catch (e) {}
-      var tries = 0, t = setInterval(function () {
-        if (++tries > 40) { clearInterval(t); return; }
-        if (!window.FF6Seed || !window.FF6Seed.reroll) return;
-        clearInterval(t);
+      // rolls once this game can (its ROM in this browser); until then ../roll-games.js says so
+      var from = q.get('from') || '', RR = window.RandoRoll;
+      var roll = function () {
         if (mode === 'preset' || mode === 'chaos') {
           var sel = document.getElementById('preset');
           var ids = (window.FF6 ? FF6.PRESETS : []).filter(function (p) { return p.id !== 'custom'; }).map(function (p) { return p.id; });
           if (sel && ids.length) { sel.value = ids[Math.floor(Math.random() * ids.length)]; sel.dispatchEvent(new Event('change')); }
         }
         window.FF6Seed.reroll().then(function (r) { if (r) logSeed(); }).catch(function (e) { alert('Couldn’t roll a Worlds Collide seed: ' + (e && e.message || e)); });
-      }, 250);
+      };
+      var ready = function () { return !!(window.FF6Seed && window.FF6Seed.reroll && window.FF6Seed.hasRom && window.FF6Seed.hasRom()); };
+      if (RR && RR.landed) RR.landed({ name: 'FF6 Worlds Collide', from: from, ready: ready, roll: roll, pickRom: function () { window.FF6Seed.open(); } });
     }
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

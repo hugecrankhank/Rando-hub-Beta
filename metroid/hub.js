@@ -69,12 +69,13 @@
     var q = new URLSearchParams(location.search);
     if (q.get('roll') === '1') {
       try { history.replaceState(null, '', location.pathname); } catch (e) {}
-      var tries = 0, t = setInterval(function () {
-        if (++tries > 40) { clearInterval(t); return; }
-        if (!window.M1Seed || !window.M1Seed.reroll) return;
-        clearInterval(t);
+      // rolls once this game can (its ROM in this browser); until then ../roll-games.js says so
+      var from = q.get('from') || '', RR = window.RandoRoll;
+      var roll = function () {
         window.M1Seed.reroll().then(function (r) { if (r) logSeed(); }).catch(function (e) { alert('Couldn’t roll a seed: ' + (e && e.message || e)); });
-      }, 250);
+      };
+      var ready = function () { return !!(window.M1Seed && window.M1Seed.reroll && window.M1Seed.hasRom && window.M1Seed.hasRom()); };
+      if (RR && RR.landed) RR.landed({ name: 'Metroid', from: from, ready: ready, roll: roll, pickRom: function () { window.M1Seed.open(); } });
     }
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

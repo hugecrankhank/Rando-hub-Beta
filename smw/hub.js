@@ -69,12 +69,13 @@
     var q = new URLSearchParams(location.search);
     if (q.get('roll') === '1') {
       try { history.replaceState(null, '', location.pathname); } catch (e) {}
-      var tries = 0, t = setInterval(function () {
-        if (++tries > 40) { clearInterval(t); return; }
-        if (!window.SMWSeed || !window.SMWSeed.reroll) return;
-        clearInterval(t);
+      // rolls once this game can (its ROM in this browser); until then ../roll-games.js says so
+      var from = q.get('from') || '', RR = window.RandoRoll;
+      var roll = function () {
         window.SMWSeed.reroll().then(function (r) { if (r) logSeed(); }).catch(function (e) { alert('Couldn’t roll a seed: ' + (e && e.message || e)); });
-      }, 250);
+      };
+      var ready = function () { return !!(window.SMWSeed && window.SMWSeed.reroll && window.SMWSeed.hasRom && window.SMWSeed.hasRom()); };
+      if (RR && RR.landed) RR.landed({ name: 'Super Mario World', from: from, ready: ready, roll: roll, pickRom: function () { window.SMWSeed.open(); } });
     }
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

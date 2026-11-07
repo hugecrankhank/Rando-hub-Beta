@@ -69,12 +69,13 @@
     var q = new URLSearchParams(location.search);
     if (q.get('roll') === '1') {
       try { history.replaceState(null, '', location.pathname); } catch (e) {}
-      var tries = 0, t = setInterval(function () {
-        if (++tries > 40) { clearInterval(t); return; }
-        if (!window.ZMSeed || !window.ZMSeed.reroll) return;
-        clearInterval(t);
+      // rolls once this game can (its ROM in this browser); until then ../roll-games.js says so
+      var from = q.get('from') || '', RR = window.RandoRoll;
+      var roll = function () {
         window.ZMSeed.reroll().then(function (r) { if (r) logSeed(); }).catch(function (e) { alert('Couldn’t roll a seed: ' + (e && e.message || e)); });
-      }, 250);
+      };
+      var ready = function () { return !!(window.ZMSeed && window.ZMSeed.reroll && window.ZMSeed.hasRom && window.ZMSeed.hasRom()); };
+      if (RR && RR.landed) RR.landed({ name: 'Zelda 1 + Metroid', from: from, ready: ready, roll: roll, pickRom: function () { window.ZMSeed.open(); }, roms: 'its ROMs (Zelda 1 and Metroid)' });
     }
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

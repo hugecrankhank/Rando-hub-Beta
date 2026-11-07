@@ -99,7 +99,7 @@
       if (!R) return;
       var a = R.allowed(), s = R.shown();
       holder.innerHTML = 'Rerolls can land on: ' + R.GAMES.filter(function (g) { return s[g.id]; }).map(function (g) {
-        return '<label><input type="checkbox" data-roll="' + g.id + '"' + (g.id === 'z3' ? ' checked disabled title="This game"' : (a[g.id] ? ' checked' : '')) + '> ' + g.name + '</label>';
+        return '<label' + (g.id === 'z3' ? ' title="Rerolls in the other games can land on Zelda 3 (a reroll here can always stay here)"' : '') + '><input type="checkbox" data-roll="' + g.id + '"' + (a[g.id] ? ' checked' : '') + '> ' + g.name + '</label>';
       }).join('');
       // the links: only the games shown
       row.querySelectorAll('.gm a[data-game]').forEach(function (el) { el.style.display = s[el.dataset.game] === false ? 'none' : ''; });
@@ -115,28 +115,24 @@
     });
     holder.addEventListener('change', function (e) {
       var cb = e.target; if (!cb || !cb.dataset.roll) return;
-      var a = R.allowed(); a[cb.dataset.roll] = cb.checked; a.z3 = true; R.setAllowed(a);
+      var a = R.allowed(); a[cb.dataset.roll] = cb.checked; R.setAllowed(a);
     });
     window.addEventListener('storage', function (e) { if (e.key === R.KEY || e.key === EITHER_KEY || e.key === R.SHOWN_KEY) paintGames(); });
     document.body.addEventListener('rh-games-changed', paintGames);   // Manage games (the Games menu)
   }
 
-  // ── ?roll=1: arrived from Zelda 1's reroll ────────────────────────────────
+  // ── ?roll=1: a reroll from another game landed here ─────────────────────
+  // It rolls once Zelda 3 can: the randomizer loaded and the Japanese 1.0 ROM in this browser
+  // (until then ../roll-games.js says so, with "Pick the ROM…" and "← Back to …").
   function autoRoll() {
     var q = new URLSearchParams(location.search);
     if (q.get('roll') !== '1') return;
-    var mode = q.get('mode'), by = q.get('by') || '';
-    q.delete('roll'); q.delete('by'); q.delete('mode');
+    var mode = q.get('mode'), by = q.get('by') || '', from = q.get('from') || '';
+    q.delete('roll'); q.delete('by'); q.delete('mode'); q.delete('from');
     try { history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q : '') + location.hash); } catch (e) {}
-    var tries = 0;
-    var t = setInterval(function () {
-      var gen = document.getElementById('r-generate'), seed = document.getElementById('r-seed');
-      if (++tries > 120) { clearInterval(t); return; }          // ~60 s: give up quietly
-      if (!gen || !seed || gen.disabled) return;
-      // a random preset or CHAOS seed from Zelda 1's Crowd Control stays that kind here
-      var api = window.UnifiedRando && window.UnifiedRando.crowd;
-      if ((mode === 'preset' || mode === 'chaos') && !api) return;   // wait for the randomizer
-      clearInterval(t);
+    var fromName = from && R ? R.name(from) : 'Zelda 1';
+    var go = function () {
+      var gen = document.getElementById('r-generate'), seed = document.getElementById('r-seed'), api = window.UnifiedRando && window.UnifiedRando.crowd;
       var setup = Promise.resolve();
       try {
         if (mode === 'preset') {
@@ -144,15 +140,21 @@
           if (list.length) setup = api.usePreset(list[Math.floor(Math.random() * list.length)].value);
         } else if (mode === 'chaos') setup = api.chaos();
       } catch (e) {}
-      setup.catch(function (e) { return ''; }).then(function (pick) {
-        if (gen.disabled) return;
-        if (window.RandoSeedLog) window.RandoSeedLog.next({ kind: mode === 'preset' || mode === 'chaos' ? mode : 'reroll', by: by, from: 'Zelda 1', pick: typeof pick === 'string' ? pick : '' });
+      return setup.catch(function (e) { return ''; }).then(function (pick) {
+        if (window.RandoSeedLog) window.RandoSeedLog.next({ kind: mode === 'preset' || mode === 'chaos' ? mode : 'reroll', by: by, from: fromName, pick: typeof pick === 'string' ? pick : '' });
         seed.value = '';
         seed.dispatchEvent(new Event('input', { bubbles: true }));
         seed.dispatchEvent(new Event('change', { bubbles: true }));
         gen.click();
       });
-    }, 500);
+    };
+    var ready = function () {
+      var gen = document.getElementById('r-generate'), seed = document.getElementById('r-seed'), U = window.UnifiedRando;
+      if (!gen || !seed || gen.disabled || !U || !U.hasBaseRom) return false;
+      if ((mode === 'preset' || mode === 'chaos') && !U.crowd) return false;
+      return U.hasBaseRom();
+    };
+    if (R && R.landed) R.landed({ name: 'Zelda 3', from: from, ready: ready, roll: go, pickRom: function () { var i = document.getElementById('r-base-input'); if (i) i.click(); } });
   }
 
   function init() { addRow(); setTimeout(autoRoll, 800); }

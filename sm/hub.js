@@ -73,17 +73,18 @@
     if (q.get('roll') === '1') {
       var mode = q.get('mode') || '';
       try { history.replaceState(null, '', location.pathname); } catch (e) {}
-      var tries = 0, t = setInterval(function () {
-        if (++tries > 40) { clearInterval(t); return; }
-        if (!window.SMRSeed || !window.SMRSeed.reroll) return;
-        clearInterval(t);
+      // rolls once this game can (its ROM in this browser); until then ../roll-games.js says so
+      var from = q.get('from') || '', RR = window.RandoRoll;
+      var roll = function () {
         if (mode === 'preset' || mode === 'chaos') {
           var sel = document.getElementById('preset');
           var ids = (window.SMR ? SMR.PRESETS : []).filter(function (p) { return p.id !== 'Custom'; }).map(function (p) { return p.id; });
           if (sel && ids.length) { sel.value = ids[Math.floor(Math.random() * ids.length)]; sel.dispatchEvent(new Event('change')); }
         }
         window.SMRSeed.reroll().then(function (r) { if (r) logSeed(); }).catch(function (e) { alert('Couldn’t roll a DASH seed: ' + (e && e.message || e)); });
-      }, 250);
+      };
+      var ready = function () { return !!(window.SMRSeed && window.SMRSeed.reroll && window.SMRSeed.hasRom && window.SMRSeed.hasRom()); };
+      if (RR && RR.landed) RR.landed({ name: 'Super Metroid', from: from, ready: ready, roll: roll, pickRom: function () { window.SMRSeed.open(); } });
     }
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

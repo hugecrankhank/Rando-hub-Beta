@@ -1986,6 +1986,7 @@ export function init() {
   refreshSprite();
 
   window.UnifiedRando = { useIfBaseRom, prepareLoadedRom, romFlags, noteRom, crowd: crowdApi(),
+    hasBaseRom: async () => !!(await kvGet('base-jp10').catch(() => null)),   // a reroll that lands here waits for it (../roll-games.js landed)
     // crowd "music roulette" and the run-stats overlay
     music: {
       roulette: () => msu.roulette(),

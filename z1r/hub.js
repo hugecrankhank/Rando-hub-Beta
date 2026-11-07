@@ -164,10 +164,15 @@
 
     var q = new URLSearchParams(location.search);
     if (q.get('roll') === '1') {
-      var mode = /^(preset|chaos)$/.test(q.get('mode') || '') ? q.get('mode') : '', by = q.get('by') || '';
-      q.delete('roll'); q.delete('by'); q.delete('mode');
+      var mode = /^(preset|chaos)$/.test(q.get('mode') || '') ? q.get('mode') : '', by = q.get('by') || '', from = q.get('from') || '';
+      q.delete('roll'); q.delete('by'); q.delete('mode'); q.delete('from');
       try { history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q : '') + location.hash); } catch (e) {}
-      setTimeout(function () { rollHere(mode, { kind: mode || 'reroll', by: by, from: 'Zelda 3' }).catch(function () {}); }, 300);
+      // rolls once Zelda 1 can (its ROM in this browser); until then ../roll-games.js says so
+      var RR = window.RandoRoll, fromName = from && RR ? RR.name(from) : 'Zelda 3';
+      var ready = function () { return !!(window.Z1Seed && window.Z1Seed.hasRom && roll) && window.Z1Seed.hasRom(); };
+      var go = function () { return rollHere(mode, { kind: mode || 'reroll', by: by, from: fromName }).catch(function () {}); };
+      if (RR && RR.landed) RR.landed({ name: 'Zelda 1', from: from, ready: ready, roll: go, pickRom: function () { window.Z1Seed.open(); } });
+      else setTimeout(go, 300);
     }
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

@@ -70,7 +70,8 @@
   }
   window.ZMSeed = {
     init, open() { $('seed-dlg').showModal(); },
-    reroll() { $('seed').value = ''; $('seed-dlg').showModal(); return generate().then((r) => { if (r) { $('seed-dlg').close(); onPlay(r, { confirmed: true }); } return r; }); },
+    hasRom() { return !!(base.z1 && base.m1); },   // a reroll that lands here waits for it (../roll-games.js landed)
+    reroll() { $('seed').value = ''; if (!$('seed-dlg').open) $('seed-dlg').showModal(); return generate().then((r) => { if (r) { $('seed-dlg').close(); onPlay(r, { confirmed: true }); } return r; }); },
     get last() { return last; }, release() { last = null; },
   };
 })();

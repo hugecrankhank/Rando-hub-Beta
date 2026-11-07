@@ -92,12 +92,11 @@
     if (q.get('roll') === '1') {
       var mode = q.get('mode') || '', by = q.get('by') || '';
       try { history.replaceState(null, '', location.pathname); } catch (e) {}
-      var tries = 0, t = setInterval(function () {
-        if (++tries > 40) { clearInterval(t); return; }
-        if (!window.GLRSeed || !GLRSeed.rollAndPlay) return;
-        clearInterval(t);
-        GLRSeed.rollAndPlay({ mode: mode, by: by }).catch(function (e) { alert('Couldn’t roll a Guardian Legend seed: ' + (e && e.message || e)); });
-      }, 250);
+      // rolls once this game can (its ROM in this browser); until then ../roll-games.js says so
+      var from = q.get('from') || '', RR = window.RandoRoll;
+      var roll = function () { return GLRSeed.rollAndPlay({ mode: mode, by: by }); };
+      var ready = function () { return !!(window.GLRSeed && GLRSeed.rollAndPlay && GLRSeed.hasRom) && GLRSeed.hasRom(); };
+      if (RR && RR.landed) RR.landed({ name: 'Guardian Legend', from: from, ready: ready, roll: roll, pickRom: function () { GLRSeed.open(); } });
     }
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

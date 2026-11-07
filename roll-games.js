@@ -9,12 +9,15 @@
  * Crowd Control's random preset / CHAOS seed then pick one of the ticked games
  * at random (the game being played counts too, so with two ticked it's a coin
  * toss); "New seed (same settings)" always stays. Nothing ticked but the
- * current game = rerolls stay put, the old behaviour.
+ * current game = rerolls stay put: the default (Zelda 3 included: it's ticked
+ * like the others, unticked to start).
  *
  *   RandoRoll.allowed()             → { z3, z1, glr, ff6 } booleans
  *   RandoRoll.setAllowed(obj)
  *   RandoRoll.pick(currentId, mode) → the id to go to, or null to stay here
- *   RandoRoll.go(id, {mode, by})    → leaves for that game's page with ?roll=1
+ *   RandoRoll.go(id, {mode, by})    → leaves for that game's page with ?roll=1 (&from= the game left)
+ *   RandoRoll.landed({name, ready, roll, pickRom, from}) → on that page: rolls when it can; until then
+ *                                     a note "needs its ROM", ← Back to the game it came from
  *   RandoRoll.GAMES, RandoRoll.base (the hub's folder, relative to this page)
  */
 (function (root) {
@@ -59,8 +62,11 @@
     if (!a || typeof a !== 'object') {
       var either = false;
       try { either = localStorage.getItem(LEGACY) === '1'; } catch (e) {}
-      a = { z3: true, z1: either, glr: false, ff6: false, smrpg: false, sm: false, metroid: false, smw: false, smz3: false, zm: false, quad: false };
+      a = { z3: either, z1: either, glr: false, ff6: false, smrpg: false, sm: false, metroid: false, smw: false, smz3: false, zm: false, quad: false, v2: true };
     }
+    // Zelda 3 used to be in every reroll's list without a say (half the rerolls in another game
+    // went there); now it's ticked like the rest: off once for everyone, theirs to tick again
+    if (!a.v2) { a.z3 = false; a.v2 = true; setAllowed(a); }
     return a;
   }
   function setAllowed(a) {
@@ -74,7 +80,9 @@
     var a = allowed(), s = shown();
     return GAMES.filter(function (g) { return g.id === current || (a[g.id] && s[g.id]); });
   }
+  var leaving = null;   // the game a reroll leaves (pick's current), for the landing page's "← Back to …"
   function pick(current, mode) {
+    leaving = current;
     if (mode === 'same') return null;
     var p = pool(current);
     if (p.length < 2) return null;
@@ -84,8 +92,51 @@
   function url(id) { var g = GAMES.filter(function (x) { return x.id === id; })[0]; return g ? base + g.url : null; }
   function go(id, opts) {
     var u = url(id); if (u == null) return;
-    var mode = opts && opts.mode, by = opts && opts.by;
-    location.href = u + '?roll=1' + (mode && mode !== 'same' ? '&mode=' + mode : '') + (by ? '&by=' + encodeURIComponent(by) : '');
+    var mode = opts && opts.mode, by = opts && opts.by, from = (opts && opts.from) || leaving;
+    location.href = u + '?roll=1' + (mode && mode !== 'same' ? '&mode=' + mode : '') + (by ? '&by=' + encodeURIComponent(by) : '') + (from ? '&from=' + from : '');
+  }
+
+  // A reroll that landed on this page: roll as soon as the game can. If it can't yet (no ROM
+  // picked for it in this browser), say so over the page and keep waiting: it rolls by itself
+  // the moment the ROM is there, and "← Back to …" returns to the game the reroll came from.
+  //   opts.name       this game's name
+  //   opts.ready()    true (or a Promise of true) when it can roll now
+  //   opts.roll()     rolls and plays (a Promise)
+  //   opts.pickRom()  opens this page's ROM picker (optional)
+  //   opts.roms       what it needs, when not "its ROM" (e.g. "its ROMs (Zelda 1 and Metroid)")
+  //   opts.from       the id of the game the reroll left (from the address's &from=)
+  function landed(opts) {
+    var bar = null, stopped = false, rolling = false, t0 = Date.now(), from = opts.from && GAMES.filter(function (g) { return g.id === opts.from; })[0];
+    function close() { if (bar) { bar.remove(); bar = null; } }
+    function show() {
+      if (bar) return;
+      bar = document.createElement('div'); bar.id = 'rh-roll-wait'; bar.setAttribute('role', 'alert');
+      bar.style.cssText = 'position:fixed;left:0;right:0;top:10px;margin:0 auto;width:fit-content;z-index:2147483000;max-width:min(560px,calc(100vw - 24px));box-sizing:border-box;' +
+        'background:#1b2333;color:#eef2fa;border:2px solid #ffb22e;border-radius:10px;padding:12px 14px;font:14px/1.4 system-ui,sans-serif;box-shadow:0 8px 30px rgba(0,0,0,.6)';
+      var btn = 'background:#2a3550;color:#eef2fa;border:1px solid #4a5a80;border-radius:7px;padding:7px 11px;font:600 13px system-ui,sans-serif;cursor:pointer;margin:8px 8px 0 0';
+      bar.innerHTML = '<b style="color:#ffb22e">🎲 The reroll landed on ' + opts.name + '</b>, but ' + opts.name + ' needs ' + (opts.roms || 'its ROM') + ' in this browser first. ' +
+        (opts.roms ? 'Pick them' : 'Pick it') + ' and the new seed rolls by itself.<br>' +
+        (opts.pickRom ? '<button type="button" data-a="pick" style="' + btn + ';background:#ffb22e;color:#1b1406;border-color:#ffb22e">' + (opts.roms ? 'Pick the ROMs…' : 'Pick the ROM…') + '</button>' : '') +
+        (from ? '<button type="button" data-a="back" style="' + btn + '">← Back to ' + from.name + '</button>' : '') +
+        '<button type="button" data-a="stop" style="' + btn + '">Stay here</button>';
+      bar.addEventListener('click', function (e) {
+        var a = e.target && e.target.dataset && e.target.dataset.a;
+        if (a === 'pick') opts.pickRom();
+        if (a === 'back') { window.RHLeaving = true; location.href = base + from.url; }
+        if (a === 'stop') { stopped = true; close(); }
+      });
+      document.body.appendChild(bar);
+    }
+    function tick() {
+      if (stopped || rolling) return;
+      Promise.resolve().then(opts.ready).then(function (ok) {
+        if (stopped || rolling) return;
+        if (!ok) { if (Date.now() - t0 > 2500 && !document.querySelector('dialog[open]')) show(); setTimeout(tick, 500); return; }
+        rolling = true; close();
+        Promise.resolve().then(opts.roll).catch(function (e) { alert('Couldn’t roll a ' + opts.name + ' seed: ' + (e && e.message || e)); });
+      }, function () { setTimeout(tick, 500); });
+    }
+    tick();
   }
   function name(id) { var g = GAMES.filter(function (x) { return x.id === id; })[0]; return g ? g.name : id; }
   function others(current) { return pool(current).filter(function (g) { return g.id !== current; }).map(function (g) { return g.name; }); }
@@ -362,5 +413,5 @@
     var s = shown();
     (rootEl || document).querySelectorAll('[data-game]').forEach(function (el) { if (s[el.dataset.game] === false) el.remove(); });
   }
-  root.RandoRoll = { SHOWN_KEY: SHOWN_KEY, SHOWABLE: SHOWABLE, shown: shown, setShown: setShown, isShown: isShown, applyShown: applyShown, ALL: ALL, gamesMenu: gamesMenu, manage: manage, gameSize: gameSize, offload: offload, GAMES: GAMES, KEY: KEY, allowed: allowed, setAllowed: setAllowed, pool: pool, pick: pick, go: go, url: url, name: name, others: others, get base() { return base; }, set base(b) { base = b; } };
+  root.RandoRoll = { SHOWN_KEY: SHOWN_KEY, SHOWABLE: SHOWABLE, shown: shown, setShown: setShown, isShown: isShown, applyShown: applyShown, ALL: ALL, gamesMenu: gamesMenu, manage: manage, gameSize: gameSize, offload: offload, GAMES: GAMES, KEY: KEY, allowed: allowed, setAllowed: setAllowed, pool: pool, pick: pick, go: go, landed: landed, url: url, name: name, others: others, get base() { return base; }, set base(b) { base = b; } };
 })(window);

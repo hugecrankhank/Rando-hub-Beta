@@ -182,7 +182,8 @@
     init,
     open() { $('seed-dlg').showModal(); },
     // Roll with the current settings and a fresh seed, then play (the hub's reroll)
-    reroll() { $('seed').value = ''; $('seed-dlg').showModal(); return generate().then((r) => { if (r) { $('seed-dlg').close(); onPlay(r, { confirmed: true }); } return r; }); },
+    hasRom() { return !!base; },   // a reroll that lands here waits for it (../roll-games.js landed)
+    reroll() { $('seed').value = ''; if (!$('seed-dlg').open) $('seed-dlg').showModal(); return generate().then((r) => { if (r) { $('seed-dlg').close(); onPlay(r, { confirmed: true }); } return r; }); },
     get last() { return last; },
     release() { last = null; },
     // a spoiler log (a seed rolled elsewhere, ff6worldscollide.com): its seed, flags, hash, version and objectives

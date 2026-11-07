@@ -151,13 +151,15 @@
     // A reroll (the hub's 🎲, or one that landed here from another game): the flags
     // you used last, or a random preset for Crowd Control's preset / chaos modes,
     // a fresh seed number, then play. The dialog shows while it works.
+    // a reroll that lands here waits for the ROM (../roll-games.js landed)
+    async hasRom() { if (!base) await loadBaseFromStore().then(paintBase).catch(() => {}); return !!base; },
     async rollAndPlay(opts) {
       const mode = opts && opts.mode;
       $('result').hidden = true; setStatus('');
       if (mode === 'preset' || mode === 'chaos') setFlags(PRESETS[Math.floor(Math.random() * PRESETS.length)].flags);
       $('seed').value = String(Math.floor(Math.random() * 1e9));
       if (!base) await loadBaseFromStore().then(paintBase);
-      $('seed-dlg').showModal();
+      if (!$('seed-dlg').open) $('seed-dlg').showModal();
       const r = await generate();
       await GLRStore.set('current', { bytes: r.rom.buffer.slice(0), name: r.name, meta: r.meta }).catch(() => {});
       $('seed-dlg').close();

@@ -482,8 +482,11 @@ inside the hub, with its own emulator, seed generator, tracker and saves.
   Legend, FF6, SMRPG, Super Metroid, Metroid, Super Mario World, SMZ3, Zelda 1 + Metroid, Rando Cross in the Game row) lets 🎲 Reroll and Crowd Control's random preset / CHAOS
   seeds pick one of the ticked games at random, so you can keep it to the Zelda series,
   or mix in Final Fantasy, as you like (*New seed (same settings)* always stays in the
-  game being played). FF1, FF4 and FF5 are rolled on their own sites, so rerolls can't
-  land there.
+  game being played). Nothing is ticked to start, Zelda 3 included, so a reroll stays in
+  the game being played until you tick others. A reroll that lands on a game whose ROM
+  isn't in this browser yet says so, rolls by itself once the ROM is picked, and offers
+  *← Back to* the game it came from. FF1, FF4 and FF5 are rolled on their own sites, so
+  rerolls can't land there.
 - **The Guardian Legend** (`glr/`):
   seeds from your own Guardian Legend (USA) ROM, with the labyrinth map drawn from the
   ROM. Has its own 🎲 Reroll.

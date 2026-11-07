@@ -392,5 +392,7 @@
     return made.meta.seed;
   }
 
-  window.Z1Seed = { init, open, release, rollAndPlay };
+  // a reroll that lands here waits for the ROM (../roll-games.js landed)
+  async function hasRom() { if (!base) await loadBaseFromStore().catch(() => {}); return !!base; }
+  window.Z1Seed = { init, open, release, rollAndPlay, hasRom };
 })();

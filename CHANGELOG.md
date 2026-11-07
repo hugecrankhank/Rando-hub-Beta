@@ -5,6 +5,11 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.137 (2026-11-06)
+
+- **Rerolls stay in the game you're playing unless you choose otherwise.** Zelda 3 was always in every reroll's list, so about half the 🎲 Rerolls in Super Metroid (and the other games) jumped to Zelda 3. It's now ticked like the other games in *Rerolls can land on* (on the Zelda 3 page), and it starts unticked for everyone. Tick it again to mix it back in.
+- **A reroll never leaves you stuck.** When a reroll lands on a game whose ROM isn't in this browser yet, a note says so, with *Pick the ROM…*, *← Back to* the game you came from, and *Stay here*. The seed rolls and starts by itself as soon as the ROM is picked. Before, the page waited a minute, then gave up without saying anything (Heffie's Super Metroid reroll ended on Zelda 3 with no seed and no way to play).
+
 ## Beta v1.14.136 (2026-11-06)
 
 - **Rando Cross on phones and tablets: the NES games' touch controls work.** Going into Zelda 1 or Metroid left the SNES game's on-screen controller and toolbar on top of the NES game's, so both showed and every tap went to the paused SNES game. Now the SNES layer is hidden while an NES game is played, and it comes back with ⇄ Back to Kakariko.
