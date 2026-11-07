@@ -5,6 +5,10 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.143 (2026-11-06)
+
+- **Z1Z3 on phones and iPads: the Zelda 3 tracker gets the room.** Mudora (2.0 or not) and Hutch showed their whole desktop layout squeezed under the game, the map a sliver. Now they follow the same sizing as Rando Cross and SMZ3: one panel at a time, picked by a row of tabs (Items, Light, Dark, Keys), each filling the column, the options behind Mudora's ⚙. The lines over the tracker are tighter too. Computers keep the whole tracker.
+
 ## Beta v1.14.142 (2026-11-06)
 
 - **The 🎮 games menu scrolls on phones.** With many games it ran past the bottom of an iPhone's screen (the bottom of the list, Manage games included, out of reach). It now ends at the bottom of the visible screen and scrolls inside itself, without scrolling the page behind it.

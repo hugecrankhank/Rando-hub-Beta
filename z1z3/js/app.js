@@ -22,8 +22,11 @@
       '<div class="q-portal-line" id="q-portals"></div>' +
       '<div class="q-pops"><select id="z3-kind" title="Which Zelda 3 tracker"><option value="mudora2">Mudora 2.0</option><option value="mudora">Mudora</option><option value="hutch">Hutch</option></select>' +
       '<button type="button" data-p="z3" title="A Link to the Past’s tracker in a window of its own">⧉ ALttP tracker</button><button type="button" data-p="z1items" title="Zelda 1’s items in a window of its own">⧉ Zelda 1 items</button><button type="button" data-p="z1map" title="Zelda 1’s map in a window of its own">⧉ Zelda 1 map</button></div>' +
+      '<div class="z3-tabs" id="z3-tabs"><button type="button" data-t="items">Items</button><button type="button" data-t="lw">Light</button><button type="button" data-t="dw">Dark</button><button type="button" data-t="keys">Keys</button></div>' +
       '<iframe id="z3-trk" title="A Link to the Past tracker"></iframe><iframe id="nes-trk" title="Zelda 1 tracker"></iframe>';
     z3Trk = $('z3-trk'); nesTrk = $('nes-trk');
+    $('z3-tabs').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) setPhone(b.dataset.t); });
+    z3Trk.addEventListener('load', () => setTimeout(() => setPhone(compact ? phoneTab : null), 800));
     const kind = $('z3-kind'); kind.value = Z3_KIND();
     kind.addEventListener('change', () => { try { localStorage.setItem('z1z3:z3trk', kind.value); } catch (e) {} if (QuadApp.meta) z3Trk.src = z3Src(); });
     kind.style.cssText = 'background:none;border:1px solid var(--cell-line);border-radius:4px;color:var(--dim);font:400 12px/1 var(--px);padding:5px 6px;';
@@ -32,6 +35,18 @@
     setCol('z3');
   }
   const z3Src = () => '../smz3/z3host.html?plain=1&t=' + Z3_KIND();
+  // phones (as on Rando Cross and SMZ3): the Zelda 3 tracker one panel at a time, picked by a row
+  // of tabs (items, Light World, Dark World, keys); bigger screens: the whole tracker
+  let compact = false, phoneTab = 'items';
+  function setPhone(t) {
+    if (t) phoneTab = t;
+    document.querySelectorAll('#z3-tabs button').forEach((b) => b.setAttribute('aria-pressed', b.dataset.t === phoneTab ? 'true' : 'false'));
+    try { z3Trk.contentWindow.postMessage({ type: 'smz3-phone', tab: compact ? phoneTab : null }, '*'); } catch (e) {}
+  }
+  function setCompact(on) {
+    on = !!on; if (on === compact) return;
+    compact = on; $('tracker').classList.toggle('compact', on); setPhone(null);
+  }
   function setCol(c) {
     col = c;
     $('tracker').classList.toggle('c-z3', c === 'z3'); $('tracker').classList.toggle('c-z1', c === 'z1');
@@ -142,11 +157,14 @@
       const gh = Math.min(Math.round(W / a), Math.round(H - MIN_ASIDE_TALL));
       document.documentElement.style.setProperty('--game-h', Math.max(160, gh) + 'px');
       document.documentElement.style.removeProperty('--aside-w');
+      setCompact(W < 700 || H - gh < 420);
     } else {
       let gw = Math.round(H * a);
       if (W - gw < MIN_ASIDE) gw = W - MIN_ASIDE;
-      document.documentElement.style.setProperty('--aside-w', Math.max(MIN_ASIDE, W - gw) + 'px');
+      const aside = Math.max(MIN_ASIDE, W - gw);
+      document.documentElement.style.setProperty('--aside-w', aside + 'px');
       document.documentElement.style.removeProperty('--game-h');
+      setCompact(H < 560 || aside < 330);
     }
   }
   window.addEventListener('resize', fit);
