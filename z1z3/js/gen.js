@@ -156,8 +156,12 @@ class SafeFill extends RandomAssumed {
     for (const location of empty) {
       if (location.hasItem()) continue;
       if (!fill_items.length) break;
+      // only Zelda 1's spots are asked (the items the page can hand over); ALttP's take the next
+      // one as alttpr.com's quick fill does (asking them trips rules made for the assumed fill:
+      // Link's Uncle's, with an assured sword, sees no weapon and takes nothing)
+      const choosy = location instanceof Z1Location;
       let k = fill_items.length - 1;
-      while (k >= 0 && !location.canFill(fill_items[k], none, false)) k--;
+      while (k >= 0 && choosy && !location.canFill(fill_items[k], none, false)) k--;
       if (k < 0) throw new Error('nothing fits ' + location.getName());
       location.setItem(fill_items.splice(k, 1)[0]);
     }
