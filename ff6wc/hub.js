@@ -52,10 +52,11 @@
       newSeed.parentNode.insertBefore(link('hub-zm', HUB + 'zm/', 'Z1+M1', 'Zelda 1 + Metroid, linked: portals between Hyrule and Zebes'), newSeed).dataset.game = 'zm';
       newSeed.parentNode.insertBefore(link('hub-quad', HUB + 'cross/', 'Rando Cross', 'Rando Cross: Zelda 1, Metroid, Super Metroid and A Link to the Past in one seed'), newSeed).dataset.game = 'quad';
       newSeed.parentNode.insertBefore(link('hub-z1z3', HUB + 'z1z3/', 'Z1Z3', 'Z1Z3: A Link to the Past + Zelda 1, one item pool across both Hyrules'), newSeed).dataset.game = 'z1z3';
+      newSeed.parentNode.insertBefore(link('hub-m1sm', HUB + 'm1sm/', 'M1SM', 'M1SM: Metroid + Super Metroid, one item pool across both Zebes'), newSeed).dataset.game = 'm1sm';
       newSeed.parentNode.insertBefore(link('hub-patched', HUB + 'patched/', 'Patched', 'Patched games: NES and SNES ROM hacks on these emulators'), newSeed).dataset.game = 'patched';
       var R = window.RandoRoll;
       if (R) R.applyShown(newSeed.parentNode);
-      if (R) newSeed.parentNode.insertBefore(R.gamesMenu('ff6wc/', ['hub-back', 'hub-z1', 'hub-glr', 'hub-ff', 'hub-smrpg', 'hub-sm', 'hub-patched', 'hub-metroid', 'hub-smw', 'hub-smz3', 'hub-zm', 'hub-quad', 'hub-z1z3']), newSeed);
+      if (R) newSeed.parentNode.insertBefore(R.gamesMenu('ff6wc/', ['hub-back', 'hub-z1', 'hub-glr', 'hub-ff', 'hub-smrpg', 'hub-sm', 'hub-patched', 'hub-metroid', 'hub-smw', 'hub-smz3', 'hub-zm', 'hub-quad', 'hub-m1sm', 'hub-z1z3']), newSeed);
       var rr = document.createElement('button');
       rr.className = 'btn'; rr.id = 'hub-reroll'; rr.type = 'button'; rr.innerHTML = '🎲<span class="hub-short"> Reroll</span>';
       rr.title = 'A new seed with the flags you used last' + (R && R.others('ff6').length ? ' (or a ' + R.others('ff6').join(' / ') + ' seed: ticked in the hub’s Game row)' : '');

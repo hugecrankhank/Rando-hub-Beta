@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="version" content="1.14.139">
+<meta name="version" content="1.14.140">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Rando Cross: Zelda 1 + Metroid tracker</title>
 <!-- the four-game combo's NES tracker: the Zelda 1 + Metroid page's (../zm/js/tracker.js, its map), reading the NES games through
@@ -280,7 +280,8 @@
   // the NES games: the quad page's link to them (js/nes.js in nes.html)
   (function () {
     // ?only=z1: Zelda 1 alone (the Z1Z3 page, ../z1z3/): no Samus, no Zebes
-    if (new URLSearchParams(location.search).get('only') === 'z1') window.ZM_ONLY = 'z1';
+    // ?only=m1: Metroid alone (the M1SM page, ../m1sm/): no Link, no Hyrule
+    var only = new URLSearchParams(location.search).get('only'); if (only === 'z1' || only === 'm1') window.ZM_ONLY = only;
     function src() {
       try { if (parent !== window && parent.QuadNESLink) return parent.QuadNESLink; } catch (e) {}
       try { if (opener && opener.QuadNESLink) return opener.QuadNESLink; } catch (e) {}

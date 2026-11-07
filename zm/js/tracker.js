@@ -13,9 +13,9 @@
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   let root = null, sessionId = 'manual', meta = {}, manual = {}, link = 'manual', view = 'items', compact = false, reveal = false;
   const linkFns = [];
-  // Zelda 1 alone (Z1Z3, ../z1z3/: window.ZM_ONLY = 'z1' before this file): no Samus, no Zebes
-  const ONLY_Z1 = window.ZM_ONLY === 'z1';
-  const SPOTS_HERE = () => (ONLY_Z1 ? G.SPOTS.filter((s) => s.game === 'z1') : G.SPOTS);
+  // one game alone (window.ZM_ONLY before this file): 'z1' Zelda 1 (Z1Z3, ../z1z3/: no Samus, no Zebes), 'm1' Metroid (M1SM, ../m1sm/: no Link, no Hyrule)
+  const ONLY_Z1 = window.ZM_ONLY === 'z1', ONLY_M1 = window.ZM_ONLY === 'm1';
+  const SPOTS_HERE = () => (ONLY_Z1 ? G.SPOTS.filter((s) => s.game === 'z1') : ONLY_M1 ? G.SPOTS.filter((s) => s.game === 'm1') : G.SPOTS);
 
   // Link's items: [key, label, read(ram) → level, max, icon (../z1r/js/icons.js), tints per level]
   const Z_ITEMS = [
@@ -68,11 +68,11 @@
       '<div class="t-stats" id="t-stats"></div>' +
       '<div class="t-tabs" role="tablist"><button type="button" role="tab" data-view="items">Items</button><button type="button" role="tab" data-view="map">Map</button><button type="button" role="tab" data-view="locs">Spots</button><button type="button" role="tab" data-view="seed">Seed</button></div>' +
       '<div class="t-view items">' +
-        '<div class="t-sec"><h4>Link <span id="n-z"></span></h4><div class="grid gear" id="g-z"></div></div>' +
+        '<div class="t-sec"' + (ONLY_M1 ? ' hidden' : '') + '><h4>Link <span id="n-z"></span></h4><div class="grid gear" id="g-z"></div></div>' +
         '<div class="t-sec"' + (ONLY_Z1 ? ' hidden' : '') + '><h4>Samus <span id="n-s"></span></h4><div class="grid gear" id="g-s"></div><div class="mario-line" id="g-sline"></div></div>' +
         '<div class="t-sec"><h4>The way</h4><div id="g-way" class="goal"></div></div></div>' +
       '<div class="t-view locs"><div class="t-sec"><h4>Spots <span id="n-locs"></span></h4>' +
-        '<p class="fine legend"><span class="dot ok"></span> reachable with what’s held (the seed’s logic) · <span class="dot no"></span> not yet · ' + (ONLY_Z1 ? 'an A Link to the Past item here is five rupees, until the hub hands it over' : 'a Metroid item in Hyrule is five rupees, a Hyrule item on Zebes a missile pack, until the hub hands it over') + '</p><div id="g-locs">' +
+        '<p class="fine legend"><span class="dot ok"></span> reachable with what’s held (the seed’s logic) · <span class="dot no"></span> not yet · ' + (ONLY_Z1 ? 'an A Link to the Past item here is five rupees, until the hub hands it over' : ONLY_M1 ? 'a Super Metroid item here is a missile pack, until the hub hands it over' : 'a Metroid item in Hyrule is five rupees, a Hyrule item on Zebes a missile pack, until the hub hands it over') + '</p><div id="g-locs">' +
         regions.map((r, ri) => '<div class="area" data-r="' + ri + '"><h5><span>' + esc(r.name) + '</span><span class="an"></span></h5><div class="list">' +
           r.locs.map((i) => '<button type="button" class="chk" data-k="locs" data-i="' + i + '"><i></i>' + esc(G.SPOTS[i].name) + '<span class="what"></span></button>').join('') + '</div></div>').join('') +
         '</div></div></div>' +
@@ -121,7 +121,7 @@
       const w = b.querySelector('.what'); w.textContent = reveal && meta.items && meta.items[i] ? ' · ' + G.itemName({ game: meta.items[i][0], type: meta.items[i][1] }) : '';
     });
     root.querySelectorAll('.area').forEach((el) => { const r = root._regions[+el.dataset.r], d = r.locs.filter((i) => taken.has(i) || (manual.locs && manual.locs[i])).length; el.querySelector('.an').textContent = d + '/' + r.locs.length; el.classList.toggle('done', d === r.locs.length); });
-    $('n-locs').textContent = n + '/' + SPOTS_HERE().length + ' · ' + reach.filter((v, i) => v === 'ok' && !taken.has(i) && (!ONLY_Z1 || G.SPOTS[i].game === 'z1')).length + ' in logic';
+    $('n-locs').textContent = n + '/' + SPOTS_HERE().length + ' · ' + reach.filter((v, i) => v === 'ok' && !taken.has(i) && (!ONLY_Z1 || G.SPOTS[i].game === 'z1') && (!ONLY_M1 || G.SPOTS[i].game === 'm1')).length + ' in logic';
     if (window.ZMMap) ZMMap.update({ have: G.SPOTS.map((sp, i) => taken.has(i) || !!(manual.locs && manual.locs[i])), items: reveal && meta.items ? meta.items.map((it) => G.itemName({ game: it[0], type: it[1] })) : null, liveHave: (i) => taken.has(i), reach: G.SPOTS.map((sp, i) => taken.has(i) ? null : reach[i]) });
     // the way
     const here = st.game === 'z1' ? 'Hyrule' : 'Zebes';
@@ -131,8 +131,8 @@
       '<span class="goal-c">Portals: Hyrule’s take-any-road caves ($1D, $23, $49, $79) → Zebes; Zebes’ elevator rooms → Hyrule (⇄ / P).' + waiting('z1') + waiting('m1') + '</span>' +
       '<span class="goal-c">Goal: Ganon (' + (inv.has('T8') ? 'the eight triforces are in reach' : 'all eight triforces, then level 9') + ') and Mother Brain (' + (reach.length && M && window.M1Logic.has(M.GOALS[2][1], new Set(inv)) ? 'Tourian is in reach' : 'both statues, Bombs, missiles, Ice Beam') + ').</span>';
     const stat = (ico, v, of, title) => '<span class="stat" title="' + esc(title) + '"><span class="ico">' + ico + '</span>' + v + (of ? '<small>/' + of + '</small>' : '') + '</span>';
-    $('t-stats').innerHTML = stat('✓', n, SPOTS_HERE().length, 'Spots taken') + stat('▲', z ? z.triforce : 0, 8, 'Triforces') + stat('♥', z ? z.hearts : 3, '', 'Hearts') + (ONLY_Z1 ? '' : stat('⚡', s ? s.tanks : 0, 8, 'Energy tanks')) +
-      '<span class="stat game">' + (ONLY_Z1 ? 'Zelda 1' : here) + '</span>';
+    $('t-stats').innerHTML = stat('✓', n, SPOTS_HERE().length, 'Spots taken') + (ONLY_M1 ? '' : stat('▲', z ? z.triforce : 0, 8, 'Triforces') + stat('♥', z ? z.hearts : 3, '', 'Hearts')) + (ONLY_Z1 ? '' : stat('⚡', s ? s.tanks : 0, 8, 'Energy tanks')) +
+      '<span class="stat game">' + (ONLY_Z1 ? 'Zelda 1' : ONLY_M1 ? 'Metroid' : here) + '</span>';
     $('t-link').textContent = link === 'live' ? 'Autotracking' : link === 'waiting' ? 'Waiting for the game' : 'Tap to track by hand';
     const sd = $('g-seed');
     sd.innerHTML = (meta.seed ? '<div class="seedline"><b>Seed</b> <span class="selectable">' + esc(meta.seed) + '</span> <small>' + esc(meta.generator || '') + '</small></div>' : '<p class="empty">Roll a seed and it shows up here.</p>') +
@@ -150,7 +150,7 @@
     if (sig !== last) { last = sig; render(); }
     if (window.ZMMap) ZMMap.live();
     // the map follows the game being played: Hyrule for Zelda 1, Zebes for Metroid (even before the dot shows)
-    if (st.game !== followGame && window.ZMMap && ZMMap.setWorld) { followGame = st.game; ZMMap.setWorld(st.game === 'm1' ? 1 : 0); }
+    if (st.game !== followGame && window.ZMMap && ZMMap.setWorld) { followGame = st.game; ZMMap.setWorld(st.game === 'm1' && !ONLY_M1 ? 1 : 0); }
   }
   let followGame = null;
 

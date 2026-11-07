@@ -87,6 +87,7 @@
       '<a data-game="zm" href="' + ZM_URL + '" title="Zelda 1 and Metroid linked: portals between Hyrule and Zebes, one item pool across both (Rando Hub’s own)">Zelda 1 + Metroid ▸</a>' +
       '<a data-game="quad" href="' + QUAD_URL + '" title="Rando Cross: Zelda 1, Metroid, Super Metroid and A Link to the Past in one seed, ALttP’s Hyrule the hub with portals to the NES games (Rando Hub’s own)">Rando Cross ▸</a>' +
       '<a data-game="z1z3" href="z1z3/" title="Z1Z3: A Link to the Past and Zelda 1 in one seed, one item pool across both Hyrules, Kakariko’s Elder’s House the portal (Rando Hub’s own)">Z1Z3 ▸</a>' +
+      '<a data-game="m1sm" href="m1sm/" title="M1SM: Metroid and Super Metroid in one seed, one item pool across both Zebes, Crateria’s Map Station the portal (Rando Hub’s own)">M1SM ▸</a>' +
       '<a data-game="ff1" href="' + FFR_URLS.ff1 + '" title="Final Fantasy Randomizer (FF1): roll on its site, play and track here">FF1 ▸</a>' +
       '<a data-game="ff4" href="' + FFR_URLS.ff4 + '" title="FF4 Free Enterprise: roll on its site, play and track here (key items, characters, bosses, objectives)">FF4 ▸</a>' +
       '<a data-game="ff5" href="' + FFR_URLS.ff5 + '" title="FF5 Career Day: roll on its site, play and track here (key items, jobs, checks)">FF5 ▸</a>' +

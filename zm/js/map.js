@@ -76,10 +76,10 @@
     if (viewer) { host.innerHTML = ''; }
     viewer = RHWorldMap.create(host, {
       key: 'zmr',
-      worlds: [
-        { name: 'Hyrule', width: HW, height: HH, picture: () => hyrule || (hyrule = drawHyrule()) },
-      ].concat(window.ZM_ONLY === 'z1' ? [] : [{ name: 'Zebes', width: ZW, height: ZH, picture: () => zebes || (zebes = drawZebes()) }]),   // (Zelda 1 alone: Z1Z3)
-      pins: window.ZM_ONLY === 'z1' ? hyrulePins() : hyrulePins().concat(zebesPins()),
+      // (one game alone: Zelda 1 for Z1Z3, Metroid for M1SM; the dot's world is then 0)
+      worlds: (window.ZM_ONLY === 'm1' ? [] : [{ name: 'Hyrule', width: HW, height: HH, picture: () => hyrule || (hyrule = drawHyrule()) }])
+        .concat(window.ZM_ONLY === 'z1' ? [] : [{ name: 'Zebes', width: ZW, height: ZH, picture: () => zebes || (zebes = drawZebes()) }]),
+      pins: window.ZM_ONLY === 'z1' ? hyrulePins() : window.ZM_ONLY === 'm1' ? zebesPins().map((p) => Object.assign(p, { world: 0 })) : hyrulePins().concat(zebesPins()),
       name: (i) => names(i),
       onToggle: opts.onToggle,
       empty: 'Start a seed: Hyrule is drawn from its ROM.',
@@ -117,7 +117,7 @@
       } else {
         const mx = r[M.MEM.MAP_X], my = r[M.MEM.MAP_Y];
         if (mx > 31 || my > 31) { viewer.setPos(null); return; }
-        viewer.setPos({ world: 1, x: mx * SQ + r[M.MEM.SX] / 16, y: my * SQ + r[M.MEM.SY] * SQ / 240, dim: false });
+        viewer.setPos({ world: window.ZM_ONLY === 'm1' ? 0 : 1, x: mx * SQ + r[M.MEM.SX] / 16, y: my * SQ + r[M.MEM.SY] * SQ / 240, dim: false });
       }
     },
   };

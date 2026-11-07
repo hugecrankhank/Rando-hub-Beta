@@ -22,7 +22,7 @@
   const reachFns = [], stateFns = [];
   function worker() {
     if (w) return w;
-    w = new Worker('gen/seed-worker.js', { type: 'module' });
+    w = new Worker(window.SMR_WORKER || 'gen/seed-worker.js', { type: 'module' });   // (another page: SMR_WORKER, e.g. ../sm/gen/seed-worker.js)
     w.onmessage = (e) => {
       const m = e.data;
       if (m.type === 'logic-loaded') {
@@ -47,11 +47,13 @@
     pending = null;
   }
   window.SMRLogic = {
-    load(rom) {
+    // opts.noCheck: don't compare the ROM's items with the seed's (M1SM, ../m1sm/: some spots hold Metroid's items);
+    // which spots Samus can reach only depends on the seed's graph and what she has
+    load(rom, opts) {
       if (!rom || rom.length < 0x300000) { state = { ok: false, error: 'not a Super Metroid ROM' }; stateFns.forEach((f) => { try { f(state); } catch (x) {} }); return; }
       state = { ok: false, error: '', loading: true }; reach = null;
       const bytes = new Uint8Array(rom).slice();
-      worker().postMessage({ type: 'logic-load', rom: bytes }, [bytes.buffer]);
+      worker().postMessage({ type: 'logic-load', rom: bytes, noCheck: !!(opts && opts.noCheck) }, [bytes.buffer]);
     },
     update(inv) { pending = inv; send(); },
     onReach(fn) { reachFns.push(fn); if (reach) fn(reach); },

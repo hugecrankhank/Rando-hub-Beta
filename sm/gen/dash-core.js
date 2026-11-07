@@ -6759,3 +6759,6 @@ export {
   readSeedParams,
   setPatchBase
 };
+// for the Metroid + Super Metroid combo (../../m1sm/js/gen.js): the graph, its logic and the ROM writer
+// (tools/sm-bundle/entry.ts exports the same)
+export { generateSeed, createLoadout, addItem, checkFlags, getArea, RandomizeRom as randomizeRom, bosses as graphBosses, items as graphItems, areaTransitions as graphAreaTransitions, placed as graphPlaced };

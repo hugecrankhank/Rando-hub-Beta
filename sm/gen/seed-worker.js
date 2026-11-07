@@ -10,7 +10,7 @@
 //               { type: 'error', error, detail }
 //
 // The tracker's logic (js/logic.js) uses the same worker, kept open:
-//   { type: 'logic-load', rom }        → { type: 'logic-loaded', ok, seed, settings, placed, spoiler } or { ok: false, error }
+//   { type: 'logic-load', rom, noCheck } → { type: 'logic-loaded', ok, seed, settings, placed, spoiler } or { ok: false, error }
 //   { type: 'logic', inv, n }          → { type: 'logic-reach', n, reach: { 'spot|Area': 'ok' | 'back' | 'no' } }
 
 const stage = (text) => postMessage({ type: 'stage', text });
@@ -29,7 +29,7 @@ onmessage = async (e) => {
       await ready;
       const p = core.readSeedParams(m.rom);
       if (p.error) { postMessage({ type: 'logic-loaded', ok: false, error: p.error }); return; }
-      const r = core.logicLoad(p.seed, p.settings, p.options, m.rom);
+      const r = core.logicLoad(p.seed, p.settings, p.options, m.noCheck ? undefined : m.rom);   // (noCheck: M1SM, some spots hold Metroid's items)
       postMessage(Object.assign({ type: 'logic-loaded' }, r));
     } catch (err) { postMessage({ type: 'logic-loaded', ok: false, error: String((err && err.message) || err) }); }
     return;

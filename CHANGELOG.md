@@ -5,6 +5,14 @@ Every version is also kept as a download on the
 with the whole app, crowd control and instructions, so any version can be
 played again later.
 
+## Beta v1.14.140 (2026-11-06)
+
+- **New game: M1SM** (`m1sm/`): Metroid and Super Metroid in one seed, with items trading between the two Zebes. It's Rando Hub's own: Super Metroid rolled by DASH (the Super Metroid page's presets), Metroid by Rando Hub's own fill, then items swap games, each swap kept only if one logic across both games still finishes the seed.
+  - **Crateria's Map Station** is the portal (the Parlor's top right door, then the Pre-Map Flyway): Metroid takes over where you left it. Come back with ⇄ / P, or (a setting) only in one of Metroid's elevator rooms. Small "this way to Metroid" signs show on the way and can be turned off.
+  - A Metroid item in Super Metroid is a missile pack; pick it up and Samus in Metroid gets the real item. A Super Metroid item on a Metroid spot is a missile pack there; pick it up and it goes into Samus's Super Metroid save (counted there, so a loaded state never gives it twice).
+  - Settings: DASH preset, how many items trade (some, lots, most), goal (both Mother Brains, Super Metroid's or Metroid's), the way back. Tracker: the Super Metroid page's tracker, map and logic, and the Metroid tracker and map, switching with the game, each in its own window on a desktop. Autosave, Continue.
+  - Two ROMs: Super Metroid (JU) and Metroid (USA). Tick M1SM in **Games shown** to see it in the menus.
+
 ## Beta v1.14.139 (2026-11-06)
 
 - **New game: Z1Z3** (`z1z3/`): A Link to the Past and Zelda 1 in one seed, with one item pool across both Hyrules. It's Rando Hub's own, built on the Zelda 3 page's randomizer with Zelda 1's 17 item spots and rules added to its fill, so every seed is beatable across both games.

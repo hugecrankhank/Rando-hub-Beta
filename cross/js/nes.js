@@ -6,7 +6,7 @@
  * and when to stop; this side tells it what was picked up and when Link walks
  * into a "take any road" cave (the way back to Hyrule, ALttP's).
  *
- *   QuadNES.init({ z1, m1, at, id, store, on(event) })   (m1 may be null: Z1Z3, ../z1z3/, plays Zelda 1 alone)   events:
+ *   QuadNES.init({ z1, m1, at, id, store, on(event) })   (either may be null: Z1Z3 plays Zelda 1 alone, M1SM Metroid alone)   events:
  *     { type: 'snes', spot, item }    an SNES item picked up on a NES spot (js/link.js hands it over)
  *     { type: 'back' }                Link in a take-any-road cave: back to Hyrule
  *     { type: 'won', game }           Zelda 1's Ganon / Metroid's Mother Brain beaten
@@ -66,7 +66,7 @@
       if (taken.has(i)) return;
       taken.add(i);
       const it = at && at[i]; if (!it) return;
-      if (it.game === 'snes') on({ type: 'snes', spot: i, item: it });
+      if (it.game === 'snes' || it.game === 'sm') on({ type: 'snes', spot: i, item: it });
       else if (it.game !== game) { pending[it.game].push(it); toast('Found ' + G.itemName(it) + ': it’s waiting for ' + (it.game === 'z1' ? 'Link in Zelda 1' : 'Samus on Zebes') + '.'); }
       save();
     });
@@ -125,21 +125,23 @@
   function boot(first) {
     if (booting) return booting;
     const p = P();
-    booting = (roms.m1 ? p.newCore(roms.m1, 'quad-' + id + '-metroid') : Promise.resolve(null)).then((m1core) => {   // (no Metroid: Z1Z3, Zelda 1 alone)
+    // the player boots Zelda 1, Metroid comes in as a second core; Z1Z3 has no Metroid, M1SM no Zelda 1 (then Metroid is the one booted)
+    const main = roms.z1 ? 'z1' : 'm1';
+    booting = (roms.m1 && main === 'z1' ? p.newCore(roms.m1, 'quad-' + id + '-metroid') : Promise.resolve(null)).then((m1core) => {
       cores.m1 = m1core;
       return new Promise((resolve, reject) => {
         window.EJS_onGameStart = function () {
-          cores.z1 = p.core;
+          cores[main] = p.core;
           setInterval(poll, 150);
           setInterval(() => { if (active && !document.hidden) save(); }, 20000);
           document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
           window.addEventListener('pagehide', () => { grabState(); });
           document.addEventListener('keydown', (e) => { if ((e.key === 'p' || e.key === 'P') && !e.repeat && active) { e.preventDefault(); on({ type: 'back' }); } });   // P: back to Hyrule
-          if (window.RHHealth) window.QuadNESHealth = RHHealth.create({ counter: (r) => (r[0x15] ^ r[0x2D]) | r[0x2E] << 8 | r[0x2F] << 16 });
+          if (window.RHHealth) window.QuadNESHealth = RHHealth.create(main === 'z1' ? { counter: (r) => (r[0x15] ^ r[0x2D]) | r[0x2E] << 8 | r[0x2F] << 16 } : {});
           resolve();
         };
         if (p.setTouchPlacement) p.setTouchPlacement('overlay');
-        p.boot('#game', new File([roms.z1], 'quad-' + id + '-zelda.nes')).catch(reject);
+        p.boot('#game', new File([roms[main]], 'quad-' + id + (main === 'z1' ? '-zelda.nes' : '-metroid.nes'))).catch(reject);
       });
     });
     return booting;
@@ -179,10 +181,10 @@
   window.QuadNES = {
     init, enter, leave, ram, sram, inPlay, atPortal, save,
     give(it) { if (!it || (it.game !== 'z1' && it.game !== 'm1')) return; pending[it.game].push(it); save(); emit(); },
-    get game() { return game || 'z1'; },
+    get game() { return game || (roms.z1 ? 'z1' : 'm1'); },
     get active() { return active; },
-    get booted() { return !!cores.z1; },
-    get state() { return { game: game || 'z1', taken, pending, won, given: { z1: 0, m1: 0 } }; },
+    get booted() { return !!(cores.z1 || (!roms.z1 && cores.m1)); },
+    get state() { return { game: game || (roms.z1 ? 'z1' : 'm1'), taken, pending, won, given: { z1: 0, m1: 0 } }; },
     get cores() { return cores; },
     get roms() { return roms; },
     onChange(f) { fns.push(f); },

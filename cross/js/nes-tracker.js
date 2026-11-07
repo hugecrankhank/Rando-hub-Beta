@@ -21,6 +21,7 @@
   const zmName = ZMGen.itemName;
   ZMGen.itemName = (it) => {
     if (it && it.game === 'snes' && (it.nice || typeof it.type === 'string')) return (it.nice || it.type) + ' (ALttP)';   // (Z1Z3: an A Link to the Past item)
+    if (it && it.game === 'sm') return (it.name || (typeof it.type === 'string' ? it.type : 'Super Metroid item')) + ' (Super Metroid)';   // (M1SM)
     if (it && it.game === 'snes') { const h = host(), G = h && h.SMZ3Gen; return G ? (G.IT_DESC[G.IT_NAME[it.type]] || 'SNES item') + ' (SNES)' : 'SNES item'; }
     return zmName(it);
   };
@@ -37,9 +38,19 @@
       '<span class="goal-c">The way in: <b>' + ((m.portal && m.portal.name) || 'the Elder’s House') + '</b> in Kakariko. Back to Kakariko: ' + (o.exits === 'exits' ? 'a “take any road” cave.' : 'a “take any road” cave, or ⇄ / P anywhere.') + waiting + '</span>' +
       '<span class="goal-c">Goal: ' + goal + ' · ALttP ' + (won.snes ? '✓' : '·') + ' · Zelda 1 ' + (won.z1 ? '✓' : '·') + '</span>';
   };
+  // M1SM (../m1sm/): one way in (Crateria's Map Station), Super Metroid's items on some spots
+  const m1smWay = (st, m, L) => {
+    const where = L ? L.where : 'snes', won = L && L.record ? L.record.won : {};
+    const waiting = st.pending.m1 && st.pending.m1.length ? ' · ' + st.pending.m1.map(ZMGen.itemName).join(', ') + ' waiting for Samus' : '';
+    const goal = { both: 'both Mother Brains', sm: 'Super Metroid’s Mother Brain', m1: 'Metroid’s Mother Brain' }[m.goal || 'both'];
+    return '<span class="goal-r">Playing: ' + (where === 'snes' ? 'Super Metroid' : 'Metroid') + '</span>' +
+      '<span class="goal-c">The way in: <b>' + ((m.portal && m.portal.name) || 'Crateria’s Map Station') + '</b> (' + ((m.portal && m.portal.how) || '') + '). Back to Crateria: ' + (m.exits === 'exits' ? 'one of Metroid’s elevator rooms.' : 'an elevator room, or ⇄ / P anywhere.') + waiting + '</span>' +
+      '<span class="goal-c">Goal: ' + goal + ' · Super Metroid ' + (won.snes ? '✓' : '·') + ' · Metroid ' + (won.m1 ? '✓' : '·') + '</span>';
+  };
   window.ZMWay = (st) => {
     const h = host(), A = h && h.QuadApp, m = A && A.meta || {}, L = h && h.QuadLink;
     if (m.generator === 'Z1Z3') return z1z3Way(st, m, L);
+    if (m.generator === 'M1SM') return m1smWay(st, m, L);
     const where = L ? L.where : 'snes';
     const playing = where === 'snes' ? 'the SNES game (ALttP / Super Metroid)' : NAME[where];
     const waiting = (g) => st.pending[g] && st.pending[g].length ? ' · ' + st.pending[g].map(ZMGen.itemName).join(', ') + ' waiting for ' + (g === 'z1' ? 'Link' : 'Samus') : '';
@@ -57,6 +68,7 @@
     const h = host(), A = h && h.QuadApp; if (!A || !A.meta || A.id === sid) return;
     sid = A.id;
     const m = A.meta;
+    if (m.generator === 'M1SM') { ZMTracker.setSession('m1sm-' + A.id, 'Seed ' + m.seed, { seed: m.seed, generator: 'M1SM (Metroid’s half)', spoiler: m.spoiler, items: (m.at || []).map((a) => (!a ? ['z1', 0x0F] : a.game === 'm1' ? ['m1', a.type] : ['sm', a.name])) }); return; }
     if (m.generator === 'Z1Z3') { ZMTracker.setSession('z1z3-' + A.id, 'Seed ' + m.seed, { seed: m.seed, generator: 'Z1Z3 (Zelda 1’s half)', spoiler: m.spoiler, items: (m.at || []).map((a) => (a.game === 'z1' ? ['z1', a.type] : ['snes', a.nice || a.name])) }); return; }
     ZMTracker.setSession('quad-' + A.id, 'Seed ' + m.seed, { seed: m.seed, generator: 'Rando Cross (the NES half)', spoiler: m.spoiler, items: m.at });
   }

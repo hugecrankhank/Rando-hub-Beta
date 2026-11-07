@@ -19,6 +19,9 @@ import type { Settings, Options } from "$DASH/packages/core/lib/params";
 import type { Graph, Vertex } from "$DASH/packages/core/lib/graph/init";
 
 export { getLocations, getAllPresets, getPreset, getSignature, isHeadered, isVerified, getSeedNumber, BeamMode, BossMode, MapLayout, MajorDistributionMode, MinorDistributionMode, SuitMode, GravityHeatReduction, Item };
+// for the Metroid + Super Metroid combo (m1sm/js/gen.js): the graph, its logic and the ROM writer
+export { generateSeed, createLoadout, addItem, checkFlags, getArea, RandomizeRom as randomizeRom };
+export { bosses as graphBosses, items as graphItems, areaTransitions as graphAreaTransitions, placed as graphPlaced };
 
 // the base patches live next to this bundle
 let patchBase = "";
